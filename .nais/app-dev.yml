@@ -1,0 +1,48 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: api-intern
+  namespace: aap
+  labels:
+    team: aap
+    komponent: datadeling
+spec:
+  image: {{image}}
+  ingresses:
+    - https://aap-api.intern.dev.nav.no
+  replicas:
+    max: 1
+    min: 1
+  resources:
+    limits:
+      memory: 8Gi
+    requests:
+      cpu: 500m
+      memory: 4Gi
+  azure:
+    application:
+      enabled: true
+  liveness:
+    path: /actuator/live
+    initialDelay: 1
+    periodSeconds: 1
+    failureThreshold: 60
+  readiness:
+    path: /actuator/ready
+    initialDelay: 1
+    periodSeconds: 1
+    failureThreshold: 60
+  prometheus:
+    enabled: true
+    path: /actuator/metrics
+  secureLogs:
+    enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: arenaoppslag.dev-fss-pub.nais.io
+  env:
+    - name: ARENAOPPSLAG_PROXY_BASE_URL
+      value: https://arenaoppslag.dev-fss-pub.nais.io
+    - name: ARENAOPPSLAG_SCOPE
+      value: api://dev-fss.aap.arenaoppslag/.default
