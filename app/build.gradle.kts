@@ -40,7 +40,7 @@ dependencies {
     implementation("com.auth0:java-jwt:4.4.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.16.1")
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.12.2")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.12.3")
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
