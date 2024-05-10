@@ -8,7 +8,7 @@ application {
     mainClass.set("api.AppKt")
 }
 
-val aapLibVersion = "5.0.15"
+val aapLibVersion = "5.0.17"
 val ktorVersion = "2.3.11"
 
 dependencies {
