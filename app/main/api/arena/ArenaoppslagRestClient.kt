@@ -1,20 +1,28 @@
 package api.arena
 
-import api.util.ArenaoppslagConfig
+import api.perioder.PerioderRequest
+import api.perioder.PerioderResponse
+import api.ArenaoppslagConfig
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.prometheus.client.Summary
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import org.slf4j.LoggerFactory
+import java.util.*
 
 private const val ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME = "arenaoppslag_client_seconds"
 private val sikkerLogg = LoggerFactory.getLogger("secureLog")
@@ -34,6 +42,22 @@ class ArenaoppslagRestClient(
     azureConfig: AzureConfig
 ) {
     private val tokenProvider = AzureAdTokenProvider(azureConfig)
+
+    fun hentPerioder(callId: UUID, vedtakRequest: PerioderRequest): PerioderResponse =
+        clientLatencyStats.startTimer().use {
+            runBlocking {
+                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder"){
+                    accept(ContentType.Application.Json)
+                    header("Nav-Call-Id", callId)
+                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                    contentType(ContentType.Application.Json)
+                    setBody(vedtakRequest)
+                }
+                    .bodyAsText()
+                    .also { svar -> sikkerLogg.info("Svar fra arenaoppslag:\n$svar") }
+                    .let(objectMapper::readValue)
+            }
+        }
 
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout)

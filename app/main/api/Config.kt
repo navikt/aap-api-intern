@@ -1,4 +1,4 @@
-package api.util
+package api
 
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
 

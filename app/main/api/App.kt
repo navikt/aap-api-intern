@@ -1,7 +1,6 @@
 package api
 
 import api.arena.ArenaoppslagRestClient
-import api.util.*
 import com.auth0.jwk.JwkProviderBuilder
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -81,7 +80,7 @@ fun Application.api() {
 
     routing {
         actuator(prometheus)
+        api(arenaRestClient)
         swaggerUI(path = "swagger", swaggerFile = "openapi.yaml")
-
     }
 }
