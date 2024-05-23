@@ -20,7 +20,7 @@ servers:
   - url: https://aap-api.intern.dev.nav.no
     description: Test server
 paths:
-  /afp/fellesordningen:
+  /perioder:
     post:
       summary: Hent perioder med AAP
       tags:
@@ -52,9 +52,9 @@ paths:
         '400':
           description: Feil i request
         '401':
-          description: Mangler / feil maskinporten token eller samtykke-token
+          description: Mangler/feil token
         '403':
-          description: Feil scope i maskinporten token
+          description: Ikke tilgang
         '404':
           description: Manglende URL / Person ikke funnet
         '500':
