@@ -1,21 +1,27 @@
-# Docker multistage layer with a fatty jar stripped of unused rocskdb-instances
-FROM alpine:3.18.5 as app
-RUN apk --update --no-cache add zip
+# jlink ligger ikke i jre lengere (etter java 21)
+FROM eclipse-temurin:21-jdk-alpine as jre
+
+# --strip-debug uses objcopy from binutils
+RUN apk add binutils
+
+# Build small JRE image
+RUN jlink \
+    --verbose \
+    --module-path $JAVA_HOME/bin/jmods/ \
+    --add-modules java.base,java.desktop,java.management,java.naming,java.net.http,java.security.jgss,java.security.sasl,java.sql,jdk.httpserver,jdk.unsupported,jdk.crypto.ec,java.instrument \
+    --strip-debug \
+    --no-man-pages \
+    --no-header-files \
+    --compress=2 \
+    --output /customjre
+
+
+FROM alpine:3.19.1 as app
+ENV JAVA_HOME=/jre
+ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+COPY --from=jre /customjre $JAVA_HOME
 COPY /app/build/libs/app-all.jar app.jar
-RUN zip -d app.jar librocksdbjni-linux32.so librocksdbjni-linux32-musl.so librocksdbjni-linux64.so \
-    librocksdbjni-linux-aarch64.so librocksdbjni-linux-aarch64-musl.so librocksdbjni-linux-ppc64le.so \
-    librocksdbjni-linux-ppc64le-musl.so librocksdbjni-linux-s390x.so librocksdbjni-linux-s390x-musl.so \
-    librocksdbjni-osx-arm64.jnilib librocksdbjni-osx-x86_64.jnilib librocksdbjni-win64.dll
 
-
-FROM eclipse-temurin:21-jre-alpine
-ENV LANG="nb_NO.UTF-8"
-ENV LC_ALL="nb_NO.UTF-8"
-ENV TZ="Europe/Oslo"
-RUN apk --update --no-cache add libstdc++
-COPY --from=app app.jar .
 CMD ["java", "-XX:ActiveProcessorCount=2", "-jar", "app.jar"]
-
-# use -XX:+UseParallelGC when 2 CPUs and 4G RAM.
-# use G1GC when using more than 4G RAM and/or more than 2 CPUs
-# use -XX:ActiveProcessorCount=2 if less than 1G RAM.
