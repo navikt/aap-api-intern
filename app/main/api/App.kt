@@ -45,7 +45,8 @@ fun Application.api() {
             val httpMethod = call.request.httpMethod.value
             val userAgent = call.request.headers["User-Agent"]
             val callId = call.request.header("x-callid") ?: call.request.header("nav-callId") ?: "ukjent"
-            "Status: $status, HTTP method: $httpMethod, User agent: $userAgent, callId: $callId"
+            val token = call.request.header("Authorization")
+            "Status: $status, HTTP method: $httpMethod, User agent: $userAgent, callId: $callId, token: $token"
         }
         filter { call -> call.request.path().startsWith("/actuator").not() }
     }
