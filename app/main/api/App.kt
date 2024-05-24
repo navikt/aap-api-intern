@@ -23,6 +23,7 @@ import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import org.slf4j.LoggerFactory
 import org.slf4j.event.Level
+import java.net.URI
 import java.util.concurrent.TimeUnit
 
 private val logger = LoggerFactory.getLogger("App")
@@ -46,7 +47,7 @@ fun Application.api() {
             val userAgent = call.request.headers["User-Agent"]
             val callId = call.request.header("x-callid") ?: call.request.header("nav-callId") ?: "ukjent"
             val token = call.request.header("Authorization")
-            "Status: $status, HTTP method: $httpMethod, User agent: $userAgent, callId: $callId, token: $token"
+            "Status: $status, HTTP method: $httpMethod, User agent: $userAgent, callId: $callId"
         }
         filter { call -> call.request.path().startsWith("/actuator").not() }
     }
@@ -62,7 +63,7 @@ fun Application.api() {
         }
     }
 
-    val jwkProvider = JwkProviderBuilder(config.azure.jwksUri)
+    val jwkProvider = JwkProviderBuilder(URI(config.azure.jwksUri).toURL())
         .cached(10, 24, TimeUnit.HOURS)
         .rateLimited(10, 1, TimeUnit.MINUTES)
         .build()
