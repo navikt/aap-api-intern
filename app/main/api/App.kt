@@ -17,6 +17,7 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
@@ -67,6 +68,10 @@ fun Application.api() {
         jwt {
             realm = "intern api"
             verifier(jwkProvider, config.azure.issuer)
+            challenge { _, _ ->
+                logger.warn("Unauthorized call")
+                call.respond(HttpStatusCode.Unauthorized)
+            }
             validate { credential ->
                 if (credential.payload.audience.contains(config.azure.clientId)) JWTPrincipal(credential.payload) else null
             }

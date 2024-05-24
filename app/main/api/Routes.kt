@@ -9,14 +9,17 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import org.slf4j.LoggerFactory
 import java.util.*
+
+private val sikkerLogg = LoggerFactory.getLogger("secureLog")
 
 fun Routing.api(arena: ArenaoppslagRestClient) {
     authenticate {
         post("/perioder") {
             val body = call.receive<PerioderRequest>()
             val callId = requireNotNull(call.request.header("x-callid")) { "x-callid ikke satt" }
-
+            sikkerLogg.info("Perioderequest $body")
             call.respond(arena.hentPerioder(UUID.fromString(callId), body))
         }
     }
