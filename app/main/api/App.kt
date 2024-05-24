@@ -26,6 +26,7 @@ import org.slf4j.event.Level
 import java.util.concurrent.TimeUnit
 
 private val logger = LoggerFactory.getLogger("App")
+private val sikkerLogg = LoggerFactory.getLogger("secureLog")
 
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil", e) }
@@ -73,6 +74,7 @@ fun Application.api() {
                 call.respond(HttpStatusCode.Unauthorized)
             }
             validate { credential ->
+                sikkerLogg.info("Sjekk: ${config.azure.clientId} og ${credential.payload}")
                 if (credential.payload.audience.contains(config.azure.clientId)) JWTPrincipal(credential.payload) else null
             }
         }
