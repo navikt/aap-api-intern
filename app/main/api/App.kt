@@ -74,7 +74,7 @@ fun Application.api() {
                 call.respond(HttpStatusCode.Unauthorized)
             }
             validate { credential ->
-                sikkerLogg.info("Sjekk: ${config.azure.clientId} og ${credential.payload}")
+                sikkerLogg.info("Sjekk: ${config.azure.clientId} og ${credential.payload.expiresAt} og ${credential.payload.notBefore} og ${credential.payload.audience}")
                 if (credential.payload.audience.contains(config.azure.clientId)) JWTPrincipal(credential.payload) else null
             }
         }
