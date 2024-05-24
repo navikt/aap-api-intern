@@ -18,9 +18,8 @@ fun Routing.api(arena: ArenaoppslagRestClient) {
     authenticate {
         post("/perioder") {
             val body = call.receive<PerioderRequest>()
-            val callId = requireNotNull(call.request.header("x-callid")) { "x-callid ikke satt" }
-            sikkerLogg.info("Perioderequest $body")
-            call.respond(arena.hentPerioder(UUID.fromString(callId), body))
+            val callId = UUID.randomUUID()
+            call.respond(arena.hentPerioder(callId, body))
         }
     }
 }
