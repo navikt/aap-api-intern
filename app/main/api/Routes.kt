@@ -23,14 +23,6 @@ fun Routing.api(arena: ArenaoppslagRestClient) {
             call.respond(arena.hentPerioder(callId, body))
         }
     }
-    get("/test") {
-        call.respond(arena.hentPerioder(UUID.randomUUID(), PerioderRequest(
-            "12345678910",
-            LocalDate.now(),
-            LocalDate.now()
-        )
-        ))
-    }
 }
 
 fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
