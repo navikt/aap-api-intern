@@ -10,6 +10,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.util.*
 
 private val sikkerLogg = LoggerFactory.getLogger("secureLog")
@@ -21,6 +22,14 @@ fun Routing.api(arena: ArenaoppslagRestClient) {
             val callId = UUID.randomUUID()
             call.respond(arena.hentPerioder(callId, body))
         }
+    }
+    get("/test") {
+        call.respond(arena.hentPerioder(UUID.randomUUID(), PerioderRequest(
+            "12345678910",
+            LocalDate.now(),
+            LocalDate.now()
+        )
+        ))
     }
 }
 
