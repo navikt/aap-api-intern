@@ -71,8 +71,8 @@ fun Application.api() {
         jwt {
             realm = "intern api"
             verifier(jwkProvider, config.azure.issuer)
-            challenge { _, _ ->
-                logger.warn("Unauthorized call")
+            challenge { a, b ->
+                logger.warn("Unauthorized call $a - $b")
                 call.respond(HttpStatusCode.Unauthorized)
             }
             validate { credential ->

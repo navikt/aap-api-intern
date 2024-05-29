@@ -38,6 +38,11 @@ spec:
   secureLogs:
     enabled: true
   accessPolicy:
+    inbound:
+      rules:
+        - application: tilleggsstonader-integrasjoner
+          namespace: tilleggsstonader
+          cluster: dev-gcp
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
