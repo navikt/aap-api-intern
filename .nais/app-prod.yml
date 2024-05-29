@@ -42,7 +42,7 @@ spec:
       rules:
         - application: tilleggsstonader-integrasjoner
           namespace: tilleggsstonader
-          cluster: dev-gcp
+          cluster: prod-gcp
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
