@@ -17,7 +17,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
-import io.prometheus.client.Summary
+import io.prometheus.metrics.core.metrics.Summary
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
@@ -26,7 +26,7 @@ import java.util.*
 
 private const val ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME = "arenaoppslag_client_seconds"
 private val sikkerLogg = LoggerFactory.getLogger("secureLog")
-private val clientLatencyStats: Summary = Summary.build()
+private val clientLatencyStats: Summary = Summary.builder()
     .name(ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME)
     .quantile(0.5, 0.05) // Add 50th percentile (= median) with 5% tolerated error
     .quantile(0.9, 0.01) // Add 90th percentile with 1% tolerated error
