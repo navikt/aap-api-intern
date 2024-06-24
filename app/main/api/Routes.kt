@@ -8,9 +8,8 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.micrometer.prometheus.PrometheusMeterRegistry
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 import java.util.*
 
 private val sikkerLogg = LoggerFactory.getLogger("secureLog")
