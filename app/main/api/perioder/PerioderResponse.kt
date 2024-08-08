@@ -4,4 +4,14 @@ import java.time.LocalDate
 
 data class PerioderResponse(val perioder: List<Periode>)
 
+data class PeriodeInkludert11_17(
+    val fraOgMedDato: LocalDate,
+    val tilOgMedDato: LocalDate?,
+    val aktivitetsfase: String
+)
+
+data class PerioderInkludert11_17Response(
+    val perioder: List<PeriodeInkludert11_17>
+)
+
 data class Periode(val fraOgMedDato:LocalDate, val tilOgMedDato:LocalDate?)

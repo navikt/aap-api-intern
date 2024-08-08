@@ -16,11 +16,19 @@ private val sikkerLogg = LoggerFactory.getLogger("secureLog")
 
 fun Routing.api(arena: ArenaoppslagRestClient) {
     authenticate {
-        post("/perioder") {
-            val body = call.receive<PerioderRequest>()
-            val callId = UUID.randomUUID()
-            call.respond(arena.hentPerioder(callId, body))
+        route("/perioder") {
+            post {
+                val body = call.receive<PerioderRequest>()
+                val callId = UUID.randomUUID()
+                call.respond(arena.hentPerioder(callId, body))
+            }
+            post("/11-17") {
+                val body = call.receive<PerioderRequest>()
+                val callId = UUID.randomUUID()
+                call.respond(arena.hentPerioderInkludert11_17(callId, body))
+            }
         }
+
     }
 }
 
