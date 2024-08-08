@@ -5,9 +5,9 @@ import java.time.LocalDate
 data class PerioderResponse(val perioder: List<Periode>)
 
 data class PeriodeInkludert11_17(
-    val fraOgMedDato: LocalDate,
-    val tilOgMedDato: LocalDate?,
-    val aktivitetsfase: String
+    val peride: Periode,
+    val aktivitetsfaseKode: String,
+    val aktivitetsfaseNavn: String
 )
 
 data class PerioderInkludert11_17Response(

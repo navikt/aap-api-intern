@@ -59,11 +59,74 @@ paths:
           description: Manglende URL / Person ikke funnet
         '500':
           description: Feil på tjeneste, meld fra og send med call-id
+  /perioder/11-17:
+    post:
+      summary: Hent perioder med AAP
+      tags:
+        - perioder
+      description: |-
+        Henter perioder med vedtak for en person innen gitte datointerval.
+      security:
+        - azure: [ ]
+      parameters:
+        - in: header
+          name: x-callid
+          description: En UUID konsumenten sender inn som brukes til videre logging og feilsøking.
+          schema:
+            type: string
+            format: uuid
+          required: true
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PeriodeRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Periode11-17Response'
+        '400':
+          description: Feil i request
+        '401':
+          description: Mangler/feil token
+        '403':
+          description: Ikke tilgang
+        '404':
+          description: Manglende URL / Person ikke funnet
+        '500':
+          description: Feil på tjeneste, meld fra og send med call-id
 components:
   schemas:
     PeriodeResponse:
       type: object
       properties:
+        perioder:
+          type: array
+          description: Perioder med vedtak
+          items:
+            $ref: '#/components/schemas/Periode'
+    Periode11-17Response:
+      type: object
+      properties:
+        perioder:
+          type: array
+          description: Perioder med vedtak inkludert 11-17
+          items:
+            $ref: '#/components/schemas/PeriodeInkludert11_17'
+    PeriodeInkludert11_17:
+      type: object
+      properties:
+        aktivitetsfaseKode:
+            type: string
+            description: AktivitetsfaseKode
+            example: "<KodeIString>"
+        aktivitetsfaseNavn:
+            type: string
+            description: AktivitetsfaseNavn
+            example: "<NavnIString>"
         perioder:
           type: array
           description: Perioder med vedtak
