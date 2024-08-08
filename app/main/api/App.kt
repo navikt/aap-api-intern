@@ -43,12 +43,13 @@ fun Application.api() {
         level = Level.INFO
         format { call ->
             val status = call.response.status()
+            val errorBody = if(status?.value!! > 499) ", ErrorBody: ${call.response.byteContent?.decodeToString()}" else ""
             val httpMethod = call.request.httpMethod.value
             val userAgent = call.request.headers["User-Agent"]
             val callId = call.request.header("x-callid") ?: call.request.header("nav-callId") ?: "ukjent"
             val token = call.request.header("Authorization")
             val path = call.request.path()
-            "Status: $status, HTTP method: $httpMethod, User agent: $userAgent, Call id: $callId, Path: $path"
+            "Status: $status$errorBody, HTTP method: $httpMethod, User agent: $userAgent, Call id: $callId, Path: $path"
         }
         filter { call -> call.request.path().startsWith("/actuator").not() }
     }
