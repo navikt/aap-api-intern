@@ -6,9 +6,8 @@ info:
     
     Bruker azure til autentisering
   contact:
-    name: Richard Borge
+    name: Team AAP
     url: https://github.com/navikt/aap-api-intern
-    email: richard.borge@nav.no
   version: 1.0.0
   license:
     name: MIT
