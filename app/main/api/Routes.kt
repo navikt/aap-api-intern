@@ -19,12 +19,12 @@ fun Routing.api(arena: ArenaoppslagRestClient) {
         route("/perioder") {
             post {
                 val body = call.receive<PerioderRequest>()
-                val callId = UUID.randomUUID()
+                val callId = UUID.fromString(call.request.header("x-callid"))?: UUID.randomUUID()
                 call.respond(arena.hentPerioder(callId, body))
             }
             post("/11-17") {
                 val body = call.receive<PerioderRequest>()
-                val callId = UUID.randomUUID()
+                val callId = UUID.fromString(call.request.header("x-callid"))?: UUID.randomUUID()
                 call.respond(arena.hentPerioderInkludert11_17(callId, body))
             }
         }

@@ -5,7 +5,7 @@ import java.time.LocalDate
 data class PerioderResponse(val perioder: List<Periode>)
 
 data class PeriodeInkludert11_17(
-    val peride: Periode,
+    val periode: Periode,
     val aktivitetsfaseKode: String,
     val aktivitetsfaseNavn: String
 )
