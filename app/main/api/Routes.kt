@@ -13,19 +13,32 @@ import org.slf4j.LoggerFactory
 import java.util.*
 
 private val sikkerLogg = LoggerFactory.getLogger("secureLog")
+private val logger = LoggerFactory.getLogger("App")
 
 fun Routing.api(arena: ArenaoppslagRestClient) {
     authenticate {
         route("/perioder") {
             post {
                 val body = call.receive<PerioderRequest>()
-                val callId = UUID.randomUUID()
-                call.respond(arena.hentPerioder(callId, body))
+                val callId = call.request.header("Nav-Call-Id")
+                val uuidCallid:UUID = UUID.randomUUID()
+                try {
+                    val uuidCallid = UUID.fromString(callId)
+                }catch (e: Exception){
+                    logger.warn("Ugyldig callid: $callId")
+                }
+                call.respond(arena.hentPerioder(uuidCallid, body))
             }
             post("/11-17") {
                 val body = call.receive<PerioderRequest>()
-                val callId = UUID.randomUUID()
-                call.respond(arena.hentPerioderInkludert11_17(callId, body))
+                val callId = call.request.header("Nav-Call-Id")
+                val uuidCallid:UUID = UUID.randomUUID()
+                    try {
+                    val uuidCallid = UUID.fromString(callId)
+                }catch (e: Exception){
+                    logger.warn("Ugyldig callid: $callId")
+                }
+                call.respond(arena.hentPerioderInkludert11_17(uuidCallid, body))
             }
         }
 
