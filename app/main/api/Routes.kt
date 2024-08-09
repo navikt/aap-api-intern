@@ -15,30 +15,32 @@ import java.util.*
 private val sikkerLogg = LoggerFactory.getLogger("secureLog")
 private val logger = LoggerFactory.getLogger("App")
 
+private val NAV_CALL_ID_HEADER_NAMES =
+    listOf(
+        "Nav-CallId",
+        "Nav-Callid",
+        "X-Correlation-Id",
+    )
+
+private fun resolveCallId(call: ApplicationCall): String {
+    return NAV_CALL_ID_HEADER_NAMES
+        .mapNotNull { call.request.header(it) }
+        .firstOrNull { it.isNotEmpty() }
+        ?: UUID.randomUUID().toString()
+}
+
 fun Routing.api(arena: ArenaoppslagRestClient) {
     authenticate {
         route("/perioder") {
             post {
                 val body = call.receive<PerioderRequest>()
-                val callId = call.request.header("Nav-Call-Id")
-                val uuidCallid:UUID = UUID.randomUUID()
-                try {
-                    val uuidCallid = UUID.fromString(callId)
-                }catch (e: Exception){
-                    logger.warn("Ugyldig callid: $callId")
-                }
-                call.respond(arena.hentPerioder(uuidCallid, body))
+                val callId = UUID.fromString(resolveCallId(call))
+                call.respond(arena.hentPerioder(callId, body))
             }
             post("/11-17") {
                 val body = call.receive<PerioderRequest>()
-                val callId = call.request.header("Nav-Call-Id")
-                val uuidCallid:UUID = UUID.randomUUID()
-                    try {
-                    val uuidCallid = UUID.fromString(callId)
-                }catch (e: Exception){
-                    logger.warn("Ugyldig callid: $callId")
-                }
-                call.respond(arena.hentPerioderInkludert11_17(uuidCallid, body))
+                val callId = UUID.fromString(resolveCallId(call))
+                call.respond(arena.hentPerioderInkludert11_17(callId, body))
             }
         }
 
