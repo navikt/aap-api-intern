@@ -126,13 +126,11 @@ components:
             type: string
             description: AktivitetsfaseNavn
             example: "<NavnIString>"
-        perioder:
-          type: array
-          description: Perioder med vedtak
-          items:
-            $ref: '#/components/schemas/Periode'
+        periode:
+          $ref: '#/components/schemas/Periode'
     Periode:
       type: object
+      description: Periode
       properties:
         fraOgMedDato:
           type: string
