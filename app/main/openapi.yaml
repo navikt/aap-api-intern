@@ -58,7 +58,7 @@ paths:
           description: Manglende URL / Person ikke funnet
         '500':
           description: Feil på tjeneste, meld fra og send med call-id
-  /perioder/11-17:
+  /perioder/aktivitetfase:
     post:
       summary: Hent perioder med AAP
       tags:

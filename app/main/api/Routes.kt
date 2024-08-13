@@ -37,7 +37,7 @@ fun Routing.api(arena: ArenaoppslagRestClient) {
                 val callId = UUID.fromString(resolveCallId(call))
                 call.respond(arena.hentPerioder(callId, body))
             }
-            post("/11-17") {
+            post("/aktivitetfase") {
                 val body = call.receive<PerioderRequest>()
                 val callId = UUID.fromString(resolveCallId(call))
                 call.respond(arena.hentPerioderInkludert11_17(callId, body))
