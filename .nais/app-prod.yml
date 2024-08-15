@@ -32,6 +32,10 @@ spec:
     initialDelay: 1
     periodSeconds: 1
     failureThreshold: 60
+  observability:
+    autoInstrumentation:
+      enabled: true
+      runtime: java
   prometheus:
     enabled: true
     path: /actuator/metrics
