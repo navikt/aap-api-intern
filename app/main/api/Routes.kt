@@ -43,7 +43,9 @@ fun Routing.api(arena: ArenaoppslagRestClient) {
                 call.respond(arena.hentPerioderInkludert11_17(callId, body))
             }
         }
-
+    }
+    get("/test"){
+        call.respond(arena.hentAnmerkningTyper(UUID.randomUUID()))
     }
 }
 
