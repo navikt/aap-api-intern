@@ -18,15 +18,21 @@ private val logger = LoggerFactory.getLogger("App")
 private val NAV_CALL_ID_HEADER_NAMES =
     listOf(
         "Nav-CallId",
-        "Nav-Callid",
         "X-Correlation-Id",
     )
 
 private fun resolveCallId(call: ApplicationCall): String {
-    return NAV_CALL_ID_HEADER_NAMES
+    var callId =  NAV_CALL_ID_HEADER_NAMES
+        .map { it.lowercase() }
         .mapNotNull { call.request.header(it) }
         .firstOrNull { it.isNotEmpty() }
-        ?: UUID.randomUUID().toString()
+            //?: UUID.randomUUID().toString()
+
+    if (callId == null) {
+        logger.info("CallID ble ikke gitt på kall: $call.request.uri.")
+        callId = UUID.randomUUID().toString()
+    }
+    return callId
 }
 
 fun Routing.api(arena: ArenaoppslagRestClient) {
