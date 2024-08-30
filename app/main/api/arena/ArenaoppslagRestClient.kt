@@ -74,7 +74,7 @@ class ArenaoppslagRestClient(
             }
         }
 
-    fun hentAnmerkningTyper(callId: UUID): List<AnmerkningType> =
+    fun hentAnmerkningTyper(callId: UUID): String =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 httpClient.get("${arenaoppslagConfig.proxyBaseUrl}/intern/maksimum"){
@@ -83,11 +83,8 @@ class ArenaoppslagRestClient(
                     bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
                 }
                     .bodyAsText()
-                    .let(objectMapper::readValue)
             }
         }
-
-    data class AnmerkningType(val kode: String?, val navn: String?)
 
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout)
