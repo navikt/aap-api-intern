@@ -39,7 +39,7 @@ dependencies {
     implementation("ch.qos.logback:logback-classic:1.5.8")
     implementation("com.auth0:java-jwt:4.4.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2")
-    implementation("com.nimbusds:nimbus-jose-jwt:9.40")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.41")
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.4")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.3.1")
