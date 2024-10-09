@@ -12,8 +12,8 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import org.slf4j.LoggerFactory
 import java.util.*
 
-private val sikkerLogg = LoggerFactory.getLogger("secureLog")
 private val logger = LoggerFactory.getLogger("App")
+
 
 private val NAV_CALL_ID_HEADER_NAMES =
     listOf(
@@ -22,11 +22,10 @@ private val NAV_CALL_ID_HEADER_NAMES =
     )
 
 private fun resolveCallId(call: ApplicationCall): String {
-    var callId =  NAV_CALL_ID_HEADER_NAMES
+    var callId = NAV_CALL_ID_HEADER_NAMES
         .map { it.lowercase() }
         .mapNotNull { call.request.header(it) }
         .firstOrNull { it.isNotEmpty() }
-            //?: UUID.randomUUID().toString()
 
     if (callId == null) {
         logger.info("CallID ble ikke gitt på kall: $call.request.uri.")
@@ -35,15 +34,17 @@ private fun resolveCallId(call: ApplicationCall): String {
     return callId
 }
 
-fun Routing.api(arena: ArenaoppslagRestClient) {
+fun Routing.api(arena: ArenaoppslagRestClient, httpCallCounter: PrometheusMeterRegistry) {
     authenticate {
         route("/perioder") {
             post {
+                httpCallCounter.httpCallCounter("/perioder").increment()
                 val body = call.receive<PerioderRequest>()
                 val callId = UUID.fromString(resolveCallId(call))
                 call.respond(arena.hentPerioder(callId, body))
             }
             post("/aktivitetfase") {
+                httpCallCounter.httpCallCounter("/aktivitetfase").increment()
                 val body = call.receive<PerioderRequest>()
                 val callId = UUID.fromString(resolveCallId(call))
                 call.respond(arena.hentPerioderInkludert11_17(callId, body))

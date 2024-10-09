@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     kotlin("jvm") version "2.0.20"
     id("io.ktor.plugin") version "2.3.12"
@@ -9,11 +11,13 @@ application {
 }
 
 val aapLibVersion = "5.0.23"
+val komponenterVersjon = "1.0.11"
 val ktorVersion = "2.3.12"
 
 dependencies {
     implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
 
+    implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
@@ -26,6 +30,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-webjars:$ktorVersion")
+    implementation("io.ktor:ktor-server-call-id:$ktorVersion")
 
     implementation("io.ktor:ktor-server-swagger:$ktorVersion")
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
@@ -48,11 +53,15 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
-tasks {
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "21"
+kotlin {
+    jvmToolchain(21)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
     }
+}
 
+
+tasks {
     withType<Test> {
         useJUnitPlatform()
     }
