@@ -48,6 +48,7 @@ spec:
   accessPolicy:
     inbound:
       rules:
+        - application: postmottak-backend
         - application: tilleggsstonader-integrasjoner
           namespace: tilleggsstonader
           cluster: dev-gcp
