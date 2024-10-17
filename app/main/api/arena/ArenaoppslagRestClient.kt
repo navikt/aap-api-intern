@@ -1,9 +1,7 @@
 package api.arena
 
-import api.perioder.PerioderRequest
-import api.perioder.PerioderResponse
 import api.ArenaoppslagConfig
-import api.perioder.PerioderInkludert11_17Response
+import api.perioder.*
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -68,6 +66,21 @@ class ArenaoppslagRestClient(
                     bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
                     contentType(ContentType.Application.Json)
                     setBody(vedtakRequest)
+                }
+                    .bodyAsText()
+                    .let(objectMapper::readValue)
+            }
+        }
+
+    fun hentSakerByFnr(callId: UUID, fnr: String): SakStatus =
+        clientLatencyStats.startTimer().use {
+            runBlocking {
+                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/saker") {
+                    accept(ContentType.Application.Json)
+                    header("Nav-Call-Id", callId)
+                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                    contentType(ContentType.Application.Json)
+                    setBody(SakerRequest(fnr))
                 }
                     .bodyAsText()
                     .let(objectMapper::readValue)

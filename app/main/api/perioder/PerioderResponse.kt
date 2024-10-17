@@ -15,3 +15,10 @@ data class PerioderInkludert11_17Response(
 )
 
 data class Periode(val fraOgMedDato:LocalDate, val tilOgMedDato:LocalDate?)
+
+
+data class SakStatus(
+    val sakId: String,
+    val vedtakStatusKode: String,
+    val periode: Periode
+)

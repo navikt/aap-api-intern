@@ -7,3 +7,7 @@ data class PerioderRequest(
     val fraOgMedDato: LocalDate,
     val tilOgMedDato: LocalDate
 )
+
+class SakerRequest (
+    val personidentifikator: String
+)

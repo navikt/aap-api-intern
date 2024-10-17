@@ -2,6 +2,7 @@ package api
 
 import api.arena.ArenaoppslagRestClient
 import api.perioder.PerioderRequest
+import api.perioder.SakerRequest
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -49,6 +50,12 @@ fun Routing.api(arena: ArenaoppslagRestClient, httpCallCounter: PrometheusMeterR
                 val callId = UUID.fromString(resolveCallId(call))
                 call.respond(arena.hentPerioderInkludert11_17(callId, body))
             }
+        }
+        post("/sakerByFnr"){
+            httpCallCounter.httpCallCounter("/sakerByFnr").increment()
+            val body = call.receive<SakerRequest>()
+            val callId = UUID.fromString(resolveCallId(call))
+            call.respond(arena.hentSakerByFnr(callId, body.personidentifikator))
         }
 
     }
