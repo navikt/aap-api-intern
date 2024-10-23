@@ -72,7 +72,7 @@ class ArenaoppslagRestClient(
             }
         }
 
-    fun hentSakerByFnr(callId: UUID, fnr: String): SakStatus =
+    fun hentSakerByFnr(callId: UUID, fnr: String): List<SakStatus> =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/saker") {

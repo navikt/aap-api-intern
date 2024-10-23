@@ -59,7 +59,7 @@ fun Application.api() {
             val callId =
                 call.request.header("x-callid") ?: call.request.header("nav-callId") ?: "ukjent"
             val path = call.request.path()
-            "Status: $status$errorBody, HTTP method: $httpMethod, User agent: $userAgent, Call id: $callId, Path: $path"
+            "Status: $status $errorBody, HTTP method: $httpMethod, User agent: $userAgent, Call id: $callId, Path: $path"
         }
         filter { call -> call.request.path().startsWith("/actuator").not() }
     }
