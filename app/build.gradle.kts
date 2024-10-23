@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     kotlin("jvm") version "2.0.20"
-    id("io.ktor.plugin") version "2.3.12"
+    id("io.ktor.plugin") version "3.0.0"
     application
 }
 
@@ -12,7 +12,7 @@ application {
 
 val aapLibVersion = "5.0.23"
 val komponenterVersjon = "1.0.25"
-val ktorVersion = "2.3.12"
+val ktorVersion = "3.0.0"
 
 dependencies {
     implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
