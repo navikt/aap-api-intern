@@ -18,6 +18,8 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.prometheus.metrics.core.metrics.Summary
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import org.slf4j.LoggerFactory
@@ -42,7 +44,7 @@ class ArenaoppslagRestClient(
 ) {
     private val tokenProvider = AzureAdTokenProvider(azureConfig)
 
-    fun hentPerioder(callId: UUID, vedtakRequest: PerioderRequest): PerioderResponse =
+    fun hentPerioder(callId: UUID, vedtakRequest: InternVedtakRequest): PerioderResponse =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder"){
@@ -57,7 +59,7 @@ class ArenaoppslagRestClient(
             }
         }
 
-    fun hentPerioderInkludert11_17(callId: UUID, vedtakRequest: PerioderRequest): PerioderInkludert11_17Response =
+    fun hentPerioderInkludert11_17(callId: UUID, vedtakRequest: InternVedtakRequest): PerioderInkludert11_17Response =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder/11-17"){

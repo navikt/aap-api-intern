@@ -1,8 +1,6 @@
 package api
 
 import api.arena.ArenaoppslagRestClient
-import api.perioder.PerioderRequest
-import api.perioder.SakerRequest
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -10,6 +8,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -40,13 +40,13 @@ fun Routing.api(arena: ArenaoppslagRestClient, httpCallCounter: PrometheusMeterR
         route("/perioder") {
             post {
                 httpCallCounter.httpCallCounter("/perioder").increment()
-                val body = call.receive<PerioderRequest>()
+                val body = call.receive<InternVedtakRequest>()
                 val callId = UUID.fromString(resolveCallId(call))
                 call.respond(arena.hentPerioder(callId, body))
             }
             post("/aktivitetfase") {
                 httpCallCounter.httpCallCounter("/aktivitetfase").increment()
-                val body = call.receive<PerioderRequest>()
+                val body = call.receive<InternVedtakRequest>()
                 val callId = UUID.fromString(resolveCallId(call))
                 call.respond(arena.hentPerioderInkludert11_17(callId, body))
             }
