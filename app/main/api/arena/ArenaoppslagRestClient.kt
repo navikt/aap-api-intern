@@ -74,7 +74,7 @@ class ArenaoppslagRestClient(
             }
         }
 
-    fun hentSakerByFnr(callId: UUID, fnr: String): List<SakStatus> =
+    fun hentSakerByFnr(callId: UUID, req: SakerRequest): List<SakStatus> =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/saker") {
@@ -82,7 +82,7 @@ class ArenaoppslagRestClient(
                     header("Nav-Call-Id", callId)
                     bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
                     contentType(ContentType.Application.Json)
-                    setBody(SakerRequest(fnr))
+                    setBody(req)
                 }
                     .bodyAsText()
                     .let(objectMapper::readValue)

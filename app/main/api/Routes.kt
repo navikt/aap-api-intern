@@ -55,7 +55,7 @@ fun Routing.api(arena: ArenaoppslagRestClient, httpCallCounter: PrometheusMeterR
             httpCallCounter.httpCallCounter("/sakerByFnr").increment()
             val body = call.receive<SakerRequest>()
             val callId = UUID.fromString(resolveCallId(call))
-            call.respond(arena.hentSakerByFnr(callId, body.personidentifikator))
+            call.respond(arena.hentSakerByFnr(callId, body))
         }
 
     }
