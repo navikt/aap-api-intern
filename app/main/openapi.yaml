@@ -2,7 +2,7 @@ openapi: "3.0.0"
 info:
   title: AAP-api
   description: |-
-    AAP-INTER-API tilbyr et internt API for henting av AAP-data
+    AAP-INTERN-API tilbyr et internt API for henting av AAP-data
     
     Bruker azure til autentisering
   contact:
