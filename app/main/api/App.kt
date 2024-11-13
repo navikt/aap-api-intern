@@ -1,6 +1,7 @@
 package api
 
 import api.arena.ArenaoppslagRestClient
+import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import io.ktor.http.*
@@ -41,6 +42,11 @@ fun Application.api() {
         azureConfig = AzureConfig(),
         infoModel = InfoModel(
             title = "aap-api-intern",
+            description = "aap-intern-api tilbyr et internt API for henting av aap-data\nBruker Azure til autentisering",
+            contact = ContactModel(
+                name = "Team AAP",
+                url = "https://github.com/navikt/aap-api-intern",
+            )
         )
     )
 
