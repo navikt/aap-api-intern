@@ -1,10 +1,15 @@
 package api
 
 import api.arena.ArenaoppslagRestClient
+import api.perioder.PerioderInkludert11_17Response
+import api.perioder.PerioderResponse
+import api.perioder.SakStatus
+import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
+import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.path.normal.post
+import com.papsign.ktor.openapigen.route.response.respond
+import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
@@ -15,50 +20,48 @@ import java.util.*
 
 private val logger = LoggerFactory.getLogger("App")
 
+data class CallIdHeader(
+    @HeaderParam("callId") val `Nav-CallId`: String? = null,
+    @HeaderParam("correlation id") val `X-Correlation-Id`: String? = null,
+) {
+    fun callId(): UUID? {
+        val callId = listOfNotNull(`Nav-CallId`, `X-Correlation-Id`).firstOrNull()
 
-private val NAV_CALL_ID_HEADER_NAMES =
-    listOf(
-        "Nav-CallId",
-        "X-Correlation-Id",
-    )
-
-private fun resolveCallId(call: ApplicationCall): String {
-    var callId = NAV_CALL_ID_HEADER_NAMES
-        .map { it.lowercase() }
-        .mapNotNull { call.request.header(it) }
-        .firstOrNull { it.isNotEmpty() }
-
-    if (callId == null) {
-        logger.info("CallID ble ikke gitt på kall: $call.request.uri.")
-        callId = UUID.randomUUID().toString()
+        return callId?.let { UUID.fromString(it) }
     }
-    return callId
 }
 
-fun Routing.api(arena: ArenaoppslagRestClient, httpCallCounter: PrometheusMeterRegistry) {
-    authenticate {
-        route("/perioder") {
-            post {
-                httpCallCounter.httpCallCounter("/perioder").increment()
-                val body = call.receive<InternVedtakRequest>()
-                val callId = UUID.fromString(resolveCallId(call))
-                call.respond(arena.hentPerioder(callId, body))
+fun NormalOpenAPIRoute.api(arena: ArenaoppslagRestClient, httpCallCounter: PrometheusMeterRegistry) {
+
+    route("/perioder") {
+        post<InternVedtakRequest, PerioderResponse, CallIdHeader> { requestBody, callIdHeader ->
+            httpCallCounter.httpCallCounter("/perioder").increment()
+            val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+                logger.info("CallID ble ikke gitt på kall mot: /perioder")
             }
-            post("/aktivitetfase") {
-                httpCallCounter.httpCallCounter("/aktivitetfase").increment()
-                val body = call.receive<InternVedtakRequest>()
-                val callId = UUID.fromString(resolveCallId(call))
-                call.respond(arena.hentPerioderInkludert11_17(callId, body))
-            }
-        }
-        post("/sakerByFnr"){
-            httpCallCounter.httpCallCounter("/sakerByFnr").increment()
-            val body = call.receive<SakerRequest>()
-            val callId = UUID.fromString(resolveCallId(call))
-            call.respond(arena.hentSakerByFnr(callId, body))
+
+            respond(arena.hentPerioder(callId, requestBody))
         }
 
+        route("/aktivitetfase").post<InternVedtakRequest, PerioderInkludert11_17Response, CallIdHeader> { requestBody, callIdHeader ->
+            httpCallCounter.httpCallCounter("/perioder/aktivitetfase").increment()
+            val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+                logger.info("CallID ble ikke gitt på kall mot: /perioder/aktivitetfase")
+            }
+
+            respond(arena.hentPerioderInkludert11_17(callId, requestBody))
+        }
     }
+
+    route("/sakerByFnr").post<SakerRequest, List<SakStatus>, CallIdHeader> { requestBody, callIdHeader ->
+        httpCallCounter.httpCallCounter("/sakerByFnr").increment()
+        val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+            logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
+        }
+
+        respond(arena.hentSakerByFnr(callId, requestBody))
+    }
+
 }
 
 fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
