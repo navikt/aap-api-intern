@@ -34,7 +34,7 @@ data class CallIdHeader(
 fun NormalOpenAPIRoute.api(arena: ArenaoppslagRestClient, httpCallCounter: PrometheusMeterRegistry) {
 
     route("/perioder") {
-        post<InternVedtakRequest, PerioderResponse, CallIdHeader> { requestBody, callIdHeader ->
+        post<CallIdHeader, PerioderResponse, InternVedtakRequest> { callIdHeader, requestBody ->
             httpCallCounter.httpCallCounter("/perioder").increment()
             val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
                 logger.info("CallID ble ikke gitt på kall mot: /perioder")
@@ -43,7 +43,7 @@ fun NormalOpenAPIRoute.api(arena: ArenaoppslagRestClient, httpCallCounter: Prome
             respond(arena.hentPerioder(callId, requestBody))
         }
 
-        route("/aktivitetfase").post<InternVedtakRequest, PerioderInkludert11_17Response, CallIdHeader> { requestBody, callIdHeader ->
+        route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequest> { callIdHeader, requestBody ->
             httpCallCounter.httpCallCounter("/perioder/aktivitetfase").increment()
             val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
                 logger.info("CallID ble ikke gitt på kall mot: /perioder/aktivitetfase")
@@ -53,7 +53,7 @@ fun NormalOpenAPIRoute.api(arena: ArenaoppslagRestClient, httpCallCounter: Prome
         }
     }
 
-    route("/sakerByFnr").post<SakerRequest, List<SakStatus>, CallIdHeader> { requestBody, callIdHeader ->
+    route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest> { callIdHeader, requestBody ->
         httpCallCounter.httpCallCounter("/sakerByFnr").increment()
         val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
             logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
