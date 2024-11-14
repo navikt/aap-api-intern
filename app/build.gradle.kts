@@ -48,7 +48,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:9.46")
     implementation("io.micrometer:micrometer-registry-prometheus:1.14.0")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
-    implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.3.2")
+    implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.3.3")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation(kotlin("test"))
