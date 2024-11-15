@@ -15,6 +15,10 @@ Bruker gradle wrapper, så bare klon og kjør `./gradlew build`
 Det er ikke lagt opp til at denne skal kjøre standalone, siden den er avhengig av Arena.
 All logikk ligger i testene.
 
+API-specs:
+- [Dev](https://aap-api.intern.dev.nav.no/swagger-ui/index.html)
+- [Prod](https://aap-api.intern.nav.no/swagger-ui/index.html)
+
 # Henvendelser
 Spørsmål knyttet til koden eller prosjektet kan stilles som issues her på GitHub.
 
