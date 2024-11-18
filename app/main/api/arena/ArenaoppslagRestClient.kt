@@ -20,6 +20,7 @@ import io.prometheus.metrics.core.metrics.Summary
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import org.slf4j.LoggerFactory
@@ -88,6 +89,22 @@ class ArenaoppslagRestClient(
                     .let(objectMapper::readValue)
             }
         }
+
+    fun hentMaksimum(callId: UUID, req: InternVedtakRequest):Maksimum{
+        return clientLatencyStats.startTimer().use {
+            runBlocking {
+                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/maksimum") {
+                    accept(ContentType.Application.Json)
+                    header("Nav-Call-Id", callId)
+                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                    contentType(ContentType.Application.Json)
+                    setBody(req)
+                }
+                    .bodyAsText()
+                    .let(objectMapper::readValue)
+            }
+        }
+    }
 
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout)

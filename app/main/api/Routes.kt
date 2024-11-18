@@ -12,12 +12,14 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
+import com.papsign.ktor.openapigen.route.tags
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -36,7 +38,8 @@ data class CallIdHeader(
 
 enum class Tag(override val description: String) : APITag {
     Perioder("For å hente perioder med AAP"),
-    Saker("For å hente AAP-saker")
+    Saker("For å hente AAP-saker"),
+    Maksimum("For å hente maksimumsløsning")
 }
 
 fun NormalOpenAPIRoute.api(arena: ArenaoppslagRestClient, httpCallCounter: PrometheusMeterRegistry) {
@@ -77,6 +80,20 @@ fun NormalOpenAPIRoute.api(arena: ArenaoppslagRestClient, httpCallCounter: Prome
             }
 
             respond(arena.hentSakerByFnr(callId, requestBody))
+        }
+    }
+    tag(Tag.Maksimum){
+        route("/maksimum") {
+            post<CallIdHeader, Maksimum, InternVedtakRequest>(
+                info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
+            ) { callIdHeader, requestBody ->
+                httpCallCounter.httpCallCounter("/maksimum").increment()
+                val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+                    logger.info("CallID ble ikke gitt på kall mot: /maksimum")
+                }
+
+                respond(arena.hentMaksimum(callId, requestBody))
+            }
         }
     }
 }
