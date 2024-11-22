@@ -50,7 +50,7 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.3.3")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.46")
+    implementation("no.nav:ktor-openapi-generator:1.0.50")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation(kotlin("test"))
