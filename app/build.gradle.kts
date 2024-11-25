@@ -11,7 +11,7 @@ application {
 }
 
 val aapLibVersion = "5.0.24"
-val komponenterVersjon = "1.0.67"
+val komponenterVersjon = "1.0.70"
 val ktorVersion = "3.0.1"
 
 dependencies {
