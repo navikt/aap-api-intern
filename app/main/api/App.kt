@@ -27,7 +27,7 @@ fun main() {
     embeddedServer(Netty, port = 8080, module = Application::api).start(wait = true)
 }
 
-fun PrometheusMeterRegistry.httpCallCounter(path: String, audience: String): Counter = this.counter(
+fun PrometheusMeterRegistry.httpCallCounter(path: String, audience: String, azpName: String): Counter = this.counter(
     "http_call",
     listOf(Tag.of("path", path), Tag.of("audience", audience))
 )

@@ -1,18 +1,23 @@
 package api
 
 import api.arena.ArenaoppslagRestClient
+import api.azpName
 import api.perioder.PerioderInkludert11_17Response
 import api.perioder.PerioderResponse
 import api.perioder.SakStatus
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
+import com.papsign.ktor.openapigen.route.application
 import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
+import com.papsign.ktor.openapigen.route.response.OpenAPIPipelineResponseContext
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
 import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
@@ -42,14 +47,24 @@ enum class Tag(override val description: String) : APITag {
     Maksimum("For å hente maksimumsløsning")
 }
 
-fun NormalOpenAPIRoute.api(arena: ArenaoppslagRestClient, httpCallCounter: PrometheusMeterRegistry) {
+fun NormalOpenAPIRoute.api(
+    arena: ArenaoppslagRestClient,
+    httpCallCounter: PrometheusMeterRegistry
+) {
 
     tag(Tag.Perioder) {
         route("/perioder") {
             post<CallIdHeader, PerioderResponse, InternVedtakRequest>(
                 info(description = "Henter perioder med vedtak for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
-                httpCallCounter.httpCallCounter("/perioder", pipeline.call.audience()).increment()
+
+                val azpName = azpName()
+
+                httpCallCounter.httpCallCounter(
+                    "/perioder",
+                    pipeline.call.audience(),
+                    azpName ?: ""
+                ).increment()
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
                     logger.info("CallID ble ikke gitt på kall mot: /perioder")
                 }
@@ -60,7 +75,12 @@ fun NormalOpenAPIRoute.api(arena: ArenaoppslagRestClient, httpCallCounter: Prome
             route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequest>(
                 info(description = "Henter perioder med vedtak (inkl. aktivitetsfase) for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
-                httpCallCounter.httpCallCounter("/perioder/aktivitetfase", pipeline.call.audience()).increment()
+                httpCallCounter.httpCallCounter(
+                    "/perioder/aktivitetfase",
+                    pipeline.call.audience(),
+                    azpName() ?: ""
+                )
+                    .increment()
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
                     logger.info("CallID ble ikke gitt på kall mot: /perioder/aktivitetfase")
                 }
@@ -74,7 +94,11 @@ fun NormalOpenAPIRoute.api(arena: ArenaoppslagRestClient, httpCallCounter: Prome
         route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { callIdHeader, requestBody ->
-            httpCallCounter.httpCallCounter("/sakerByFnr", pipeline.call.audience()).increment()
+            httpCallCounter.httpCallCounter(
+                "/sakerByFnr",
+                pipeline.call.audience(),
+                azpName() ?: ""
+            ).increment()
             val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
@@ -82,12 +106,16 @@ fun NormalOpenAPIRoute.api(arena: ArenaoppslagRestClient, httpCallCounter: Prome
             respond(arena.hentSakerByFnr(callId, requestBody))
         }
     }
-    tag(Tag.Maksimum){
+    tag(Tag.Maksimum) {
         route("/maksimum") {
             post<CallIdHeader, Maksimum, InternVedtakRequest>(
                 info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
-                httpCallCounter.httpCallCounter("/maksimum", pipeline.call.audience()).increment()
+                httpCallCounter.httpCallCounter(
+                    "/maksimum",
+                    pipeline.call.audience(),
+                    azpName() ?: ""
+                ).increment()
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
@@ -97,6 +125,11 @@ fun NormalOpenAPIRoute.api(arena: ArenaoppslagRestClient, httpCallCounter: Prome
         }
     }
 }
+
+private fun OpenAPIPipelineResponseContext<*>.azpName(): String? =
+    pipeline.call.principal<JWTPrincipal>()?.let {
+        it.payload.claims["azp_name"]?.asString()
+    }
 
 fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
     route("/actuator") {
