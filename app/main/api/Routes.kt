@@ -1,13 +1,11 @@
 package api
 
 import api.arena.ArenaoppslagRestClient
-import api.azpName
 import api.perioder.PerioderInkludert11_17Response
 import api.perioder.PerioderResponse
 import api.perioder.SakStatus
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
-import com.papsign.ktor.openapigen.route.application
 import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
