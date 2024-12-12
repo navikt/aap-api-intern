@@ -51,6 +51,7 @@ spec:
         - application: tilleggsstonader-integrasjoner
           namespace: tilleggsstonader
           cluster: prod-gcp
+        - application: postmottak-backend
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
