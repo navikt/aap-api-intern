@@ -14,7 +14,7 @@ data class PerioderInkludert11_17Response(
     val perioder: List<PeriodeInkludert11_17>
 )
 
-data class Periode(val fraOgMedDato:LocalDate, val tilOgMedDato:LocalDate?)
+data class Periode(val fraOgMedDato:LocalDate?, val tilOgMedDato:LocalDate?)
 
 
 data class SakStatus(
