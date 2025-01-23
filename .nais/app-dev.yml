@@ -52,6 +52,9 @@ spec:
         - application: tilleggsstonader-integrasjoner
           namespace: tilleggsstonader
           cluster: dev-gcp
+        - application: azure-token-generator
+          namespace: aura
+          cluster: dev-gcp
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io
