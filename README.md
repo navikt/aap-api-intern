@@ -1,4 +1,4 @@
-# AAP-API-intern
+# AAP API Intern
 AAP-API-intern tilbyr AAP informasjon til interne konsumenter.
 
 API’et vil hente data fra 2 kilder
