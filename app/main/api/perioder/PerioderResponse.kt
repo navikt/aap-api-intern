@@ -20,7 +20,8 @@ data class Periode(val fraOgMedDato:LocalDate?, val tilOgMedDato:LocalDate?)
 data class SakStatus(
     val sakId: String,
     val vedtakStatusKode: VedtakStatus,
-    val periode: Periode
+    val periode: Periode,
+    val kilde:String = "ARENA"
 )
 
 enum class VedtakStatus{

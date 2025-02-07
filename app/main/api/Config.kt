@@ -19,3 +19,8 @@ data class ArenaoppslagConfig(
     val proxyBaseUrl:String = getEnvVar("ARENAOPPSLAG_PROXY_BASE_URL"),
     val scope: String= getEnvVar("ARENAOPPSLAG_SCOPE")
 )
+
+data class KelvinConfig(
+    val proxyBaseUrl:String = getEnvVar("KELVIN_PROXY_BASE_URL"),
+    val scope: String= getEnvVar("KELVIN_SCOPE")
+)

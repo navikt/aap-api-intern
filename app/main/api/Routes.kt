@@ -1,6 +1,8 @@
 package api
 
 import api.arena.ArenaoppslagRestClient
+import api.kelvin.KelvinClient
+import api.maksimum.fraKontrakt
 import api.perioder.PerioderInkludert11_17Response
 import api.perioder.PerioderResponse
 import api.perioder.SakStatus
@@ -47,6 +49,7 @@ enum class Tag(override val description: String) : APITag {
 
 fun NormalOpenAPIRoute.api(
     arena: ArenaoppslagRestClient,
+    kelvin: KelvinClient,
     httpCallCounter: PrometheusMeterRegistry
 ) {
 
@@ -101,12 +104,12 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            respond(arena.hentSakerByFnr(callId, requestBody))
+            respond(arena.hentSakerByFnr(callId, requestBody)+kelvin.hentSakerByFnr(requestBody))
         }
     }
     tag(Tag.Maksimum) {
         route("/maksimum") {
-            post<CallIdHeader, Maksimum, InternVedtakRequest>(
+            post<CallIdHeader, api.maksimum.Maksimum, InternVedtakRequest>(
                 info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
                 httpCallCounter.httpCallCounter(
@@ -118,7 +121,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                respond(arena.hentMaksimum(callId, requestBody))
+                respond(api.maksimum.Maksimum(arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvin.hentMaksimum(requestBody)))
             }
         }
     }
