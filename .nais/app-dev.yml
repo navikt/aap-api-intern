@@ -63,3 +63,7 @@ spec:
       value: https://arenaoppslag.dev-fss-pub.nais.io
     - name: ARENAOPPSLAG_SCOPE
       value: api://dev-fss.aap.arenaoppslag/.default
+    - name: KELVIN_PROXY_BASE_URL
+      value: https://aap-behandlingsflyt.intern.dev.nav.no
+    - name: KELVIN_SCOPE
+      value: api://aap-behandlingsflyt.intern.dev.nav.no/.default
