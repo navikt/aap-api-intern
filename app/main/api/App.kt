@@ -1,6 +1,7 @@
 package api
 
 import api.arena.ArenaoppslagRestClient
+import api.kelvin.KelvinClient
 import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
@@ -45,6 +46,8 @@ fun Application.api() {
     val config = Config()
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val arenaRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure)
+    val kelvin = KelvinClient(config.kelvinConfig, config.azure)
+
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
@@ -74,7 +77,7 @@ fun Application.api() {
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(arenaRestClient, prometheus)
+                api(arenaRestClient, kelvin, prometheus)
             }
         }
         actuator(prometheus)
