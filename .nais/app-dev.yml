@@ -55,9 +55,14 @@ spec:
         - application: azure-token-generator
           namespace: aura
           cluster: dev-gcp
+        - application: arena
+          namespace: teamarenanais
+          cluster: dev-fss
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io
+      rules:
+        - application: behandlingsflyt
   env:
     - name: ARENAOPPSLAG_PROXY_BASE_URL
       value: https://arenaoppslag.dev-fss-pub.nais.io
