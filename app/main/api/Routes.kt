@@ -2,6 +2,7 @@ package api
 
 import api.arena.ArenaoppslagRestClient
 import api.kelvin.KelvinClient
+import api.maksimum.Vedtak
 import api.maksimum.fraKontrakt
 import api.perioder.PerioderInkludert11_17Response
 import api.perioder.PerioderResponse
@@ -25,6 +26,8 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import no.nav.aap.komponenter.httpklient.auth.audience
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
 import org.slf4j.LoggerFactory
 import java.util.*
 
@@ -104,7 +107,13 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            respond(arena.hentSakerByFnr(callId, requestBody)+kelvin.hentSakerByFnr(requestBody))
+            val kelvinSaker = if (Miljø.er()==MiljøKode.DEV) {
+                kelvin.hentSakerByFnr(requestBody)
+            } else {
+                emptyList()
+            }
+
+            respond(arena.hentSakerByFnr(callId, requestBody)+kelvinSaker)
         }
     }
     tag(Tag.Maksimum) {
@@ -121,7 +130,13 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                respond(api.maksimum.Maksimum(arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvin.hentMaksimum(requestBody)))
+                val kelvinSaker:List<Vedtak> = if (Miljø.er()==MiljøKode.DEV) {
+                    kelvin.hentMaksimum(requestBody)
+                } else {
+                    emptyList()
+                }
+
+                respond(api.maksimum.Maksimum(arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak+kelvinSaker))
             }
         }
     }

@@ -18,6 +18,7 @@ dependencies {
     implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
 
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.arenaoppslag:kontrakt:0.0.16")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
