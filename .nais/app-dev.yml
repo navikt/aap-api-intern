@@ -58,6 +58,9 @@ spec:
         - application: arena
           namespace: teamarenanais
           cluster: dev-fss
+        - application: azure-token-generator # Ikke i prod :)
+          namespace: aura
+          cluster: dev-gcp
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io
