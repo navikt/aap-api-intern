@@ -68,4 +68,4 @@ spec:
     - name: KELVIN_PROXY_BASE_URL
       value: https://aap-behandlingsflyt.intern.dev.nav.no
     - name: KELVIN_SCOPE
-      value: api://aap-behandlingsflyt.intern.dev.nav.no/.default
+      value: api://prod-gcp.aap.behandlingsflyt/.default
