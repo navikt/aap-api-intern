@@ -66,6 +66,6 @@ spec:
     - name: ARENAOPPSLAG_SCOPE
       value: api://prod-fss.aap.arenaoppslag/.default
     - name: KELVIN_PROXY_BASE_URL
-      value: https://aap-behandlingsflyt.intern.dev.nav.no
+      value: http://behandlingsflyt
     - name: KELVIN_SCOPE
       value: api://prod-gcp.aap.behandlingsflyt/.default
