@@ -107,11 +107,12 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            val kelvinSaker = if (Miljø.er()==MiljøKode.DEV) {
+            val kelvinSaker = emptyList<SakStatus>() /* if (Miljø.er()==MiljøKode.DEV) {
                 kelvin.hentSakerByFnr(requestBody)
             } else {
                 emptyList()
             }
+            */
 
             respond(arena.hentSakerByFnr(callId, requestBody)+kelvinSaker)
         }
@@ -130,12 +131,12 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                val kelvinSaker:List<Vedtak> = if (Miljø.er()==MiljøKode.DEV) {
+                val kelvinSaker:List<Vedtak> = emptyList()/*if (Miljø.er()==MiljøKode.DEV) {
                     kelvin.hentMaksimum(requestBody)
                 } else {
                     emptyList()
                 }
-
+                */
                 respond(api.maksimum.Maksimum(arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak+kelvinSaker))
             }
         }
