@@ -38,7 +38,7 @@ class KelvinClient(
         try {
             return requireNotNull(
                 client.post(
-                    uri = URI.create(uri+"/api/datadeling/sakerByFnr"),
+                    uri = URI.create(uri).resolve("/api/datadeling/sakerByFnr"),
                     request = request,
                     mapper = { body, _ -> DefaultJsonMapper.fromJson(body) }))
         } catch (e: Exception) {
@@ -57,7 +57,7 @@ class KelvinClient(
         try {
             return requireNotNull(
                 client.post(
-                    uri = URI.create(uri+"/api/datadeling/vedtak"),
+                    uri = URI.create(uri).resolve("/api/datadeling/vedtak"),
                     request = request,
                     mapper = { body, _ -> DefaultJsonMapper.fromJson(body) }))
         } catch (e: Exception) {
