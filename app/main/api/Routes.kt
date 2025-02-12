@@ -107,12 +107,12 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            val kelvinSaker = emptyList<SakStatus>() /* if (Miljø.er()==MiljøKode.DEV) {
+            val kelvinSaker = if (Miljø.er()==MiljøKode.DEV) {
                 kelvin.hentSakerByFnr(requestBody)
             } else {
                 emptyList()
             }
-            */
+
 
             respond(arena.hentSakerByFnr(callId, requestBody)+kelvinSaker)
         }
