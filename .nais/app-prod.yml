@@ -54,7 +54,7 @@ spec:
         - application: postmottak-backend
         - application: arena
           namespace: teamarenanais
-          cluster: dev-fss
+          cluster: prod-fss
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io

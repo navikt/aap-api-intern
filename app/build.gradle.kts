@@ -19,7 +19,7 @@ dependencies {
 
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
-    implementation("no.nav.aap.arenaoppslag:kontrakt:0.0.16")
+    implementation("no.nav.aap.arenaoppslag:kontrakt:0.0.17")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
