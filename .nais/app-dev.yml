@@ -49,6 +49,7 @@ spec:
     inbound:
       rules:
         - application: postmottak-backend
+        - application: meldekort-backend
         - application: tilleggsstonader-integrasjoner
           namespace: tilleggsstonader
           cluster: dev-gcp
