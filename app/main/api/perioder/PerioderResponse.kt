@@ -19,7 +19,7 @@ data class Periode(val fraOgMedDato:LocalDate?, val tilOgMedDato:LocalDate?)
 
 data class SakStatus(
     val sakId: String,
-    val StatusKode: Status,
+    val statusKode: Status,
     val periode: Periode,
     val kilde:Kilde = Kilde.ARENA
 )
