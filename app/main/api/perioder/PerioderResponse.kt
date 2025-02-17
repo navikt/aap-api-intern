@@ -19,12 +19,17 @@ data class Periode(val fraOgMedDato:LocalDate?, val tilOgMedDato:LocalDate?)
 
 data class SakStatus(
     val sakId: String,
-    val vedtakStatusKode: VedtakStatus,
+    val StatusKode: Status,
     val periode: Periode,
-    val kilde:String = "ARENA"
+    val kilde:Kilde = Kilde.ARENA
 )
 
-enum class VedtakStatus{
+enum class Kilde{
+    ARENA,
+    KELVIN
+}
+
+enum class Status{
     AVSLU,
     FORDE,
     GODKJ,
