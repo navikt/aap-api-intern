@@ -6,7 +6,7 @@ import api.maksimum.Vedtak
 import api.maksimum.fraKontrakt
 import api.perioder.PerioderInkludert11_17Response
 import api.perioder.PerioderResponse
-import api.perioder.SakStatus
+import api.vedtak.dagens.Sak
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.route.info
@@ -22,6 +22,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
@@ -107,7 +108,7 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            val kelvinSaker = if (Miljø.er()==MiljøKode.DEV) {
+            val kelvinSaker:List<SakStatus> = if (Miljø.er()==MiljøKode.DEV) {
                 kelvin.hentSakerByFnr(requestBody)
             } else {
                 emptyList()

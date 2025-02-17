@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "2.1.0"
+    id("api-intern.conventions")
     id("io.ktor.plugin") version "3.0.3"
     application
 }
@@ -15,6 +15,7 @@ val komponenterVersjon = "1.0.101"
 val ktorVersion = "3.0.3"
 
 dependencies {
+    implementation(project(":kontrakt"))
     implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
 
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
@@ -60,26 +61,9 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
-kotlin {
-    jvmToolchain(21)
-    compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_21)
-    }
-}
-
 
 tasks {
     withType<Test> {
         useJUnitPlatform()
     }
 }
-
-repositories {
-    mavenCentral()
-    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-}
-
-kotlin.sourceSets["main"].kotlin.srcDirs("main")
-kotlin.sourceSets["test"].kotlin.srcDirs("test")
-sourceSets["main"].resources.srcDirs("main")
-sourceSets["test"].resources.srcDirs("test")

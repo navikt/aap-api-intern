@@ -3,7 +3,7 @@ package api.kelvin
 import api.ArenaoppslagConfig
 import api.KelvinConfig
 import api.maksimum.Vedtak
-import api.perioder.SakStatus
+import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
