@@ -1,5 +1,6 @@
 package api.maksimum
 
+import no.nav.aap.api.intern.Periode
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum as KontraktMaksimum
 import java.time.LocalDate
 
@@ -138,11 +139,6 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.AnnenReduksjon.fraKontrakt(): Anne
     )
 }
 
-
-data class Periode(
-    val fraOgMedDato: LocalDate?,
-    val tilOgMedDato: LocalDate?
-)
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Periode.fraKontrakt(): Periode {
     return Periode(fraOgMedDato, tilOgMedDato)
