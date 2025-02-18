@@ -10,10 +10,8 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.core.instrument.Counter
@@ -24,7 +22,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureC
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
-import org.slf4j.event.Level
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -46,7 +43,7 @@ fun Application.api() {
     val config = Config()
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
     val arenaRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure)
-    val kelvin = KelvinClient(config.kelvinConfig, config.azure)
+    val kelvin = KelvinClient(config.kelvinConfig)
 
 
     install(StatusPages) {

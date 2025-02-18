@@ -1,6 +1,5 @@
 package api.kelvin
 
-import api.ArenaoppslagConfig
 import api.KelvinConfig
 import api.maksimum.Vedtak
 import no.nav.aap.api.intern.SakStatus
@@ -12,12 +11,10 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import no.nav.aap.komponenter.json.DefaultJsonMapper
-import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import java.net.URI
 
 class KelvinClient(
-    private val kelvinConfig: KelvinConfig,
-    azureConfig: AzureConfig
+    private val kelvinConfig: KelvinConfig
 ) {
     private val uri = kelvinConfig.proxyBaseUrl
     private val config = ClientConfig(scope = kelvinConfig.scope)

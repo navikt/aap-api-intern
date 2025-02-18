@@ -2,7 +2,6 @@ package api.maksimum
 
 import no.nav.aap.api.intern.Periode
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum as KontraktMaksimum
-import java.time.LocalDate
 
 
 data class Maksimum(
@@ -15,10 +14,6 @@ fun KontraktMaksimum.fraKontrakt(): Maksimum {
     return Maksimum(
         vedtak = this.vedtak.map { it.fraKontrakt() }
     )
-}
-
-fun KontraktMaksimum.fraKontraktUtenUtbetalinger(): Medium {
-    return Medium(vedtak = this.vedtak.map { it.fraKontraktUtenUtbetaling() })
 }
 
 /**
