@@ -21,6 +21,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.api.intern.Periode
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
@@ -90,6 +91,20 @@ fun NormalOpenAPIRoute.api(
 
                 respond(arena.hentPerioderInkludert11_17(callId, requestBody))
             }
+            route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequest>(
+                info(description = "Henter meldekort perioder for en person innen gitte datointerval")
+            ) { callIdHeader, requestBody ->
+                val perioder = kelvin.hentMeldekortPerioder(requestBody)
+                    .filter { it.tom > requestBody.fraOgMedDato && it.fom < requestBody.tilOgMedDato }
+                    .map {
+                        Periode(
+                            fraOgMedDato = it.fom,
+                            tilOgMedDato = it.tom
+                        )
+                    }
+
+                respond(perioder, HttpStatusCode.OK)
+            }
         }
     }
 
@@ -106,14 +121,14 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            val kelvinSaker:List<SakStatus> = if (Miljø.er()==MiljøKode.DEV) {
+            val kelvinSaker: List<SakStatus> = if (Miljø.er() == MiljøKode.DEV) {
                 kelvin.hentSakerByFnr(requestBody)
             } else {
                 emptyList()
             }
 
 
-            respond(arena.hentSakerByFnr(callId, requestBody)+kelvinSaker)
+            respond(arena.hentSakerByFnr(callId, requestBody) + kelvinSaker)
         }
     }
     tag(Tag.Maksimum) {
@@ -130,13 +145,17 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                val kelvinSaker:List<Vedtak> = emptyList()/*if (Miljø.er()==MiljøKode.DEV) {
+                val kelvinSaker: List<Vedtak> = emptyList()/*if (Miljø.er()==MiljøKode.DEV) {
                     kelvin.hentMaksimum(requestBody)
                 } else {
                     emptyList()
                 }
                 */
-                respond(api.maksimum.Maksimum(arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak+kelvinSaker))
+                respond(
+                    api.maksimum.Maksimum(
+                        arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvinSaker
+                    )
+                )
             }
         }
     }

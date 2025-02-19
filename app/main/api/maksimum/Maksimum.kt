@@ -1,6 +1,7 @@
 package api.maksimum
 
 import no.nav.aap.api.intern.Periode
+import java.time.LocalDate
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum as KontraktMaksimum
 
 
@@ -15,6 +16,11 @@ fun KontraktMaksimum.fraKontrakt(): Maksimum {
         vedtak = this.vedtak.map { it.fraKontrakt() }
     )
 }
+
+data class KelvinPeriode(
+    val fom: LocalDate,
+    val tom: LocalDate
+)
 
 /**
  * @param status Hypotese, vedtaksstatuskode
