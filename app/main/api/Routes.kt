@@ -2,6 +2,7 @@ package api
 
 import api.arena.ArenaoppslagRestClient
 import api.kelvin.KelvinClient
+import api.maksimum.KelvinPeriode
 import api.maksimum.Vedtak
 import api.maksimum.fraKontrakt
 import api.perioder.PerioderInkludert11_17Response
@@ -91,17 +92,12 @@ fun NormalOpenAPIRoute.api(
 
                 respond(arena.hentPerioderInkludert11_17(callId, requestBody))
             }
-            route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequest>(
+            route("/meldekort").post<CallIdHeader, List<KelvinPeriode>, InternVedtakRequest>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
                 val perioder = kelvin.hentMeldekortPerioder(requestBody)
                     .filter { it.tom > requestBody.fraOgMedDato && it.fom < requestBody.tilOgMedDato }
-                    .map {
-                        Periode(
-                            fraOgMedDato = it.fom,
-                            tilOgMedDato = it.tom
-                        )
-                    }
+
 
                 respond(perioder, HttpStatusCode.OK)
             }
