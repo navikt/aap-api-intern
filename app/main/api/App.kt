@@ -2,6 +2,8 @@ package api
 
 import api.arena.ArenaoppslagRestClient
 import api.kelvin.KelvinClient
+import api.kelvin.dataInsertion
+import api.postgres.Hikari
 import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
@@ -22,6 +24,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureC
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
+import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -39,13 +42,14 @@ fun PrometheusMeterRegistry.httpCallCounter(
     listOf(Tag.of("path", path), Tag.of("audience", audience), Tag.of("azp_name", azpName))
 )
 
-fun Application.api() {
-    val config = Config()
-    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
-    val arenaRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure)
-    val kelvin = KelvinClient(config.kelvinConfig)
+fun Application.api(
+    config: Config = Config(),
+    prometheus: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
+    datasource: DataSource = Hikari.createAndMigrate(config.postgres, meterRegistry = prometheus),
+    arenaRestClient: ArenaoppslagRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure),
+    kelvin: KelvinClient = KelvinClient(config.kelvinConfig)
 
-
+) {
     install(StatusPages) {
         exception<Throwable> { call, cause ->
             logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
@@ -74,7 +78,8 @@ fun Application.api() {
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(arenaRestClient, kelvin, prometheus)
+                api(datasource, arenaRestClient, kelvin, prometheus)
+                dataInsertion(datasource)
             }
         }
         actuator(prometheus)

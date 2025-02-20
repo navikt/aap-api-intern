@@ -16,7 +16,7 @@ import no.nav.aap.komponenter.json.DefaultJsonMapper
 import java.net.URI
 
 class KelvinClient(
-    private val kelvinConfig: KelvinConfig
+    kelvinConfig: KelvinConfig
 ) {
     private val uri = kelvinConfig.proxyBaseUrl
     private val config = ClientConfig(scope = kelvinConfig.scope)

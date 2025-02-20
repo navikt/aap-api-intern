@@ -13,7 +13,8 @@ data class Config(
         clientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET"),
         jwksUri = getEnvVar("AZURE_OPENID_CONFIG_JWKS_URI"),
         issuer = getEnvVar("AZURE_OPENID_CONFIG_ISSUER")
-    )
+    ),
+    val postgres: PostgresConfig = PostgresConfig()
 )
 
 data class ArenaoppslagConfig(
@@ -24,4 +25,15 @@ data class ArenaoppslagConfig(
 data class KelvinConfig(
     val proxyBaseUrl:String = getEnvVar("KELVIN_PROXY_BASE_URL"),
     val scope: String= getEnvVar("KELVIN_SCOPE")
+)
+
+data class PostgresConfig(
+    val host: String = getEnvVar("NAIS_DATABASE_API_API_HOST"),
+    val port: String = getEnvVar("NAIS_DATABASE_API_API_PORT"),
+    val username: String = getEnvVar("NAIS_DATABASE_API_API_USERNAME"),
+    val password: String = getEnvVar("NAIS_DATABASE_API_API_PASSWORD"),
+    val database: String = getEnvVar("NAIS_DATABASE_API_API_DATABASE"),
+    val url: String = "jdbc:postgresql://${host}:${port}/${database}",
+    val driver: String = "org.postgresql.Driver",
+    val cluster: String = getEnvVar("NAIS_CLUSTER_NAME")
 )

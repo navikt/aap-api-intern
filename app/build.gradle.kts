@@ -57,6 +57,14 @@ dependencies {
 
     implementation("no.nav:ktor-openapi-generator:1.0.75")
 
+    implementation("org.flywaydb:flyway-core:11.1.0")
+    implementation("org.flywaydb:flyway-database-postgresql:11.3.2")
+    implementation("com.zaxxer:HikariCP:6.2.1")
+    runtimeOnly("org.postgresql:postgresql:42.7.5")
+    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
+
+    testImplementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2")
+    testImplementation("org.testcontainers:postgresql:1.20.4")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation(kotlin("test"))
 }
