@@ -79,7 +79,6 @@ fun Application.api(
         authenticate(AZURE) {
             apiRouting {
                 api(datasource, arenaRestClient, kelvin, prometheus)
-                dataInsertion(datasource)
             }
         }
         actuator(prometheus)
