@@ -27,6 +27,7 @@ data class KelvinConfig(
     val scope: String= getEnvVar("KELVIN_SCOPE")
 )
 
+
 data class PostgresConfig(
     val host: String = getEnvVar("NAIS_DATABASE_API_INTERN_API_HOST"),
     val port: String = getEnvVar("NAIS_DATABASE_API_INTERN_API_PORT"),
