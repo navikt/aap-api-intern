@@ -33,7 +33,9 @@ data class PostgresConfig(
     val username: String = getEnvVar("NAIS_DATABASE_API_INTERN_API_USERNAME"),
     val password: String = getEnvVar("NAIS_DATABASE_API_INTERN_API_PASSWORD"),
     val database: String = getEnvVar("NAIS_DATABASE_API_INTERN_API_DATABASE"),
-    val url: String = "jdbc:postgresql://${host}:${port}/${database}",
+    val sslmode: String = getEnvVar("NAIS_DATABASE_API_INTERN_API_SSLMODE"),
+    val url: String = getEnvVar("NAIS_DATABASE_API_INTERN_API_URL"),
+        //"jdbc:postgresql://${host}:${port}/${database}?sslmode=${sslmode}",
     val driver: String = "org.postgresql.Driver",
     val cluster: String = getEnvVar("NAIS_CLUSTER_NAME")
 )
