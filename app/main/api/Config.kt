@@ -30,6 +30,6 @@ data class KelvinConfig(
 class DbConfig(
 
     val url: String = getEnvVar("NAIS_DATABASE_API_INTERN_API_JDBC_URL"),
-    val username: String = System.getenv("NAIS_DATABASE_API_INTERN_USERNAME"),
-    val password: String = System.getenv("NAIS_DATABASE_API_INTERN_PASSWORD")
+    val username: String = System.getenv("NAIS_DATABASE_API_INTERN_API_USERNAME"),
+    val password: String = System.getenv("NAIS_DATABASE_API_INTERN_API_PASSWORD")
 )
