@@ -21,7 +21,6 @@ internal object Hikari {
             maximumPoolSize = 3
             minimumIdle = 1
             initializationFailTimeout = 5000
-            sslmode = ""
             idleTimeout = 10001
             connectionTimeout = 1000
             driverClassName = config.driver
