@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("api-intern.conventions")
@@ -70,5 +70,8 @@ dependencies {
 tasks {
     withType<Test> {
         useJUnitPlatform()
+    }
+    withType<ShadowJar> {
+        mergeServiceFiles()
     }
 }
