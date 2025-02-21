@@ -50,7 +50,7 @@ fun Application.api(
 ) {
     val arenaRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure)
     val kelvin = KelvinClient(config.kelvinConfig)
-    Migrering.migrate(datasource)
+    Migrering.migrate(datasource, true)
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
