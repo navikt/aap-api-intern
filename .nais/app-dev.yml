@@ -71,6 +71,9 @@ spec:
         - application: azure-token-generator # Ikke i prod :)
           namespace: aura
           cluster: dev-gcp
+        - application: behandlingsflyt
+          namespace: aap
+          cluster: prod-gcp
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io

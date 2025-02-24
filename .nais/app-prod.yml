@@ -64,6 +64,9 @@ spec:
         - application: arena
           namespace: teamarenanais
           cluster: prod-fss
+        - application: behandlingsflyt
+          namespace: aap
+          cluster: prod-gcp
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
