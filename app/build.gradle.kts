@@ -1,4 +1,4 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("api-intern.conventions")
@@ -20,6 +20,8 @@ dependencies {
 
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
+    implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
     implementation("no.nav.aap.arenaoppslag:kontrakt:0.0.18")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
@@ -55,8 +57,11 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.3.5")
 
+    implementation("com.zaxxer:HikariCP:6.2.1")
+
     implementation("no.nav:ktor-openapi-generator:1.0.75")
 
+    testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     testImplementation(kotlin("test"))
 }
@@ -65,5 +70,8 @@ dependencies {
 tasks {
     withType<Test> {
         useJUnitPlatform()
+    }
+    withType<ShadowJar> {
+        mergeServiceFiles()
     }
 }

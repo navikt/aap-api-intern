@@ -48,7 +48,8 @@ data class CallIdHeader(
 enum class Tag(override val description: String) : APITag {
     Perioder("For å hente perioder med AAP"),
     Saker("For å hente AAP-saker"),
-    Maksimum("For å hente maksimumsløsning")
+    Maksimum("For å hente maksimumsløsning"),
+    Insertion("For å legge inn data fra Kelvin")
 }
 
 fun NormalOpenAPIRoute.api(

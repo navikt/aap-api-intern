@@ -2,6 +2,8 @@ package api
 
 import api.arena.ArenaoppslagRestClient
 import api.kelvin.KelvinClient
+import api.kelvin.dataInsertion
+import api.postgres.initDatasource
 import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
@@ -18,10 +20,12 @@ import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Tag
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
+import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -39,12 +43,14 @@ fun PrometheusMeterRegistry.httpCallCounter(
     listOf(Tag.of("path", path), Tag.of("audience", audience), Tag.of("azp_name", azpName))
 )
 
-fun Application.api() {
-    val config = Config()
-    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+fun Application.api(
+    prometheus: PrometheusMeterRegistry=PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
+    config: Config = Config(),
+    datasource: DataSource = initDatasource(config.dbConfig, prometheus)
+) {
     val arenaRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure)
     val kelvin = KelvinClient(config.kelvinConfig)
-
+    Migrering.migrate(datasource)
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
@@ -75,6 +81,7 @@ fun Application.api() {
         authenticate(AZURE) {
             apiRouting {
                 api(arenaRestClient, kelvin, prometheus)
+                dataInsertion(datasource)
             }
         }
         actuator(prometheus)
