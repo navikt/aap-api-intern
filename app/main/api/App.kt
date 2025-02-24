@@ -26,6 +26,8 @@ import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -81,7 +83,9 @@ fun Application.api(
         authenticate(AZURE) {
             apiRouting {
                 api(arenaRestClient, kelvin, prometheus)
-                dataInsertion(datasource)
+                if (Miljø.er()==MiljøKode.DEV) {
+                    dataInsertion(datasource)
+                }
             }
         }
         actuator(prometheus)
