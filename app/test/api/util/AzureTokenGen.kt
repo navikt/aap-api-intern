@@ -34,7 +34,7 @@ class AzureTokenGen(private val issuer: String, private val audience: String) {
 
         if (isApp){
             claims.claim("idtyp", "app")
-            claims.claim("roles", "add-data")
+            claims.claim("roles", listOf("add-data"))
         }
         return claims.build()
     }
