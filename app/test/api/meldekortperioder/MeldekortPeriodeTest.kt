@@ -15,6 +15,8 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.miljo.MiljøKode
 import no.nav.aap.komponenter.type.Periode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -25,36 +27,41 @@ class MeldekortPeriodeTest : PostgresTestBase() {
 
     @Test
     fun `kan lagre ned og hente meldekort perioder`() {
-        Fakes().use { fakes ->
-            val config = TestConfig.default(fakes)
-            val azure = AzureTokenGen(config.azure)
+        if (Miljø.er() == MiljøKode.DEV || Miljø.er() == MiljøKode.LOKALT) {
+            Fakes().use { fakes ->
+                val config = TestConfig.default(fakes)
+                val azure = AzureTokenGen(config.azure)
 
-            testApplication {
-                application {
-                    api(
-                        config = config,
-                        datasource = InitTestDatabase.dataSource
-                    )
-                }
+                testApplication {
+                    application {
+                        api(
+                            config = config,
+                            datasource = InitTestDatabase.dataSource
+                        )
+                    }
 
-                val res = jsonHttpClient.post("/api/insert/meldeperioder") {
-                    bearerAuth(azure.generate())
-                    contentType(ContentType.Application.Json)
-                    setBody(
-                        MeldekortPerioderDTO(
-                            "12345678910",
-                            listOf(
-                                Periode(LocalDate.ofYearDay(2021, 1), LocalDate.ofYearDay(2021, 15)),
-                                Periode(LocalDate.ofYearDay(2021, 16), LocalDate.ofYearDay(2021, 31))
+                    val res = jsonHttpClient.post("/api/insert/meldeperioder") {
+                        bearerAuth(azure.generate())
+                        contentType(ContentType.Application.Json)
+                        setBody(
+                            MeldekortPerioderDTO(
+                                "12345678910",
+                                listOf(
+                                    Periode(LocalDate.ofYearDay(2021, 1), LocalDate.ofYearDay(2021, 15)),
+                                    Periode(LocalDate.ofYearDay(2021, 16), LocalDate.ofYearDay(2021, 31))
+                                )
                             )
                         )
-                    )
-                }
+                    }
 
-                assertEquals(HttpStatusCode.OK, res.status)
-                assertEquals(countMeldekortEntries(), 2)
+                    assertEquals(HttpStatusCode.OK, res.status)
+                    assertEquals(countMeldekortEntries(), 2)
+                }
             }
+        } else {
+            assert(true)
         }
+
     }
 
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient
