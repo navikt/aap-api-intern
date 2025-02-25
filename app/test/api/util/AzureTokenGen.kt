@@ -10,10 +10,11 @@ import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import org.intellij.lang.annotations.Language
+import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class AzureTokenGen(private val config: AzureConfig) {
+class AzureTokenGen(private val issuer: String, private val audience: String) {
     private val rsaKey: RSAKey get() = JWKSet.parse(AZURE_JWKS).getKeyByKeyId("localhost-signer") as RSAKey
 
     private fun signed(claims: JWTClaimsSet): SignedJWT {
@@ -22,17 +23,23 @@ class AzureTokenGen(private val config: AzureConfig) {
         return SignedJWT(header, claims).apply { sign(signer) }
     }
 
-    private fun claims(now: Date = Date()) = JWTClaimsSet
-        .Builder()
+    private fun claims(isApp: Boolean, now: Date = Date()): JWTClaimsSet {
+        val claims = JWTClaimsSet.Builder()
         .subject(null)
-        .issuer(config.issuer)
-        .audience(config.clientId)
+        .issuer(issuer)
+        .audience(audience)
         .notBeforeTime(now)
         .issueTime(now)
         .expirationTime(Date(now.time + TimeUnit.MINUTES.toMillis((60 * 60 * 3600).toLong())))
-        .build()
 
-    fun generate(): String = signed(claims()).serialize()
+        if (isApp){
+            claims.claim("idtyp", "app")
+            claims.claim("roles", listOf("add-data"))
+        }
+        return claims.build()
+    }
+
+    fun generate(isApp: Boolean): String = signed(claims(isApp)).serialize()
 }
 
 @Language("JSON")

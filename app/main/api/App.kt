@@ -83,9 +83,7 @@ fun Application.api(
         authenticate(AZURE) {
             apiRouting {
                 api(arenaRestClient, kelvin, prometheus)
-                if (Miljø.er()==MiljøKode.DEV || Miljø.er()==MiljøKode.LOKALT) {
-                    dataInsertion(datasource)
-                }
+                dataInsertion(datasource)
             }
         }
         actuator(prometheus)
