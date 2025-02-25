@@ -17,22 +17,26 @@ import javax.sql.DataSource
 import com.papsign.ktor.openapigen.route.info
 
 fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
-    tag(Tag.Insertion) {
-        route("/api/insert") {
-            route("meldeperioder").authorizedPost<Unit, List<Periode>, MeldekortPerioderDTO>(
-                routeConfig = AuthorizationBodyPathConfig(
-                    operasjon = Operasjon.SE,
-                    applicationsOnly = true,
-                    applicationRole = "add-data",
-                ),
-                modules = listOf(info("Legg inn meldekortperioder", "Legg inn meldekortperioder for en person. Endepunktet kan kun brukes av behandlingsflyt")).toTypedArray(),
-            ) { _, body ->
-                val perioder = dataSource.transaction { connection ->
-                    val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
-                    meldekortPerioderRepository.lagreMeldekortPerioder(body.personIdent, body.meldekortPerioder)
-                }
-                respond(perioder,HttpStatusCode.OK)
+    route("/api/insert") {
+        route("meldeperioder").authorizedPost<Unit, List<Periode>, MeldekortPerioderDTO>(
+            routeConfig = AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
+                applicationsOnly = true,
+                applicationRole = "add-data",
+            ),
+            modules = listOf(
+                info(
+                    "Legg inn meldekortperioder",
+                    "Legg inn meldekortperioder for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                )
+            ).toTypedArray(),
+        ) { _, body ->
+            val perioder = dataSource.transaction { connection ->
+                val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
+                meldekortPerioderRepository.lagreMeldekortPerioder(body.personIdent, body.meldekortPerioder)
             }
+            respond(perioder, HttpStatusCode.OK)
         }
     }
+
 }
