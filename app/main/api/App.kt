@@ -1,6 +1,7 @@
 package api
 
 import api.arena.ArenaoppslagRestClient
+import api.auth.authentication
 import api.kelvin.KelvinClient
 import api.kelvin.dataInsertion
 import api.postgres.initDatasource
@@ -26,8 +27,7 @@ import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
-import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.komponenter.miljo.MiljøKode
+import no.nav.aap.komponenter.server.TOKENX
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -53,6 +53,8 @@ fun Application.api(
     val arenaRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure)
     val kelvin = KelvinClient(config.kelvinConfig)
     Migrering.migrate(datasource)
+
+    authentication(config.tokenx)
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
@@ -84,6 +86,13 @@ fun Application.api(
             apiRouting {
                 api(datasource, arenaRestClient, kelvin, prometheus)
                 dataInsertion(datasource)
+            }
+        }
+        authenticate(TOKENX) {
+            apiRouting {
+                route("/tokenx") {
+                    api(datasource, arenaRestClient, kelvin, prometheus)
+                }
             }
         }
         actuator(prometheus)

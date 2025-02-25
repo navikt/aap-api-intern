@@ -51,7 +51,8 @@ enum class Tag(override val description: String) : APITag {
     Perioder("For å hente perioder med AAP"),
     Saker("For å hente AAP-saker"),
     Maksimum("For å hente maksimumsløsning"),
-    Insertion("For å legge inn data fra Kelvin")
+    Insertion("For å legge inn data fra Kelvin"),
+    TokenX("Brukerflater som bruker tokenX")
 }
 
 fun NormalOpenAPIRoute.api(

@@ -13,13 +13,16 @@ import kotlinx.coroutines.runBlocking
 
 class Fakes:AutoCloseable {
     val azure = embeddedServer(Netty, port = 0, module = Application::azure)
+    val tokenx = embeddedServer(Netty, port = 0, module = Application::TokenXFake).apply { start() }
 
     override fun close() {
         azure.stop(0L, 0L) //To change body of created functions use File | Settings | File Templates.
+        tokenx.stop(0L, 0L)
     }
 
     init {
         azure.start()
+        tokenx.start()
 
         System.setProperty("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT", "http://localhost:${azure.port()}")
         System.setProperty("AZURE_APP_CLIENT_ID", "test")
