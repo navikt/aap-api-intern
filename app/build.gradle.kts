@@ -13,6 +13,7 @@ application {
 val aapLibVersion = "5.0.25"
 val komponenterVersjon = "1.0.151"
 val ktorVersion = "3.1.0"
+val tilgangVersjon = "0.0.86"
 
 dependencies {
     implementation(project(":kontrakt"))
@@ -22,6 +23,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
+    implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     implementation("no.nav.aap.arenaoppslag:kontrakt:0.0.18")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
