@@ -1,6 +1,7 @@
 package api.postgres
 
 import api.kelvin.MeldekortPerioderDTO
+import api.maksimum.KelvinPeriode
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 
@@ -35,10 +36,8 @@ class MeldekortPerioderRepository(private val connection: DBConnection) {
     }
 
 
-    fun hentMeldekortPerioder(fnr: String): MeldekortPerioderDTO {
-        return MeldekortPerioderDTO(
-            fnr,
-            connection.queryList(
+    fun hentMeldekortPerioder(fnr: String): List<KelvinPeriode> {
+        return connection.queryList(
                 """
                     SELECT PERIODE
                     FROM MELDEKORT_PERIODER_MED_FNR
@@ -49,9 +48,13 @@ class MeldekortPerioderRepository(private val connection: DBConnection) {
                     setString(1, fnr)
                 }
                 setRowMapper { row ->
-                    row.getPeriode("periode")
+                        val periode = row.getPeriode("periode")
+                    KelvinPeriode(
+                        periode.fom,
+                        periode.tom
+                    )
                 }
             }.toList()
-        )
+
     }
 }

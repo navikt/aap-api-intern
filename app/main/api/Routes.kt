@@ -7,6 +7,7 @@ import api.maksimum.Vedtak
 import api.maksimum.fraKontrakt
 import api.perioder.PerioderInkludert11_17Response
 import api.perioder.PerioderResponse
+import api.postgres.MeldekortPerioderRepository
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.route.info
@@ -25,11 +26,13 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.audience
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.miljo.MiljøKode
 import org.slf4j.LoggerFactory
 import java.util.*
+import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -52,6 +55,7 @@ enum class Tag(override val description: String) : APITag {
 }
 
 fun NormalOpenAPIRoute.api(
+    dataSource: DataSource,
     arena: ArenaoppslagRestClient,
     kelvin: KelvinClient,
     httpCallCounter: PrometheusMeterRegistry
@@ -95,10 +99,10 @@ fun NormalOpenAPIRoute.api(
             route("/meldekort").post<CallIdHeader, List<KelvinPeriode>, InternVedtakRequest>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
-                val perioder = kelvin.hentMeldekortPerioder(requestBody)
-                    .filter { it.tom > requestBody.fraOgMedDato && it.fom < requestBody.tilOgMedDato }
-
-
+                val perioder = dataSource.transaction { connection ->
+                    val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
+                    meldekortPerioderRepository.hentMeldekortPerioder(requestBody.personidentifikator)
+                }.filter { it.tom > requestBody.fraOgMedDato && it.fom < requestBody.tilOgMedDato }
                 respond(perioder, HttpStatusCode.OK)
             }
         }

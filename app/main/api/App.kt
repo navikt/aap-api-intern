@@ -82,7 +82,7 @@ fun Application.api(
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(arenaRestClient, kelvin, prometheus)
+                api(datasource, arenaRestClient, kelvin, prometheus)
                 dataInsertion(datasource)
             }
         }

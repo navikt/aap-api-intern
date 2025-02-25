@@ -38,5 +38,4 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
             respond(perioder, HttpStatusCode.OK)
         }
     }
-
 }
