@@ -21,12 +21,12 @@ import javax.sql.DataSource
 fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
     tag(Tag.Insertion) {
         route("/api/insert") {
-            route("meldeperioder").authorizedPost<Unit, List<Periode>, MeldekortPerioderDTO>(
-                routeConfig = AuthorizationBodyPathConfig(
+            route("meldeperioder").post<Unit, List<Periode>, MeldekortPerioderDTO>(
+                /*routeConfig = AuthorizationBodyPathConfig(
                     operasjon = Operasjon.SE,
                     applicationsOnly = true,
                     applicationRole = "add-data",
-                )
+                )*/
             ) { _, body ->
                 val perioder = dataSource.transaction { connection ->
                     val meldekortPerioderRepository = MeldekortPerioderRepository(connection)

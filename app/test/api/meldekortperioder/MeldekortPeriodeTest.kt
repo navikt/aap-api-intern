@@ -27,7 +27,7 @@ class MeldekortPeriodeTest : PostgresTestBase() {
     fun `kan lagre ned og hente meldekort perioder`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
-            val azure = AzureTokenGen("behandlingsflyt", "api-intern")
+            val azure = AzureTokenGen("test", "test")
 
             testApplication {
                 application {
