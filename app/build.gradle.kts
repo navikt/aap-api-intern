@@ -11,7 +11,7 @@ application {
 }
 
 val aapLibVersion = "5.0.25"
-val komponenterVersjon = "1.0.151"
+val komponenterVersjon = "1.0.159"
 val ktorVersion = "3.1.1"
 val tilgangVersjon = "0.0.86"
 
