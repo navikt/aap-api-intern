@@ -39,6 +39,20 @@ abstract class PostgresTestBase {
             }
         }
 
+    fun countVedtakEntries(): Int? =
+        dataSource.transaction { con ->
+            con.queryFirstOrNull("SELECT count(*) as nr FROM VEDTAK"){
+                setRowMapper { row -> row.getInt("nr") }
+            }
+        }
+
+    fun countUtbetalingEntries(): Int? =
+        dataSource.transaction { con ->
+            con.queryFirstOrNull("SELECT count(*) as nr FROM UTBETALING"){
+                setRowMapper { row -> row.getInt("nr") }
+            }
+        }
+
     fun getAllInnsendinger(): List<MeldekortPerioderDTO> =
         dataSource.transaction { con ->
             val fnr = con.querySet<String>("SELECT fnr FROM MELDEKORT_PERIODER_MED_FNR"){

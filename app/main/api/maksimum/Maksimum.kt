@@ -22,6 +22,11 @@ data class KelvinPeriode(
     val tom: LocalDate
 )
 
+data class VedtakDataKelvin(
+    val fnr: String,
+    val maksimum: Maksimum
+)
+
 /**
  * @param status Hypotese, vedtaksstatuskode
  * @param saksnummer hypotese sak_id
