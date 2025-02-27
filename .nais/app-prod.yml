@@ -67,6 +67,9 @@ spec:
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp
+          permissions:
+            roles:
+              - "add-data"
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io

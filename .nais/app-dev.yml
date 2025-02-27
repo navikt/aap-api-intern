@@ -73,7 +73,7 @@ spec:
           cluster: dev-gcp
         - application: behandlingsflyt
           namespace: aap
-          cluster: prod-gcp
+          cluster: dev-gcp
           permissions:
             roles:
               - "add-data"
