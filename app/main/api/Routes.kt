@@ -8,6 +8,7 @@ import api.maksimum.fraKontrakt
 import api.perioder.PerioderInkludert11_17Response
 import api.perioder.PerioderResponse
 import api.postgres.MeldekortPerioderRepository
+import api.postgres.VedtaksDataRepository
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.route.info
@@ -145,12 +146,11 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                val kelvinSaker: List<Vedtak> = emptyList()/*if (Miljø.er()==MiljøKode.DEV) {
-                    kelvin.hentMaksimum(requestBody)
-                } else {
-                    emptyList()
+                val kelvinSaker: List<Vedtak> = dataSource.transaction {
+                    val vedtaksDataRepository = VedtaksDataRepository(it)
+                    vedtaksDataRepository.hentHvisEksisterer(requestBody.personidentifikator)
                 }
-                */
+
                 respond(
                     api.maksimum.Maksimum(
                         arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvinSaker

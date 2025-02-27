@@ -1,7 +1,9 @@
 package api.kelvin
 
 import api.Tag
+import api.maksimum.VedtakDataKelvin
 import api.postgres.MeldekortPerioderRepository
+import api.postgres.VedtaksDataRepository
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.tag
 import com.papsign.ktor.openapigen.route.info
@@ -33,6 +35,27 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
             dataSource.transaction { connection ->
                 val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
                 meldekortPerioderRepository.lagreMeldekortPerioder(body.personIdent, body.meldekortPerioder)
+            }
+            pipeline.call.respond(HttpStatusCode.OK)
+        }
+
+        route("/vedtak").authorizedPost<Unit, Unit, VedtakDataKelvin>(
+            routeConfig = AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
+                applicationsOnly = true,
+                applicationRole = "add-data",
+            ),
+            modules = listOf(
+                info(
+                    "Legg inn vedtaksData",
+                    "Legg inn vedtaksdata for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                )
+            ).toTypedArray(),
+        ){
+            _, body ->
+            dataSource.transaction { connection ->
+                val vedtakRepository = VedtaksDataRepository(connection)
+                vedtakRepository.lagre(body)
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }

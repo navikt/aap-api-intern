@@ -31,7 +31,6 @@ object TestConfig {
             ),
             azure = azure,
             dbConfig = postgres
-
         )
     }
 
