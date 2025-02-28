@@ -26,25 +26,6 @@ class KelvinClient(
         tokenProvider = ClientCredentialsTokenProvider,
     )
 
-    fun hentSakerByFnr(req: SakerRequest): List<SakStatus> {
-        val request = PostRequest(
-            additionalHeaders = listOf(
-                Header("Accept", "application/json"),
-            ),
-            body = req
-        )
-
-        try {
-            return requireNotNull(
-                client.post(
-                    uri = URI.create(uri).resolve("/api/datadeling/sakerByFnr"),
-                    request = request,
-                    mapper = { body, _ -> DefaultJsonMapper.fromJson(body) }))
-        } catch (e: Exception) {
-            throw BehandlingsflytException("Feil ved forsøk på å hente sakByFnr fra Kelvin: ${e.message}")
-        }
-    }
-
     fun hentMeldekortPerioder(req: InternVedtakRequest): List<KelvinPeriode> {
         val request = PostRequest(
             additionalHeaders = listOf(

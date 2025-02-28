@@ -8,6 +8,7 @@ import api.maksimum.fraKontrakt
 import api.perioder.PerioderInkludert11_17Response
 import api.perioder.PerioderResponse
 import api.postgres.MeldekortPerioderRepository
+import api.postgres.SakStatusRepository
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.route.info
@@ -122,8 +123,13 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            val kelvinSaker: List<SakStatus> = emptyList()
+            val kelvinSaker: List<SakStatus> = dataSource.transaction { connection ->
+                val sakStatusRepository = SakStatusRepository(connection)
+                requestBody.personidentifikatorer.flatMap {
+                    sakStatusRepository.hentSakStatus(it)
+                }
 
+            }
 
             respond(arena.hentSakerByFnr(callId, requestBody) + kelvinSaker)
         }
