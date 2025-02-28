@@ -46,6 +46,33 @@ class VedtaksDataTest : PostgresTestBase() {
                     maksimum = Maksimum(
                         vedtak = listOf(
                             Vedtak(
+                                vedtaksId = "1234567",
+                                dagsats = 222,
+                                status = "IVERK",
+                                saksnummer = "12345",
+                                vedtaksdato = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
+                                periode = Periode(LocalDate.now().minusWeeks(22), LocalDate.now().plusWeeks(10)),
+                                rettighetsType = "test",
+                                beregningsgrunnlag = 123,
+                                barnMedStonad = 1,
+                                kildesystem = "Kelvin",
+                                samordningsId = null,
+                                opphorsAarsak = null,
+                                vedtaksTypeKode = "test",
+                                vedtaksTypeNavn = "test",
+                                utbetaling = listOf(
+                                    UtbetalingMedMer(
+                                        reduksjon = null,
+                                        utbetalingsgrad = 100,
+                                        periode = Periode(LocalDate.now().minusWeeks(22), LocalDate.now().minusWeeks(20)),
+                                        belop = 2220,
+                                        dagsats = 222,
+                                        barnetilegg = 270
+                                    )
+                                )
+                            ),
+                            Vedtak(
+                                vedtaksId = "123456",
                                 dagsats = 222,
                                 status = "IVERK",
                                 saksnummer = "1234",
@@ -83,8 +110,61 @@ class VedtaksDataTest : PostgresTestBase() {
                 }
 
                 assertEquals(HttpStatusCode.OK, res.status)
-                assertEquals(countVedtakEntries(), 1)
-                assertEquals(countUtbetalingEntries(), 1)
+                assertEquals(countVedtakEntries(), 2)
+                assertEquals(countUtbetalingEntries(), 2)
+
+
+                val insertData2 = jsonHttpClient.post("/api/insert/vedtak") {
+                    bearerAuth(azure.generate(true))
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        VedtakDataKelvin(
+                            fnr = "12345678910",
+                            maksimum = Maksimum(
+                                vedtak = listOf(
+                                    Vedtak(
+                                        vedtaksId = "1234567",
+                                        dagsats = 222,
+                                        status = "IVERK",
+                                        saksnummer = "12345",
+                                        vedtaksdato = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
+                                        periode = Periode(LocalDate.now().minusWeeks(22), LocalDate.now().plusWeeks(10)),
+                                        rettighetsType = "test",
+                                        beregningsgrunnlag = 123,
+                                        barnMedStonad = 1,
+                                        kildesystem = "Kelvin",
+                                        samordningsId = null,
+                                        opphorsAarsak = null,
+                                        vedtaksTypeKode = "test",
+                                        vedtaksTypeNavn = "test",
+                                        utbetaling = listOf(
+                                            UtbetalingMedMer(
+                                                reduksjon = null,
+                                                utbetalingsgrad = 100,
+                                                periode = Periode(LocalDate.now().minusWeeks(22), LocalDate.now().minusWeeks(20)),
+                                                belop = 2220,
+                                                dagsats = 222,
+                                                barnetilegg = 270
+                                            ),
+                                            UtbetalingMedMer(
+                                                reduksjon = null,
+                                                utbetalingsgrad = 100,
+                                                periode = Periode(LocalDate.now().minusWeeks(20), LocalDate.now().minusWeeks(18)),
+                                                belop = 2220,
+                                                dagsats = 222,
+                                                barnetilegg = 270
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                }
+                assertEquals(HttpStatusCode.OK, insertData2.status)
+                assertEquals(countVedtakEntries(), 2)
+                assertEquals(countUtbetalingEntries(), 3)
+
                 /*
                 val hentDataRes = jsonHttpClient.post("/maksimum") {
                     bearerAuth(azure.generate(false))
