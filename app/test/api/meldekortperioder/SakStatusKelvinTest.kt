@@ -28,7 +28,7 @@ import java.time.LocalDate
 
 class SakStatusKelvinTest : PostgresTestBase() {
     @Test
-    fun `kan lagre ned og hente meldekort perioder`() {
+    fun `kan lagre ned sak status`() {
         Fakes().use { fakes ->
             val config = TestConfig.default(fakes)
             val azure = AzureTokenGen("test", "test")
@@ -48,12 +48,12 @@ class SakStatusKelvinTest : PostgresTestBase() {
                     setBody(
                         SakStatusKelvin(
                             ident ="12345678910",
-                            status = SakStatus(
+                            status = api.kelvin.SakStatus(
                                 sakId = "1234",
-                                statusKode = Status.IVERK,
-                                periode = no.nav.aap.api.intern.Periode(
-                                    fraOgMedDato = LocalDate.ofYearDay(2021, 1),
-                                    tilOgMedDato = LocalDate.ofYearDay(
+                                statusKode = no.nav.aap.arenaoppslag.kontrakt.intern.Status.IVERK,
+                                periode = Periode(
+                                    fom = LocalDate.ofYearDay(2021, 1),
+                                    tom = LocalDate.ofYearDay(
                                         2021, 31
                                     )
                                 ),
