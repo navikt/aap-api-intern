@@ -7,6 +7,18 @@ class SakStatusRepository(private val connection: DBConnection) {
     fun lagreSakStatus(fnr: String, sakStatus: no.nav.aap.api.intern.SakStatus) {
         connection.execute(
             """
+                DELETE FROM SAKER
+                WHERE SAKSNUMMER = ?
+            """.trimIndent()
+        ) {
+            setParams {
+                setString(1, sakStatus.sakId)
+            }
+        }
+
+
+        connection.execute(
+            """
                 INSERT INTO SAKER (IDENT, SAKSNUMMER, STATUS, RETTIGHETS_PERIODE)
                 VALUES (?, ?, ?, ?::daterange)
             """.trimIndent()
