@@ -49,6 +49,7 @@ class SakStatusRepository(private val connection: DBConnection) {
                 sakId = row.getString("SAKSNUMMER"),
                 statusKode = no.nav.aap.api.intern.Status.valueOf(row.getString("STATUS")),
                 periode = row.getPeriode("RETTIGHETS_PERIODE").toKontraktPeriode(),
+                kilde = no.nav.aap.api.intern.Kilde.KELVIN
                 )
             }
         }
