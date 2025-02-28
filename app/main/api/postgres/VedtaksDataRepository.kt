@@ -10,53 +10,41 @@ import java.time.format.DateTimeFormatter
 
 class VedtaksDataRepository(val connection: DBConnection) {
     fun lagre(kelvin: VedtakDataKelvin) {
-        connection.execute(
+        connection.executeBatch(
             """
                 DELETE FROM VEDTAK
-                WHERE FNR = ?
-            """.trimIndent()
+                WHERE VEDTAKSID = ?
+            """.trimIndent(),
+            kelvin.maksimum.vedtak
         ) {
             setParams {
-                setString(1, kelvin.fnr)
-            }
-        }
-
-        connection.execute(
-            """
-                DELETE FROM UTBETALING
-                WHERE VEDTAK_ID IN (
-                    SELECT ID FROM VEDTAK
-                    WHERE FNR = ?
-                )
-            """.trimIndent()
-        ) {
-            setParams {
-                setString(1, kelvin.fnr)
+                setString(1, it.vedtaksId)
             }
         }
 
         kelvin.maksimum.vedtak.forEach { vedtak ->
             val utbetalingVedtakId = connection.executeReturnKey(
                 """
-                INSERT INTO VEDTAK (FNR, DAGSATS, STATUS, SAKSNUMMER, VEDTAKSDATO, RETTIGHETS_TYPE, BEREGNINGSGRUNNLAG, BARN_MED_STONAD, SAMORDNINGS_ID, OPPHORSORSAK, VEDTAKS_TYPE_KODE, VEDTAKS_TYPE_NAVN, PERIODE )
-                VALUES (?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::daterange)
+                INSERT INTO VEDTAK (FNR, VEDTAKSID,DAGSATS, STATUS, SAKSNUMMER, VEDTAKSDATO, RETTIGHETS_TYPE, BEREGNINGSGRUNNLAG, BARN_MED_STONAD, SAMORDNINGS_ID, OPPHORSORSAK, VEDTAKS_TYPE_KODE, VEDTAKS_TYPE_NAVN, PERIODE )
+                VALUES (?, ?, ?, ? , ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::daterange)
             """.trimIndent(),
 
                 ) {
                 setParams {
                     setString(1, kelvin.fnr)
-                    setInt(2, vedtak.dagsats)
-                    setString(3, vedtak.status)
-                    setString(4, vedtak.saksnummer)
-                    setLocalDate(5, LocalDate.parse(vedtak.vedtaksdato))
-                    setString(6, vedtak.rettighetsType)
-                    setInt(7, vedtak.beregningsgrunnlag)
-                    setInt(8, vedtak.barnMedStonad)
-                    setString(9, vedtak.samordningsId)
-                    setString(10, vedtak.opphorsAarsak)
-                    setString(11, vedtak.vedtaksTypeKode)
-                    setString(12, vedtak.vedtaksTypeNavn)
-                    setPeriode(13, vedtak.periode.toKelvinPeriode())
+                    setString(2, vedtak.vedtaksId)
+                    setInt(3, vedtak.dagsats)
+                    setString(4, vedtak.status)
+                    setString(5, vedtak.saksnummer)
+                    setLocalDate(6, LocalDate.parse(vedtak.vedtaksdato))
+                    setString(7, vedtak.rettighetsType)
+                    setInt(8, vedtak.beregningsgrunnlag)
+                    setInt(9, vedtak.barnMedStonad)
+                    setString(10, vedtak.samordningsId)
+                    setString(11, vedtak.opphorsAarsak)
+                    setString(12, vedtak.vedtaksTypeKode)
+                    setString(13, vedtak.vedtaksTypeNavn)
+                    setPeriode(14, vedtak.periode.toKelvinPeriode())
                 }
             }
             lagreUtbetaling(utbetalingVedtakId, vedtak.utbetaling)
@@ -95,6 +83,7 @@ class VedtaksDataRepository(val connection: DBConnection) {
             }
             setRowMapper { row ->
                 Vedtak(
+                    row.getString("VEDTAKSID"),
                     row.getInt("DAGSATS"),
                     row.getString("STATUS"),
                     row.getString("SAKSNUMMER"),
