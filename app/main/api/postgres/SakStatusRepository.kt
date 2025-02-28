@@ -1,10 +1,11 @@
 package api.postgres
 
+import api.kelvin.SakStatus
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 
 class SakStatusRepository(private val connection: DBConnection) {
-    fun lagreSakStatus(fnr: String, sakStatus: no.nav.aap.api.intern.SakStatus) {
+    fun lagreSakStatus(fnr: String, sakStatus: SakStatus) {
         connection.execute(
             """
                 DELETE FROM SAKER
@@ -27,7 +28,7 @@ class SakStatusRepository(private val connection: DBConnection) {
                 setString(1, fnr)
                 setString(2, sakStatus.sakId)
                 setString(3, sakStatus.statusKode.toString())
-                setPeriode(4, sakStatus.periode.toPeriode())
+                setPeriode(4, sakStatus.periode)
             }
         }
     }
@@ -51,10 +52,6 @@ class SakStatusRepository(private val connection: DBConnection) {
                 )
             }
         }
-    }
-
-    private fun no.nav.aap.api.intern.Periode.toPeriode(): Periode {
-        return Periode(this.fraOgMedDato!!, this.tilOgMedDato!!)
     }
 
     private fun Periode.toKontraktPeriode(): no.nav.aap.api.intern.Periode {
