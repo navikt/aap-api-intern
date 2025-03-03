@@ -10,6 +10,7 @@ spec:
   image: {{image}}
   ingresses:
     - https://aap-api.intern.dev.nav.no
+    - https://aap-api.ansatt.dev.nav.no
   replicas:
     max: 2
     min: 2
