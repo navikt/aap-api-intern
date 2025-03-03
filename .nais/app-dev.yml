@@ -70,7 +70,7 @@ spec:
           namespace: teamarenanais
           cluster: dev-fss
         - application: azure-token-generator # Ikke i prod :)
-          namespace: aura
+          namespace: nais
           cluster: dev-gcp
         - application: behandlingsflyt
           namespace: aap
