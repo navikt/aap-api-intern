@@ -21,8 +21,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
     fun lagreBehandling(behandling: DatadelingDTO) {
         val sakId = connection.executeReturnKey(
             """
-                INSERT INTO SAK (STATUS, RETTIGHETS_PERIODE, SAKSNUMMER)
-                VALUES (?, ?::daterange, ?, ?)
+                INSERT INTO SAK (STATUS, RETTIGHETSPERIODE, SAKSNUMMER)
+                VALUES (?, ?::daterange, ?)
             """.trimIndent()
         ) {
             setParams {
@@ -63,7 +63,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         connection.executeBatch(
             """
                 INSERT INTO UNDERVEIS (BEHANDLING_ID, PERIODE, MELDEPERIODE, UTFALL, RETTIGHETS_TYPE, OPPRETTET_TID)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?::daterange, ?::daterange, ?, ?, ?)
             """.trimIndent(),
             behandling.underveisperiode
         ) {
@@ -71,9 +71,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setLong(1, behandlingId)
                 setPeriode(2, Periode(it.underveisFom, it.underveisTom))
                 setPeriode(3, Periode(it.meldeperiodeFom, it.meldeperiodeTom))
-                setString(6, it.utfall)
-                setString(7, it.rettighetsType?.toString() ?: "")
-                setString(8, it.avslagsårsak)
+                setString(4, it.utfall)
+                setString(5, it.rettighetsType?.toString() ?: "")
+                setLocalDateTime(6, LocalDateTime.now())
             }
         }
 
@@ -90,22 +90,22 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
         connection.executeBatch(
             """
-                INSERT INTO TILKJENT_PERIODE (TILKJENT_YTELSE_ID, TILKJENT_FOM, TILKJENT_TOM, DAGSATS, GRADERING, GRUNNLAG, GRUNNLAGSFAKTOR, GRUNNBELØP, ANTALL_BARN, BARNETILLEGGSATS, BARNETILLEGG)
+                INSERT INTO TILKJENT_PERIODE (TILKJENT_YTELSE_ID, PERIODE, DAGSATS, GRADERING, GRUNNLAG, GRUNNLAGSFAKTOR, GRUNNBELOP, ANTALL_BARN, BARNETILLEGGSATS, BARNETILLEGG)
+                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
             behandling.tilkjent
         ) {
             setParams {
                 setLong(1, tilkjentId)
-                setLocalDate(2, it.tilkjentFom)
-                setLocalDate(3, it.tilkjentTom)
-                setInt(4, it.dagsats)
-                setInt(5, it.gradering)
-                setInt(6, it.grunnlag)
-                setInt(7, it.grunnlagsfaktor)
-                setInt(8, it.grunnbeløp)
-                setInt(9, it.antallBarn)
-                setInt(10, it.barnetilleggsats)
-                setInt(11, it.barnetillegg)
+                setPeriode(2, Periode(it.tilkjentFom, it.tilkjentTom))
+                setInt(3, it.dagsats)
+                setInt(4, it.gradering)
+                setInt(5, it.grunnlag)
+                setInt(6, it.grunnlagsfaktor)
+                setInt(7, it.grunnbeløp)
+                setInt(8, it.antallBarn)
+                setInt(9, it.barnetilleggsats)
+                setInt(10, it.barnetillegg)
             }
         }
     }

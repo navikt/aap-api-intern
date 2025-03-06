@@ -39,6 +39,13 @@ abstract class PostgresTestBase {
             }
         }
 
+    fun countTilkjentPerioder(): Int =
+        dataSource.transaction { con ->
+            con.queryFirst("SELECT count(*) as nr FROM TILKJENT_PERIODE"){
+                setRowMapper { row -> row.getInt("nr") }
+            }
+        }
+
 
     fun getAllInnsendinger(): List<MeldekortPerioderDTO> =
         dataSource.transaction { con ->
