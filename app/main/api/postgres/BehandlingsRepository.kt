@@ -18,7 +18,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class BehandlingsRepository(private val connection: DBConnection) {
-    fun lagreBehandling(fnr: String, behandling: DatadelingDTO) {
+    fun lagreBehandling(behandling: DatadelingDTO) {
         val sakId = connection.executeReturnKey(
             """
                 INSERT INTO SAK (STATUS, RETTIGHETS_PERIODE, SAKSNUMMER)
