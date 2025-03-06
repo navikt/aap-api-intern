@@ -12,7 +12,7 @@ abstract class PostgresTestBase {
     protected val dataSource: DataSource = InitTestDatabase.dataSource
 
     init {
-        Migrering.migrate(dataSource)
+        Migrering.migrate(dataSource, false)
     }
 
     @BeforeEach

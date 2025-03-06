@@ -10,7 +10,6 @@ object TestConfig {
         password = "",
         url = "jdbc:h2:mem:test_db;MODE=PostgreSQL",
     )
-
     val azure = AzureConfig(
         tokenEndpoint = "http://localhost:${Fakes().azure.port()}/jwt",
         clientId = "test",
@@ -25,6 +24,7 @@ object TestConfig {
                 proxyBaseUrl = "",
                 scope = "api://dev-fss.teamdokumenthandtering.dokarkiv/.default"
             ),
+            wipeDb = false,
             kelvinConfig = KelvinConfig(
                 proxyBaseUrl = "",
                 scope = "api://behandlingsflyt/.default"
