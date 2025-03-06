@@ -24,7 +24,6 @@ object TestConfig {
                 proxyBaseUrl = "",
                 scope = "api://dev-fss.teamdokumenthandtering.dokarkiv/.default"
             ),
-            wipeDb = false,
             kelvinConfig = KelvinConfig(
                 proxyBaseUrl = "",
                 scope = "api://behandlingsflyt/.default"

@@ -14,8 +14,7 @@ data class Config(
         jwksUri = getEnvVar("AZURE_OPENID_CONFIG_JWKS_URI"),
         issuer = getEnvVar("AZURE_OPENID_CONFIG_ISSUER")
     ),
-    val dbConfig: DbConfig = DbConfig(),
-    val wipeDb: Boolean = true
+    val dbConfig: DbConfig = DbConfig()
 )
 
 data class ArenaoppslagConfig(
