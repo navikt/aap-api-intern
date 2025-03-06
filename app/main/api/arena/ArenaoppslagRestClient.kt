@@ -94,10 +94,11 @@ class ArenaoppslagRestClient(
     fun hentMaksimum(callId: UUID, req: InternVedtakRequest):Maksimum{
         return clientLatencyStats.startTimer().use {
             runBlocking {
+                val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope)
                 httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/maksimum") {
                     accept(ContentType.Application.Json)
                     header("Nav-Call-Id", callId)
-                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                    bearerAuth(token)
                     contentType(ContentType.Application.Json)
                     setBody(req)
                 }

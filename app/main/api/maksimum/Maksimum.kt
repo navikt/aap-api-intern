@@ -22,11 +22,17 @@ data class KelvinPeriode(
     val tom: LocalDate
 )
 
+data class VedtakDataKelvin(
+    val fnr: String,
+    val maksimum: Maksimum
+)
+
 /**
  * @param status Hypotese, vedtaksstatuskode
  * @param saksnummer hypotese sak_id
  */
 data class Vedtak(
+    val vedtaksId: String,
     val dagsats: Int,
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
@@ -44,6 +50,7 @@ data class Vedtak(
 )
 
 data class VedtakUtenUtbetaling(
+    val vedtaksId: String,
     val dagsats: Int,
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
@@ -61,6 +68,7 @@ data class VedtakUtenUtbetaling(
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
     return Vedtak(
+        this.vedtaksId,
         this.dagsats,
         this.status,
         this.saksnummer,
@@ -77,6 +85,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling(): VedtakUtenUtbetaling {
     return VedtakUtenUtbetaling(
+        this.vedtaksId,
         this.dagsats,
         this.status,
         this.saksnummer,

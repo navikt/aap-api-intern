@@ -10,10 +10,27 @@ application {
     mainClass.set("api.AppKt")
 }
 
+repositories {
+    mavenCentral()
+    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
+    maven {
+        name = "GitHubPackages"
+        url = uri("https://maven.pkg.github.com/navikt/behandlingsflyt")
+        credentials {
+            username = "x-access-token"
+            password = (project.findProperty("githubPassword")
+                ?: System.getenv("GITHUB_PASSWORD")
+                ?: System.getenv("GITHUB_TOKEN")
+                ?: error("")).toString()
+        }
+    }
+}
+
 val aapLibVersion = "5.0.25"
 val komponenterVersjon = "1.0.169"
 val ktorVersion = "3.1.1"
 val tilgangVersjon = "0.0.86"
+val behandlingsflytversjon = "0.0.186"
 
 dependencies {
     implementation(project(":kontrakt"))
@@ -24,6 +41,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
     implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
+    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
     implementation("no.nav.aap.arenaoppslag:kontrakt:0.0.18")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 

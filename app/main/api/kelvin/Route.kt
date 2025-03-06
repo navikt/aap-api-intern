@@ -1,19 +1,13 @@
 package api.kelvin
 
-import api.Tag
 import api.postgres.MeldekortPerioderRepository
 import api.postgres.SakStatusRepository
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.tag
 import com.papsign.ktor.openapigen.route.info
-import com.papsign.ktor.openapigen.route.path.normal.post
-import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import io.ktor.server.response.*
-import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.authorizedPost
 import tilgang.Operasjon

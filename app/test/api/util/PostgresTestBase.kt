@@ -39,6 +39,7 @@ abstract class PostgresTestBase {
             }
         }
 
+
     fun getAllInnsendinger(): List<MeldekortPerioderDTO> =
         dataSource.transaction { con ->
             val fnr = con.querySet<String>("SELECT fnr FROM MELDEKORT_PERIODER_MED_FNR"){

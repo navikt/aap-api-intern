@@ -29,8 +29,6 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.audience
-import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.komponenter.miljo.MiljøKode
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.sql.DataSource
@@ -147,12 +145,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                val kelvinSaker: List<Vedtak> = emptyList()/*if (Miljø.er()==MiljøKode.DEV) {
-                    kelvin.hentMaksimum(requestBody)
-                } else {
-                    emptyList()
-                }
-                */
+                val kelvinSaker: List<Vedtak> = emptyList()
                 respond(
                     api.maksimum.Maksimum(
                         arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvinSaker
