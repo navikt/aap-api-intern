@@ -30,7 +30,7 @@ val aapLibVersion = "5.0.25"
 val komponenterVersjon = "1.0.169"
 val ktorVersion = "3.1.1"
 val tilgangVersjon = "0.0.86"
-val behandlingsflytversjon = "0.0.186"
+val behandlingsflytversjon = "0.0.189"
 
 dependencies {
     implementation(project(":kontrakt"))
