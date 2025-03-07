@@ -21,6 +21,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.personEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
@@ -70,6 +71,21 @@ class ArenaoppslagRestClient(
                     bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
                     contentType(ContentType.Application.Json)
                     setBody(vedtakRequest)
+                }
+                    .bodyAsText()
+                    .let(objectMapper::readValue)
+            }
+        }
+
+    fun hentPersonEksistererIAapContext(callId: UUID, sakerRequest: SakerRequest): personEksistererIAAPArena =
+        clientLatencyStats.startTimer().use {
+            runBlocking {
+                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/person/aap/eksisterer") {
+                    accept(ContentType.Application.Json)
+                    header("Nav-Call-Id", callId)
+                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                    contentType(ContentType.Application.Json)
+                    setBody(sakerRequest)
                 }
                     .bodyAsText()
                     .let(objectMapper::readValue)

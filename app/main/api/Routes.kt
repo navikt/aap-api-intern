@@ -27,6 +27,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.personEksistererIAAPArena
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.audience
 import org.slf4j.LoggerFactory
@@ -129,6 +130,22 @@ fun NormalOpenAPIRoute.api(
             }
 
             respond(arena.hentSakerByFnr(callId, requestBody) + kelvinSaker)
+        }
+        route("/arena/person/aap/eksisterer") {
+            post<CallIdHeader, personEksistererIAAPArena, SakerRequest>(
+                info(description = "Sjekker om en person eksisterer i AAP-arena")
+            ) { callIdHeader, requestBody ->
+                httpCallCounter.httpCallCounter(
+                    "/arena/person/aap/eksisterer",
+                    pipeline.call.audience(),
+                    azpName() ?: ""
+                ).increment()
+                val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+                    logger.info("CallID ble ikke gitt på kall mot: /person/aap/eksisterer")
+                }
+
+                respond(arena.hentPersonEksistererIAapContext(callId, requestBody))
+            }
         }
     }
     tag(Tag.Maksimum) {
