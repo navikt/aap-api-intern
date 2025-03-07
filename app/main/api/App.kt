@@ -44,8 +44,10 @@ fun PrometheusMeterRegistry.httpCallCounter(
     listOf(Tag.of("path", path), Tag.of("audience", audience), Tag.of("azp_name", azpName))
 )
 
-fun cleanAndMigrate(dataSource: DataSource) {
-    cleanDatabase(dataSource)
+fun cleanAndMigrate(dataSource: DataSource, wipe: Boolean = false) {
+    if (wipe){
+        cleanDatabase(dataSource)
+    }
     Migrering.migrate(dataSource)
 }
 
@@ -65,7 +67,7 @@ fun Application.api(
 ) {
     val arenaRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure)
     val kelvin = KelvinClient(config.kelvinConfig)
-    cleanAndMigrate(datasource)
+    cleanAndMigrate(datasource, config.wipe)
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->

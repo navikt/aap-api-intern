@@ -29,7 +29,8 @@ object TestConfig {
                 scope = "api://behandlingsflyt/.default"
             ),
             azure = azure,
-            dbConfig = postgres
+            dbConfig = postgres,
+            wipe = false
         )
     }
 
