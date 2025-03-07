@@ -24,10 +24,9 @@ import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
+import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
-import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.komponenter.miljo.MiljøKode
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -45,6 +44,20 @@ fun PrometheusMeterRegistry.httpCallCounter(
     listOf(Tag.of("path", path), Tag.of("audience", audience), Tag.of("azp_name", azpName))
 )
 
+fun cleanAndMigrate(dataSource: DataSource) {
+    cleanDatabase(dataSource)
+    Migrering.migrate(dataSource)
+}
+
+private fun cleanDatabase(dataSource: DataSource) {
+    val flyway = Flyway
+        .configure()
+        .dataSource(dataSource)
+        .load()
+
+    flyway.clean()
+}
+
 fun Application.api(
     prometheus: PrometheusMeterRegistry=PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
     config: Config = Config(),
@@ -52,7 +65,7 @@ fun Application.api(
 ) {
     val arenaRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure)
     val kelvin = KelvinClient(config.kelvinConfig)
-    Migrering.migrate(datasource)
+    cleanAndMigrate(datasource)
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->

@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("api-intern.conventions")
     id("io.ktor.plugin") version "3.1.1"
+    id ("org.flywaydb.flyway") version "9.0.0"
     application
 }
 
@@ -36,6 +37,7 @@ dependencies {
     implementation(project(":kontrakt"))
     implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
 
+    implementation("org.flywaydb:flyway-core:9.0.0")
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
