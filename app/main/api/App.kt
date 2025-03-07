@@ -55,6 +55,7 @@ private fun cleanDatabase(dataSource: DataSource) {
     val flyway = Flyway
         .configure()
         .dataSource(dataSource)
+        .cleanDisabled(false)
         .load()
 
     flyway.clean()
