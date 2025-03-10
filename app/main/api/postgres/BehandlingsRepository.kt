@@ -98,14 +98,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
             setParams {
                 setLong(1, tilkjentId)
                 setPeriode(2, Periode(it.tilkjentFom, it.tilkjentTom))
-                setInt(3, it.dagsats)
+                setBigDecimal(3, it.dagsats)
                 setInt(4, it.gradering)
-                setInt(5, it.grunnlag)
-                setInt(6, it.grunnlagsfaktor)
-                setInt(7, it.grunnbeløp)
+                setBigDecimal(5, it.grunnlag)
+                setBigDecimal(6, it.grunnlagsfaktor)
+                setBigDecimal(7, it.grunnbeløp)
                 setInt(8, it.antallBarn)
-                setInt(9, it.barnetilleggsats)
-                setInt(10, it.barnetillegg)
+                setBigDecimal(9, it.barnetilleggsats)
+                setBigDecimal(10, it.barnetillegg)
             }
         }
     }
@@ -117,7 +117,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             vedtak = kelvinData.flatMap { sak ->
                 // filtrer ut tilkjentYtelsePerioder som ikke er avsluttet eller ikke har noen utbetaling
                 val tilkjentYtelse =
-                    sak.tilkjent.filter { it.tilkjentTom <= LocalDate.now() && it.dagsats != 0 && it.gradering > 0 }
+                    sak.tilkjent.filter { it.tilkjentTom <= LocalDate.now() && it.dagsats.toInt()!= 0 && it.gradering > 0 }
 
 
                 val utbetalingPr2Uker = tilkjentYtelse.map { verdi ->
@@ -125,9 +125,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         reduksjon = null,
                         utbetalingsgrad = verdi.gradering,
                         periode = no.nav.aap.api.intern.Periode(verdi.tilkjentFom, verdi.tilkjentTom),
-                        belop = verdi.dagsats * 10 * verdi.gradering / 100,
-                        dagsats = verdi.dagsats,
-                        barnetilegg = verdi.barnetillegg,
+                        belop = verdi.dagsats.toInt() * 10 * verdi.gradering / 100,
+                        dagsats = verdi.dagsats.toInt(),
+                        barnetilegg = verdi.barnetillegg.toInt(),
                     )
                 }
 
@@ -136,13 +136,13 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 vedtakTilkjentYtelse.map { tilkjent ->
                     Vedtak(
                         vedtaksId = "",
-                        dagsats = tilkjent.dagsats,
+                        dagsats = tilkjent.dagsats.toInt(),
                         status = sak.behandlingStatus.toString(),
                         saksnummer = sak.sak.saksnummer,
                         vedtaksdato = sak.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
                         periode = no.nav.aap.api.intern.Periode(tilkjent.tilkjentFom, tilkjent.tilkjentTom),
                         rettighetsType = "",
-                        beregningsgrunnlag = tilkjent.grunnlag,
+                        beregningsgrunnlag = tilkjent.grunnlag.toInt(),
                         barnMedStonad = tilkjent.antallBarn,
                         kildesystem = "KELVIN",
                         samordningsId = null,
@@ -253,7 +253,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     meldeperiodeFom = row.getLocalDate("MELDEPERIODE_FOM"),
                     meldeperiodeTom = row.getLocalDate("MELDEPERIODE_TOM"),
                     utfall = row.getString("UTFALL"),
-                    rettighetsType = RettighetsType.valueOf(row.getString("RETTIGHETS_TYPE")),
+                    rettighetsType = row.getString("RETTIGHETS_TYPE"),
                     avslagsårsak = row.getString("AVSLAGSÅRSAK")
                 )
             }
@@ -275,14 +275,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 TilkjentDTO(
                     tilkjentFom = it.getPeriode("PERIODE").fom,
                     tilkjentTom = it.getPeriode("PERIODE").fom,
-                    dagsats = it.getInt("DAGSATS"),
+                    dagsats = it.getBigDecimal("DAGSATS"),
                     gradering = it.getInt("GRADERING"),
-                    grunnlag = it.getInt("GRUNNLAG"),
-                    grunnlagsfaktor = it.getInt("GRUNNLAGSFAKTOR"),
-                    grunnbeløp = it.getInt("GRUNNBELØP"),
+                    grunnlag = it.getBigDecimal("GRUNNLAG"),
+                    grunnlagsfaktor = it.getBigDecimal("GRUNNLAGSFAKTOR"),
+                    grunnbeløp = it.getBigDecimal("GRUNNBELØP"),
                     antallBarn = it.getInt("ANTALL_BARN"),
-                    barnetilleggsats = it.getInt("BARNETILLEGGSATS"),
-                    barnetillegg = it.getInt("BARNETILLEGG")
+                    barnetilleggsats = it.getBigDecimal("BARNETILLEGGSATS"),
+                    barnetillegg = it.getBigDecimal("BARNETILLEGG")
                 )
             }
         }

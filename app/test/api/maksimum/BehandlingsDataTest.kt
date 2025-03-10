@@ -36,7 +36,7 @@ val testObject = DatadelingDTO(
             meldeperiodeFom = LocalDate.now().minusYears(2),
             meldeperiodeTom = LocalDate.now().minusYears(1),
             utfall = "",
-            rettighetsType = RettighetsType.STUDENT,
+            rettighetsType = RettighetsType.STUDENT.name,
             avslagsårsak = ""
         )
     ),
@@ -62,14 +62,14 @@ val testObject = DatadelingDTO(
                 TilkjentDTO(
                     tilkjentFom = periode.first,
                     tilkjentTom = periode.second,
-                    dagsats = if (index >= dagsatsChangePoint) Random.nextInt(100, 200) else Random.nextInt(50, 100),
+                    dagsats = if (index >= dagsatsChangePoint) Random.nextInt(100, 200).toBigDecimal() else Random.nextInt(50, 100).toBigDecimal(),
                     gradering = if (index == halfwayPoint) 0 else Random.nextInt(1, 100),
-                    grunnlag = Random.nextInt(1000, 2000),
-                    grunnlagsfaktor = Random.nextInt(1, 10),
-                    grunnbeløp = Random.nextInt(50000, 100000),
+                    grunnlag = Random.nextInt(1000, 2000).toBigDecimal(),
+                    grunnlagsfaktor = Random.nextInt(1, 10).toBigDecimal(),
+                    grunnbeløp = Random.nextInt(50000, 100000).toBigDecimal(),
                     antallBarn = Random.nextInt(0, 5),
-                    barnetilleggsats = Random.nextInt(0, 1000),
-                    barnetillegg = Random.nextInt(0, 500)
+                    barnetilleggsats = Random.nextInt(0, 1000).toBigDecimal(),
+                    barnetillegg = Random.nextInt(0, 500).toBigDecimal()
                 )
             }
         }
