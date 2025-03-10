@@ -11,9 +11,10 @@ import io.ktor.server.response.*
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
+import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
-import tilgang.Operasjon
 import javax.sql.DataSource
+
 fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
