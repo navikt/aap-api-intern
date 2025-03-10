@@ -3,10 +3,12 @@ package api
 import api.arena.ArenaoppslagRestClient
 import api.kelvin.KelvinClient
 import api.maksimum.KelvinPeriode
+import api.maksimum.Maksimum
 import api.maksimum.Vedtak
 import api.maksimum.fraKontrakt
 import api.perioder.PerioderInkludert11_17Response
 import api.perioder.PerioderResponse
+import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortPerioderRepository
 import api.postgres.SakStatusRepository
 import com.papsign.ktor.openapigen.APITag
@@ -163,9 +165,12 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                val kelvinSaker: List<Vedtak> = emptyList()
+                val kelvinSaker: List<Vedtak> = dataSource.transaction<List<Vedtak>> { connection ->
+                    val behandlingsRepository = BehandlingsRepository(connection)
+                    behandlingsRepository.hentMaksimumArenaOppsett(requestBody.personidentifikator).vedtak
+                }
                 respond(
-                    api.maksimum.Maksimum(
+                    Maksimum(
                         arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvinSaker
                     )
                 )
