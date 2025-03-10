@@ -37,7 +37,7 @@ dependencies {
     implementation(project(":kontrakt"))
     implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
 
-    implementation("org.flywaydb:flyway-core:9.0.0")
+    implementation("org.flywaydb:flyway-core:11.3.4")
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
