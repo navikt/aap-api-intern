@@ -24,6 +24,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
@@ -132,7 +133,7 @@ fun NormalOpenAPIRoute.api(
             respond(arena.hentSakerByFnr(callId, requestBody) + kelvinSaker)
         }
         route("/arena/person/aap/eksisterer") {
-            post<CallIdHeader, personEksistererIAAPArena, SakerRequest>(
+            post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
                 info(description = "Sjekker om en person eksisterer i AAP-arena")
             ) { callIdHeader, requestBody ->
                 httpCallCounter.httpCallCounter(
@@ -144,7 +145,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /person/aap/eksisterer")
                 }
 
-                respond(arena.hentPersonEksistererIAapContext(callId, requestBody))
+                respond(PersonEksistererIAAPArena(arena.hentPersonEksistererIAapContext(callId, requestBody).eksisterer))
             }
         }
     }
