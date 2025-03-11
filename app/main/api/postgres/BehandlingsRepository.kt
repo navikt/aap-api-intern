@@ -302,7 +302,7 @@ data class BehandlingDB(
 fun mergeTilkjentPeriods(periods: List<TilkjentDTO>): List<TilkjentDTO> {
     if (periods.isEmpty()) return emptyList()
 
-    val sortedPeriods = periods.sortedBy { it.tilkjentFom }.filter { it.gradering != 0 && it.dagsats.toInt() != 0 }
+    val sortedPeriods = periods.sortedBy { it.tilkjentFom }
     val mergedPeriods = mutableListOf<TilkjentDTO>()
 
     var currentPeriod = sortedPeriods[0]
