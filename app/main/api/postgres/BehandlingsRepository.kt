@@ -185,7 +185,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     sakDB(
                         saksnummer = row.getString("SAKSNUMMER"),
                         status = no.nav.aap.behandlingsflyt.kontrakt.sak.Status.valueOf(row.getString("STATUS")),
-                        rettighetsPeriode = row.getPeriode("RETTIGHETS_PERIODE"),
+                        rettighetsPeriode = row.getPeriode("RETTIGHETSPERIODE"),
                         id = it
                     )
                 }
