@@ -1,6 +1,7 @@
 package api
 
 import api.arena.ArenaoppslagRestClient
+import api.arena.IArenaoppslagRestClient
 import api.kelvin.KelvinClient
 import api.maksimum.KelvinPeriode
 import api.maksimum.Maksimum
@@ -59,8 +60,7 @@ enum class Tag(override val description: String) : APITag {
 
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
-    arena: ArenaoppslagRestClient,
-    kelvin: KelvinClient,
+    arena: IArenaoppslagRestClient,
     httpCallCounter: PrometheusMeterRegistry
 ) {
 
@@ -165,7 +165,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                val kelvinSaker: List<Vedtak> = dataSource.transaction<List<Vedtak>> { connection ->
+                val kelvinSaker: List<Vedtak> = dataSource.transaction{ connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     behandlingsRepository.hentMaksimumArenaOppsett(requestBody.personidentifikator).vedtak
                 }

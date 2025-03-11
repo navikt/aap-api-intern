@@ -2,8 +2,9 @@ package api.meldekortperioder
 
 import api.TestConfig
 import api.api
+import api.arena.ArenaoppslagRestClient
 import api.kelvin.MeldekortPerioderDTO
-import api.maksimum.KelvinPeriode
+import api.util.ArenaClient
 import api.util.AzureTokenGen
 import api.util.Fakes
 import api.util.PostgresTestBase
@@ -36,7 +37,8 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                 application {
                     api(
                         config = config,
-                        datasource = InitTestDatabase.dataSource
+                        datasource = InitTestDatabase.dataSource,
+                        arenaRestClient = ArenaClient()
                     )
                 }
 

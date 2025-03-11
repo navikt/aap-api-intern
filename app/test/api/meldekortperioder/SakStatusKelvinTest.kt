@@ -2,24 +2,20 @@ package api.meldekortperioder
 
 import api.TestConfig
 import api.api
-import api.kelvin.MeldekortPerioderDTO
+import api.arena.ArenaoppslagRestClient
 import api.kelvin.SakStatusKelvin
+import api.util.ArenaClient
 import api.util.AzureTokenGen
 import api.util.Fakes
 import api.util.PostgresTestBase
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
-import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
-import no.nav.aap.api.intern.SakStatus
-import no.nav.aap.api.intern.Status
-import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.Kilde
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.type.Periode
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -37,7 +33,8 @@ class SakStatusKelvinTest : PostgresTestBase() {
                 application {
                     api(
                         config = config,
-                        datasource = InitTestDatabase.dataSource
+                        datasource = InitTestDatabase.dataSource,
+                        arenaRestClient = ArenaClient()
                     )
                 }
 

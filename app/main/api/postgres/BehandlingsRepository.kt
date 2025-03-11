@@ -35,9 +35,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
             """.trimIndent(),
             behandling.sak.fnr
         ) {
-            setParams {
+            setParams {fnr ->
                 setLong(1, sakId)
-                setString(2, it)
+                setString(2, fnr)
             }
         }
 
@@ -113,7 +113,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             vedtak = kelvinData.flatMap { sak ->
                 // filtrer ut tilkjentYtelsePerioder som ikke er avsluttet eller ikke har noen utbetaling
                 val tilkjentYtelse =
-                    sak.tilkjent.filter { it.tilkjentTom <= LocalDate.now() && it.dagsats.toInt()!= 0 && it.gradering > 0 }
+                    sak.tilkjent.filter { it.tilkjentTom <= LocalDate.now() && (it.dagsats.toInt()!= 0 || it.gradering > 0) }
 
 
                 val utbetalingPr2Uker = tilkjentYtelse.map { verdi ->
@@ -127,7 +127,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     )
                 }
 
-                var prev: TilkjentDTO? = null
                 val vedtakTilkjentYtelse = mergeTilkjentPeriods(tilkjentYtelse)
                 vedtakTilkjentYtelse.map { tilkjent ->
                     Vedtak(
@@ -241,14 +240,16 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setLong(1, behandlingId)
             }
             setRowMapper { row ->
+                val periode = row.getPeriode("PERIODE")
+                val meldePeriode = row.getPeriode("MELDEPERIODE")
                 UnderveisDTO(
-                    underveisFom = row.getLocalDate("PERIODE_FOM"),
-                    underveisTom = row.getLocalDate("PERIODE_TOM"),
-                    meldeperiodeFom = row.getLocalDate("MELDEPERIODE_FOM"),
-                    meldeperiodeTom = row.getLocalDate("MELDEPERIODE_TOM"),
+                    underveisFom = periode.fom,
+                    underveisTom = periode.tom,
+                    meldeperiodeFom = meldePeriode.fom,
+                    meldeperiodeTom = meldePeriode.tom,
                     utfall = row.getString("UTFALL"),
                     rettighetsType = row.getString("RETTIGHETS_TYPE"),
-                    avslagsårsak = row.getString("AVSLAGSÅRSAK")
+                    avslagsårsak = null
                 )
             }
         }
@@ -257,7 +258,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
     fun hentTilkjentYtelse(behandlingId: Long): List<TilkjentDTO> {
         return connection.queryList(
             """
-                SELECT * FROM TILOKJENT_PERIODE
+                SELECT * FROM TILKJENT_PERIODE
                 WHERE TILKJENT_YTELSE_ID IN (
                     SELECT ID FROM TILKJENT_YTELSE
                     WHERE BEHANDLING_ID = ?
@@ -268,12 +269,12 @@ class BehandlingsRepository(private val connection: DBConnection) {
             setRowMapper {
                 TilkjentDTO(
                     tilkjentFom = it.getPeriode("PERIODE").fom,
-                    tilkjentTom = it.getPeriode("PERIODE").fom,
+                    tilkjentTom = it.getPeriode("PERIODE").tom,
                     dagsats = it.getBigDecimal("DAGSATS"),
                     gradering = it.getInt("GRADERING"),
                     grunnlag = it.getBigDecimal("GRUNNLAG"),
                     grunnlagsfaktor = it.getBigDecimal("GRUNNLAGSFAKTOR"),
-                    grunnbeløp = it.getBigDecimal("GRUNNBELØP"),
+                    grunnbeløp = it.getBigDecimal("GRUNNBELOP"),
                     antallBarn = it.getInt("ANTALL_BARN"),
                     barnetilleggsats = it.getBigDecimal("BARNETILLEGGSATS"),
                     barnetillegg = it.getBigDecimal("BARNETILLEGG")
@@ -301,7 +302,7 @@ data class BehandlingDB(
 fun mergeTilkjentPeriods(periods: List<TilkjentDTO>): List<TilkjentDTO> {
     if (periods.isEmpty()) return emptyList()
 
-    val sortedPeriods = periods.sortedBy { it.tilkjentFom }
+    val sortedPeriods = periods.sortedBy { it.tilkjentFom }.filter { it.gradering != 0 && it.dagsats.toInt() != 0 }
     val mergedPeriods = mutableListOf<TilkjentDTO>()
 
     var currentPeriod = sortedPeriods[0]

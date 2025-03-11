@@ -44,10 +44,10 @@ private val objectMapper = jacksonObjectMapper()
 class ArenaoppslagRestClient(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     azureConfig: AzureConfig
-) {
+) : IArenaoppslagRestClient {
     private val tokenProvider = AzureAdTokenProvider(azureConfig)
 
-    fun hentPerioder(callId: UUID, vedtakRequest: InternVedtakRequest): PerioderResponse =
+    override fun hentPerioder(callId: UUID, vedtakRequest: InternVedtakRequest): PerioderResponse =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder"){
@@ -62,7 +62,7 @@ class ArenaoppslagRestClient(
             }
         }
 
-    fun hentPerioderInkludert11_17(callId: UUID, vedtakRequest: InternVedtakRequest): PerioderInkludert11_17Response =
+    override fun hentPerioderInkludert11_17(callId: UUID, vedtakRequest: InternVedtakRequest): PerioderInkludert11_17Response =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder/11-17"){
@@ -77,7 +77,7 @@ class ArenaoppslagRestClient(
             }
         }
 
-    fun hentPersonEksistererIAapContext(callId: UUID, sakerRequest: SakerRequest): personEksistererIAAPArena =
+    override fun hentPersonEksistererIAapContext(callId: UUID, sakerRequest: SakerRequest): personEksistererIAAPArena =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/person/aap/eksisterer") {
@@ -92,7 +92,7 @@ class ArenaoppslagRestClient(
             }
         }
 
-    fun hentSakerByFnr(callId: UUID, req: SakerRequest): List<SakStatus> =
+    override fun hentSakerByFnr(callId: UUID, req: SakerRequest): List<SakStatus> =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/saker") {
@@ -107,7 +107,7 @@ class ArenaoppslagRestClient(
             }
         }
 
-    fun hentMaksimum(callId: UUID, req: InternVedtakRequest):Maksimum{
+    override fun hentMaksimum(callId: UUID, req: InternVedtakRequest):Maksimum{
         return clientLatencyStats.startTimer().use {
             runBlocking {
                 val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope)

@@ -1,6 +1,7 @@
 package api
 
 import api.arena.ArenaoppslagRestClient
+import api.arena.IArenaoppslagRestClient
 import api.kelvin.KelvinClient
 import api.kelvin.dataInsertion
 import api.postgres.initDatasource
@@ -62,12 +63,11 @@ private fun cleanDatabase(dataSource: DataSource) {
 }
 
 fun Application.api(
-    prometheus: PrometheusMeterRegistry=PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
+    prometheus: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
     config: Config = Config(),
-    datasource: DataSource = initDatasource(config.dbConfig, prometheus)
+    datasource: DataSource = initDatasource(config.dbConfig, prometheus),
+    arenaRestClient: IArenaoppslagRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure)
 ) {
-    val arenaRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure)
-    val kelvin = KelvinClient(config.kelvinConfig)
     Migrering.migrate(datasource)
 
     install(StatusPages) {
@@ -98,7 +98,7 @@ fun Application.api(
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(datasource, arenaRestClient, kelvin, prometheus)
+                api(datasource, arenaRestClient, prometheus)
                 dataInsertion(datasource)
             }
         }
