@@ -15,6 +15,7 @@ on:
     paths-ignore:
       - '.github/**'
       - '*.md'
+      - 'CODEOWNERS'
 
 jobs:
   gradle:
