@@ -113,7 +113,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             vedtak = kelvinData.flatMap { sak ->
                 // filtrer ut tilkjentYtelsePerioder som ikke er avsluttet eller ikke har noen utbetaling
                 val tilkjentYtelse =
-                    sak.tilkjent.filter { it.tilkjentTom <= LocalDate.now() && (it.dagsats.toInt()!= 0 || it.gradering > 0) }
+                    sak.tilkjent.filter { it.tilkjentTom <= LocalDate.now() && it.dagsats.toInt()!= 0 }
 
 
                 val utbetalingPr2Uker = tilkjentYtelse.map { verdi ->
