@@ -12,6 +12,7 @@ import no.nav.aap.komponenter.type.Periode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 class BehandlingsRepository(private val connection: DBConnection) {
     fun lagreBehandling(behandling: DatadelingDTO) {
@@ -121,7 +122,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         reduksjon = null,
                         utbetalingsgrad = verdi.gradering,
                         periode = no.nav.aap.api.intern.Periode(verdi.tilkjentFom, verdi.tilkjentTom),
-                        belop = verdi.dagsats.toInt() * 10 * verdi.gradering / 100,
+                        belop = verdi.dagsats.toInt() * daysBetween(verdi.tilkjentFom, verdi.tilkjentTom).toInt() * verdi.gradering / 100,
                         dagsats = verdi.dagsats.toInt(),
                         barnetilegg = verdi.barnetillegg.toInt(),
                     )
@@ -298,6 +299,10 @@ data class BehandlingDB(
     val type: String,
     val oppretterTidspunkt: LocalDate,
 )
+
+fun daysBetween(startDate: LocalDate, endDate: LocalDate): Long {
+    return ChronoUnit.DAYS.between(startDate, endDate) + 1
+}
 
 fun mergeTilkjentPeriods(periods: List<TilkjentDTO>): List<TilkjentDTO> {
     if (periods.isEmpty()) return emptyList()
