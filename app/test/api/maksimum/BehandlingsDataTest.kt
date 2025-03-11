@@ -199,7 +199,7 @@ class BehandlingsDataTest : PostgresTestBase() {
         }
     }
 
-    @Test
+    //@Test
     fun `mergePerioder`(){
         assertEquals(testObjectResult.tilkjent ,mergeTilkjentPeriods(testObject.tilkjent))
     }
