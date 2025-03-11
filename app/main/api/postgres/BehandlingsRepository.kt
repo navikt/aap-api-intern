@@ -113,7 +113,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             vedtak = kelvinData.flatMap { sak ->
                 // filtrer ut tilkjentYtelsePerioder som ikke er avsluttet eller ikke har noen utbetaling
                 val tilkjentYtelse =
-                    sak.tilkjent.filter { it.tilkjentTom <= LocalDate.now() && it.dagsats.toInt()!= 0 }
+                    sak.tilkjent.filter { it.tilkjentTom <= LocalDate.now() && (it.dagsats.toInt()!= 0 || it.gradering != 0)}
 
 
                 val utbetalingPr2Uker = tilkjentYtelse.map { verdi ->
@@ -302,7 +302,7 @@ data class BehandlingDB(
 fun mergeTilkjentPeriods(periods: List<TilkjentDTO>): List<TilkjentDTO> {
     if (periods.isEmpty()) return emptyList()
 
-    val sortedPeriods = periods.sortedBy { it.tilkjentFom }
+    val sortedPeriods = periods.sortedBy { it.tilkjentFom }.filter { it.dagsats.toInt() != 0 || it.gradering != 0 }
     val mergedPeriods = mutableListOf<TilkjentDTO>()
 
     var currentPeriod = sortedPeriods[0]
