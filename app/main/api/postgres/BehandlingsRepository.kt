@@ -185,7 +185,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     sakDB(
                         saksnummer = row.getString("SAKSNUMMER"),
                         status = no.nav.aap.behandlingsflyt.kontrakt.sak.Status.valueOf(row.getString("STATUS")),
-                        opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
                         rettighetsPeriode = row.getPeriode("RETTIGHETS_PERIODE"),
                         id = it
                     )
@@ -204,8 +203,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 sak = SakDTO(
                     saksnummer = sak.saksnummer,
                     status = sak.status,
-                    fnr = emptyList(),
-                    opprettetTidspunkt = sak.opprettetTidspunkt
+                    fnr = emptyList()
                 ),
                 tilkjent = hentTilkjentYtelse(behandling.id)
             )
@@ -294,7 +292,6 @@ data class sakDB(
     val status: no.nav.aap.behandlingsflyt.kontrakt.sak.Status,
     val rettighetsPeriode: Periode,
     val saksnummer: String,
-    val opprettetTidspunkt: LocalDateTime
 )
 
 data class BehandlingDB(
