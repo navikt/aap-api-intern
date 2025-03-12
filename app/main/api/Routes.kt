@@ -34,6 +34,7 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.personEksistererIAAPArena
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.audience
+import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
 import java.util.*
 import javax.sql.DataSource
@@ -167,7 +168,7 @@ fun NormalOpenAPIRoute.api(
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction{ connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentMaksimumArenaOppsett(requestBody.personidentifikator).vedtak
+                    behandlingsRepository.hentMaksimumArenaOppsett(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato,requestBody.tilOgMedDato)).vedtak
                 }
                 respond(
                     Maksimum(

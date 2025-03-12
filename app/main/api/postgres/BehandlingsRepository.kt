@@ -119,7 +119,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentMaksimumArenaOppsett(fnr: String): Maksimum {
+    fun hentMaksimumArenaOppsett(fnr: String, interval: Periode): Maksimum {
         val kelvinData = hentVedtaksData(fnr)
 
         return Maksimum(
@@ -159,7 +159,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         vedtaksTypeNavn = "",
                         utbetaling = utbetalingPr2Uker.filter { it.periode.fraOgMedDato!! > tilkjent.tilkjentFom && it.periode.tilOgMedDato!! < tilkjent.tilkjentTom }
                     )
-                }
+                }.filter { it.periode.fraOgMedDato!! <= interval.tom && it.periode.tilOgMedDato!! >= interval.fom }
             }
         )
     }
