@@ -3,6 +3,8 @@ package api.postgres
 import api.maksimum.Maksimum
 import api.maksimum.UtbetalingMedMer
 import api.maksimum.Vedtak
+import kotlinx.coroutines.selects.select
+import no.nav.aap.api.intern.Kilde
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
@@ -12,11 +14,20 @@ import no.nav.aap.komponenter.type.Periode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.time.DayOfWeek
 
 class BehandlingsRepository(private val connection: DBConnection) {
     fun lagreBehandling(behandling: DatadelingDTO) {
+        connection.execute(
+            """
+                DELETE FROM SAK WHERE SAKSNUMMER = ?
+            """.trimIndent()
+        ){
+            setParams {
+                setString(1, behandling.sak.saksnummer)
+            }
+        }
+
         val sakId = connection.executeReturnKey(
             """
                 INSERT INTO SAK (STATUS, RETTIGHETSPERIODE, SAKSNUMMER)
@@ -141,7 +152,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         rettighetsType = "",
                         beregningsgrunnlag = tilkjent.grunnlag.toInt(),
                         barnMedStonad = tilkjent.antallBarn,
-                        kildesystem = "KELVIN",
+                        kildesystem = Kilde.KELVIN,
                         samordningsId = null,
                         opphorsAarsak = null,
                         vedtaksTypeKode = "",

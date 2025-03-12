@@ -1,5 +1,6 @@
 package api.maksimum
 
+import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.Periode
 import java.time.LocalDate
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum as KontraktMaksimum
@@ -41,7 +42,7 @@ data class Vedtak(
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
-    val kildesystem: String = "ARENA",
+    val kildesystem: Kilde = Kilde.ARENA,
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
     val vedtaksTypeKode: String,
