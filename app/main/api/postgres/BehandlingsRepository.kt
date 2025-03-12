@@ -13,6 +13,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.time.DayOfWeek
 
 class BehandlingsRepository(private val connection: DBConnection) {
     fun lagreBehandling(behandling: DatadelingDTO) {
@@ -122,7 +123,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         reduksjon = null,
                         utbetalingsgrad = verdi.gradering,
                         periode = no.nav.aap.api.intern.Periode(verdi.tilkjentFom, verdi.tilkjentTom),
-                        belop = verdi.dagsats.toInt() * daysBetween(verdi.tilkjentFom, verdi.tilkjentTom).toInt() * verdi.gradering / 100,
+                        belop = verdi.dagsats.toInt() * weekdaysBetween(verdi.tilkjentFom, verdi.tilkjentTom).toInt() * verdi.gradering / 100,
                         dagsats = verdi.dagsats.toInt(),
                         barnetilegg = verdi.barnetillegg.toInt(),
                     )
@@ -300,8 +301,18 @@ data class BehandlingDB(
     val oppretterTidspunkt: LocalDate,
 )
 
-fun daysBetween(startDate: LocalDate, endDate: LocalDate): Long {
-    return ChronoUnit.DAYS.between(startDate, endDate) + 1
+fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
+    var count = 0
+    var date = startDate
+
+    while (!date.isAfter(endDate)) {
+        if (date.dayOfWeek != DayOfWeek.SATURDAY && date.dayOfWeek != DayOfWeek.SUNDAY) {
+            count++
+        }
+        date = date.plusDays(1)
+    }
+
+    return count
 }
 
 fun mergeTilkjentPeriods(periods: List<TilkjentDTO>): List<TilkjentDTO> {
