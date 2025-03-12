@@ -318,7 +318,7 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
 fun mergeTilkjentPeriods(periods: List<TilkjentDTO>): List<TilkjentDTO> {
     if (periods.isEmpty()) return emptyList()
 
-    val sortedPeriods = periods.sortedBy { it.tilkjentFom }.filter { it.dagsats.toInt() != 0 || it.gradering != 0 }
+    val sortedPeriods = periods.sortedBy { it.tilkjentFom }.filter { it.dagsats.toInt() != 0 }
     val mergedPeriods = mutableListOf<TilkjentDTO>()
 
     var currentPeriod = sortedPeriods[0]
