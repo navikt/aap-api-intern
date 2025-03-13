@@ -144,13 +144,13 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 vedtakTilkjentYtelse.map { tilkjent ->
                     Vedtak(
                         vedtaksId = "",
-                        dagsats = tilkjent.dagsats.toInt(),
+                        dagsats = tilkjent.grunnlag.toInt(),
                         status = sak.behandlingStatus.toString(),
                         saksnummer = sak.sak.saksnummer,
                         vedtaksdato = sak.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
                         periode = no.nav.aap.api.intern.Periode(tilkjent.tilkjentFom, tilkjent.tilkjentTom),
                         rettighetsType = "",
-                        beregningsgrunnlag = tilkjent.grunnlag.toInt(),
+                        beregningsgrunnlag = tilkjent.grunnlag.toInt()*260,
                         barnMedStonad = tilkjent.antallBarn,
                         kildesystem = Kilde.KELVIN,
                         samordningsId = null,
