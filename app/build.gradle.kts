@@ -30,7 +30,7 @@ repositories {
 val aapLibVersion = "5.0.76"
 val komponenterVersjon = "1.0.173"
 val ktorVersion = "3.1.1"
-val tilgangVersjon = "1.0.17"
+val tilgangVersjon = "1.0.18"
 val behandlingsflytversjon = "0.0.194"
 
 dependencies {
