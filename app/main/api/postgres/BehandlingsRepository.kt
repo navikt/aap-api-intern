@@ -116,7 +116,15 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
-        val tilkjentId = connection.executeReturnKey(
+
+        connection.execute(
+            """DELETE FROM TILKJENT_YTELSE WHERE BEHANDLING_ID = ?""".trimIndent()
+        ){
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+        val nytilkjentId = connection.executeReturnKey(
             """
                 INSERT INTO TILKJENT_YTELSE (BEHANDLING_ID)
                 VALUES (?)
@@ -135,7 +143,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             behandling.tilkjent
         ) {
             setParams {
-                setLong(1, tilkjentId)
+                setLong(1, nytilkjentId)
                 setPeriode(2, Periode(it.tilkjentFom, it.tilkjentTom))
                 setBigDecimal(3, it.dagsats.toBigDecimal())
                 setInt(4, it.gradering)
