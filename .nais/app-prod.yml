@@ -70,6 +70,8 @@ spec:
           permissions:
             roles:
               - "add-data"
+        - application: meldekort-backend
+
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
