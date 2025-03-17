@@ -31,7 +31,7 @@ val aapLibVersion = "5.0.76"
 val komponenterVersjon = "1.0.175"
 val ktorVersion = "3.1.1"
 val tilgangVersjon = "1.0.18"
-val behandlingsflytversjon = "0.0.194"
+val behandlingsflytversjon = "0.0.207"
 
 dependencies {
     implementation(project(":kontrakt"))
@@ -75,7 +75,7 @@ dependencies {
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.3")
     implementation("com.nimbusds:nimbus-jose-jwt:10.0.2")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.14.5")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.14.4")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.3.6")
 

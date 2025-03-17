@@ -1,14 +1,12 @@
 package api.postgres
 
-import api.maksimum.Maksimum
-import api.maksimum.UtbetalingMedMer
-import api.maksimum.Vedtak
-import kotlinx.coroutines.selects.select
+import api.maksimum.*
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.UnderveisDTO
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 import java.time.LocalDate
@@ -18,17 +16,18 @@ import java.time.DayOfWeek
 
 class BehandlingsRepository(private val connection: DBConnection) {
     fun lagreBehandling(behandling: DatadelingDTO) {
-        connection.execute(
-            """
-                DELETE FROM SAK WHERE SAKSNUMMER = ?
-            """.trimIndent()
-        ){
+        val gammelSak = connection.queryFirstOrNull(
+            """SELECT ID FROM SAK WHERE SAKSNUMMER = ?""".trimIndent()
+        ) {
             setParams {
                 setString(1, behandling.sak.saksnummer)
             }
+            setRowMapper { row ->
+                row.getLong("ID")
+            }
         }
 
-        val sakId = connection.executeReturnKey(
+        val sakId = gammelSak ?: connection.executeReturnKey(
             """
                 INSERT INTO SAK (STATUS, RETTIGHETSPERIODE, SAKSNUMMER)
                 VALUES (?, ?::daterange, ?)
@@ -48,24 +47,33 @@ class BehandlingsRepository(private val connection: DBConnection) {
             """.trimIndent(),
             behandling.sak.fnr
         ) {
-            setParams {fnr ->
+            setParams { fnr ->
                 setLong(1, sakId)
                 setString(2, fnr)
             }
         }
 
+        connection.execute(
+            """DELETE FROM BEHANDLING WHERE SAK_ID = ?""".trimIndent()
+        ) {
+            setParams {
+                setLong(1, behandling.behandlingsId.toLong())
+            }
+        }
+
         val behandlingId = connection.executeReturnKey(
             """
-                INSERT INTO BEHANDLING (SAK_ID, STATUS, TYPE, VEDTAKS_DATO, OPPRETTET_TID)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO BEHANDLING (ID, SAK_ID, STATUS, TYPE, VEDTAKS_DATO, OPPRETTET_TID)
+                VALUES (?, ?, ?, ?, ?, ?)
             """.trimIndent()
         ) {
             setParams {
-                setLong(1, sakId)
-                setString(2, behandling.behandlingStatus.toString())
-                setString(3, "TYPE")
-                setLocalDate(4, behandling.vedtaksDato)
-                setLocalDateTime(5, behandling.sak.opprettetTidspunkt)
+                setLong(1, behandling.behandlingsId.toLong())
+                setLong(2, sakId)
+                setString(3, behandling.behandlingStatus.toString())
+                setString(4, "TYPE")
+                setLocalDate(5, behandling.vedtaksDato)
+                setLocalDateTime(6, behandling.sak.opprettetTidspunkt)
             }
         }
 
@@ -81,7 +89,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setPeriode(2, Periode(it.underveisFom, it.underveisTom))
                 setPeriode(3, Periode(it.meldeperiodeFom, it.meldeperiodeTom))
                 setString(4, it.utfall)
-                setString(5, it.rettighetsType?.toString() ?: "")
+                setString(5, it.rettighetsType ?: "")
                 setLocalDateTime(6, LocalDateTime.now())
             }
         }
@@ -107,7 +115,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             setParams {
                 setLong(1, tilkjentId)
                 setPeriode(2, Periode(it.tilkjentFom, it.tilkjentTom))
-                setBigDecimal(3, it.dagsats)
+                setBigDecimal(3, it.dagsats.toBigDecimal())
                 setInt(4, it.gradering)
                 setBigDecimal(5, it.grunnlag)
                 setBigDecimal(6, it.grunnlagsfaktor)
@@ -119,14 +127,59 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentMaksimumArenaOppsett(fnr: String, interval: Periode): Maksimum {
+    fun hentPerioder(fnr: String, interval: Periode): List<no.nav.aap.api.intern.Periode> {
         val kelvinData = hentVedtaksData(fnr)
+        val vedtak = kelvinData.flatMap { sak ->
+            sak.tilkjent
+                .filter { (it.tilkjentFom <= interval.tom && it.tilkjentTom >= interval.fom) }
+                .map { no.nav.aap.api.intern.Periode(it.tilkjentFom, it.tilkjentTom) }
+        }
+        return vedtak
 
+
+    }
+
+    fun hentMedium(fnr: String, interval: Periode): Medium {
+        val kelvinData = hentVedtaksData(fnr)
+        return Medium(
+            kelvinData.flatMap { behandling ->
+                behandling.tilkjent.filter { it.tilkjentFom >= interval.fom && it.tilkjentTom<=interval.tom }.flatMap { tilkjent ->
+                    behandling.underveisperiode.filter { it.underveisFom >= tilkjent.tilkjentFom && it.underveisTom <= tilkjent.tilkjentTom }
+                        .map { underveis ->
+                            VedtakUtenUtbetaling(
+                                vedtaksId = behandling.behandlingsId,
+                                dagsats = tilkjent.grunnlag.toInt(),
+                                status = behandling.behandlingStatus.toString(),
+                                saksnummer = behandling.sak.saksnummer,
+                                vedtaksdato = behandling.vedtaksDato.toString(),
+                                vedtaksTypeKode = "",
+                                vedtaksTypeNavn = "",
+                                periode = no.nav.aap.api.intern.Periode(
+                                    behandling.rettighetsPeriodeFom,
+                                    behandling.rettighetsPeriodeTom
+                                ),
+                                rettighetsType = underveis.rettighetsType.toString(),
+                                beregningsgrunnlag = tilkjent.grunnlag.toInt(),
+                                barnMedStonad = tilkjent.antallBarn,
+                                kildesystem = Kilde.KELVIN.toString(),
+                                samordningsId = null,
+                                opphorsAarsak = null
+                            )
+                        }
+                }
+            }.toList()
+        )
+
+
+    }
+
+    fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
+        val kelvinData = hentVedtaksData(fnr)
         return Maksimum(
-            vedtak = kelvinData.flatMap { sak ->
+            vedtak = kelvinData.flatMap { behandling ->
                 // filtrer ut tilkjentYtelsePerioder som ikke er avsluttet eller ikke har noen utbetaling
                 val tilkjentYtelse =
-                    sak.tilkjent.filter { it.tilkjentTom <= LocalDate.now() && (it.dagsats.toInt()!= 0 || it.gradering != 0)}
+                    behandling.tilkjent.filter { it.tilkjentTom <= LocalDate.now() && (it.dagsats.toInt() != 0 || it.gradering != 0) }
 
 
                 val utbetalingPr2Uker = tilkjentYtelse.map { verdi ->
@@ -134,23 +187,25 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         reduksjon = null,
                         utbetalingsgrad = verdi.gradering,
                         periode = no.nav.aap.api.intern.Periode(verdi.tilkjentFom, verdi.tilkjentTom),
-                        belop = verdi.dagsats.toInt() * weekdaysBetween(verdi.tilkjentFom, verdi.tilkjentTom).toInt() * verdi.gradering / 100,
+                        belop = verdi.dagsats.toInt() * weekdaysBetween(
+                            verdi.tilkjentFom,
+                            verdi.tilkjentTom
+                        ).toInt() * verdi.gradering / 100,
                         dagsats = verdi.dagsats.toInt(),
                         barnetilegg = verdi.barnetillegg.toInt(),
                     )
                 }
 
-                val vedtakTilkjentYtelse = mergeTilkjentPeriods(tilkjentYtelse)
-                vedtakTilkjentYtelse.map { tilkjent ->
+                tilkjentYtelse.map { tilkjent ->
                     Vedtak(
                         vedtaksId = "",
                         dagsats = tilkjent.grunnlag.toInt(),
-                        status = sak.behandlingStatus.toString(),
-                        saksnummer = sak.sak.saksnummer,
-                        vedtaksdato = sak.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                        status = behandling.sak.status.toString(),
+                        saksnummer = behandling.sak.saksnummer,
+                        vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
                         periode = no.nav.aap.api.intern.Periode(tilkjent.tilkjentFom, tilkjent.tilkjentTom),
                         rettighetsType = "",
-                        beregningsgrunnlag = tilkjent.grunnlag.toInt()*260,
+                        beregningsgrunnlag = tilkjent.grunnlag.toInt() * 260,
                         barnMedStonad = tilkjent.antallBarn,
                         kildesystem = Kilde.KELVIN,
                         samordningsId = null,
@@ -192,7 +247,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setRowMapper { row ->
                     sakDB(
                         saksnummer = row.getString("SAKSNUMMER"),
-                        status = no.nav.aap.behandlingsflyt.kontrakt.sak.Status.valueOf(row.getString("STATUS")),
+                        status = Status.valueOf(row.getString("STATUS")),
                         rettighetsPeriode = row.getPeriode("RETTIGHETSPERIODE"),
                         id = it
                     )
@@ -200,28 +255,32 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
-        return saker.mapNotNull { sak ->
-            val behandling = hentBehandling(sak.id)
-            DatadelingDTO(
-                underveisperiode = hentUnderveis(behandling!!.id),
-                rettighetsPeriodeFom = sak.rettighetsPeriode.fom,
-                rettighetsPeriodeTom = sak.rettighetsPeriode.tom,
-                behandlingStatus = behandling.behandlingStatus,
-                vedtaksDato = behandling.vedtaksDato,
-                sak = SakDTO(
-                    saksnummer = sak.saksnummer,
-                    status = sak.status,
-                    fnr = emptyList()
-                ),
-                tilkjent = hentTilkjentYtelse(behandling.id)
-            )
+        return saker.flatMap { sak ->
+            val behandlinger = hentBehandlinger(sak.id)
+            behandlinger.map { behandling ->
+
+                DatadelingDTO(
+                    behandlingsId = behandling.id.toString(),
+                    underveisperiode = hentUnderveis(behandling.id),
+                    rettighetsPeriodeFom = sak.rettighetsPeriode.fom,
+                    rettighetsPeriodeTom = sak.rettighetsPeriode.tom,
+                    behandlingStatus = behandling.behandlingStatus,
+                    vedtaksDato = behandling.vedtaksDato,
+                    sak = SakDTO(
+                        saksnummer = sak.saksnummer,
+                        status = sak.status,
+                        fnr = emptyList()
+                    ),
+                    tilkjent = hentTilkjentYtelse(behandling.id)
+                )
+            }
         }
 
 
     }
 
-    fun hentBehandling(sakId: Long): BehandlingDB? {
-        return connection.queryFirstOrNull(
+    fun hentBehandlinger(sakId: Long): List<BehandlingDB> {
+        return connection.queryList(
             """
                 SELECT * FROM BEHANDLING
                 WHERE SAK_ID = ?
@@ -283,7 +342,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 TilkjentDTO(
                     tilkjentFom = it.getPeriode("PERIODE").fom,
                     tilkjentTom = it.getPeriode("PERIODE").tom,
-                    dagsats = it.getBigDecimal("DAGSATS"),
+                    dagsats = it.getBigDecimal("DAGSATS").toInt(),
                     gradering = it.getInt("GRADERING"),
                     grunnlag = it.getBigDecimal("GRUNNLAG"),
                     grunnlagsfaktor = it.getBigDecimal("GRUNNLAGSFAKTOR"),
@@ -299,7 +358,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
 data class sakDB(
     val id: Long,
-    val status: no.nav.aap.behandlingsflyt.kontrakt.sak.Status,
+    val status: Status,
     val rettighetsPeriode: Periode,
     val saksnummer: String,
 )

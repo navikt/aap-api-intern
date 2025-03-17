@@ -1,12 +1,7 @@
 package api
 
-import api.arena.ArenaoppslagRestClient
 import api.arena.IArenaoppslagRestClient
-import api.kelvin.KelvinClient
-import api.maksimum.KelvinPeriode
-import api.maksimum.Maksimum
-import api.maksimum.Vedtak
-import api.maksimum.fraKontrakt
+import api.maksimum.*
 import api.perioder.PerioderInkludert11_17Response
 import api.perioder.PerioderResponse
 import api.postgres.BehandlingsRepository
@@ -17,6 +12,7 @@ import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
+import com.papsign.ktor.openapigen.route.path.normal.route
 import com.papsign.ktor.openapigen.route.response.OpenAPIPipelineResponseContext
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
@@ -31,7 +27,6 @@ import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.personEksistererIAAPArena
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.audience
 import no.nav.aap.komponenter.type.Periode
@@ -81,8 +76,11 @@ fun NormalOpenAPIRoute.api(
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
                     logger.info("CallID ble ikke gitt på kall mot: /perioder")
                 }
-
-                respond(arena.hentPerioder(callId, requestBody))
+                val kelvinPerioder = dataSource.transaction { connection ->
+                    val behandlingsRepository = BehandlingsRepository(connection)
+                    behandlingsRepository.hentPerioder(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato))
+                }
+                respond(PerioderResponse(arena.hentPerioder(callId, requestBody).perioder+kelvinPerioder))
             }
 
             route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequest>(
@@ -152,7 +150,55 @@ fun NormalOpenAPIRoute.api(
             }
         }
     }
+
     tag(Tag.Maksimum) {
+        route("/meksimumUtenUtbetaling").post<CallIdHeader, api.maksimum.Maksimum, InternVedtakRequest>(
+            info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval")
+        ){callIdHeader, requestBody ->
+            httpCallCounter.httpCallCounter(
+                "/meksimumUtenUtbetaling",
+                pipeline.call.audience(),
+                azpName() ?: ""
+            ).increment()
+            val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+                logger.info("CallID ble ikke gitt på kall mot: /maksimum")
+            }
+
+            val kelvinSaker: List<Vedtak> = dataSource.transaction{ connection ->
+                val behandlingsRepository = BehandlingsRepository(connection)
+                behandlingsRepository.hentMaksimum(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato,requestBody.tilOgMedDato)).vedtak
+            }
+            respond(
+                Maksimum(
+                    arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvinSaker
+                )
+            )
+
+        }
+        route("/maksimumUtenUtbetaling") {
+            post<CallIdHeader, api.maksimum.Medium, InternVedtakRequest>(
+                info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval")
+            ) { callIdHeader, requestBody ->
+                httpCallCounter.httpCallCounter(
+                    "/maksimumUtenUtbetaling",
+                    pipeline.call.audience(),
+                    azpName() ?: ""
+                ).increment()
+                val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+                    logger.info("CallID ble ikke gitt på kall mot: /maksimum")
+                }
+
+                val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction{ connection ->
+                    val behandlingsRepository = BehandlingsRepository(connection)
+                    behandlingsRepository.hentMedium(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato,requestBody.tilOgMedDato)).vedtak
+                }
+                respond(
+                    Medium(
+                        arena.hentMaksimum(callId, requestBody).vedtak.map { it.fraKontraktUtenUtbetaling() } + kelvinSaker
+                    )
+                )
+            }
+        }
         route("/maksimum") {
             post<CallIdHeader, api.maksimum.Maksimum, InternVedtakRequest>(
                 info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
@@ -168,7 +214,7 @@ fun NormalOpenAPIRoute.api(
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction{ connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentMaksimumArenaOppsett(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato,requestBody.tilOgMedDato)).vedtak
+                    behandlingsRepository.hentMaksimum(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato,requestBody.tilOgMedDato)).vedtak
                 }
                 respond(
                     Maksimum(

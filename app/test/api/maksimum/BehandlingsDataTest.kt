@@ -33,6 +33,7 @@ import java.time.LocalDateTime
 import kotlin.test.assertEquals
 
 val testObject = DatadelingDTO(
+    behandlingsId = 123456789L.toString(),
     underveisperiode = listOf(
         UnderveisDTO(
             underveisFom = LocalDate.now().minusYears(2),
@@ -58,7 +59,7 @@ val testObject = DatadelingDTO(
         TilkjentDTO(
             tilkjentFom = LocalDate.now().minusYears(2),
             tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(2).minusDays(1),
-            dagsats = 200.toBigDecimal(),
+            dagsats = 200,
             gradering = 100,
             grunnlag = 2000.toBigDecimal(),
             grunnlagsfaktor = 2.4.toBigDecimal(),
@@ -70,7 +71,7 @@ val testObject = DatadelingDTO(
         TilkjentDTO(
             tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(2),
             tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(4).minusDays(1),
-            dagsats = 200.toBigDecimal(),
+            dagsats = 200,
             gradering = 100,
             grunnlag = 2000.toBigDecimal(),
             grunnlagsfaktor = 2.4.toBigDecimal(),
@@ -82,7 +83,7 @@ val testObject = DatadelingDTO(
         ,TilkjentDTO(
             tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(4),
             tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(6).minusDays(1),
-            dagsats = 300.toBigDecimal(),
+            dagsats = 300,
             gradering = 0,
             grunnlag = 2000.toBigDecimal(),
             grunnlagsfaktor = 2.4.toBigDecimal(),
@@ -94,7 +95,7 @@ val testObject = DatadelingDTO(
         TilkjentDTO(
             tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(6),
             tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(8).minusDays(1),
-            dagsats = 300.toBigDecimal(),
+            dagsats = 300,
             gradering = 100,
             grunnlag = 2000.toBigDecimal(),
             grunnlagsfaktor = 2.4.toBigDecimal(),
@@ -107,6 +108,7 @@ val testObject = DatadelingDTO(
 )
 
 val testObjectResult= DatadelingDTO(
+    behandlingsId = 123456789L.toString(),
     underveisperiode = listOf(
         UnderveisDTO(
             underveisFom = LocalDate.now().minusYears(2),
@@ -132,7 +134,7 @@ val testObjectResult= DatadelingDTO(
         TilkjentDTO(
             tilkjentFom = LocalDate.now().minusYears(2),
             tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(4).minusDays(1),
-            dagsats = 200.toBigDecimal(),
+            dagsats = 200,
             gradering = 100,
             grunnlag = 2000.toBigDecimal(),
             grunnlagsfaktor = 2.4.toBigDecimal(),
@@ -144,7 +146,7 @@ val testObjectResult= DatadelingDTO(
         TilkjentDTO(
             tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(6),
             tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(8).minusDays(1),
-            dagsats = 300.toBigDecimal(),
+            dagsats = 300,
             gradering = 100,
             grunnlag = 2000.toBigDecimal(),
             grunnlagsfaktor = 2.4.toBigDecimal(),
@@ -194,7 +196,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                 }
 
                 assertEquals(HttpStatusCode.OK, collectRes.status)
-                assertEquals(2, collectRes.body<Maksimum>().vedtak.size)
+                assertEquals(4, collectRes.body<Maksimum>().vedtak.size)
             }
         }
     }
