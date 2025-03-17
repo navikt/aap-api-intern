@@ -53,29 +53,51 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
-        connection.execute(
-            """DELETE FROM BEHANDLING WHERE ID = ?""".trimIndent()
+        val behandlingId = connection.queryFirstOrNull(
+            """SELECT ID FROM BEHANDLING WHERE ID = ?""".trimIndent()
         ) {
             setParams {
                 setLong(1, behandling.behandlingsId.toLong())
+            }
+            setRowMapper {
+                it.getLong("ID")
             }
         }
 
-        val behandlingId = connection.executeReturnKey(
-            """
-                INSERT INTO BEHANDLING (ID, SAK_ID, STATUS, TYPE, VEDTAKS_DATO, OPPRETTET_TID)
-                VALUES (?, ?, ?, ?, ?, ?)
+
+
+        val nyBehandlingId = if(behandlingId!=null){
+            connection.executeReturnKey(
+                """
+                UPDATE BEHANDLING SET STATUS = ?, vedtaks_dato = ?, OPPRETTET_TID = ?
+                WHERE ID = ?
             """.trimIndent()
-        ) {
-            setParams {
-                setLong(1, behandling.behandlingsId.toLong())
-                setLong(2, sakId)
-                setString(3, behandling.behandlingStatus.toString())
-                setString(4, "TYPE")
-                setLocalDate(5, behandling.vedtaksDato)
-                setLocalDateTime(6, behandling.sak.opprettetTidspunkt)
+            ) {
+                setParams {
+                    setString(1, behandling.behandlingStatus.toString())
+                    setLocalDate(2, behandling.vedtaksDato)
+                    setLocalDateTime(3, behandling.sak.opprettetTidspunkt)
+                    setLong(4, behandling.behandlingsId.toLong())
+                }
+            }
+        } else {
+            connection.executeReturnKey(
+                """
+                INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, TYPE, OPPRETTET_TID)
+                VALUES (?, ?, ?, ?, ?)
+            """.trimIndent()
+            ) {
+                setParams {
+                    setLong(1, sakId)
+                    setString(2, behandling.behandlingStatus.toString())
+                    setLocalDate(3, behandling.vedtaksDato)
+                    setString(4, "TYPE")
+                    setLocalDateTime(5, behandling.sak.opprettetTidspunkt)
+                }
             }
         }
+
+
 
         connection.executeBatch(
             """
@@ -85,7 +107,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             behandling.underveisperiode
         ) {
             setParams {
-                setLong(1, behandlingId)
+                setLong(1, nyBehandlingId)
                 setPeriode(2, Periode(it.underveisFom, it.underveisTom))
                 setPeriode(3, Periode(it.meldeperiodeFom, it.meldeperiodeTom))
                 setString(4, it.utfall)
@@ -101,7 +123,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             """.trimIndent()
         ) {
             setParams {
-                setLong(1, behandlingId)
+                setLong(1, nyBehandlingId)
             }
         }
 
