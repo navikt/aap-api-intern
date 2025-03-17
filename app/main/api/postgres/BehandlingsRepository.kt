@@ -54,7 +54,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
 
         connection.execute(
-            """DELETE FROM BEHANDLING WHERE SAK_ID = ?""".trimIndent()
+            """DELETE FROM BEHANDLING WHERE ID = ?""".trimIndent()
         ) {
             setParams {
                 setLong(1, behandling.behandlingsId.toLong())
