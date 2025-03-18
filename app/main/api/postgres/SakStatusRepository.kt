@@ -1,6 +1,7 @@
 package api.postgres
 
 import api.kelvin.SakStatus
+import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 
@@ -17,6 +18,12 @@ class SakStatusRepository(private val connection: DBConnection) {
             }
         }
 
+        val status = when (sakStatus.statusKode) {
+            Status.AVSLUTTET -> Status.AVSLU
+            Status.OPPRETTET -> Status.OPPRE
+            else -> sakStatus.statusKode
+
+        }
 
         connection.execute(
             """
@@ -27,7 +34,7 @@ class SakStatusRepository(private val connection: DBConnection) {
             setParams {
                 setString(1, fnr)
                 setString(2, sakStatus.sakId)
-                setString(3, sakStatus.statusKode.toString())
+                setString(3, status.toString())
                 setPeriode(4, sakStatus.periode)
             }
         }
