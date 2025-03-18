@@ -65,8 +65,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
 
 
-
-        val nyBehandlingId = if(behandlingId!=null){
+        val nyBehandlingId = if (behandlingId != null) {
             connection.executeReturnKey(
                 """
                 UPDATE BEHANDLING SET STATUS = ?, vedtaks_dato = ?, OPPRETTET_TID = ?
@@ -119,7 +118,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
         connection.execute(
             """DELETE FROM TILKJENT_YTELSE WHERE BEHANDLING_ID = ?""".trimIndent()
-        ){
+        ) {
             setParams {
                 setLong(1, nyBehandlingId)
             }
@@ -173,30 +172,28 @@ class BehandlingsRepository(private val connection: DBConnection) {
         val kelvinData = hentVedtaksData(fnr)
         return Medium(
             kelvinData.flatMap { behandling ->
-                behandling.tilkjent.filter { it.tilkjentFom >= interval.fom && it.tilkjentTom<=interval.tom }.flatMap { tilkjent ->
-                    behandling.underveisperiode.filter { it.underveisFom >= tilkjent.tilkjentFom && it.underveisTom <= tilkjent.tilkjentTom }
-                        .map { underveis ->
-                            VedtakUtenUtbetaling(
-                                vedtaksId = behandling.behandlingsId,
-                                dagsats = tilkjent.grunnlag.toInt(),
-                                status = behandling.behandlingStatus.toString(),
-                                saksnummer = behandling.sak.saksnummer,
-                                vedtaksdato = behandling.vedtaksDato.toString(),
-                                vedtaksTypeKode = "",
-                                vedtaksTypeNavn = "",
-                                periode = no.nav.aap.api.intern.Periode(
-                                    behandling.rettighetsPeriodeFom,
-                                    behandling.rettighetsPeriodeTom
-                                ),
-                                rettighetsType = underveis.rettighetsType.toString(),
-                                beregningsgrunnlag = tilkjent.grunnlag.toInt(),
-                                barnMedStonad = tilkjent.antallBarn,
-                                kildesystem = Kilde.KELVIN.toString(),
-                                samordningsId = null,
-                                opphorsAarsak = null
-                            )
-                        }
-                }
+                behandling.tilkjent.filter { it.tilkjentFom >= interval.fom && it.tilkjentTom <= interval.tom }
+                    .map { tilkjent ->
+                        VedtakUtenUtbetaling(
+                            vedtaksId = behandling.behandlingsId,
+                            dagsats = tilkjent.grunnlag.toInt(),
+                            status = behandling.behandlingStatus.toString(),
+                            saksnummer = behandling.sak.saksnummer,
+                            vedtaksdato = behandling.vedtaksDato.toString(),
+                            vedtaksTypeKode = "",
+                            vedtaksTypeNavn = "",
+                            periode = no.nav.aap.api.intern.Periode(
+                                behandling.rettighetsPeriodeFom,
+                                behandling.rettighetsPeriodeTom
+                            ),
+                            rettighetsType = "",
+                            beregningsgrunnlag = tilkjent.grunnlag.toInt(),
+                            barnMedStonad = tilkjent.antallBarn,
+                            kildesystem = Kilde.KELVIN.toString(),
+                            samordningsId = null,
+                            opphorsAarsak = null
+                        )
+                    }
             }.toList()
         )
 
