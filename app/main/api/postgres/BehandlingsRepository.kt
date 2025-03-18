@@ -159,9 +159,22 @@ class BehandlingsRepository(private val connection: DBConnection) {
     fun hentPerioder(fnr: String, interval: Periode): List<no.nav.aap.api.intern.Periode> {
         val kelvinData = hentVedtaksData(fnr)
         val vedtak = kelvinData.flatMap { sak ->
-            sak.tilkjent
-                .filter { (it.tilkjentFom <= interval.tom && it.tilkjentTom >= interval.fom) }
-                .map { no.nav.aap.api.intern.Periode(it.tilkjentFom, it.tilkjentTom) }
+            val perioder = sak.tilkjent
+                .filter { (it.tilkjentFom <= interval.tom && it.tilkjentTom >= interval.fom) && it.gradering>0 }
+                .map { Periode(it.tilkjentFom, it.tilkjentTom) }
+
+            perioder
+                .sortedBy { it.fom }
+                .fold(mutableListOf<Periode>()) { acc, period ->
+                    if (acc.isNotEmpty() && (acc.last().tom.plusDays(1) >= period.fom || acc.last().tom >= period.fom)) {
+                        val lastPeriod = acc.removeAt(acc.size - 1)
+                        acc.add(Periode(lastPeriod.fom, maxOf(lastPeriod.tom, period.tom)))
+                    } else {
+                        acc.add(period)
+                    }
+                    acc
+                }
+                .map { no.nav.aap.api.intern.Periode(it.fom, it.tom) }
         }
         return vedtak
 
