@@ -28,6 +28,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.UnderveisDTO
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
+import no.nav.aap.komponenter.type.Periode
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
@@ -201,6 +202,17 @@ class BehandlingsDataTest : PostgresTestBase() {
         }
     }
 
+    @Test
+    fun `kan hente perioder fra vedtaksdata`() {
+        val interval = Periode(LocalDate.now().minusYears(2), LocalDate.now().minusYears(2).plusWeeks(6))
+        val result = perioderMedAAp(listOf(testObject), interval = interval)
+
+        assertEquals(2,result.size)
+        assertEquals(result, listOf(
+            no.nav.aap.api.intern.Periode(LocalDate.now().minusYears(2), LocalDate.now().minusYears(2).plusWeeks(4).minusDays(1)),
+            no.nav.aap.api.intern.Periode(LocalDate.now().minusYears(2).plusWeeks(6), LocalDate.now().minusYears(2).plusWeeks(8).minusDays(1))
+        ))
+    }
     //@Test
     fun `mergePerioder`(){
         assertEquals(testObjectResult.tilkjent ,mergeTilkjentPeriods(testObject.tilkjent))

@@ -7,6 +7,7 @@ import api.perioder.PerioderResponse
 import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortPerioderRepository
 import api.postgres.SakStatusRepository
+import api.util.perioderMedAAp
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.route.info
@@ -78,7 +79,8 @@ fun NormalOpenAPIRoute.api(
                 }
                 val kelvinPerioder = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentPerioder(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato))
+                    val vedtaksdata = behandlingsRepository.hentVedtaksData(requestBody.personidentifikator)
+                    perioderMedAAp(vedtaksdata, Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato))
                 }
                 respond(PerioderResponse(arena.hentPerioder(callId, requestBody).perioder+kelvinPerioder))
             }

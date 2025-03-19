@@ -8,6 +8,8 @@ import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.UnderveisDTO
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.tidslinje.Segment
+import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -154,31 +156,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setBigDecimal(10, it.barnetillegg)
             }
         }
-    }
-
-    fun hentPerioder(fnr: String, interval: Periode): List<no.nav.aap.api.intern.Periode> {
-        val kelvinData = hentVedtaksData(fnr)
-        val vedtak = kelvinData.flatMap { sak ->
-            val perioder = sak.tilkjent
-                .filter { (it.tilkjentFom <= interval.tom && it.tilkjentTom >= interval.fom) && it.gradering>0 }
-                .map { Periode(it.tilkjentFom, it.tilkjentTom) }
-
-            perioder
-                .sortedBy { it.fom }
-                .fold(mutableListOf<Periode>()) { acc, period ->
-                    if (acc.isNotEmpty() && (acc.last().tom.plusDays(1) >= period.fom || acc.last().tom >= period.fom)) {
-                        val lastPeriod = acc.removeAt(acc.size - 1)
-                        acc.add(Periode(lastPeriod.fom, maxOf(lastPeriod.tom, period.tom)))
-                    } else {
-                        acc.add(period)
-                    }
-                    acc
-                }
-                .map { no.nav.aap.api.intern.Periode(it.fom, it.tom) }
-        }
-        return vedtak
-
-
     }
 
     fun hentMedium(fnr: String, interval: Periode): Medium {
