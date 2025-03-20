@@ -54,6 +54,41 @@ data class Vedtak(
     }
 }
 
+data class VedtakUtenUtbetalingUtenPeriode(
+    val vedtaksId: String,
+    val dagsats: Int,
+    val status: String, //Hypotese, vedtaksstatuskode
+    val saksnummer: String,
+    val vedtaksdato: String, //reg_dato
+    val vedtaksTypeKode: String,
+    val vedtaksTypeNavn: String,
+    val rettighetsType: String, ////aktivitetsfase //Aktfasekode
+    val beregningsgrunnlag: Int,
+    val barnMedStonad: Int,
+    val kildesystem: String = "ARENA",
+    val samordningsId: String? = null,
+    val opphorsAarsak: String? = null,
+){
+    fun tilVedtakUtenUtbetaling(periode: Periode):VedtakUtenUtbetaling{
+        return VedtakUtenUtbetaling(
+            vedtaksId = this.vedtaksId,
+            dagsats = this.dagsats,
+            status = this.status,
+            saksnummer = this.saksnummer,
+            vedtaksdato = this.vedtaksdato,
+            vedtaksTypeKode = this.vedtaksTypeKode,
+            vedtaksTypeNavn = this.vedtaksTypeNavn,
+            periode = periode,
+            rettighetsType = this.rettighetsType,
+            beregningsgrunnlag = this.beregningsgrunnlag,
+            barnMedStonad = this.barnMedStonad,
+            kildesystem = this.kildesystem,
+            samordningsId = this.samordningsId,
+            opphorsAarsak = this.opphorsAarsak
+        )
+    }
+}
+
 data class VedtakUtenUtbetaling(
     val vedtaksId: String,
     val dagsats: Int,

@@ -197,11 +197,15 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 tilkjent,
                 JoinStyle.INNER_JOIN { periode, left, right ->
                     Segment(
-                        periode, VedtakUtenUtbetaling(
+                        periode,
+                        VedtakUtenUtbetalingUtenPeriode(
                             vedtaksId = behandling.behandlingsId,
                             dagsats = right.verdi.dagsats,
                             status =
-                                if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(LocalDate.now())) {
+                                if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
+                                        LocalDate.now()
+                                    )
+                                ) {
                                     Status.LØPENDE.toString()
                                 } else if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET) {
                                     Status.AVSLUTTET.toString()
@@ -212,7 +216,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
                             vedtaksTypeKode = "",
                             vedtaksTypeNavn = "",
-                            periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
                             rettighetsType = left.verdi.rettighetsType ?: "",
                             beregningsgrunnlag = right.verdi.grunnlag.toInt(),
                             barnMedStonad = right.verdi.antallBarn,
@@ -222,7 +225,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         )
                     )
                 }
-            ).komprimer().map { it.verdi }
+            ).komprimer()
+                .map { it.verdi.tilVedtakUtenUtbetaling(no.nav.aap.api.intern.Periode(it.periode.fom, it.periode.tom)) }
                 .filter { it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString() }
         }
 
