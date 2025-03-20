@@ -201,7 +201,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             vedtaksId = behandling.behandlingsId,
                             dagsats = right.verdi.dagsats,
                             status =
-                                if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES && !periode.tom.isBefore(LocalDate.now())) {
+                                if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(LocalDate.now())) {
                                     Status.LØPENDE.toString()
                                 } else if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET) {
                                     Status.AVSLUTTET.toString()
