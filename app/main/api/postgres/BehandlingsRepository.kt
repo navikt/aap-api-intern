@@ -201,7 +201,13 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         periode, VedtakUtenUtbetaling(
                             vedtaksId = behandling.behandlingsId,
                             dagsats = right.verdi.dagsats,
-                            status = if(behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET){Status.LØPENDE} else {Status.UTREDES}.toString(),
+                            status = if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET || periode.tom < LocalDate.now()) {
+                                Status.AVSLUTTET.toString()
+                            } else if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES) {
+                                Status.LØPENDE.toString()
+                            } else {
+                                Status.UTREDES.toString()
+                            },
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
                             vedtaksTypeKode = "",
@@ -216,7 +222,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         )
                     )
                 }
-            ).komprimer().map { it.verdi }.filter { it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString() }
+            ).komprimer().map { it.verdi }
+                .filter { it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString() }
         }
 
         return Medium(vedtak)
