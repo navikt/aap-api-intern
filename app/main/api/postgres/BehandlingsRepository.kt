@@ -201,13 +201,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         periode, VedtakUtenUtbetaling(
                             vedtaksId = behandling.behandlingsId,
                             dagsats = right.verdi.dagsats,
-                            status = if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET || periode.tom < LocalDate.now()) {
-                                Status.AVSLUTTET.toString()
-                            } else if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES) {
-                                Status.LØPENDE.toString()
-                            } else {
-                                Status.UTREDES.toString()
-                            },
+                            status =
+                                if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES && !periode.tom.isBefore(LocalDate.now())) {
+                                    Status.LØPENDE.toString()
+                                } else if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET) {
+                                    Status.AVSLUTTET.toString()
+                                } else {
+                                    Status.UTREDES.toString()
+                                },
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
                             vedtaksTypeKode = "",
