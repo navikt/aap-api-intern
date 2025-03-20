@@ -182,7 +182,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         Periode(it.tilkjentFom, it.tilkjentTom),
                         TilkjentDB(
                             it.dagsats,
-                            it.gradering,
                             it.grunnlag,
                             it.grunnlagsfaktor,
                             it.grunnbeløp,
@@ -252,7 +251,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         Periode(it.tilkjentFom, it.tilkjentTom),
                         TilkjentDB(
                             it.dagsats,
-                            it.gradering,
                             it.grunnlag,
                             it.grunnlagsfaktor,
                             it.grunnbeløp,
@@ -491,7 +489,6 @@ data class UnderveisDB(
 
 data class TilkjentDB(
     val dagsats: Int,
-    val gradering: Int,
     val grunnlag: BigDecimal,
     val grunnlagsfaktor: BigDecimal,
     val grunnbeløp: BigDecimal,
