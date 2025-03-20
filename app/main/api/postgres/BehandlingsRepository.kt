@@ -8,9 +8,11 @@ import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.UnderveisDTO
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -160,38 +162,124 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
     fun hentMedium(fnr: String, interval: Periode): Medium {
         val kelvinData = hentVedtaksData(fnr)
-        return Medium(
-            kelvinData.flatMap { behandling ->
-                behandling.tilkjent.filter { it.tilkjentFom >= interval.fom && it.tilkjentTom <= interval.tom }
-                    .map { tilkjent ->
-                        VedtakUtenUtbetaling(
+        val vedtak: List<VedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
+            val underveisTidslinje = Tidslinje(
+                behandling.underveisperiode.map {
+                    Segment(
+                        Periode(it.underveisFom, it.underveisTom),
+                        UnderveisDB(
+                            it.rettighetsType,
+                            it.avslagsårsak
+                        )
+                    )
+                }
+
+            ).komprimer()
+
+            val tilkjent = Tidslinje(
+                behandling.tilkjent.map {
+                    Segment(
+                        Periode(it.tilkjentFom, it.tilkjentTom),
+                        TilkjentDB(
+                            it.dagsats,
+                            it.gradering,
+                            it.grunnlag,
+                            it.grunnlagsfaktor,
+                            it.grunnbeløp,
+                            it.antallBarn,
+                            it.barnetilleggsats,
+                            it.barnetillegg
+                        )
+                    )
+                }
+            )
+
+            underveisTidslinje.kombiner(
+                tilkjent,
+                JoinStyle.INNER_JOIN { periode, left, right ->
+                    Segment(
+                        periode, VedtakUtenUtbetaling(
                             vedtaksId = behandling.behandlingsId,
-                            dagsats = tilkjent.grunnlag.toInt(),
-                            status = behandling.behandlingStatus.toString(),
+                            dagsats = right.verdi.dagsats,
+                            status = behandling.sak.status.toString(),
                             saksnummer = behandling.sak.saksnummer,
-                            vedtaksdato = behandling.vedtaksDato.toString(),
+                            vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
                             vedtaksTypeKode = "",
                             vedtaksTypeNavn = "",
-                            periode = no.nav.aap.api.intern.Periode(
-                                behandling.rettighetsPeriodeFom,
-                                behandling.rettighetsPeriodeTom
-                            ),
-                            rettighetsType = "",
-                            beregningsgrunnlag = tilkjent.grunnlag.toInt(),
-                            barnMedStonad = tilkjent.antallBarn,
+                            periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
+                            rettighetsType = left.verdi.rettighetsType ?: "",
+                            beregningsgrunnlag = right.verdi.grunnlag.toInt(),
+                            barnMedStonad = right.verdi.antallBarn,
                             kildesystem = Kilde.KELVIN.toString(),
                             samordningsId = null,
                             opphorsAarsak = null
                         )
-                    }
-            }.toList()
-        )
+                    )
+                }
+            ).komprimer().map { it.verdi }
+        }
 
-
+        return Medium(vedtak)
     }
 
     fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
         val kelvinData = hentVedtaksData(fnr)
+        val vedtak = kelvinData.map { behandling ->
+            val underveisTidslinje = Tidslinje(
+                behandling.underveisperiode.map {
+                    Segment(
+                        Periode(it.underveisFom, it.underveisTom),
+                        UnderveisDB(
+                            it.rettighetsType,
+                            it.avslagsårsak
+                        )
+                    )
+                }
+
+            ).komprimer()
+
+            val tilkjent = Tidslinje(
+                behandling.tilkjent.map {
+                    Segment(
+                        Periode(it.tilkjentFom, it.tilkjentTom),
+                        TilkjentDB(
+                            it.dagsats,
+                            it.gradering,
+                            it.grunnlag,
+                            it.grunnlagsfaktor,
+                            it.grunnbeløp,
+                            it.antallBarn,
+                            it.barnetilleggsats,
+                            it.barnetillegg
+                        )
+                    )
+                }
+            )
+
+            val tilkjentXUnderveis = underveisTidslinje.kombiner(
+                tilkjent,
+                JoinStyle.INNER_JOIN { periode, left, right ->
+                    Segment(
+                        periode, VedtakUtenUtbetaling(
+                            vedtaksId = "",
+                            dagsats = right.verdi.dagsats,
+                            status = behandling.sak.status.toString(),
+                            saksnummer = behandling.sak.saksnummer,
+                            vedtaksdato = "",
+                            vedtaksTypeKode = "",
+                            vedtaksTypeNavn = "",
+                            periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
+                            rettighetsType = left.verdi.rettighetsType ?: "",
+                            beregningsgrunnlag = right.verdi.grunnlag.toInt(),
+                            barnMedStonad = right.verdi.antallBarn,
+                            kildesystem = Kilde.KELVIN.toString(),
+                            samordningsId = null,
+                            opphorsAarsak = null
+                        )
+                    )
+                }
+            ).komprimer()
+        }
         return Maksimum(
             vedtak = kelvinData.flatMap { behandling ->
                 // filtrer ut tilkjentYtelsePerioder som ikke er avsluttet eller ikke har noen utbetaling
@@ -386,6 +474,35 @@ data class BehandlingDB(
     val vedtaksDato: LocalDate,
     val type: String,
     val oppretterTidspunkt: LocalDate,
+)
+
+data class UnderveisDB(
+    val rettighetsType: String?,
+    val avslagsårsak: String?,
+)
+
+data class TilkjentDB(
+    val dagsats: Int,
+    val gradering: Int,
+    val grunnlag: BigDecimal,
+    val grunnlagsfaktor: BigDecimal,
+    val grunnbeløp: BigDecimal,
+    val antallBarn: Int,
+    val barnetilleggsats: BigDecimal,
+    val barnetillegg: BigDecimal,
+)
+
+data class UnderveisXTilkjent(
+    val rettighetsType: String?,
+    val avslagsårsak: String?,
+    val dagsats: Int,
+    val gradering: Int,
+    val grunnlag: BigDecimal,
+    val grunnlagsfaktor: BigDecimal,
+    val grunnbeløp: BigDecimal,
+    val antallBarn: Int,
+    val barnetilleggsats: BigDecimal,
+    val barnetillegg: BigDecimal,
 )
 
 fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {

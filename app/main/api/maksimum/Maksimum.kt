@@ -48,7 +48,11 @@ data class Vedtak(
     val vedtaksTypeKode: String,
     val vedtaksTypeNavn: String,
     val utbetaling: List<UtbetalingMedMer>,
-)
+) {
+    fun fraKontraktUtenUtbetaling() {
+        TODO("Not yet implemented")
+    }
+}
 
 data class VedtakUtenUtbetaling(
     val vedtaksId: String,

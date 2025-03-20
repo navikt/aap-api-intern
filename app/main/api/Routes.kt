@@ -154,7 +154,7 @@ fun NormalOpenAPIRoute.api(
     }
 
     tag(Tag.Maksimum) {
-        route("/meksimumUtenUtbetaling").post<CallIdHeader, api.maksimum.Maksimum, InternVedtakRequest>(
+        route("/meksimumUtenUtbetaling").post<CallIdHeader, api.maksimum.Medium, InternVedtakRequest>(
             info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval")
         ){callIdHeader, requestBody ->
             httpCallCounter.httpCallCounter(
@@ -166,13 +166,15 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /maksimum")
             }
 
-            val kelvinSaker: List<Vedtak> = dataSource.transaction{ connection ->
+            val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction{ connection ->
                 val behandlingsRepository = BehandlingsRepository(connection)
-                behandlingsRepository.hentMaksimum(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato,requestBody.tilOgMedDato)).vedtak
+                behandlingsRepository.hentMedium(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato,requestBody.tilOgMedDato)).vedtak
             }
+            val arenaVedtak: List<VedtakUtenUtbetaling> = arena.hentMaksimum(callId, requestBody).vedtak.map { it.fraKontraktUtenUtbetaling() }
+
             respond(
-                Maksimum(
-                    arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvinSaker
+                Medium(
+                    arenaVedtak + kelvinSaker
                 )
             )
 
