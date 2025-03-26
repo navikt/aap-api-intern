@@ -99,6 +99,15 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
+        connection.execute(
+            """
+                DELETE FROM RETTIGHETSTYPE WHERE BEHANDLING_ID = ?
+            """.trimIndent(),
+        ){
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
 
         connection.executeBatch(
             """
