@@ -42,6 +42,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
+        connection.execute(
+            """DELETE FROM SAK_PERSON WHERE SAK_ID = ?""".trimIndent()
+        ){
+            setParams {
+                setLong(1, sakId)
+            }
+        }
+
         connection.executeBatch(
             """
                 INSERT INTO SAK_PERSON (SAK_ID, PERSON_IDENT)
@@ -218,7 +226,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     Segment(
                         periode,
                         VedtakUtenUtbetalingUtenPeriode(
-                            vedtaksId = behandling.behandlingsId,
+                            vedtaksId = behandling.behandlingsReferanse,
                             dagsats = right?.verdi?.dagsats?: 0,
                             status =
                                 if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
@@ -306,7 +314,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             vedtaksTypeKode = "",
                             vedtaksTypeNavn = "",
                             rettighetsType = left.verdi ?: "",
-                            beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?.times(260) ?: 0, //GANGER MED 260 FOR Å FÅ ÅRLIG SUM
+                            beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?:0,
                             barnMedStonad = right?.verdi?.antallBarn?:0,
                             kildesystem = Kilde.KELVIN.toString(),
                             samordningsId = null,
@@ -330,7 +338,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             vedtaksdato = left.verdi.vedtaksdato,
                             periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
                             rettighetsType = left.verdi.rettighetsType,
-                            beregningsgrunnlag = left.verdi.beregningsgrunnlag,
+                            beregningsgrunnlag = left.verdi.beregningsgrunnlag*260, //GANGER MED 260 FOR Å FÅ ÅRLIG SUM
                             barnMedStonad = left.verdi.barnMedStonad,
                             vedtaksTypeKode = left.verdi.vedtaksTypeKode,
                             vedtaksTypeNavn = left.verdi.vedtaksTypeNavn,
@@ -372,7 +380,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             setRowMapper { row ->
                 row.getLong("SAK_ID")
             }
-        }
+        }.toSet().toList()
 
         val saker = sakerIder.mapNotNull {
             connection.queryFirstOrNull<sakDB>(
