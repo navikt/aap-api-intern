@@ -72,6 +72,8 @@ spec:
         - application: azure-token-generator # Ikke i prod :)
           namespace: nais
           cluster: dev-gcp
+        - application: api
+          namespace: aap
         - application: behandlingsflyt
           namespace: aap
           cluster: dev-gcp

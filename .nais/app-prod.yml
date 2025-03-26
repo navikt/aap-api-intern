@@ -64,6 +64,8 @@ spec:
         - application: arena
           namespace: teamarenanais
           cluster: prod-fss
+        - application: api
+          namespace: aap
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp
@@ -71,7 +73,6 @@ spec:
             roles:
               - "add-data"
         - application: meldekort-backend
-
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
