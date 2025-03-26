@@ -206,7 +206,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                 }
 
                 assertEquals(HttpStatusCode.OK, collectRes.status)
-                assertEquals(4, collectRes.body<Maksimum>().vedtak.size)
+                assertEquals(3, collectRes.body<Maksimum>().vedtak.size)
             }
         }
     }
