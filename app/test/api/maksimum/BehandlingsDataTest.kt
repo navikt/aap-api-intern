@@ -23,10 +23,7 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.UnderveisDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.type.Periode
 import java.time.LocalDate
@@ -105,7 +102,12 @@ val testObject = DatadelingDTO(
             barnetilleggsats = 36.toBigDecimal(),
             barnetillegg = (36 * 2).toBigDecimal()
         )
-    )
+    ),
+    rettighetsTypeTidsLinje = listOf(RettighetsTypePeriode(
+        fom = LocalDate.now().minusYears(2),
+        tom = LocalDate.now().minusYears(1),
+        verdi = RettighetsType.BISTANDSBEHOV.name,
+    ))
 )
 
 val testObjectResult= DatadelingDTO(
@@ -156,7 +158,12 @@ val testObjectResult= DatadelingDTO(
             barnetilleggsats = 36.toBigDecimal(),
             barnetillegg = (36 * 2).toBigDecimal()
         )
-    )
+    ),
+    rettighetsTypeTidsLinje = listOf(RettighetsTypePeriode(
+        fom = LocalDate.now().minusYears(2),
+        tom = LocalDate.now().minusYears(1),
+        verdi = RettighetsType.BISTANDSBEHOV.name,
+    ))
 )
 
 class BehandlingsDataTest : PostgresTestBase() {

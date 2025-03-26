@@ -2,10 +2,7 @@ package api.postgres
 
 import api.maksimum.*
 import no.nav.aap.api.intern.Kilde
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.UnderveisDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.JoinStyle
@@ -86,8 +83,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
         } else {
             connection.executeReturnKey(
                 """
-                INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, TYPE, OPPRETTET_TID)
-                VALUES (?, ?, ?, ?, ?)
+                INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, TYPE, OPPRETTET_TID, BEHANDLING_REFERANSE)
+                VALUES (?, ?, ?, ?, ?, ?)
             """.trimIndent()
             ) {
                 setParams {
@@ -96,10 +93,25 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     setLocalDate(3, behandling.vedtaksDato)
                     setString(4, "TYPE")
                     setLocalDateTime(5, behandling.sak.opprettetTidspunkt)
+                    setString(6, "")
                 }
             }
         }
 
+
+        connection.executeBatch(
+            """
+                INSERT INTO RETTIGHETSTYPE (BEHANDLING_ID, PERIODE, RETTIGHETSTYPE)
+                VALUES (?, ?::daterange, ?)
+            """.trimIndent(),
+            behandling.rettighetsTypeTidsLinje
+        ){
+            setParams {
+                setLong(1, nyBehandlingId)
+                setPeriode(2, Periode(it.fom, it.tom))
+                setString(3, it.verdi)
+            }
+        }
 
 
         connection.executeBatch(
@@ -163,18 +175,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
     fun hentMedium(fnr: String, interval: Periode): Medium {
         val kelvinData = hentVedtaksData(fnr)
         val vedtak: List<VedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
-            val underveisTidslinje = Tidslinje(
-                behandling.underveisperiode.map {
+            val rettighetsTypeTidslinje = Tidslinje(
+                behandling.rettighetsTypeTidsLinje.map {
                     Segment(
-                        Periode(it.underveisFom, it.underveisTom),
-                        UnderveisDB(
-                            it.rettighetsType,
-                            it.avslagsårsak
-                        )
+                        Periode(it.fom, it.tom),
+                        it.verdi
                     )
                 }
-
-            ).komprimer()
+            )
 
             val tilkjent = Tidslinje(
                 behandling.tilkjent.map {
@@ -193,14 +201,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 }
             )
 
-            underveisTidslinje.kombiner(
+            rettighetsTypeTidslinje.kombiner(
                 tilkjent,
-                JoinStyle.INNER_JOIN { periode, left, right ->
+                JoinStyle.LEFT_JOIN { periode, left, right ->
                     Segment(
                         periode,
                         VedtakUtenUtbetalingUtenPeriode(
                             vedtaksId = behandling.behandlingsId,
-                            dagsats = right.verdi.dagsats,
+                            dagsats = right?.verdi?.dagsats?: 0,
                             status =
                                 if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
                                         LocalDate.now()
@@ -216,9 +224,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
                             vedtaksTypeKode = "",
                             vedtaksTypeNavn = "",
-                            rettighetsType = left.verdi.rettighetsType ?: "",
-                            beregningsgrunnlag = right.verdi.grunnlag.toInt(),
-                            barnMedStonad = right.verdi.antallBarn,
+                            rettighetsType = left.verdi ?: "",
+                            beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?:0,
+                            barnMedStonad = right?.verdi?.antallBarn?:0,
                             kildesystem = Kilde.KELVIN.toString(),
                             samordningsId = null,
                             opphorsAarsak = null
@@ -227,7 +235,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 }
             ).komprimer()
                 .map { it.verdi.tilVedtakUtenUtbetaling(no.nav.aap.api.intern.Periode(it.periode.fom, it.periode.tom)) }
-                .filter { it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString() }
+                .filter { (it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString())}
         }
 
         return Medium(vedtak)
@@ -236,6 +244,15 @@ class BehandlingsRepository(private val connection: DBConnection) {
     fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
         val kelvinData = hentVedtaksData(fnr)
         val vedtak = kelvinData.map { behandling ->
+            val vilkårsTidslinje = Tidslinje(
+                behandling.rettighetsTypeTidsLinje.map {
+                    Segment(
+                        Periode(it.fom, it.tom),
+                        it.verdi
+                    )
+                }
+            ).komprimer()
+
             val underveisTidslinje = Tidslinje(
                 behandling.underveisperiode.map {
                     Segment(
@@ -386,12 +403,34 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         status = sak.status,
                         fnr = emptyList()
                     ),
-                    tilkjent = hentTilkjentYtelse(behandling.id)
+                    tilkjent = hentTilkjentYtelse(behandling.id),
+                    rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id)
                 )
             }
         }
 
 
+    }
+
+    fun hentRettighetsTypeTidslinje(behandlingId: Long):List<RettighetsTypePeriode>{
+        return connection.queryList(
+            """
+                SELECT * FROM RETTIGHETSTYPE
+                WHERE BEHANDLING_ID = ?
+            """.trimIndent()
+        ){
+            setParams {
+                setLong(1, behandlingId)
+            }
+            setRowMapper {
+                val periode = it.getPeriode("PERIODE")
+                RettighetsTypePeriode(
+                    fom = periode.fom,
+                    tom = periode.tom,
+                    verdi = it.getString("RETTIGHETSTYPE")
+                )
+            }
+        }
     }
 
     fun hentBehandlinger(sakId: Long): List<BehandlingDB> {
