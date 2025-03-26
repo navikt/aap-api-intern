@@ -2,6 +2,7 @@ package api.postgres
 
 import api.maksimum.*
 import no.nav.aap.api.intern.Kilde
+import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -93,7 +94,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     setLocalDate(3, behandling.vedtaksDato)
                     setString(4, "TYPE")
                     setLocalDateTime(5, behandling.sak.opprettetTidspunkt)
-                    setString(6, "")
+                    setString(6, behandling.behandlingsReferanse)
                 }
             }
         }
@@ -393,6 +394,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
                 DatadelingDTO(
                     behandlingsId = behandling.id.toString(),
+                    behandlingsReferanse = behandling.behandlingReferanse,
                     underveisperiode = hentUnderveis(behandling.id),
                     rettighetsPeriodeFom = sak.rettighetsPeriode.fom,
                     rettighetsPeriodeTom = sak.rettighetsPeriode.tom,
@@ -449,7 +451,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     behandlingStatus = no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.valueOf(row.getString("STATUS")),
                     vedtaksDato = row.getLocalDate("VEDTAKS_DATO"),
                     type = row.getString("TYPE"),
-                    oppretterTidspunkt = row.getLocalDate("OPPRETTET_TID")
+                    oppretterTidspunkt = row.getLocalDate("OPPRETTET_TID"),
+                    behandlingReferanse = row.getString("BEHANDLING_REFERANSE")
                 )
             }
         }
@@ -523,6 +526,7 @@ data class BehandlingDB(
     val vedtaksDato: LocalDate,
     val type: String,
     val oppretterTidspunkt: LocalDate,
+    val behandlingReferanse: String
 )
 
 data class UnderveisDB(

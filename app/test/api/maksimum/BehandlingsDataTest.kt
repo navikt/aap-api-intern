@@ -32,6 +32,7 @@ import kotlin.test.assertEquals
 
 val testObject = DatadelingDTO(
     behandlingsId = 123456789L.toString(),
+    behandlingsReferanse = "1234567890987654321",
     underveisperiode = listOf(
         UnderveisDTO(
             underveisFom = LocalDate.now().minusYears(2),
@@ -112,6 +113,7 @@ val testObject = DatadelingDTO(
 
 val testObjectResult= DatadelingDTO(
     behandlingsId = 123456789L.toString(),
+    behandlingsReferanse = "1234567890987654321",
     underveisperiode = listOf(
         UnderveisDTO(
             underveisFom = LocalDate.now().minusYears(2),
