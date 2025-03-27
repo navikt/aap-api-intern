@@ -284,7 +284,7 @@ fun hentMedium(fnr: String, interval: Periode, behandlingsRepository: Behandling
                         vedtaksTypeKode = "",
                         vedtaksTypeNavn = "",
                         rettighetsType = left.verdi ?: "",
-                        beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?:0,
+                        beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?.times(260) ?:0,
                         barnMedStonad = right?.verdi?.antallBarn?:0,
                         kildesystem = Kilde.KELVIN.toString(),
                         samordningsId = null,

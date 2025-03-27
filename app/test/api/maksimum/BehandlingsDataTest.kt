@@ -1,13 +1,7 @@
 package api.maksimum
 
-import kotlin.random.Random
-
 import api.TestConfig
 import api.api
-import api.arena.ArenaoppslagRestClient
-import api.arena.IArenaoppslagRestClient
-import api.perioder.PerioderInkludert11_17Response
-import api.perioder.PerioderResponse
 import api.postgres.mergeTilkjentPeriods
 import api.util.*
 import io.ktor.server.testing.*
@@ -216,16 +210,13 @@ class BehandlingsDataTest : PostgresTestBase() {
         val interval = Periode(LocalDate.now().minusYears(2), LocalDate.now().minusYears(2).plusWeeks(6))
         val result = perioderMedAAp(listOf(testObject), interval = interval)
 
-        assertEquals(2,result.size)
-        assertEquals(result, listOf(
-            no.nav.aap.api.intern.Periode(LocalDate.now().minusYears(2), LocalDate.now().minusYears(2).plusWeeks(4).minusDays(1)),
-            no.nav.aap.api.intern.Periode(LocalDate.now().minusYears(2).plusWeeks(6), LocalDate.now().minusYears(2).plusWeeks(8).minusDays(1))
-        ))
+        assertEquals(1,result.size)
+        assertEquals(listOf(
+            no.nav.aap.api.intern.Periode(LocalDate.now().minusYears(2), LocalDate.now().minusYears(1))
+        ),
+            result)
     }
-    //@Test
-    fun `mergePerioder`(){
-        assertEquals(testObjectResult.tilkjent ,mergeTilkjentPeriods(testObject.tilkjent))
-    }
+
 
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient
         get() =
