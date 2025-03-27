@@ -1,12 +1,9 @@
 package api
 
 import api.arena.IArenaoppslagRestClient
+import api.postgres.*
 import no.nav.aap.api.intern.PerioderInkludert11_17Response
 import no.nav.aap.api.intern.PerioderResponse
-import api.postgres.BehandlingsRepository
-import api.postgres.MeldekortPerioderRepository
-import api.postgres.SakStatusRepository
-import api.postgres.TilkjentDB
 import api.util.fraKontrakt
 import api.util.fraKontraktUtenUtbetaling
 import api.util.perioderMedAAp
@@ -103,7 +100,7 @@ fun NormalOpenAPIRoute.api(
 
                 respond(arena.hentPerioderInkludert11_17(callId, requestBody))
             }
-            route("/meldekort").post<CallIdHeader, List<KelvinPeriode>, InternVedtakRequest>(
+            route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequest>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
                 val perioder = dataSource.transaction { connection ->

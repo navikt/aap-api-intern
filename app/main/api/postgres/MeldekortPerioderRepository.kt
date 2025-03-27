@@ -1,6 +1,5 @@
 package api.postgres
 
-import no.nav.aap.api.intern.KelvinPeriode
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 
@@ -35,7 +34,7 @@ class MeldekortPerioderRepository(private val connection: DBConnection) {
     }
 
 
-    fun hentMeldekortPerioder(fnr: String): List<KelvinPeriode> {
+    fun hentMeldekortPerioder(fnr: String): List<Periode> {
         return connection.queryList(
                 """
                     SELECT PERIODE
@@ -48,7 +47,7 @@ class MeldekortPerioderRepository(private val connection: DBConnection) {
                 }
                 setRowMapper { row ->
                         val periode = row.getPeriode("periode")
-                    KelvinPeriode(
+                    Periode(
                         periode.fom,
                         periode.tom
                     )
