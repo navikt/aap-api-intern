@@ -1,7 +1,7 @@
 package api.arena
 
-import api.perioder.PerioderInkludert11_17Response
-import api.perioder.PerioderResponse
+import no.nav.aap.api.intern.PerioderInkludert11_17Response
+import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest

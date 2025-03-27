@@ -1,12 +1,9 @@
 package api.kelvin
 
 import api.KelvinConfig
-import api.maksimum.KelvinPeriode
-import api.maksimum.Vedtak
-import no.nav.aap.api.intern.Periode
-import no.nav.aap.api.intern.SakStatus
+import no.nav.aap.api.intern.KelvinPeriode
+import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient

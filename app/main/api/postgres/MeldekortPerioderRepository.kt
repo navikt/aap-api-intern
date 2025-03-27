@@ -1,6 +1,6 @@
 package api.postgres
 
-import api.maksimum.KelvinPeriode
+import no.nav.aap.api.intern.KelvinPeriode
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 

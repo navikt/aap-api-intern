@@ -1,8 +1,6 @@
 package api.postgres
 
-import api.maksimum.*
-import no.nav.aap.api.intern.Kilde
-import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
+import no.nav.aap.api.intern.*
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.DBConnection
