@@ -7,6 +7,7 @@ import api.perioder.PerioderResponse
 import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortPerioderRepository
 import api.postgres.SakStatusRepository
+import api.postgres.TilkjentDB
 import api.util.perioderMedAAp
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
@@ -24,14 +25,21 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.audience
+import no.nav.aap.komponenter.tidslinje.JoinStyle
+import no.nav.aap.komponenter.tidslinje.Segment
+import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.sql.DataSource
 
@@ -51,8 +59,7 @@ data class CallIdHeader(
 enum class Tag(override val description: String) : APITag {
     Perioder("For å hente perioder med AAP"),
     Saker("For å hente AAP-saker"),
-    Maksimum("For å hente maksimumsløsning"),
-    Insertion("For å legge inn data fra Kelvin")
+    Maksimum("For å hente maksimumsløsning")
 }
 
 fun NormalOpenAPIRoute.api(
@@ -66,9 +73,7 @@ fun NormalOpenAPIRoute.api(
             post<CallIdHeader, PerioderResponse, InternVedtakRequest>(
                 info(description = "Henter perioder med vedtak for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
-
                 val azpName = azpName()
-
                 httpCallCounter.httpCallCounter(
                     "/perioder",
                     pipeline.call.audience(),
@@ -121,6 +126,7 @@ fun NormalOpenAPIRoute.api(
                 pipeline.call.audience(),
                 azpName() ?: ""
             ).increment()
+
             val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
@@ -130,7 +136,6 @@ fun NormalOpenAPIRoute.api(
                 requestBody.personidentifikatorer.flatMap {
                     sakStatusRepository.hentSakStatus(it)
                 }
-
             }
 
             respond(arena.hentSakerByFnr(callId, requestBody) + kelvinSaker)
@@ -169,7 +174,7 @@ fun NormalOpenAPIRoute.api(
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction{ connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentMedium(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato,requestBody.tilOgMedDato)).vedtak
+                    hentMedium(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato,requestBody.tilOgMedDato), behandlingsRepository).vedtak
                 }
                 respond(
                     Medium(
@@ -223,4 +228,74 @@ fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
             call.respond(HttpStatusCode.OK, "api")
         }
     }
+}
+
+fun hentMedium(fnr: String, interval: Periode, behandlingsRepository: BehandlingsRepository): Medium {
+    val kelvinData = behandlingsRepository.hentVedtaksData(fnr)
+    val vedtak: List<VedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
+        val rettighetsTypeTidslinje = Tidslinje(
+            behandling.rettighetsTypeTidsLinje.map {
+                Segment(
+                    Periode(it.fom, it.tom),
+                    it.verdi
+                )
+            }
+        )
+
+        val tilkjent = Tidslinje(
+            behandling.tilkjent.map {
+                Segment(
+                    Periode(it.tilkjentFom, it.tilkjentTom),
+                    TilkjentDB(
+                        it.dagsats,
+                        it.grunnlag,
+                        it.gradering,
+                        it.grunnlagsfaktor,
+                        it.grunnbeløp,
+                        it.antallBarn,
+                        it.barnetilleggsats,
+                        it.barnetillegg
+                    )
+                )
+            }
+        )
+
+        rettighetsTypeTidslinje.kombiner(
+            tilkjent,
+            JoinStyle.LEFT_JOIN { periode, left, right ->
+                Segment(
+                    periode,
+                    VedtakUtenUtbetalingUtenPeriode(
+                        vedtaksId = behandling.behandlingsReferanse,
+                        dagsats = right?.verdi?.dagsats?: 0,
+                        status =
+                            if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
+                                    LocalDate.now()
+                                )
+                            ) {
+                                Status.LØPENDE.toString()
+                            } else if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET) {
+                                Status.AVSLUTTET.toString()
+                            } else {
+                                Status.UTREDES.toString()
+                            },
+                        saksnummer = behandling.sak.saksnummer,
+                        vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                        vedtaksTypeKode = "",
+                        vedtaksTypeNavn = "",
+                        rettighetsType = left.verdi ?: "",
+                        beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?:0,
+                        barnMedStonad = right?.verdi?.antallBarn?:0,
+                        kildesystem = Kilde.KELVIN.toString(),
+                        samordningsId = null,
+                        opphorsAarsak = null
+                    )
+                )
+            }
+        ).komprimer()
+            .map { it.verdi.tilVedtakUtenUtbetaling(no.nav.aap.api.intern.Periode(it.periode.fom, it.periode.tom)) }
+            .filter { (it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString())}
+    }
+
+    return Medium(vedtak)
 }

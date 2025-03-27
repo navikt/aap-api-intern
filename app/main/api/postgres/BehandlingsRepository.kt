@@ -42,11 +42,13 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
-        connection.execute(
-            """DELETE FROM SAK_PERSON WHERE SAK_ID = ?""".trimIndent()
+        connection.executeBatch(
+            """DELETE FROM SAK_PERSON WHERE SAK_ID = ? AND PERSON_IDENT = ?""".trimIndent(),
+            behandling.sak.fnr
         ){
             setParams {
                 setLong(1, sakId)
+                setString(2, it)
             }
         }
 
@@ -64,10 +66,10 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
 
         val behandlingId = connection.queryFirstOrNull(
-            """SELECT ID FROM BEHANDLING WHERE ID = ?""".trimIndent()
+            """SELECT ID FROM BEHANDLING WHERE BEHANDLING_REFERANSE = ?""".trimIndent()
         ) {
             setParams {
-                setLong(1, behandling.behandlingsId.toLong())
+                setString(1, behandling.behandlingsReferanse)
             }
             setRowMapper {
                 it.getLong("ID")
@@ -188,76 +190,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setBigDecimal(10, it.barnetillegg)
             }
         }
-    }
-
-    fun hentMedium(fnr: String, interval: Periode): Medium {
-        val kelvinData = hentVedtaksData(fnr)
-        val vedtak: List<VedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
-            val rettighetsTypeTidslinje = Tidslinje(
-                behandling.rettighetsTypeTidsLinje.map {
-                    Segment(
-                        Periode(it.fom, it.tom),
-                        it.verdi
-                    )
-                }
-            )
-
-            val tilkjent = Tidslinje(
-                behandling.tilkjent.map {
-                    Segment(
-                        Periode(it.tilkjentFom, it.tilkjentTom),
-                        TilkjentDB(
-                            it.dagsats,
-                            it.grunnlag,
-                            it.gradering,
-                            it.grunnlagsfaktor,
-                            it.grunnbeløp,
-                            it.antallBarn,
-                            it.barnetilleggsats,
-                            it.barnetillegg
-                        )
-                    )
-                }
-            )
-
-            rettighetsTypeTidslinje.kombiner(
-                tilkjent,
-                JoinStyle.LEFT_JOIN { periode, left, right ->
-                    Segment(
-                        periode,
-                        VedtakUtenUtbetalingUtenPeriode(
-                            vedtaksId = behandling.behandlingsReferanse,
-                            dagsats = right?.verdi?.dagsats?: 0,
-                            status =
-                                if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
-                                        LocalDate.now()
-                                    )
-                                ) {
-                                    Status.LØPENDE.toString()
-                                } else if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET) {
-                                    Status.AVSLUTTET.toString()
-                                } else {
-                                    Status.UTREDES.toString()
-                                },
-                            saksnummer = behandling.sak.saksnummer,
-                            vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
-                            vedtaksTypeKode = "",
-                            vedtaksTypeNavn = "",
-                            rettighetsType = left.verdi ?: "",
-                            beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?:0,
-                            barnMedStonad = right?.verdi?.antallBarn?:0,
-                            kildesystem = Kilde.KELVIN.toString(),
-                            samordningsId = null,
-                            opphorsAarsak = null
-                        )
-                    )
-                }
-            ).komprimer()
-                .map { it.verdi.tilVedtakUtenUtbetaling(no.nav.aap.api.intern.Periode(it.periode.fom, it.periode.tom)) }
-                .filter { (it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString())}
-        }
-
-        return Medium(vedtak)
     }
 
     fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
