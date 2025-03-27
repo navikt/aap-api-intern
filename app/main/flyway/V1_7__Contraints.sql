@@ -12,6 +12,20 @@ WHERE ID IN (
     WHERE rn > 1
 );
 
+WITH CTE AS (
+    SELECT
+        ID,
+        ROW_NUMBER() OVER (PARTITION BY SAK_ID, PERSON_IDENT ORDER BY ID) AS rn
+    FROM
+        SAK_PERSON
+)
+DELETE FROM SAK_PERSON
+WHERE ID IN (
+    SELECT ID
+    FROM CTE
+    WHERE rn > 1
+);
+
 CREATE UNIQUE INDEX uidx_sak_person_sak_id_person_id ON SAK_PERSON (SAK_ID, PERSON_IDENT);
 
 CREATE UNIQUE INDEX uidx_behandling_sak_id ON BEHANDLING (SAK_ID);

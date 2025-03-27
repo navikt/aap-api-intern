@@ -68,7 +68,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         val nyBehandlingId = connection.queryFirst<Long>(
             """
                 INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, TYPE, OPPRETTET_TID, BEHANDLING_REFERANSE)
-                VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET STATUS = EXCLUDED.status, vedtaks_dato = excluded.vedtaks_dato, OPPRETTET_TID = excluded.opprettet_tid
+                VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (sak_id) DO UPDATE SET STATUS = EXCLUDED.status, vedtaks_dato = excluded.vedtaks_dato, OPPRETTET_TID = excluded.opprettet_tid
                 RETURNING ID
             """.trimIndent()
         ) {
