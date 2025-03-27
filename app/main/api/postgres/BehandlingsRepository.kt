@@ -66,10 +66,10 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
 
         val behandlingId = connection.queryFirstOrNull(
-            """SELECT ID FROM BEHANDLING WHERE BEHANDLING_REFERANSE = ?""".trimIndent()
+            """SELECT ID FROM BEHANDLING WHERE ID = ?""".trimIndent()
         ) {
             setParams {
-                setString(1, behandling.behandlingsReferanse)
+                setLong(1, behandling.behandlingsId.toLong())
             }
             setRowMapper {
                 it.getLong("ID")
