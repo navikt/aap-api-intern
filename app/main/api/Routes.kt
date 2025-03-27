@@ -266,7 +266,7 @@ fun hentMedium(fnr: String, interval: Periode, behandlingsRepository: Behandling
                 Segment(
                     periode,
                     VedtakUtenUtbetalingUtenPeriode(
-                        vedtaksId = behandling.behandlingsReferanse,
+                        vedtakId = behandling.behandlingsReferanse,
                         dagsats = right?.verdi?.dagsats?: 0,
                         status =
                             if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(

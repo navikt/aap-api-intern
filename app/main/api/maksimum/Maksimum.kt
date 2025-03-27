@@ -33,8 +33,8 @@ data class VedtakDataKelvin(
  * @param saksnummer hypotese sak_id
  */
 data class Vedtak(
-    val vedtaksId: String,
     val dagsats: Int,
+    val vedtakId: String,
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
     val vedtaksdato: String, //reg_dato
@@ -55,7 +55,7 @@ data class Vedtak(
 }
 
 data class VedtakUtenUtbetalingUtenPeriode(
-    val vedtaksId: String,
+    val vedtakId: String,
     val dagsats: Int,
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
@@ -71,7 +71,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
 ){
     fun tilVedtakUtenUtbetaling(periode: Periode):VedtakUtenUtbetaling{
         return VedtakUtenUtbetaling(
-            vedtaksId = this.vedtaksId,
+            vedtakId = this.vedtakId,
             dagsats = this.dagsats,
             status = this.status,
             saksnummer = this.saksnummer,
@@ -90,8 +90,8 @@ data class VedtakUtenUtbetalingUtenPeriode(
 }
 
 data class VedtakUtenUtbetaling(
-    val vedtaksId: String,
     val dagsats: Int,
+    val vedtakId: String,
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
     val vedtaksdato: String, //reg_dato
@@ -108,8 +108,8 @@ data class VedtakUtenUtbetaling(
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
     return Vedtak(
-        this.vedtaksId,
         this.dagsats,
+        this.vedtaksId,
         this.status,
         this.saksnummer,
         this.vedtaksdato,
@@ -125,8 +125,8 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling(): VedtakUtenUtbetaling {
     return VedtakUtenUtbetaling(
-        this.vedtaksId,
         this.dagsats,
+        this.vedtaksId,
         this.status,
         this.saksnummer,
         this.vedtaksdato,

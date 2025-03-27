@@ -205,7 +205,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     Segment(
                         periode,
                         VedtakUtenUtbetalingUtenPeriode(
-                            vedtaksId = behandling.behandlingsReferanse,
+                            vedtakId = behandling.behandlingsReferanse,
                             dagsats = right?.verdi?.dagsats ?: 0,
                             status =
                                 if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
@@ -240,7 +240,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     Segment(
                         periode,
                         Vedtak(
-                            vedtaksId = left.verdi.vedtaksId,
+                            vedtakId = left.verdi.vedtakId,
                             dagsats = left.verdi.beregningsgrunnlag,
                             status = left.verdi.status,
                             saksnummer = left.verdi.saksnummer,
