@@ -1,6 +1,7 @@
 package no.nav.aap.api.intern
 
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class Maksimum(val vedtak: List<Vedtak>)
 
@@ -15,7 +16,7 @@ data class Vedtak(
     val vedtakId: String,
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
-    val vedtaksdato: String, //reg_dato
+    val vedtaksdato: LocalDateTime, //reg_dato
     val periode: Periode,
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,

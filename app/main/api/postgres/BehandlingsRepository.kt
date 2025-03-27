@@ -1,5 +1,6 @@
 package api.postgres
 
+import api.util.fraKontrakt
 import no.nav.aap.api.intern.*
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
@@ -242,7 +243,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             dagsats = left.verdi.beregningsgrunnlag,
                             status = left.verdi.status,
                             saksnummer = left.verdi.saksnummer,
-                            vedtaksdato = left.verdi.vedtaksdato,
+                            vedtaksdato = LocalDate.parse(left.verdi.vedtaksdato).atStartOfDay(),
                             periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
                             rettighetsType = left.verdi.rettighetsType,
                             beregningsgrunnlag = left.verdi.beregningsgrunnlag * 260, //GANGER MED 260 FOR Å FÅ ÅRLIG SUM

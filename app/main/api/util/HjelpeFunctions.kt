@@ -1,6 +1,8 @@
 package api.util
 
 import no.nav.aap.api.intern.*
+import java.time.LocalDate
+import java.time.LocalDateTime
 
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum.fraKontrakt(): Maksimum {
@@ -15,7 +17,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
         this.vedtaksId,
         this.status,
         this.saksnummer,
-        this.vedtaksdato,
+        LocalDate.parse(this.vedtaksdato).atStartOfDay(),
         this.periode.fraKontrakt(),
         rettighetsType = this.rettighetsType,
         beregningsgrunnlag = this.beregningsgrunnlag,
