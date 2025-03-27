@@ -45,7 +45,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         connection.executeBatch(
             """DELETE FROM SAK_PERSON WHERE SAK_ID = ? AND PERSON_IDENT = ?""".trimIndent(),
             behandling.sak.fnr
-        ){
+        ) {
             setParams {
                 setLong(1, sakId)
                 setString(2, it)
@@ -65,47 +65,24 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
-        val behandlingId = connection.queryFirstOrNull(
-            """SELECT ID FROM BEHANDLING WHERE ID = ?""".trimIndent()
+        val nyBehandlingId = connection.queryFirst<Long>(
+            """
+                INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, TYPE, OPPRETTET_TID, BEHANDLING_REFERANSE)
+                VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT DO UPDATE SET STATUS = EXCLUDED.status, vedtaks_dato = excluded.vedtaks_dato, OPPRETTET_TID = excluded.opprettet_tid
+                RETURNING ID
+            """.trimIndent()
         ) {
             setParams {
-                setLong(1, behandling.behandlingsId.toLong())
+                setLong(1, sakId)
+                setString(2, behandling.behandlingStatus.toString())
+                setLocalDate(3, behandling.vedtaksDato)
+                setString(4, "TYPE")
+                setLocalDateTime(5, behandling.sak.opprettetTidspunkt)
+                setString(6, behandling.behandlingsReferanse)
             }
-            setRowMapper {
-                it.getLong("ID")
-            }
-        }
 
-
-        val nyBehandlingId = if (behandlingId != null) {
-            connection.executeReturnKey(
-                """
-                UPDATE BEHANDLING SET STATUS = ?, vedtaks_dato = ?, OPPRETTET_TID = ?
-                WHERE ID = ?
-            """.trimIndent()
-            ) {
-                setParams {
-                    setString(1, behandling.behandlingStatus.toString())
-                    setLocalDate(2, behandling.vedtaksDato)
-                    setLocalDateTime(3, behandling.sak.opprettetTidspunkt)
-                    setLong(4, behandling.behandlingsId.toLong())
-                }
-            }
-        } else {
-            connection.executeReturnKey(
-                """
-                INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, TYPE, OPPRETTET_TID, BEHANDLING_REFERANSE)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """.trimIndent()
-            ) {
-                setParams {
-                    setLong(1, sakId)
-                    setString(2, behandling.behandlingStatus.toString())
-                    setLocalDate(3, behandling.vedtaksDato)
-                    setString(4, "TYPE")
-                    setLocalDateTime(5, behandling.sak.opprettetTidspunkt)
-                    setString(6, behandling.behandlingsReferanse)
-                }
+            setRowMapper { row ->
+                row.getLong("ID")
             }
         }
 
@@ -113,7 +90,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             """
                 DELETE FROM RETTIGHETSTYPE WHERE BEHANDLING_ID = ?
             """.trimIndent(),
-        ){
+        ) {
             setParams {
                 setLong(1, nyBehandlingId)
             }
@@ -125,7 +102,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 VALUES (?, ?::daterange, ?)
             """.trimIndent(),
             behandling.rettighetsTypeTidsLinje
-        ){
+        ) {
             setParams {
                 setLong(1, nyBehandlingId)
                 setPeriode(2, Periode(it.fom, it.tom))
@@ -229,7 +206,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         periode,
                         VedtakUtenUtbetalingUtenPeriode(
                             vedtaksId = behandling.behandlingsReferanse,
-                            dagsats = right?.verdi?.dagsats?: 0,
+                            dagsats = right?.verdi?.dagsats ?: 0,
                             status =
                                 if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
                                         LocalDate.now()
@@ -246,8 +223,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             vedtaksTypeKode = "",
                             vedtaksTypeNavn = "",
                             rettighetsType = left.verdi ?: "",
-                            beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?:0,
-                            barnMedStonad = right?.verdi?.antallBarn?:0,
+                            beregningsgrunnlag = right?.verdi?.grunnlag?.toInt() ?: 0,
+                            barnMedStonad = right?.verdi?.antallBarn ?: 0,
                             kildesystem = Kilde.KELVIN.toString(),
                             samordningsId = null,
                             opphorsAarsak = null
@@ -270,7 +247,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             vedtaksdato = left.verdi.vedtaksdato,
                             periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
                             rettighetsType = left.verdi.rettighetsType,
-                            beregningsgrunnlag = left.verdi.beregningsgrunnlag*260, //GANGER MED 260 FOR Å FÅ ÅRLIG SUM
+                            beregningsgrunnlag = left.verdi.beregningsgrunnlag * 260, //GANGER MED 260 FOR Å FÅ ÅRLIG SUM
                             barnMedStonad = left.verdi.barnMedStonad,
                             vedtaksTypeKode = left.verdi.vedtaksTypeKode,
                             vedtaksTypeNavn = left.verdi.vedtaksTypeNavn,
@@ -278,8 +255,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
                                 UtbetalingMedMer(
                                     reduksjon = null,
                                     utbetalingsgrad = utbetaling.verdi.gradering,
-                                    periode = no.nav.aap.api.intern.Periode(utbetaling.periode.fom, utbetaling.periode.tom),
-                                    belop = utbetaling.verdi.dagsats * weekdaysBetween(utbetaling.periode.fom, utbetaling.periode.tom),
+                                    periode = no.nav.aap.api.intern.Periode(
+                                        utbetaling.periode.fom,
+                                        utbetaling.periode.tom
+                                    ),
+                                    belop = utbetaling.verdi.dagsats * weekdaysBetween(
+                                        utbetaling.periode.fom,
+                                        utbetaling.periode.tom
+                                    ),
                                     dagsats = utbetaling.verdi.dagsats,
                                     barnetilegg = utbetaling.verdi.barnetillegg.toInt()
                                 )
@@ -361,13 +344,13 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
     }
 
-    fun hentRettighetsTypeTidslinje(behandlingId: Long):List<RettighetsTypePeriode>{
+    fun hentRettighetsTypeTidslinje(behandlingId: Long): List<RettighetsTypePeriode> {
         return connection.queryList(
             """
                 SELECT * FROM RETTIGHETSTYPE
                 WHERE BEHANDLING_ID = ?
             """.trimIndent()
-        ){
+        ) {
             setParams {
                 setLong(1, behandlingId)
             }
