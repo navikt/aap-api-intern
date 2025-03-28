@@ -1,6 +1,4 @@
-package api.perioder
-
-import no.nav.aap.api.intern.Periode
+package no.nav.aap.api.intern
 
 data class PerioderResponse(val perioder: List<Periode>)
 

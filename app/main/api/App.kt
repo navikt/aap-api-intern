@@ -2,7 +2,6 @@ package api
 
 import api.arena.ArenaoppslagRestClient
 import api.arena.IArenaoppslagRestClient
-import api.kelvin.KelvinClient
 import api.kelvin.dataInsertion
 import api.postgres.initDatasource
 import com.papsign.ktor.openapigen.model.info.ContactModel

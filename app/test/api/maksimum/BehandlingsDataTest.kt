@@ -2,7 +2,6 @@ package api.maksimum
 
 import api.TestConfig
 import api.api
-import api.postgres.mergeTilkjentPeriods
 import api.util.*
 import io.ktor.server.testing.*
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
@@ -15,6 +14,7 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
+import no.nav.aap.api.intern.Maksimum
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*

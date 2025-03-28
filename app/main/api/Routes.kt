@@ -1,20 +1,17 @@
 package api
 
 import api.arena.IArenaoppslagRestClient
-import api.maksimum.*
-import api.perioder.PerioderInkludert11_17Response
-import api.perioder.PerioderResponse
-import api.postgres.BehandlingsRepository
-import api.postgres.MeldekortPerioderRepository
-import api.postgres.SakStatusRepository
-import api.postgres.TilkjentDB
+import api.postgres.*
+import no.nav.aap.api.intern.PerioderInkludert11_17Response
+import no.nav.aap.api.intern.PerioderResponse
+import api.util.fraKontrakt
+import api.util.fraKontraktUtenUtbetaling
 import api.util.perioderMedAAp
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
-import com.papsign.ktor.openapigen.route.path.normal.route
 import com.papsign.ktor.openapigen.route.response.OpenAPIPipelineResponseContext
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
@@ -25,9 +22,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import no.nav.aap.api.intern.Kilde
-import no.nav.aap.api.intern.PersonEksistererIAAPArena
-import no.nav.aap.api.intern.SakStatus
+import no.nav.aap.api.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
@@ -105,7 +100,7 @@ fun NormalOpenAPIRoute.api(
 
                 respond(arena.hentPerioderInkludert11_17(callId, requestBody))
             }
-            route("/meldekort").post<CallIdHeader, List<KelvinPeriode>, InternVedtakRequest>(
+            route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequest>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
                 val perioder = dataSource.transaction { connection ->
@@ -160,7 +155,7 @@ fun NormalOpenAPIRoute.api(
 
     tag(Tag.Maksimum) {
         route("/maksimumUtenUtbetaling") {
-            post<CallIdHeader, api.maksimum.Medium, InternVedtakRequest>(
+            post<CallIdHeader, Medium, InternVedtakRequest>(
                 info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
                 httpCallCounter.httpCallCounter(
@@ -184,7 +179,7 @@ fun NormalOpenAPIRoute.api(
             }
         }
         route("/maksimum") {
-            post<CallIdHeader, api.maksimum.Maksimum, InternVedtakRequest>(
+            post<CallIdHeader, Maksimum, InternVedtakRequest>(
                 info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
                 httpCallCounter.httpCallCounter(
@@ -280,7 +275,7 @@ fun hentMedium(fnr: String, interval: Periode, behandlingsRepository: Behandling
                                 Status.UTREDES.toString()
                             },
                         saksnummer = behandling.sak.saksnummer,
-                        vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                        vedtaksdato = behandling.vedtaksDato,
                         vedtaksTypeKode = "",
                         vedtaksTypeNavn = "",
                         rettighetsType = left.verdi ?: "",

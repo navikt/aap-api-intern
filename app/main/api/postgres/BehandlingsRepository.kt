@@ -1,8 +1,7 @@
 package api.postgres
 
-import api.maksimum.*
-import no.nav.aap.api.intern.Kilde
-import no.nav.aap.behandlingsflyt.kontrakt.behandling.BehandlingReferanse
+import api.util.fraKontrakt
+import no.nav.aap.api.intern.*
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -219,7 +218,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                                     Status.UTREDES.toString()
                                 },
                             saksnummer = behandling.sak.saksnummer,
-                            vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            vedtaksdato = behandling.vedtaksDato,
                             vedtaksTypeKode = "",
                             vedtaksTypeNavn = "",
                             rettighetsType = left.verdi ?: "",
@@ -251,7 +250,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             barnMedStonad = left.verdi.barnMedStonad,
                             vedtaksTypeKode = left.verdi.vedtaksTypeKode,
                             vedtaksTypeNavn = left.verdi.vedtaksTypeNavn,
-                            utbetaling = right?.verdi?.map { utbetaling ->
+                            utbetaling = right?.verdi?.filter {
+                                it.periode.tom.isBefore(LocalDate.now()) || it.periode.tom.isEqual(LocalDate.now())
+                            }?.map { utbetaling ->
                                 UtbetalingMedMer(
                                     reduksjon = null,
                                     utbetalingsgrad = utbetaling.verdi.gradering,
@@ -535,4 +536,39 @@ fun mergeTilkjentPeriods(periods: List<TilkjentDTO>): List<TilkjentDTO> {
     mergedPeriods.add(currentPeriod)
 
     return mergedPeriods
+}
+
+data class VedtakUtenUtbetalingUtenPeriode(
+    val vedtakId: String,
+    val dagsats: Int,
+    val status: String, //Hypotese, vedtaksstatuskode
+    val saksnummer: String,
+    val vedtaksdato: LocalDate, //reg_dato
+    val vedtaksTypeKode: String,
+    val vedtaksTypeNavn: String,
+    val rettighetsType: String, ////aktivitetsfase //Aktfasekode
+    val beregningsgrunnlag: Int,
+    val barnMedStonad: Int,
+    val kildesystem: String = "ARENA",
+    val samordningsId: String? = null,
+    val opphorsAarsak: String? = null,
+) {
+    fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode): VedtakUtenUtbetaling {
+        return VedtakUtenUtbetaling(
+            vedtakId = this.vedtakId,
+            dagsats = this.dagsats,
+            status = this.status,
+            saksnummer = this.saksnummer,
+            vedtaksdato = this.vedtaksdato,
+            vedtaksTypeKode = this.vedtaksTypeKode,
+            vedtaksTypeNavn = this.vedtaksTypeNavn,
+            periode = periode,
+            rettighetsType = this.rettighetsType,
+            beregningsgrunnlag = this.beregningsgrunnlag,
+            barnMedStonad = this.barnMedStonad,
+            kildesystem = this.kildesystem,
+            samordningsId = this.samordningsId,
+            opphorsAarsak = this.opphorsAarsak
+        )
+    }
 }

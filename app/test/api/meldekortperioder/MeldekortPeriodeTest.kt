@@ -2,7 +2,6 @@ package api.meldekortperioder
 
 import api.TestConfig
 import api.api
-import api.arena.ArenaoppslagRestClient
 import api.kelvin.MeldekortPerioderDTO
 import api.util.ArenaClient
 import api.util.AzureTokenGen

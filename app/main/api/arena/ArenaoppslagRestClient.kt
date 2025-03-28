@@ -1,7 +1,6 @@
 package api.arena
 
 import api.ArenaoppslagConfig
-import api.perioder.*
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -18,6 +17,8 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.prometheus.metrics.core.metrics.Summary
 import kotlinx.coroutines.runBlocking
+import no.nav.aap.api.intern.PerioderInkludert11_17Response
+import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
