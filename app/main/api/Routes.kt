@@ -275,7 +275,7 @@ fun hentMedium(fnr: String, interval: Periode, behandlingsRepository: Behandling
                                 Status.UTREDES.toString()
                             },
                         saksnummer = behandling.sak.saksnummer,
-                        vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                        vedtaksdato = behandling.vedtaksDato,
                         vedtaksTypeKode = "",
                         vedtaksTypeNavn = "",
                         rettighetsType = left.verdi ?: "",
