@@ -21,8 +21,8 @@ import no.nav.aap.api.intern.PerioderInkludert11_17Response
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.personEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
@@ -78,7 +78,7 @@ class ArenaoppslagRestClient(
             }
         }
 
-    override fun hentPersonEksistererIAapContext(callId: UUID, sakerRequest: SakerRequest): personEksistererIAAPArena =
+    override fun hentPersonEksistererIAapContext(callId: UUID, sakerRequest: SakerRequest): PersonEksistererIAAPArena =
         clientLatencyStats.startTimer().use {
             runBlocking {
                 httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/person/aap/eksisterer") {
