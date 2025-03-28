@@ -16,7 +16,7 @@ data class Vedtak(
     val vedtakId: String,
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
-    val vedtaksdato: LocalDateTime, //reg_dato
+    val vedtaksdato: LocalDate, //reg_dato
     val periode: Periode,
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,
@@ -34,7 +34,7 @@ data class VedtakUtenUtbetaling(
     val vedtakId: String,
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
-    val vedtaksdato: String, //reg_dato
+    val vedtaksdato: LocalDate, //reg_dato
     val vedtaksTypeKode: String,
     val vedtaksTypeNavn: String,
     val periode: Periode,

@@ -218,7 +218,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                                     Status.UTREDES.toString()
                                 },
                             saksnummer = behandling.sak.saksnummer,
-                            vedtaksdato = behandling.vedtaksDato.format(DateTimeFormatter.ISO_LOCAL_DATE),
+                            vedtaksdato = behandling.vedtaksDato,
                             vedtaksTypeKode = "",
                             vedtaksTypeNavn = "",
                             rettighetsType = left.verdi ?: "",
@@ -243,7 +243,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             dagsats = left.verdi.beregningsgrunnlag,
                             status = left.verdi.status,
                             saksnummer = left.verdi.saksnummer,
-                            vedtaksdato = LocalDate.parse(left.verdi.vedtaksdato).atStartOfDay(),
+                            vedtaksdato = left.verdi.vedtaksdato,
                             periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
                             rettighetsType = left.verdi.rettighetsType,
                             beregningsgrunnlag = left.verdi.beregningsgrunnlag * 260, //GANGER MED 260 FOR Å FÅ ÅRLIG SUM
@@ -541,7 +541,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val dagsats: Int,
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
-    val vedtaksdato: String, //reg_dato
+    val vedtaksdato: LocalDate, //reg_dato
     val vedtaksTypeKode: String,
     val vedtaksTypeNavn: String,
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
