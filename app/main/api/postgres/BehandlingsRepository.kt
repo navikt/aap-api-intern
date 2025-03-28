@@ -250,7 +250,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             barnMedStonad = left.verdi.barnMedStonad,
                             vedtaksTypeKode = left.verdi.vedtaksTypeKode,
                             vedtaksTypeNavn = left.verdi.vedtaksTypeNavn,
-                            utbetaling = right?.verdi?.map { utbetaling ->
+                            utbetaling = right?.verdi?.filter {
+                                it.periode.tom.isBefore(LocalDate.now()) || it.periode.tom.isEqual(LocalDate.now())
+                            }?.map { utbetaling ->
                                 UtbetalingMedMer(
                                     reduksjon = null,
                                     utbetalingsgrad = utbetaling.verdi.gradering,
@@ -550,7 +552,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val kildesystem: String = "ARENA",
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
-){
+) {
     fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode): VedtakUtenUtbetaling {
         return VedtakUtenUtbetaling(
             vedtakId = this.vedtakId,
