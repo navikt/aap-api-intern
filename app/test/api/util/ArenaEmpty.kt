@@ -3,11 +3,10 @@ package api.util
 import api.arena.IArenaoppslagRestClient
 import api.perioder.PerioderInkludert11_17Response
 import api.perioder.PerioderResponse
-import no.nav.aap.api.intern.Periode
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.personEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import java.util.*
 
@@ -26,8 +25,8 @@ class ArenaClient : IArenaoppslagRestClient {
     override fun hentPersonEksistererIAapContext(
         callId: UUID,
         sakerRequest: SakerRequest
-    ): personEksistererIAAPArena {
-        return personEksistererIAAPArena(false)
+    ): PersonEksistererIAAPArena {
+        return PersonEksistererIAAPArena(false)
     }
 
     override fun hentSakerByFnr(callId: UUID, req: SakerRequest): List<SakStatus> {
