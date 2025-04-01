@@ -20,7 +20,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
         this.vedtaksId,
         this.status,
         this.saksnummer,
-        LocalDate.parse(this.vedtaksdato),
+        localDate(this.vedtaksdato),
         this.periode.fraKontrakt(),
         rettighetsType = this.rettighetsType,
         beregningsgrunnlag = this.beregningsgrunnlag,
