@@ -32,7 +32,7 @@ val komponenterVersjon = "1.0.193"
 val ktorVersion = "3.1.2"
 val tilgangVersjon = "1.0.34"
 val behandlingsflytversjon = "0.0.230"
-val kontraktVersjon = "0.0.21"
+val kontraktVersjon = "0.0.22"
 
 dependencies {
     implementation(project(":kontrakt"))
