@@ -34,7 +34,7 @@ class SakStatusRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentSakStatus(fnr: String):List<no.nav.aap.api.intern.SakStatus>{
+    fun hentSakStatus(fnr: String): List<no.nav.aap.api.intern.SakStatus> {
         return connection.queryList(
             """
                 SELECT SAKSNUMMER, STATUS, RETTIGHETS_PERIODE
@@ -47,10 +47,10 @@ class SakStatusRepository(private val connection: DBConnection) {
             }
             setRowMapper { row ->
                 no.nav.aap.api.intern.SakStatus(
-                sakId = row.getString("SAKSNUMMER"),
-                statusKode = no.nav.aap.api.intern.Status.valueOf(row.getString("STATUS")),
-                periode = row.getPeriode("RETTIGHETS_PERIODE").toKontraktPeriode(),
-                kilde = no.nav.aap.api.intern.Kilde.KELVIN
+                    sakId = row.getString("SAKSNUMMER"),
+                    statusKode = no.nav.aap.api.intern.Status.valueOf(row.getString("STATUS")),
+                    periode = row.getPeriode("RETTIGHETS_PERIODE").toKontraktPeriode(),
+                    kilde = no.nav.aap.api.intern.Kilde.KELVIN
                 )
             }
         }

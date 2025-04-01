@@ -1,8 +1,11 @@
 package api.util
 
 import no.nav.aap.api.intern.*
+import org.slf4j.LoggerFactory
 import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+import java.time.format.DateTimeParseException
 
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum.fraKontrakt(): Maksimum {
@@ -34,7 +37,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling()
         this.vedtaksId,
         this.status,
         this.saksnummer,
-        LocalDate.parse(this.vedtaksdato),
+        localDate(this.vedtaksdato),
         periode = this.periode.fraKontrakt(),
         rettighetsType = this.rettighetsType,
         beregningsgrunnlag = this.beregningsgrunnlag,
@@ -42,6 +45,25 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling()
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
     )
+}
+
+private val logger = LoggerFactory.getLogger("api.util.HjelpeFunctions")
+
+/**
+ * Midlertidig, kopiert fra api-appen. Trenger ikke denne når kontrakt er ordentlig typet.
+ */
+fun localDate(s: String): LocalDate {
+    val formatter = DateTimeFormatterBuilder()
+        .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
+        .toFormatter()
+
+    return try {
+        LocalDate.parse(s, formatter)
+    } catch (e: DateTimeParseException) {
+        logger.error("Failed to parse date string: $s", e)
+        throw e
+    }
 }
 
 
