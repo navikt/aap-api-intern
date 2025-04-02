@@ -1,6 +1,5 @@
 package api.postgres
 
-import api.util.fraKontrakt
 import no.nav.aap.api.intern.*
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
@@ -10,10 +9,9 @@ import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import java.math.BigDecimal
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.time.DayOfWeek
 
 class BehandlingsRepository(private val connection: DBConnection) {
     fun lagreBehandling(behandling: DatadelingDTO) {
@@ -299,7 +297,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }.toSet().toList()
 
         val saker = sakerIder.mapNotNull {
-            connection.queryFirstOrNull<sakDB>(
+            connection.queryFirstOrNull<SakDB>(
                 """
                     SELECT * FROM SAK
                     WHERE ID = ?
@@ -309,7 +307,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     setLong(1, it)
                 }
                 setRowMapper { row ->
-                    sakDB(
+                    SakDB(
                         saksnummer = row.getString("SAKSNUMMER"),
                         status = Status.valueOf(row.getString("STATUS")),
                         rettighetsPeriode = row.getPeriode("RETTIGHETSPERIODE"),
@@ -444,7 +442,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
     }
 }
 
-data class sakDB(
+data class SakDB(
     val id: Long,
     val status: Status,
     val rettighetsPeriode: Periode,
@@ -460,28 +458,10 @@ data class BehandlingDB(
     val behandlingReferanse: String
 )
 
-data class UnderveisDB(
-    val rettighetsType: String?,
-    val avslagsårsak: String?,
-)
-
 data class TilkjentDB(
     val dagsats: Int,
     val grunnlag: BigDecimal,
     val gradering: Int,
-    val grunnlagsfaktor: BigDecimal,
-    val grunnbeløp: BigDecimal,
-    val antallBarn: Int,
-    val barnetilleggsats: BigDecimal,
-    val barnetillegg: BigDecimal,
-)
-
-data class UnderveisXTilkjent(
-    val rettighetsType: String?,
-    val avslagsårsak: String?,
-    val dagsats: Int,
-    val gradering: Int,
-    val grunnlag: BigDecimal,
     val grunnlagsfaktor: BigDecimal,
     val grunnbeløp: BigDecimal,
     val antallBarn: Int,
@@ -501,41 +481,6 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
     }
 
     return count
-}
-
-fun mergeTilkjentPeriods(periods: List<TilkjentDTO>): List<TilkjentDTO> {
-    if (periods.isEmpty()) return emptyList()
-
-    val sortedPeriods = periods.sortedBy { it.tilkjentFom }.filter { it.dagsats.toInt() != 0 }
-    val mergedPeriods = mutableListOf<TilkjentDTO>()
-
-    var currentPeriod = sortedPeriods[0]
-
-    for (i in 1 until sortedPeriods.size) {
-        val nextPeriod = sortedPeriods[i]
-
-        if (currentPeriod.dagsats == nextPeriod.dagsats &&
-            currentPeriod.grunnlag == nextPeriod.grunnlag &&
-            currentPeriod.grunnlagsfaktor == nextPeriod.grunnlagsfaktor &&
-            currentPeriod.grunnbeløp == nextPeriod.grunnbeløp &&
-            currentPeriod.antallBarn == nextPeriod.antallBarn &&
-            currentPeriod.barnetilleggsats == nextPeriod.barnetilleggsats &&
-            currentPeriod.barnetillegg == nextPeriod.barnetillegg &&
-            currentPeriod.tilkjentTom.plusDays(1) == nextPeriod.tilkjentFom
-        ) {
-            // Merge the periods
-            currentPeriod = currentPeriod.copy(tilkjentTom = nextPeriod.tilkjentTom)
-        } else {
-            // Add the current period to the list and start a new one
-            mergedPeriods.add(currentPeriod)
-            currentPeriod = nextPeriod
-        }
-    }
-
-    // Add the last period
-    mergedPeriods.add(currentPeriod)
-
-    return mergedPeriods
 }
 
 data class VedtakUtenUtbetalingUtenPeriode(

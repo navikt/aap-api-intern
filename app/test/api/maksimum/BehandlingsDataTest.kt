@@ -208,7 +208,7 @@ class BehandlingsDataTest : PostgresTestBase() {
     @Test
     fun `kan hente perioder fra vedtaksdata`() {
         val interval = Periode(LocalDate.now().minusYears(2), LocalDate.now().minusYears(2).plusWeeks(6))
-        val result = perioderMedAAp(listOf(testObject), interval = interval)
+        val result = perioderMedAAp(listOf(testObject))
 
         assertEquals(1,result.size)
         assertEquals(listOf(

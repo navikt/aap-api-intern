@@ -2,8 +2,6 @@ package api
 
 import api.arena.IArenaoppslagRestClient
 import api.postgres.*
-import no.nav.aap.api.intern.PerioderInkludert11_17Response
-import no.nav.aap.api.intern.PerioderResponse
 import api.util.fraKontrakt
 import api.util.fraKontraktUtenUtbetaling
 import api.util.perioderMedAAp
@@ -34,7 +32,6 @@ import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.sql.DataSource
 
@@ -79,10 +76,20 @@ fun NormalOpenAPIRoute.api(
                 }
                 val kelvinPerioder = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    val vedtaksdata = behandlingsRepository.hentVedtaksData(requestBody.personidentifikator)
-                    perioderMedAAp(vedtaksdata, Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato))
+                    val vedtaksdata =
+                        behandlingsRepository.hentVedtaksData(requestBody.personidentifikator)
+                    perioderMedAAp(
+                        vedtaksdata
+                    )
                 }
-                respond(PerioderResponse(arena.hentPerioder(callId, requestBody).perioder+kelvinPerioder))
+                respond(
+                    PerioderResponse(
+                        arena.hentPerioder(
+                            callId,
+                            requestBody
+                        ).perioder + kelvinPerioder
+                    )
+                )
             }
 
             route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequest>(
@@ -98,7 +105,24 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /perioder/aktivitetfase")
                 }
 
-                respond(arena.hentPerioderInkludert11_17(callId, requestBody))
+                val arenaSvar = arena.hentPerioderInkludert11_17(callId, requestBody)
+
+                respond(
+                    PerioderInkludert11_17Response(
+                        perioder = arenaSvar.perioder.map {
+                            PeriodeInkludert11_17(
+                                periode = it.periode.let {
+                                    Periode(
+                                        it.fraOgMedDato,
+                                        it.tilOgMedDato
+                                    )
+                                },
+                                aktivitetsfaseKode = it.aktivitetsfaseKode,
+                                aktivitetsfaseNavn = it.aktivitetsfaseNavn,
+                            )
+                        }
+                    )
+                )
             }
             route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequest>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
@@ -133,7 +157,10 @@ fun NormalOpenAPIRoute.api(
                 }
             }
 
-            respond(arena.hentSakerByFnr(callId, requestBody) + kelvinSaker)
+            val areneSaker = arena.hentSakerByFnr(callId, requestBody).map {
+                arenaSakStatusTilDomene(it)
+            }
+            respond(areneSaker + kelvinSaker)
         }
         route("/arena/person/aap/eksisterer") {
             post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
@@ -148,7 +175,14 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /person/aap/eksisterer")
                 }
 
-                respond(PersonEksistererIAAPArena(arena.hentPersonEksistererIAapContext(callId, requestBody).eksisterer))
+                respond(
+                    PersonEksistererIAAPArena(
+                        arena.hentPersonEksistererIAapContext(
+                            callId,
+                            requestBody
+                        ).eksisterer
+                    )
+                )
             }
         }
     }
@@ -167,13 +201,20 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction{ connection ->
+                val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    hentMedium(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato,requestBody.tilOgMedDato), behandlingsRepository).vedtak
+                    hentMedium(
+                        requestBody.personidentifikator,
+                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato),
+                        behandlingsRepository
+                    ).vedtak
                 }
                 respond(
                     Medium(
-                        arena.hentMaksimum(callId, requestBody).vedtak.map { it.fraKontraktUtenUtbetaling() } + kelvinSaker
+                        arena.hentMaksimum(
+                            callId,
+                            requestBody
+                        ).vedtak.map { it.fraKontraktUtenUtbetaling() } + kelvinSaker
                     )
                 )
             }
@@ -191,9 +232,12 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                val kelvinSaker: List<Vedtak> = dataSource.transaction{ connection ->
+                val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentMaksimum(requestBody.personidentifikator, Periode(requestBody.fraOgMedDato,requestBody.tilOgMedDato)).vedtak
+                    behandlingsRepository.hentMaksimum(
+                        requestBody.personidentifikator,
+                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato)
+                    ).vedtak
                 }
                 respond(
                     Maksimum(
@@ -204,6 +248,35 @@ fun NormalOpenAPIRoute.api(
         }
     }
 }
+
+private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus) =
+    SakStatus(
+        sakId = it.sakId,
+        statusKode = when (it.statusKode) {
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.AVSLU -> no.nav.aap.api.intern.Status.AVSLU
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.FORDE -> no.nav.aap.api.intern.Status.FORDE
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.GODKJ -> no.nav.aap.api.intern.Status.GODKJ
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.INNST -> no.nav.aap.api.intern.Status.INNST
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.IVERK -> no.nav.aap.api.intern.Status.IVERK
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.KONT -> no.nav.aap.api.intern.Status.KONT
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.MOTAT -> no.nav.aap.api.intern.Status.MOTAT
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.OPPRE -> no.nav.aap.api.intern.Status.OPPRE
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.REGIS -> no.nav.aap.api.intern.Status.REGIS
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.UKJENT -> no.nav.aap.api.intern.Status.UKJENT
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.OPPRETTET -> no.nav.aap.api.intern.Status.OPPRETTET
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.UTREDES -> no.nav.aap.api.intern.Status.UTREDES
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.LØPENDE -> no.nav.aap.api.intern.Status.LØPENDE
+            no.nav.aap.arenaoppslag.kontrakt.intern.Status.AVSLUTTET -> no.nav.aap.api.intern.Status.AVSLUTTET
+        },
+        periode = Periode(
+            it.periode.fraOgMedDato,
+            it.periode.tilOgMedDato
+        ),
+        kilde = when (it.kilde) {
+            no.nav.aap.arenaoppslag.kontrakt.intern.Kilde.ARENA -> Kilde.ARENA
+            no.nav.aap.arenaoppslag.kontrakt.intern.Kilde.KELVIN -> Kilde.ARENA
+        }
+    )
 
 private fun OpenAPIPipelineResponseContext<*>.azpName(): String? =
     pipeline.call.principal<JWTPrincipal>()?.let {
@@ -225,7 +298,11 @@ fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
     }
 }
 
-fun hentMedium(fnr: String, interval: Periode, behandlingsRepository: BehandlingsRepository): Medium {
+fun hentMedium(
+    fnr: String,
+    interval: Periode,
+    behandlingsRepository: BehandlingsRepository
+): Medium {
     val kelvinData = behandlingsRepository.hentVedtaksData(fnr)
     val vedtak: List<VedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
         val rettighetsTypeTidslinje = Tidslinje(
@@ -262,7 +339,7 @@ fun hentMedium(fnr: String, interval: Periode, behandlingsRepository: Behandling
                     periode,
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.behandlingsReferanse,
-                        dagsats = right?.verdi?.dagsats?: 0,
+                        dagsats = right?.verdi?.dagsats ?: 0,
                         status =
                             if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
                                     LocalDate.now()
@@ -279,8 +356,8 @@ fun hentMedium(fnr: String, interval: Periode, behandlingsRepository: Behandling
                         vedtaksTypeKode = "",
                         vedtaksTypeNavn = "",
                         rettighetsType = left.verdi ?: "",
-                        beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?.times(260) ?:0,
-                        barnMedStonad = right?.verdi?.antallBarn?:0,
+                        beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?.times(260) ?: 0,
+                        barnMedStonad = right?.verdi?.antallBarn ?: 0,
                         kildesystem = Kilde.KELVIN.toString(),
                         samordningsId = null,
                         opphorsAarsak = null
@@ -288,8 +365,15 @@ fun hentMedium(fnr: String, interval: Periode, behandlingsRepository: Behandling
                 )
             }
         ).komprimer()
-            .map { it.verdi.tilVedtakUtenUtbetaling(no.nav.aap.api.intern.Periode(it.periode.fom, it.periode.tom)) }
-            .filter { (it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString())}
+            .map {
+                it.verdi.tilVedtakUtenUtbetaling(
+                    no.nav.aap.api.intern.Periode(
+                        it.periode.fom,
+                        it.periode.tom
+                    )
+                )
+            }
+            .filter { (it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString()) }
     }
 
     return Medium(vedtak)

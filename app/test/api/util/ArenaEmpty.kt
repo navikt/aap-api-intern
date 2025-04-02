@@ -1,10 +1,9 @@
 package api.util
 
 import api.arena.IArenaoppslagRestClient
-import no.nav.aap.api.intern.PerioderInkludert11_17Response
 import no.nav.aap.api.intern.PerioderResponse
-import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
@@ -18,8 +17,8 @@ class ArenaClient : IArenaoppslagRestClient {
     override fun hentPerioderInkludert11_17(
         callId: UUID,
         vedtakRequest: InternVedtakRequest
-    ): PerioderInkludert11_17Response {
-        return PerioderInkludert11_17Response(emptyList())
+    ): PerioderMed11_17Response {
+        return PerioderMed11_17Response(emptyList())
     }
 
     override fun hentPersonEksistererIAapContext(
@@ -29,7 +28,10 @@ class ArenaClient : IArenaoppslagRestClient {
         return PersonEksistererIAAPArena(false)
     }
 
-    override fun hentSakerByFnr(callId: UUID, req: SakerRequest): List<SakStatus> {
+    override fun hentSakerByFnr(
+        callId: UUID,
+        req: SakerRequest
+    ): List<no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus> {
         return emptyList()
     }
 
