@@ -74,6 +74,9 @@ spec:
           cluster: dev-gcp
         - application: api
           namespace: aap
+        - application: fpabakus
+          namespace: teamforeldrepenger
+          cluster: dev-fss
         - application: behandlingsflyt
           namespace: aap
           cluster: dev-gcp

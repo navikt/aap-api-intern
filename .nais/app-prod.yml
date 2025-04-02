@@ -66,6 +66,9 @@ spec:
           cluster: prod-fss
         - application: api
           namespace: aap
+        - application: fpabakus
+          namespace: teamforeldrepenger
+          cluster: prod-fss
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp
