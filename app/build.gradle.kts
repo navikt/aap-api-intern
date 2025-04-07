@@ -78,7 +78,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.3")
     implementation("com.nimbusds:nimbus-jose-jwt:10.1")
     implementation("io.micrometer:micrometer-registry-prometheus:1.14.5")
-    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
+    implementation("net.logstash.logback:logstash-logback-encoder:8.1")
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.3.6")
 
     implementation("com.zaxxer:HikariCP:6.3.0")
