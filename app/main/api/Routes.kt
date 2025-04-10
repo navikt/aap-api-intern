@@ -41,10 +41,10 @@ data class CallIdHeader(
     @HeaderParam("callId") val `Nav-CallId`: String? = null,
     @HeaderParam("correlation id") val `X-Correlation-Id`: String? = null,
 ) {
-    fun callId(): UUID? {
+    fun callId(): String? {
         val callId = listOfNotNull(`Nav-CallId`, `X-Correlation-Id`).firstOrNull()
 
-        return callId?.let { UUID.fromString(it) }
+        return callId
     }
 }
 
@@ -71,7 +71,7 @@ fun NormalOpenAPIRoute.api(
                     pipeline.call.audience(),
                     azpName ?: ""
                 ).increment()
-                val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+                val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                     logger.info("CallID ble ikke gitt på kall mot: /perioder")
                 }
                 val kelvinPerioder = dataSource.transaction { connection ->
@@ -101,7 +101,7 @@ fun NormalOpenAPIRoute.api(
                     azpName() ?: ""
                 )
                     .increment()
-                val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+                val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                     logger.info("CallID ble ikke gitt på kall mot: /perioder/aktivitetfase")
                 }
 
@@ -146,7 +146,7 @@ fun NormalOpenAPIRoute.api(
                 azpName() ?: ""
             ).increment()
 
-            val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+            val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
@@ -171,7 +171,7 @@ fun NormalOpenAPIRoute.api(
                     pipeline.call.audience(),
                     azpName() ?: ""
                 ).increment()
-                val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+                val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                     logger.info("CallID ble ikke gitt på kall mot: /person/aap/eksisterer")
                 }
 
@@ -197,7 +197,7 @@ fun NormalOpenAPIRoute.api(
                     pipeline.call.audience(),
                     azpName() ?: ""
                 ).increment()
-                val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+                val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
@@ -228,7 +228,7 @@ fun NormalOpenAPIRoute.api(
                     pipeline.call.audience(),
                     azpName() ?: ""
                 ).increment()
-                val callId = callIdHeader.callId() ?: UUID.randomUUID().also {
+                val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 

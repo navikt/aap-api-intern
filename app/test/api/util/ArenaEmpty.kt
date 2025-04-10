@@ -10,32 +10,32 @@ import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import java.util.*
 
 class ArenaClient : IArenaoppslagRestClient {
-    override fun hentPerioder(callId: UUID, vedtakRequest: InternVedtakRequest): PerioderResponse {
+    override fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse {
         return PerioderResponse(emptyList())
     }
 
     override fun hentPerioderInkludert11_17(
-        callId: UUID,
+        callId: String,
         vedtakRequest: InternVedtakRequest
     ): PerioderMed11_17Response {
         return PerioderMed11_17Response(emptyList())
     }
 
     override fun hentPersonEksistererIAapContext(
-        callId: UUID,
+        callId: String,
         sakerRequest: SakerRequest
     ): PersonEksistererIAAPArena {
         return PersonEksistererIAAPArena(false)
     }
 
     override fun hentSakerByFnr(
-        callId: UUID,
+        callId: String,
         req: SakerRequest
     ): List<no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus> {
         return emptyList()
     }
 
-    override fun hentMaksimum(callId: UUID, req: InternVedtakRequest): Maksimum {
+    override fun hentMaksimum(callId: String, req: InternVedtakRequest): Maksimum {
         return Maksimum(emptyList())
     }
 }
