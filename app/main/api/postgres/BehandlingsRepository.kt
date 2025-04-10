@@ -265,6 +265,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                                         utbetaling.periode.fom,
                                         utbetaling.periode.tom
                                     ),
+                                    // TODO: bør hente korrekt beløp på samme måte som i behandlingsflyt
                                     belop = utbetaling.verdi.dagsats * weekdaysBetween(
                                         utbetaling.periode.fom,
                                         utbetaling.periode.tom

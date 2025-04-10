@@ -7,6 +7,10 @@ plugins {
 apply(plugin = "maven-publish")
 apply(plugin = "java-library")
 
+java {
+    withSourcesJar()
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {

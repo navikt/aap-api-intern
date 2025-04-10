@@ -45,6 +45,9 @@ data class VedtakUtenUtbetaling(
     val opphorsAarsak: String? = null,
 )
 
+/**
+ * @param barnetilegg Hvor mange kroner i barnetillegg.
+ */
 data class UtbetalingMedMer(
     val reduksjon: Reduksjon? = null,
     val utbetalingsgrad: Int? = null,
