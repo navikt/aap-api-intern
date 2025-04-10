@@ -34,7 +34,10 @@ class BehandlingsRepository(private val connection: DBConnection) {
         ) {
             setParams {
                 setString(1, behandling.sak.status.toString())
-                setPeriode(2, Periode(behandling.rettighetsPeriodeFom, behandling.rettighetsPeriodeTom))
+                setPeriode(
+                    2,
+                    Periode(behandling.rettighetsPeriodeFom, behandling.rettighetsPeriodeTom)
+                )
                 setString(3, behandling.sak.saksnummer)
             }
         }
@@ -168,6 +171,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
     fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
         val kelvinData = hentVedtaksData(fnr)
+        // TODO, flytt tidslinje ut av denne klassen, ikke gjør logikk i repository
         val vedtak = kelvinData.flatMap { behandling ->
             val rettighetsTypeTidslinje = Tidslinje(
                 behandling.rettighetsTypeTidsLinje.map {
@@ -217,9 +221,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
                                 },
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
-                            vedtaksTypeKode = "",
-                            vedtaksTypeNavn = "",
-                            rettighetsType = left.verdi ?: "",
+                            vedtaksTypeKode = null,
+                            vedtaksTypeNavn = null,
+                            rettighetsType = left.verdi,
                             beregningsgrunnlag = right?.verdi?.grunnlag?.toInt() ?: 0,
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
                             kildesystem = Kilde.KELVIN.toString(),
@@ -229,7 +233,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     )
                 }
             ).komprimer()
-            val tilkjentPerioder = tilkjent.splittOppIPerioder(perioderTidslinje.perioder().toList())
+            val tilkjentPerioder =
+                tilkjent.splittOppIPerioder(perioderTidslinje.perioder().toList())
 
             perioderTidslinje.kombiner(
                 tilkjentPerioder,
@@ -249,7 +254,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             vedtaksTypeKode = left.verdi.vedtaksTypeKode,
                             vedtaksTypeNavn = left.verdi.vedtaksTypeNavn,
                             utbetaling = right?.verdi?.filter {
-                                it.periode.tom.isBefore(LocalDate.now()) || it.periode.tom.isEqual(LocalDate.now())
+                                it.periode.tom.isBefore(LocalDate.now()) || it.periode.tom.isEqual(
+                                    LocalDate.now()
+                                )
                             }?.map { utbetaling ->
                                 UtbetalingMedMer(
                                     reduksjon = null,
@@ -377,7 +384,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
             setRowMapper { row ->
                 BehandlingDB(
                     id = row.getLong("ID"),
-                    behandlingStatus = no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.valueOf(row.getString("STATUS")),
+                    behandlingStatus = no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.valueOf(
+                        row.getString("STATUS")
+                    ),
                     vedtaksDato = row.getLocalDate("VEDTAKS_DATO"),
                     type = row.getString("TYPE"),
                     oppretterTidspunkt = row.getLocalDate("OPPRETTET_TID"),
@@ -489,8 +498,8 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
-    val vedtaksTypeKode: String,
-    val vedtaksTypeNavn: String,
+    val vedtaksTypeKode: String?,
+    val vedtaksTypeNavn: String?,
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
