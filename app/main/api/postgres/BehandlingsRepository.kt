@@ -266,11 +266,11 @@ class BehandlingsRepository(private val connection: DBConnection) {
                                         utbetaling.periode.tom
                                     ),
                                     // TODO: bør hente korrekt beløp på samme måte som i behandlingsflyt
-                                    belop = utbetaling.verdi.dagsats * weekdaysBetween(
+                                    belop = utbetaling.verdi.dagsats * utbetaling.verdi.gradering * weekdaysBetween(
                                         utbetaling.periode.fom,
                                         utbetaling.periode.tom
                                     ),
-                                    dagsats = utbetaling.verdi.dagsats,
+                                    dagsats = utbetaling.verdi.dagsats* utbetaling.verdi.gradering,
                                     barnetilegg = utbetaling.verdi.barnetillegg.toInt()
                                 )
                             } ?: emptyList(),
