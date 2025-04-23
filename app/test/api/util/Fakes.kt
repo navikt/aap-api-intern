@@ -1,6 +1,9 @@
 
 package api.util
 
+import api.pdl.PdlIdenter
+import api.pdl.PdlIdenterData
+import api.util.graphql.GraphQLResponse
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -15,15 +18,18 @@ import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 class Fakes:AutoCloseable {
     val azure = embeddedServer(Netty, port = 0, module = Application::azure)
     val arena = embeddedServer(Netty, port = 0, module = Application::arena)
+    val pdl = embeddedServer(Netty, port = 0, module = Application::pdlFake)
 
     override fun close() {
         azure.stop(0L, 0L) //To change body of created functions use File | Settings | File Templates.
         arena.stop(0L, 0L) //To change body of created functions use File | Settings | File Templates.
+        pdl.stop(0L, 0L)
     }
 
     init {
         azure.start()
         arena.start()
+        pdl.start()
 
         System.setProperty("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT", "http://localhost:${azure.port()}")
         System.setProperty("AZURE_APP_CLIENT_ID", "test")
@@ -33,6 +39,8 @@ class Fakes:AutoCloseable {
         System.setProperty("KELVIN_PROXY_BASE_URL", "http://localhost:${azure.port()}")
         System.setProperty("ARENAOPPSLAG_PROXY_BASE_URL", "http://localhost:${arena.port()}")
         System.setProperty("ARENAOPPSLAG_SCOPE", "test")
+        System.setProperty("INTEGRASJON_PDL_URL", "http://localhost:${pdl.port()}/graphql")
+        System.setProperty("INTEGRASJON_PDL_SCOPE", "test")
     }
 }
 
@@ -62,6 +70,20 @@ fun Application.arena(){
                     vedtak = emptyList()
                 )
             )
+        }
+    }
+}
+
+fun Application.pdlFake() {
+    install(ContentNegotiation) { jackson() }
+    routing {
+        post("/graphql") {
+            val data = PdlIdenterData(PdlIdenter(emptyList()))
+            val response = GraphQLResponse(
+                data,
+                emptyList()
+            )
+            call.respond(response)
         }
     }
 }

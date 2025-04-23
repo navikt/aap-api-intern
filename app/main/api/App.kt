@@ -3,6 +3,8 @@ package api
 import api.arena.ArenaoppslagRestClient
 import api.arena.IArenaoppslagRestClient
 import api.kelvin.dataInsertion
+import api.pdl.IPdlClient
+import api.pdl.PdlClient
 import api.postgres.initDatasource
 import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
@@ -65,7 +67,8 @@ fun Application.api(
     prometheus: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
     config: Config = Config(),
     datasource: DataSource = initDatasource(config.dbConfig, prometheus),
-    arenaRestClient: IArenaoppslagRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure)
+    arenaRestClient: IArenaoppslagRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure),
+    pdlClient: IPdlClient = PdlClient(),
 ) {
     Migrering.migrate(datasource)
 
@@ -97,7 +100,7 @@ fun Application.api(
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(datasource, arenaRestClient, prometheus)
+                api(datasource, arenaRestClient, prometheus, pdlClient)
                 dataInsertion(datasource)
             }
         }

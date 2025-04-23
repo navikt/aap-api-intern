@@ -1,6 +1,7 @@
 package api
 
 import api.arena.IArenaoppslagRestClient
+import api.pdl.IPdlClient
 import api.postgres.*
 import api.util.fraKontrakt
 import api.util.fraKontraktUtenUtbetaling
@@ -57,9 +58,9 @@ enum class Tag(override val description: String) : APITag {
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arena: IArenaoppslagRestClient,
-    httpCallCounter: PrometheusMeterRegistry
+    httpCallCounter: PrometheusMeterRegistry,
+    pdlClient: IPdlClient,
 ) {
-
     tag(Tag.Perioder) {
         route("/perioder") {
             post<CallIdHeader, PerioderResponse, InternVedtakRequest>(
@@ -137,6 +138,7 @@ fun NormalOpenAPIRoute.api(
     }
 
     tag(Tag.Saker) {
+        // TODO: Flytt logikk til en egen service
         route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { callIdHeader, requestBody ->
@@ -150,18 +152,24 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
+            val personIdenter = pdlClient.hentAlleIdenterForPerson(requestBody.personidentifikatorer.first()).map { it.ident }
+            require(requestBody.personidentifikatorer.all { it in personIdenter }) {
+                "Liste med personidentifikatorer i request inneholder identer for mer enn én person"
+            }
+
             val kelvinSaker: List<SakStatus> = dataSource.transaction { connection ->
                 val sakStatusRepository = SakStatusRepository(connection)
-                requestBody.personidentifikatorer.flatMap {
+                personIdenter.flatMap {
                     sakStatusRepository.hentSakStatus(it)
                 }
             }
-
-            val areneSaker = arena.hentSakerByFnr(callId, requestBody).map {
+            // TODO: Bør arenasaker også hentes basert på identer fra PDL?
+            val arenaSaker = arena.hentSakerByFnr(callId, requestBody).map {
                 arenaSakStatusTilDomene(it)
             }
-            respond(areneSaker + kelvinSaker)
+            respond(arenaSaker + kelvinSaker)
         }
+
         route("/arena/person/aap/eksisterer") {
             post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
                 info(description = "Sjekker om en person eksisterer i AAP-arena")
@@ -288,7 +296,6 @@ fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
         get("/metrics") {
             call.respondText(prometheus.scrape())
         }
-
         get("/live") {
             call.respond(HttpStatusCode.OK, "api")
         }
