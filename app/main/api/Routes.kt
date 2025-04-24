@@ -55,6 +55,7 @@ enum class Tag(override val description: String) : APITag {
     Maksimum("For å hente maksimumsløsning")
 }
 
+// TODO: tilgangskontroll på alle endepunkter
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arena: IArenaoppslagRestClient,
@@ -163,8 +164,7 @@ fun NormalOpenAPIRoute.api(
                     sakStatusRepository.hentSakStatus(it)
                 }
             }
-            // TODO: Bør arenasaker også hentes basert på identer fra PDL?
-            val arenaSaker = arena.hentSakerByFnr(callId, requestBody).map {
+            val arenaSaker = arena.hentSakerByFnr(callId, SakerRequest(personIdenter)).map {
                 arenaSakStatusTilDomene(it)
             }
             respond(arenaSaker + kelvinSaker)
