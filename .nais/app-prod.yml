@@ -85,6 +85,7 @@ spec:
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
+        - host: pdl-api.prod-fss-pub.nais.io
       rules:
         - application: behandlingsflyt
   env:
@@ -96,3 +97,7 @@ spec:
       value: http://behandlingsflyt
     - name: KELVIN_SCOPE
       value: api://prod-gcp.aap.behandlingsflyt/.default
+    - name: INTEGRASJON_PDL_URL
+      value: https://pdl-api.prod-fss-pub.nais.io/graphql
+    - name: INTEGRASJON_PDL_SCOPE
+      value: api://prod-fss.pdl.pdl-api/.default
