@@ -38,7 +38,7 @@ class PdlClient : IPdlClient {
             checkNotNull(response.data?.hentIdenter?.identer) {
                 "Fant ingen identer i PDL for person"
             }
-        return pdlIdenter.filter { it.gruppe == "FOLKEREGISTERIDENT" }
+        return pdlIdenter.filter { ident -> ident.gruppe == "FOLKEREGISTERIDENT" }
     }
 
     private fun query(request: GraphQLRequest<PdlRequestVariables>): GraphQLResponse<PdlIdenterData> {

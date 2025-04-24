@@ -153,8 +153,10 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            val personIdenter = pdlClient.hentAlleIdenterForPerson(requestBody.personidentifikatorer.first()).map { it.ident }
-            require(requestBody.personidentifikatorer.all { it in personIdenter }) {
+            val personIdenter = pdlClient.hentAlleIdenterForPerson(requestBody.personidentifikatorer.first()).map {
+                pdlIdent -> pdlIdent.ident
+            }
+            require(requestBody.personidentifikatorer.all { requestIdent -> requestIdent in personIdenter }) {
                 "Liste med personidentifikatorer i request inneholder identer for mer enn én person"
             }
 
