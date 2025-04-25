@@ -24,6 +24,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.api.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.audience
@@ -349,17 +350,7 @@ fun hentMedium(
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.behandlingsReferanse,
                         dagsats = right?.verdi?.dagsats ?: 0,
-                        status =
-                            if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
-                                    LocalDate.now()
-                                )
-                            ) {
-                                Status.LØPENDE.toString()
-                            } else if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET) {
-                                Status.AVSLUTTET.toString()
-                            } else {
-                                Status.UTREDES.toString()
-                            },
+                        status = utledVedtakStatus(behandling.behandlingStatus, periode),
                         saksnummer = behandling.sak.saksnummer,
                         vedtaksdato = behandling.vedtaksDato,
                         vedtaksTypeKode = null,
@@ -387,3 +378,18 @@ fun hentMedium(
 
     return Medium(vedtak)
 }
+
+fun utledVedtakStatus(
+    behandlingStatus: no.nav.aap.behandlingsflyt.kontrakt.behandling.Status,
+    periode: Periode
+): String =
+    if (behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
+            LocalDate.now()
+        )
+    ) {
+        Status.LØPENDE.toString()
+    } else if (behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET) {
+        Status.AVSLUTTET.toString()
+    } else {
+        Status.UTREDES.toString()
+    }

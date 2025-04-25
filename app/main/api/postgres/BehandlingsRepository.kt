@@ -1,5 +1,7 @@
 package api.postgres
 
+import api.utledVedtakStatus
+import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import no.nav.aap.api.intern.*
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
@@ -208,17 +210,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         VedtakUtenUtbetalingUtenPeriode(
                             vedtakId = behandling.behandlingsReferanse,
                             dagsats = right?.verdi?.dagsats ?: 0,
-                            status =
-                                if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
-                                        LocalDate.now()
-                                    )
-                                ) {
-                                    Status.LØPENDE.toString()
-                                } else if (behandling.behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET) {
-                                    Status.AVSLUTTET.toString()
-                                } else {
-                                    Status.UTREDES.toString()
-                                },
+                            status = utledVedtakStatus(behandling.behandlingStatus, periode),
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             vedtaksTypeKode = null,
@@ -249,6 +241,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             vedtaksdato = left.verdi.vedtaksdato,
                             periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
                             rettighetsType = left.verdi.rettighetsType,
+                            // TODO: bør bruke felles logikk her
                             beregningsgrunnlag = left.verdi.beregningsgrunnlag * 260, //GANGER MED 260 FOR Å FÅ ÅRLIG SUM
                             barnMedStonad = left.verdi.barnMedStonad,
                             vedtaksTypeKode = left.verdi.vedtaksTypeKode,
@@ -496,6 +489,7 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
 data class VedtakUtenUtbetalingUtenPeriode(
     val vedtakId: String,
     val dagsats: Int,
+    @Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
