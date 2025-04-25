@@ -24,10 +24,10 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.api.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.audience
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
@@ -154,13 +154,7 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            val personIdenter = pdlClient.hentAlleIdenterForPerson(requestBody.personidentifikatorer.first()).map {
-                pdlIdent -> pdlIdent.ident
-            }
-            require(requestBody.personidentifikatorer.all { requestIdent -> requestIdent in personIdenter }) {
-                "Liste med personidentifikatorer i request inneholder identer for mer enn én person"
-            }
-
+            val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
             val kelvinSaker: List<SakStatus> = dataSource.transaction { connection ->
                 val sakStatusRepository = SakStatusRepository(connection)
                 personIdenter.flatMap {
@@ -288,6 +282,24 @@ private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.
             no.nav.aap.arenaoppslag.kontrakt.intern.Kilde.KELVIN -> Kilde.ARENA
         }
     )
+
+private fun hentAllePersonidenter(
+    identerFraRequest: List<String>,
+    pdlClient: IPdlClient
+): List<String> {
+    // Arena har testbrukere som ikke ligger i PDL
+    if (Miljø.erDev()) {
+        return identerFraRequest
+    }
+
+    val identerFraPdl =  pdlClient.hentAlleIdenterForPerson(identerFraRequest.first()).map { pdlIdent ->
+        pdlIdent.ident
+    }
+    require(identerFraRequest.all { requestIdent -> requestIdent in identerFraPdl }) {
+        "Liste med personidentifikatorer i request inneholder identer for mer enn én person"
+    }
+    return identerFraPdl
+}
 
 private fun OpenAPIPipelineResponseContext<*>.azpName(): String? =
     pipeline.call.principal<JWTPrincipal>()?.let {
