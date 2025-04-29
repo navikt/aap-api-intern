@@ -28,6 +28,12 @@ data class Vedtak(
     val utbetaling: List<UtbetalingMedMer>,
 )
 
+enum class VedtakStatus {
+    AVSLUTTET,
+    LØPENDE,
+    UTREDES
+}
+
 data class VedtakUtenUtbetaling(
     val dagsats: Int,
     val vedtakId: String,
