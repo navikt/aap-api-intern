@@ -95,6 +95,7 @@ spec:
         - host: pdl-api.dev-fss-pub.nais.io
       rules:
         - application: behandlingsflyt
+        - application: tilgang
   env:
     - name: ARENAOPPSLAG_PROXY_BASE_URL
       value: https://arenaoppslag.dev-fss-pub.nais.io
@@ -108,3 +109,7 @@ spec:
       value: https://pdl-api.dev-fss-pub.nais.io/graphql
     - name: INTEGRASJON_PDL_SCOPE
       value: api://dev-fss.pdl.pdl-api/.default
+    - name: INTEGRASJON_TILGANG_URL
+      value: http://tilgang
+    - name: INTEGRASJON_TILGANG_SCOPE
+      value: api://dev-gcp.aap.tilgang/.default
