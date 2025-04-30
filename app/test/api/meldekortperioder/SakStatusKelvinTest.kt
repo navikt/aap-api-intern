@@ -6,7 +6,7 @@ import api.kelvin.SakStatusKelvin
 import api.util.ArenaClient
 import api.util.AzureTokenGen
 import api.util.Fakes
-import api.util.PostgresTestBase
+import api.util.TestBase
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
@@ -15,15 +15,13 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.type.Periode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-val dataSource = InitTestDatabase.freshDatabase()
+class SakStatusKelvinTest : TestBase() {
 
-class SakStatusKelvinTest : PostgresTestBase(dataSource) {
     @Test
     fun `kan lagre ned sak status`() {
         Fakes().use { fakes ->

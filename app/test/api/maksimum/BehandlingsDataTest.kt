@@ -162,9 +162,7 @@ val testObjectResult= DatadelingDTO(
     ))
 )
 
-val dataSource = InitTestDatabase.freshDatabase()
-
-class BehandlingsDataTest : PostgresTestBase(dataSource) {
+class BehandlingsDataTest : TestBase() {
 
     @Test
     fun `kan lagre ned og hente behandlingsdata`() {

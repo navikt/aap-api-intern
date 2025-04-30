@@ -3,10 +3,7 @@ package api.meldekortperioder
 import api.TestConfig
 import api.api
 import api.kelvin.MeldekortPerioderDTO
-import api.util.ArenaClient
-import api.util.AzureTokenGen
-import api.util.Fakes
-import api.util.PostgresTestBase
+import api.util.*
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
@@ -17,15 +14,12 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.type.Periode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-private val dataSource2 = InitTestDatabase.freshDatabase()
-
-class MeldekortPeriodeTest : PostgresTestBase(dataSource2) {
+class MeldekortPeriodeTest : TestBase() {
 
     @Test
     fun `kan lagre ned og hente meldekort perioder`() {
@@ -37,7 +31,7 @@ class MeldekortPeriodeTest : PostgresTestBase(dataSource2) {
                 application {
                     api(
                         config = config,
-                        datasource = dataSource2,
+                        datasource = dataSource,
                         arenaRestClient = ArenaClient()
                     )
                 }
