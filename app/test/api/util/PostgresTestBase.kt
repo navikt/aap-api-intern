@@ -1,20 +1,17 @@
 package api.util
 
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import javax.sql.DataSource
 
-import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbmigrering.Migrering
-import org.junit.jupiter.api.BeforeEach
-
-abstract class PostgresTestBase {
-    protected val dataSource: DataSource = InitTestDatabase.dataSource
+object PostgresTestBase {
+    val dataSource: DataSource = InitTestDatabase.freshDatabase()
 
     init {
         Migrering.migrate(dataSource, false)
     }
 
-    @BeforeEach
     fun clearTables() {
         dataSource.transaction { con ->
             con.execute("TRUNCATE TABLE MELDEKORT_PERIODER_MED_FNR")
@@ -25,14 +22,14 @@ abstract class PostgresTestBase {
 
     fun countSaker(): Int? =
         dataSource.transaction { con ->
-            con.queryFirstOrNull("SELECT count(*) as nr FROM SAKER"){
+            con.queryFirstOrNull("SELECT count(*) as nr FROM SAKER") {
                 setRowMapper { row -> row.getInt("nr") }
             }
         }
 
     fun countMeldekortEntries(): Int? =
         dataSource.transaction { con ->
-            con.queryFirstOrNull("SELECT count(*) as nr FROM MELDEKORT_PERIODER_MED_FNR"){
+            con.queryFirstOrNull("SELECT count(*) as nr FROM MELDEKORT_PERIODER_MED_FNR") {
                 setRowMapper { row -> row.getInt("nr") }
 
             }
@@ -40,10 +37,8 @@ abstract class PostgresTestBase {
 
     fun countTilkjentPerioder(): Int =
         dataSource.transaction { con ->
-            con.queryFirst("SELECT count(*) as nr FROM TILKJENT_PERIODE"){
+            con.queryFirst("SELECT count(*) as nr FROM TILKJENT_PERIODE") {
                 setRowMapper { row -> row.getInt("nr") }
             }
         }
-
-
 }

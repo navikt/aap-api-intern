@@ -2,10 +2,13 @@ package api.maksimum
 
 import api.TestConfig
 import api.api
-import api.util.*
-import io.ktor.server.testing.*
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import org.junit.jupiter.api.Test
+import api.util.ArenaClient
+import api.util.AzureTokenGen
+import api.util.Fakes
+import api.util.PostgresTestBase.clearTables
+import api.util.PostgresTestBase.countTilkjentPerioder
+import api.util.PostgresTestBase.dataSource
+import api.util.perioderMedAAp
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
@@ -14,12 +17,17 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
+import io.ktor.server.testing.*
+import kotlinx.coroutines.runBlocking
 import no.nav.aap.api.intern.Maksimum
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.type.Periode
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
@@ -72,8 +80,7 @@ val testObject = DatadelingDTO(
             antallBarn = 2,
             barnetilleggsats = 36.toBigDecimal(),
             barnetillegg = (36 * 2).toBigDecimal()
-        )
-        ,TilkjentDTO(
+        ), TilkjentDTO(
             tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(4),
             tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(6).minusDays(1),
             dagsats = 300,
@@ -98,14 +105,16 @@ val testObject = DatadelingDTO(
             barnetillegg = (36 * 2).toBigDecimal()
         )
     ),
-    rettighetsTypeTidsLinje = listOf(RettighetsTypePeriode(
-        fom = LocalDate.now().minusYears(2),
-        tom = LocalDate.now().minusYears(1),
-        verdi = RettighetsType.BISTANDSBEHOV.name,
-    ))
+    rettighetsTypeTidsLinje = listOf(
+        RettighetsTypePeriode(
+            fom = LocalDate.now().minusYears(2),
+            tom = LocalDate.now().minusYears(1),
+            verdi = RettighetsType.BISTANDSBEHOV.name,
+        )
+    )
 )
 
-val testObjectResult= DatadelingDTO(
+val testObjectResult = DatadelingDTO(
     behandlingsId = 123456789L.toString(),
     behandlingsReferanse = "1234567890987654321",
     underveisperiode = listOf(
@@ -155,53 +164,74 @@ val testObjectResult= DatadelingDTO(
             barnetillegg = (36 * 2).toBigDecimal()
         )
     ),
-    rettighetsTypeTidsLinje = listOf(RettighetsTypePeriode(
-        fom = LocalDate.now().minusYears(2),
-        tom = LocalDate.now().minusYears(1),
-        verdi = RettighetsType.BISTANDSBEHOV.name,
-    ))
+    rettighetsTypeTidsLinje = listOf(
+        RettighetsTypePeriode(
+            fom = LocalDate.now().minusYears(2),
+            tom = LocalDate.now().minusYears(1),
+            verdi = RettighetsType.BISTANDSBEHOV.name,
+        )
+    )
 )
 
-class BehandlingsDataTest : PostgresTestBase() {
+class BehandlingsDataTest {
+    companion object {
+        lateinit var httpClient: HttpClient
+        val azure = AzureTokenGen("test", "test")
+
+        @JvmStatic
+        @BeforeAll
+        fun setup() {
+            val testApplication = TestApplication {
+                application {
+                    Fakes().use { fakes ->
+                        api(
+                            config = TestConfig.default(fakes),
+                            datasource = dataSource,
+                            arenaRestClient = ArenaClient()
+                        )
+                    }
+                }
+            }
+
+            httpClient = testApplication.createClient {
+                install(ContentNegotiation) {
+                    jackson {
+                        registerModule(JavaTimeModule())
+                        disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                    }
+                }
+            }
+        }
+    }
+
+    @BeforeEach
+    fun beforeEach() {
+        clearTables()
+    }
 
     @Test
     fun `kan lagre ned og hente behandlingsdata`() {
-        Fakes().use { fakes ->
-
-            val config = TestConfig.default(fakes)
-            val azure = AzureTokenGen("test", "test")
-
-            testApplication {
-                application {
-                    api(
-                        config = config,
-                        datasource = InitTestDatabase.dataSource,
-                        arenaRestClient = ArenaClient()
-                    )
-                }
-                println("datasource: ${InitTestDatabase.dataSource.connection}")
-                val res = jsonHttpClient.post("/api/insert/vedtak") {
-                    bearerAuth(azure.generate(true))
-                    contentType(ContentType.Application.Json)
-                    setBody(
-                        testObject
-                    )
-                }
-
-
-                assertEquals(HttpStatusCode.OK, res.status)
-                val perioder = countTilkjentPerioder()
-                assert(perioder > 0)
-
-                val collectRes = jsonHttpClient.post("/maksimum") {
-                    bearerAuth(azure.generate(true))
-                    contentType(ContentType.Application.Json)
-                    setBody(InternVedtakRequest("12345678910", LocalDate.now().minusYears(3), LocalDate.now()))
-                }
-
-                assertEquals(HttpStatusCode.OK, collectRes.status)
-                assertEquals(3, collectRes.body<Maksimum>().vedtak.size)
+        runBlocking {
+            val res = httpClient.post("/api/insert/vedtak") {
+                bearerAuth(azure.generate(true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    testObject
+                )
             }
+
+            assertEquals(HttpStatusCode.OK, res.status)
+            val perioder = countTilkjentPerioder()
+            assert(perioder > 0)
+
+            val collectRes = httpClient.post("/maksimum") {
+                bearerAuth(azure.generate(true))
+                contentType(ContentType.Application.Json)
+                setBody(InternVedtakRequest("12345678910", LocalDate.now().minusYears(3), LocalDate.now()))
+            }
+
+            assertEquals(HttpStatusCode.OK, collectRes.status)
+            assertEquals(3, collectRes.body<Maksimum>().vedtak.size)
         }
     }
 
@@ -210,22 +240,12 @@ class BehandlingsDataTest : PostgresTestBase() {
         val interval = Periode(LocalDate.now().minusYears(2), LocalDate.now().minusYears(2).plusWeeks(6))
         val result = perioderMedAAp(listOf(testObject))
 
-        assertEquals(1,result.size)
-        assertEquals(listOf(
-            no.nav.aap.api.intern.Periode(LocalDate.now().minusYears(2), LocalDate.now().minusYears(1))
-        ),
-            result)
+        assertEquals(1, result.size)
+        assertEquals(
+            listOf(
+                no.nav.aap.api.intern.Periode(LocalDate.now().minusYears(2), LocalDate.now().minusYears(1))
+            ),
+            result
+        )
     }
-
-
-    private val ApplicationTestBuilder.jsonHttpClient: HttpClient
-        get() =
-            createClient {
-                install(ContentNegotiation) {
-                    jackson {
-                        registerModule(JavaTimeModule())
-                        disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                    }
-                }
-            }
 }
