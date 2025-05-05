@@ -23,8 +23,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
+private val dataSource2 = InitTestDatabase.freshDatabase()
 
-class MeldekortPeriodeTest : PostgresTestBase() {
+class MeldekortPeriodeTest : PostgresTestBase(dataSource2) {
 
     @Test
     fun `kan lagre ned og hente meldekort perioder`() {
@@ -36,7 +37,7 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                 application {
                     api(
                         config = config,
-                        datasource = InitTestDatabase.dataSource,
+                        datasource = dataSource2,
                         arenaRestClient = ArenaClient()
                     )
                 }

@@ -208,9 +208,8 @@ fun NormalOpenAPIRoute.api(
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    hentMedium(
+                    hentMediumFraKelvin(
                         requestBody.personidentifikator,
-                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato),
                         behandlingsRepository
                     ).vedtak
                 }
@@ -320,9 +319,8 @@ fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
     }
 }
 
-fun hentMedium(
+fun hentMediumFraKelvin(
     fnr: String,
-    interval: Periode,
     behandlingsRepository: BehandlingsRepository
 ): Medium {
     val kelvinData = behandlingsRepository.hentVedtaksData(fnr)

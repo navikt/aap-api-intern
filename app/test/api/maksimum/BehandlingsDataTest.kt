@@ -162,7 +162,9 @@ val testObjectResult= DatadelingDTO(
     ))
 )
 
-class BehandlingsDataTest : PostgresTestBase() {
+val dataSource = InitTestDatabase.freshDatabase()
+
+class BehandlingsDataTest : PostgresTestBase(dataSource) {
 
     @Test
     fun `kan lagre ned og hente behandlingsdata`() {
@@ -175,11 +177,11 @@ class BehandlingsDataTest : PostgresTestBase() {
                 application {
                     api(
                         config = config,
-                        datasource = InitTestDatabase.dataSource,
+                        datasource = dataSource,
                         arenaRestClient = ArenaClient()
                     )
                 }
-                println("datasource: ${InitTestDatabase.dataSource.connection}")
+                println("datasource: ${dataSource.connection}")
                 val res = jsonHttpClient.post("/api/insert/vedtak") {
                     bearerAuth(azure.generate(true))
                     contentType(ContentType.Application.Json)

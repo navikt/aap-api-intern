@@ -1,15 +1,11 @@
 package api.util
 
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
-import javax.sql.DataSource
-
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import org.junit.jupiter.api.BeforeEach
+import javax.sql.DataSource
 
-abstract class PostgresTestBase {
-    protected val dataSource: DataSource = InitTestDatabase.dataSource
-
+abstract class PostgresTestBase(val dataSource: DataSource) {
     init {
         Migrering.migrate(dataSource, false)
     }

@@ -21,7 +21,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class SakStatusKelvinTest : PostgresTestBase() {
+val dataSource = InitTestDatabase.freshDatabase()
+
+class SakStatusKelvinTest : PostgresTestBase(dataSource) {
     @Test
     fun `kan lagre ned sak status`() {
         Fakes().use { fakes ->
@@ -32,7 +34,7 @@ class SakStatusKelvinTest : PostgresTestBase() {
                 application {
                     api(
                         config = config,
-                        datasource = InitTestDatabase.dataSource,
+                        datasource = dataSource,
                         arenaRestClient = ArenaClient()
                     )
                 }
