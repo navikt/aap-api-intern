@@ -8,9 +8,7 @@ import com.nimbusds.jose.jwk.JWKSet
 import com.nimbusds.jose.jwk.RSAKey
 import com.nimbusds.jwt.JWTClaimsSet
 import com.nimbusds.jwt.SignedJWT
-import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import org.intellij.lang.annotations.Language
-import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -25,14 +23,14 @@ class AzureTokenGen(private val issuer: String, private val audience: String) {
 
     private fun claims(isApp: Boolean, now: Date = Date()): JWTClaimsSet {
         val claims = JWTClaimsSet.Builder()
-        .subject(null)
+        .subject(UUID.randomUUID().toString())
         .issuer(issuer)
         .audience(audience)
         .notBeforeTime(now)
         .issueTime(now)
         .expirationTime(Date(now.time + TimeUnit.MINUTES.toMillis((60 * 60 * 3600).toLong())))
 
-        if (isApp){
+        if (isApp) {
             claims.claim("idtyp", "app")
             claims.claim("roles", listOf("add-data"))
         }
