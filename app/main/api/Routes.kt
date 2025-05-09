@@ -13,6 +13,7 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.OpenAPIPipelineResponseContext
 import com.papsign.ktor.openapigen.route.response.respond
+import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
 import io.ktor.http.*
@@ -27,6 +28,8 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.audience
+import no.nav.aap.komponenter.httpklient.auth.token
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
@@ -56,7 +59,6 @@ enum class Tag(override val description: String) : APITag {
     Maksimum("For å hente maksimumsløsning")
 }
 
-// TODO: tilgangskontroll på alle endepunkter
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arena: IArenaoppslagRestClient,
@@ -77,6 +79,11 @@ fun NormalOpenAPIRoute.api(
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                     logger.info("CallID ble ikke gitt på kall mot: /perioder")
                 }
+
+                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
+                    respondWithStatus(HttpStatusCode.Forbidden)
+                }
+
                 val kelvinPerioder = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     val vedtaksdata =
@@ -108,6 +115,10 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /perioder/aktivitetfase")
                 }
 
+                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
+                    respondWithStatus(HttpStatusCode.Forbidden)
+                }
+
                 val arenaSvar = arena.hentPerioderInkludert11_17(callId, requestBody)
 
                 respond(
@@ -130,6 +141,10 @@ fun NormalOpenAPIRoute.api(
             route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequest>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
+
+                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
+                    respondWithStatus(HttpStatusCode.Forbidden)
+                }
                 val perioder = dataSource.transaction { connection ->
                     val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
                     meldekortPerioderRepository.hentMeldekortPerioder(requestBody.personidentifikator)
@@ -152,6 +167,10 @@ fun NormalOpenAPIRoute.api(
 
             val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
+            }
+
+            if (!harTilgangTilPerson(requestBody.personidentifikatorer.first(), token())) {
+                respondWithStatus(HttpStatusCode.Forbidden)
             }
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
@@ -206,6 +225,10 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
+                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
+                    respondWithStatus(HttpStatusCode.Forbidden)
+                }
+
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     hentMediumFraKelvin(
@@ -235,6 +258,10 @@ fun NormalOpenAPIRoute.api(
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
+                
+                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
+                    respondWithStatus(HttpStatusCode.Forbidden)
+                }
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -251,6 +278,17 @@ fun NormalOpenAPIRoute.api(
             }
         }
     }
+}
+
+private fun harTilgangTilPerson(personIdent: String, token: OidcToken): Boolean {
+    if (!token.isClientCredentials()) {
+        val tilgang = TilgangGateway.harTilgangTilPerson(personIdent, token)
+        if (!tilgang) {
+            logger.warn("Tilgang avslått på kall med obo-token mot endepunkt")
+            return false
+        }
+    }
+    return true
 }
 
 private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus) =
