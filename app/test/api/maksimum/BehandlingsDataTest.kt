@@ -15,11 +15,13 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import no.nav.aap.api.intern.Maksimum
+import no.nav.aap.api.intern.Medium
+import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
-import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
@@ -167,7 +169,7 @@ val dataSource = InitTestDatabase.freshDatabase()
 class BehandlingsDataTest : PostgresTestBase(dataSource) {
 
     @Test
-    fun `kan lagre ned og hente behandlingsdata`() {
+    fun `kan lagre ned og hente maksimum`() {
         Fakes().use { fakes ->
 
             val config = TestConfig.default(fakes)
@@ -183,33 +185,123 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                 }
                 println("datasource: ${dataSource.connection}")
                 val res = jsonHttpClient.post("/api/insert/vedtak") {
-                    bearerAuth(azure.generate(true))
+                    bearerAuth(azure.generate(isApp = true))
                     contentType(ContentType.Application.Json)
                     setBody(
                         testObject
                     )
                 }
 
-
                 assertEquals(HttpStatusCode.OK, res.status)
                 val perioder = countTilkjentPerioder()
                 assert(perioder > 0)
 
-                val collectRes = jsonHttpClient.post("/maksimum") {
-                    bearerAuth(azure.generate(true))
+                val maksimumResponseM2m = jsonHttpClient.post("/maksimum") {
+                    bearerAuth(azure.generate(isApp = true))
                     contentType(ContentType.Application.Json)
                     setBody(InternVedtakRequest("12345678910", LocalDate.now().minusYears(3), LocalDate.now()))
                 }
 
-                assertEquals(HttpStatusCode.OK, collectRes.status)
-                assertEquals(3, collectRes.body<Maksimum>().vedtak.size)
+                assertEquals(HttpStatusCode.OK, maksimumResponseM2m.status)
+                assertEquals(3, maksimumResponseM2m.body<Maksimum>().vedtak.size)
+
+                val maksimumResponseObo = jsonHttpClient.post("/maksimum") {
+                    bearerAuth(OidcToken(azure.generate(isApp = false)).token())
+                    contentType(ContentType.Application.Json)
+                    setBody(InternVedtakRequest("12345678910", LocalDate.now().minusYears(3), LocalDate.now()))
+                }
+                assertEquals(HttpStatusCode.OK, maksimumResponseObo.status)
+            }
+        }
+    }
+
+    @Test
+    fun `kan lagre ned og hente perioder`() {
+        Fakes().use { fakes ->
+
+            val config = TestConfig.default(fakes)
+            val azure = AzureTokenGen("test", "test")
+
+            testApplication {
+                application {
+                    api(
+                        config = config,
+                        datasource = dataSource,
+                        arenaRestClient = ArenaClient()
+                    )
+                }
+
+                jsonHttpClient.post("/api/insert/vedtak") {
+                    bearerAuth(azure.generate(isApp = true))
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        testObject
+                    )
+                }
+
+                val perioderResponseObo = jsonHttpClient.post("/perioder") {
+                    bearerAuth(OidcToken(azure.generate(isApp = false)).token())
+                    contentType(ContentType.Application.Json)
+                    setBody(InternVedtakRequest("12345678910", LocalDate.now().minusYears(3), LocalDate.now()))
+                }
+
+                assertEquals(HttpStatusCode.OK, perioderResponseObo.status)
+                assertEquals(perioderResponseObo.body<PerioderResponse>().perioder, perioderMedAAp(listOf(testObject)))
+
+                val perioderResponseM2m = jsonHttpClient.post("/perioder") {
+                    bearerAuth(azure.generate(isApp = true))
+                    contentType(ContentType.Application.Json)
+                    setBody(InternVedtakRequest("12345678910", LocalDate.now().minusYears(3), LocalDate.now()))
+                }
+                assertEquals(HttpStatusCode.OK, perioderResponseM2m.status)
+            }
+        }
+    }
+
+    @Test
+    fun `kan lagre ned og hente medium`() {
+        Fakes().use { fakes ->
+
+            val config = TestConfig.default(fakes)
+            val azure = AzureTokenGen("test", "test")
+
+            testApplication {
+                application {
+                    api(
+                        config = config,
+                        datasource = dataSource,
+                        arenaRestClient = ArenaClient()
+                    )
+                }
+
+                jsonHttpClient.post("/api/insert/vedtak") {
+                    bearerAuth(azure.generate(isApp = true))
+                    contentType(ContentType.Application.Json)
+                    setBody(
+                        testObject
+                    )
+                }
+
+                val mediumResponseM2m = jsonHttpClient.post("/maksimumUtenUtbetaling") {
+                    bearerAuth(azure.generate(isApp = true))
+                    contentType(ContentType.Application.Json)
+                    setBody(InternVedtakRequest("12345678910", LocalDate.now().minusYears(3), LocalDate.now()))
+                }
+                assertEquals(HttpStatusCode.OK, mediumResponseM2m.status)
+                assertEquals(3, mediumResponseM2m.body<Medium>().vedtak.size)
+
+                val mediumResponseObo = jsonHttpClient.post("/maksimumUtenUtbetaling") {
+                    bearerAuth(OidcToken(azure.generate(isApp = false)).token())
+                    contentType(ContentType.Application.Json)
+                    setBody(InternVedtakRequest("12345678910", LocalDate.now().minusYears(3), LocalDate.now()))
+                }
+                assertEquals(HttpStatusCode.OK, mediumResponseObo.status)
             }
         }
     }
 
     @Test
     fun `kan hente perioder fra vedtaksdata`() {
-        val interval = Periode(LocalDate.now().minusYears(2), LocalDate.now().minusYears(2).plusWeeks(6))
         val result = perioderMedAAp(listOf(testObject))
 
         assertEquals(1,result.size)
