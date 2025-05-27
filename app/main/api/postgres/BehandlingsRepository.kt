@@ -235,7 +235,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         periode,
                         Vedtak(
                             vedtakId = left.verdi.vedtakId,
-                            dagsats = left.verdi.beregningsgrunnlag,
+                            dagsats = left.verdi.dagsats,
                             status = left.verdi.status,
                             saksnummer = left.verdi.saksnummer,
                             vedtaksdato = left.verdi.vedtaksdato,
@@ -259,7 +259,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                                         utbetaling.periode.tom
                                     ),
                                     // TODO: bør hente korrekt beløp på samme måte som i behandlingsflyt
-                                    belop = (utbetaling.verdi.dagsats * utbetaling.verdi.gradering) / 100 * weekdaysBetween(
+                                    belop = ((utbetaling.verdi.dagsats+utbetaling.verdi.barnetillegg.toInt()) * utbetaling.verdi.gradering) / 100 * weekdaysBetween(
                                         utbetaling.periode.fom,
                                         utbetaling.periode.tom
                                     ),

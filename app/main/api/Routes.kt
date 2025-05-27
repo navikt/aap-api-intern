@@ -199,6 +199,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /person/aap/eksisterer")
                 }
 
+                pipeline.call.response.headers.append(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
                 respond(
                     PersonEksistererIAAPArena(
                         arena.hentPersonEksistererIAapContext(
@@ -236,6 +237,7 @@ fun NormalOpenAPIRoute.api(
                         behandlingsRepository
                     ).vedtak
                 }
+                pipeline.call.response.headers.append(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
                 respond(
                     Medium(
                         arena.hentMaksimum(
@@ -270,6 +272,7 @@ fun NormalOpenAPIRoute.api(
                         Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato)
                     ).vedtak
                 }
+                pipeline.call.response.headers.append(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
                 respond(
                     Maksimum(
                         arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvinSaker
@@ -398,7 +401,7 @@ fun hentMediumFraKelvin(
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.behandlingsReferanse,
                         dagsats = right?.verdi?.dagsats ?: 0,
-                        status = utledVedtakStatus(behandling.behandlingStatus, periode),
+                        status = utledVedtakStatus(behandling.behandlingStatus, behandling.sak.status, periode),
                         saksnummer = behandling.sak.saksnummer,
                         vedtaksdato = behandling.vedtaksDato,
                         vedtaksTypeKode = null,
@@ -429,11 +432,13 @@ fun hentMediumFraKelvin(
 
 fun utledVedtakStatus(
     behandlingStatus: no.nav.aap.behandlingsflyt.kontrakt.behandling.Status,
+    sakStatus: Status,
     periode: Periode
 ): String =
-    if (behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES || periode.tom.isAfter(
-            LocalDate.now()
-        )
+    if (
+        behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES ||
+        periode.tom.isAfter(LocalDate.now()) ||
+        sakStatus != Status.AVSLUTTET
     ) {
         Status.LØPENDE.toString()
     } else if (behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET) {
