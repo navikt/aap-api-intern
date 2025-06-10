@@ -77,7 +77,7 @@ dependencies {
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.3")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.15.0")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.15.1")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.3.8")
 
