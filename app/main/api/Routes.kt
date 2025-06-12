@@ -399,7 +399,7 @@ fun hentMediumFraKelvin(
                 Segment(
                     periode,
                     VedtakUtenUtbetalingUtenPeriode(
-                        vedtakId = behandling.behandlingsReferanse,
+                        vedtakId = behandling.vedtakId.toString(),
                         dagsats = right?.verdi?.dagsats ?: 0,
                         status = utledVedtakStatus(behandling.behandlingStatus, behandling.sak.status, periode),
                         saksnummer = behandling.sak.saksnummer,
@@ -410,7 +410,7 @@ fun hentMediumFraKelvin(
                         beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?.times(260) ?: 0,
                         barnMedStonad = right?.verdi?.antallBarn ?: 0,
                         kildesystem = Kilde.KELVIN.toString(),
-                        samordningsId = null,
+                        samordningsId = behandling.samId,
                         opphorsAarsak = null
                     )
                 )

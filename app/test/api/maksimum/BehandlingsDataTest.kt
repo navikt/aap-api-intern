@@ -104,7 +104,9 @@ val testObject = DatadelingDTO(
         fom = LocalDate.now().minusYears(2),
         tom = LocalDate.now().minusYears(1),
         verdi = RettighetsType.BISTANDSBEHOV.name,
-    ))
+    )),
+    samId = "1234asd",
+    vedtakId = 123456789L
 )
 
 val testObjectResult= DatadelingDTO(
@@ -161,7 +163,9 @@ val testObjectResult= DatadelingDTO(
         fom = LocalDate.now().minusYears(2),
         tom = LocalDate.now().minusYears(1),
         verdi = RettighetsType.BISTANDSBEHOV.name,
-    ))
+    )),
+    samId = "1234asd",
+    vedtakId = 123456789L
 )
 
 val dataSource = InitTestDatabase.freshDatabase()

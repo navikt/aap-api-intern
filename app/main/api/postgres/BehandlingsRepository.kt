@@ -69,8 +69,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
         val nyBehandlingId = connection.queryFirst<Long>(
             """
-                INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, TYPE, OPPRETTET_TID, BEHANDLING_REFERANSE)
-                VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT (sak_id) DO UPDATE SET STATUS = EXCLUDED.status, vedtaks_dato = excluded.vedtaks_dato, OPPRETTET_TID = excluded.opprettet_tid
+                INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, TYPE, OPPRETTET_TID, BEHANDLING_REFERANSE, SAMID, VEDTAKID)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ? ) ON CONFLICT (sak_id) DO UPDATE SET STATUS = EXCLUDED.status, vedtaks_dato = excluded.vedtaks_dato, OPPRETTET_TID = excluded.opprettet_tid
                 RETURNING ID
             """.trimIndent()
         ) {
@@ -81,6 +81,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setString(4, "TYPE")
                 setLocalDateTime(5, behandling.sak.opprettetTidspunkt)
                 setString(6, behandling.behandlingsReferanse)
+                setString(7, behandling.samId)
+                setLong(8, behandling.vedtakId)
             }
 
             setRowMapper { row ->
@@ -208,7 +210,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     Segment(
                         periode,
                         VedtakUtenUtbetalingUtenPeriode(
-                            vedtakId = behandling.behandlingsReferanse,
+                            vedtakId = behandling.vedtakId.toString(),
                             dagsats = right?.verdi?.dagsats ?: 0,
                             status = utledVedtakStatus(
                                 behandling.behandlingStatus,
@@ -223,7 +225,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             beregningsgrunnlag = right?.verdi?.grunnlag?.toInt() ?: 0,
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
                             kildesystem = Kilde.KELVIN.toString(),
-                            samordningsId = null,
+                            samordningsId = behandling.samId,
                             opphorsAarsak = null
                         )
                     )
@@ -340,7 +342,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         fnr = emptyList()
                     ),
                     tilkjent = hentTilkjentYtelse(behandling.id),
-                    rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id)
+                    rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id),
+                    samId = behandling.samid,
+                    vedtakId = behandling.vedtakId?: 0L,
                 )
             }
         }
@@ -388,7 +392,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     vedtaksDato = row.getLocalDate("VEDTAKS_DATO"),
                     type = row.getString("TYPE"),
                     oppretterTidspunkt = row.getLocalDate("OPPRETTET_TID"),
-                    behandlingReferanse = row.getString("BEHANDLING_REFERANSE")
+                    behandlingReferanse = row.getString("BEHANDLING_REFERANSE"),
+                    samid = row.getStringOrNull("SAMID"),
+                    vedtakId = row.getLongOrNull("VEDTAKID")
                 )
             }
         }
@@ -462,7 +468,9 @@ data class BehandlingDB(
     val vedtaksDato: LocalDate,
     val type: String,
     val oppretterTidspunkt: LocalDate,
-    val behandlingReferanse: String
+    val behandlingReferanse: String,
+    val samid: String? = null,
+    val vedtakId: Long? = null
 )
 
 data class TilkjentDB(
