@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("api-intern.conventions")
-    id("io.ktor.plugin") version "3.2.0"
+    id("io.ktor.plugin") version "3.1.3"
     id ("org.flywaydb.flyway") version "9.0.0"
     application
 }
@@ -28,8 +28,8 @@ repositories {
 }
 
 val aapLibVersion = "5.0.101"
-val komponenterVersjon = "1.0.269"
-val ktorVersion = "3.2.0"
+val komponenterVersjon = "1.0.261"
+val ktorVersion = "3.1.3"
 val tilgangVersjon = "1.0.79"
 val behandlingsflytversjon = "0.0.329"
 val kontraktVersjon = "0.0.24"
@@ -75,7 +75,7 @@ dependencies {
 
     implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("com.auth0:java-jwt:4.5.0")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.1")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.3")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.1")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
@@ -83,7 +83,7 @@ dependencies {
 
     implementation("com.zaxxer:HikariCP:6.3.0")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.113")
+    implementation("no.nav:ktor-openapi-generator:1.0.112")
 
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
