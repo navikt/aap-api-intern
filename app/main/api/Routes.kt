@@ -70,6 +70,7 @@ fun NormalOpenAPIRoute.api(
             post<CallIdHeader, PerioderResponse, InternVedtakRequest>(
                 info(description = "Henter perioder med vedtak for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
+                logger.info("Henter perioder")
                 val azpName = azpName()
                 httpCallCounter.httpCallCounter(
                     "/perioder",
@@ -159,6 +160,7 @@ fun NormalOpenAPIRoute.api(
         route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { callIdHeader, requestBody ->
+            logger.info("Henter saker for en person")
             httpCallCounter.httpCallCounter(
                 "/sakerByFnr",
                 pipeline.call.audience(),
@@ -190,6 +192,7 @@ fun NormalOpenAPIRoute.api(
             post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
                 info(description = "Sjekker om en person eksisterer i AAP-arena")
             ) { callIdHeader, requestBody ->
+                logger.info("Sjekker om person eksisterer i aap-arena")
                 httpCallCounter.httpCallCounter(
                     "/arena/person/aap/eksisterer",
                     pipeline.call.audience(),
@@ -217,6 +220,7 @@ fun NormalOpenAPIRoute.api(
             post<CallIdHeader, Medium, InternVedtakRequest>(
                 info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
+                logger.info("Henter maksimum uten utbetalinger")
                 httpCallCounter.httpCallCounter(
                     "/maksimumUtenUtbetaling",
                     pipeline.call.audience(),
@@ -252,6 +256,7 @@ fun NormalOpenAPIRoute.api(
             post<CallIdHeader, Maksimum, InternVedtakRequest>(
                 info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
+                logger.info("Henter maksimum")
                 httpCallCounter.httpCallCounter(
                     "/maksimum",
                     pipeline.call.audience(),
