@@ -74,7 +74,7 @@ spec:
           cluster: prod-gcp
         - application: modiapersonoversikt
           namespace: personoversikt
-          cluster: dev-gcp
+          cluster: prod-gcp
         - application: salesforce
           namespace: teamcrm
           cluster: prod-external
