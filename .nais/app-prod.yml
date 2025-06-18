@@ -11,8 +11,8 @@ spec:
   ingresses:
        - https://aap-api.intern.nav.no
   replicas:
-    max: 2
-    min: 2
+    max: 1
+    min: 1
   resources:
     limits:
       memory: 2Gi
