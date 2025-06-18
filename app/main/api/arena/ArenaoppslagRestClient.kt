@@ -17,9 +17,7 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.prometheus.metrics.core.metrics.Summary
 import kotlinx.coroutines.runBlocking
-import no.nav.aap.api.intern.PerioderInkludert11_17Response
 import no.nav.aap.api.intern.PerioderResponse
-import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
@@ -28,7 +26,6 @@ import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
 import org.slf4j.LoggerFactory
-import java.util.*
 
 private const val ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME = "arenaoppslag_client_seconds"
 private val sikkerLogg = LoggerFactory.getLogger("secureLog")
@@ -132,13 +129,8 @@ class ArenaoppslagRestClient(
         install(Logging) {
             level = LogLevel.BODY
             logger = object : Logger {
-                private var logBody = false
                 override fun log(message: String) {
-                    when {
-                        message == "BODY START" -> logBody = true
-                        message == "BODY END" -> logBody = false
-                        logBody -> sikkerLogg.debug("respons fra Arenaoppslag: $message")
-                    }
+                    sikkerLogg.info("HTTP client log: '$message'.")
                 }
             }
         }
