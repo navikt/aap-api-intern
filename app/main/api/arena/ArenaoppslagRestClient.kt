@@ -6,17 +6,24 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.serialization.jackson.jackson
 import io.prometheus.metrics.core.metrics.Summary
-import kotlinx.coroutines.runBlocking
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
@@ -36,90 +43,90 @@ private val clientLatencyStats: Summary = Summary.builder()
     .quantile(0.99, 0.001) // Add 99th percentile with 0.1% tolerated error
     .help("Latency arenaoppslag, in seconds")
     .register()
+
 private val objectMapper = jacksonObjectMapper()
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     .registerModule(JavaTimeModule())
 
 class ArenaoppslagRestClient(
     private val arenaoppslagConfig: ArenaoppslagConfig,
-    azureConfig: AzureConfig
+    azureConfig: AzureConfig,
 ) : IArenaoppslagRestClient {
     private val tokenProvider = AzureAdTokenProvider(azureConfig)
 
-    override fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse =
+    override suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse =
         clientLatencyStats.startTimer().use {
-            runBlocking {
-                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder"){
-                    accept(ContentType.Application.Json)
-                    header("Nav-Call-Id", callId)
-                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                    contentType(ContentType.Application.Json)
-                    setBody(vedtakRequest)
-                }
-                    .bodyAsText()
-                    .let(objectMapper::readValue)
+            httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder") {
+                accept(ContentType.Application.Json)
+                header("Nav-Call-Id", callId)
+                bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                contentType(ContentType.Application.Json)
+                setBody(vedtakRequest)
             }
+                .bodyAsText()
+                .let(objectMapper::readValue)
         }
 
-    override fun hentPerioderInkludert11_17(callId: String, vedtakRequest: InternVedtakRequest): PerioderMed11_17Response =
+    override suspend fun hentPerioderInkludert11_17(
+        callId: String,
+        vedtakRequest: InternVedtakRequest,
+    ): PerioderMed11_17Response =
         clientLatencyStats.startTimer().use {
-            runBlocking {
-                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder/11-17"){
-                    accept(ContentType.Application.Json)
-                    header("Nav-Call-Id", callId)
-                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                    contentType(ContentType.Application.Json)
-                    setBody(vedtakRequest)
-                }
-                    .bodyAsText()
-                    .let(objectMapper::readValue)
+            httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder/11-17") {
+                accept(ContentType.Application.Json)
+                header("Nav-Call-Id", callId)
+                bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                contentType(ContentType.Application.Json)
+                setBody(vedtakRequest)
             }
+                .bodyAsText()
+                .let(objectMapper::readValue)
         }
 
-    override fun hentPersonEksistererIAapContext(callId: String, sakerRequest: SakerRequest): PersonEksistererIAAPArena =
+    override suspend fun hentPersonEksistererIAapContext(
+        callId: String,
+        sakerRequest: SakerRequest,
+    ): PersonEksistererIAAPArena =
         clientLatencyStats.startTimer().use {
-            runBlocking {
-                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/person/aap/eksisterer") {
-                    accept(ContentType.Application.Json)
-                    header("Nav-Call-Id", callId)
-                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                    contentType(ContentType.Application.Json)
-                    setBody(sakerRequest)
-                }
-                    .bodyAsText()
-                    .let(objectMapper::readValue)
+            httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/person/aap/eksisterer") {
+                accept(ContentType.Application.Json)
+                header("Nav-Call-Id", callId)
+                bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                contentType(ContentType.Application.Json)
+                setBody(sakerRequest)
             }
+                .bodyAsText()
+                .let(objectMapper::readValue)
         }
 
-    override fun hentSakerByFnr(callId: String, req: SakerRequest): List<no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus> =
+    override suspend fun hentSakerByFnr(
+        callId: String,
+        req: SakerRequest,
+    ): List<no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus> =
         clientLatencyStats.startTimer().use {
-            runBlocking {
-                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/saker") {
-                    accept(ContentType.Application.Json)
-                    header("Nav-Call-Id", callId)
-                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                    contentType(ContentType.Application.Json)
-                    setBody(req)
-                }
-                    .bodyAsText()
-                    .let(objectMapper::readValue)
+            httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/saker") {
+                accept(ContentType.Application.Json)
+                header("Nav-Call-Id", callId)
+                bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                contentType(ContentType.Application.Json)
+                setBody(req)
             }
+                .bodyAsText()
+                .let(objectMapper::readValue)
         }
 
-    override fun hentMaksimum(callId: String, req: InternVedtakRequest):Maksimum{
+    override suspend fun hentMaksimum(callId: String, req: InternVedtakRequest): Maksimum {
         return clientLatencyStats.startTimer().use {
-            runBlocking {
-                val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope)
-                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/maksimum") {
-                    accept(ContentType.Application.Json)
-                    header("Nav-Call-Id", callId)
-                    bearerAuth(token)
-                    contentType(ContentType.Application.Json)
-                    setBody(req)
-                }
-                    .bodyAsText()
-                    .let(objectMapper::readValue)
+            val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope)
+            httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/maksimum") {
+                accept(ContentType.Application.Json)
+                header("Nav-Call-Id", callId)
+                bearerAuth(token)
+                contentType(ContentType.Application.Json)
+                setBody(req)
             }
+                .bodyAsText()
+                .let(objectMapper::readValue)
         }
     }
 
