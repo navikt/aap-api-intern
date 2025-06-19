@@ -10,9 +10,6 @@ spec:
   image: {{image}}
   ingresses:
        - https://aap-api.intern.nav.no
-  replicas:
-    max: 1
-    min: 1
   resources:
     limits:
       memory: 2Gi
