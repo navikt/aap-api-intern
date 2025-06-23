@@ -220,7 +220,7 @@ fun NormalOpenAPIRoute.api(
         route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { callIdHeader, requestBody ->
-            logger.info("Henter saker for en person")
+            logger.info("Henter saker for en person fra kelvin")
             httpCallCounter.httpCallCounter(
                 "/kelvin/sakerByFnr",
                 pipeline.call.audience(),
