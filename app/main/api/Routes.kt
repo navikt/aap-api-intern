@@ -202,7 +202,10 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /person/aap/eksisterer")
                 }
 
-                pipeline.call.response.headers.append(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                pipeline.call.response.headers.append(
+                    HttpHeaders.ContentType,
+                    ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
+                )
                 respond(
                     PersonEksistererIAAPArena(
                         arena.hentPersonEksistererIAapContext(
@@ -212,6 +215,30 @@ fun NormalOpenAPIRoute.api(
                     )
                 )
             }
+        }
+
+        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
+            info(description = "Henter saker for en person")
+        ) { callIdHeader, requestBody ->
+            logger.info("Henter saker for en person")
+            httpCallCounter.httpCallCounter(
+                "/kelvin/sakerByFnr",
+                pipeline.call.audience(),
+                azpName() ?: ""
+            ).increment()
+
+            if (!harTilgangTilPerson(requestBody.personidentifikatorer.first(), token())) {
+                respondWithStatus(HttpStatusCode.Forbidden)
+            }
+
+            val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
+            val kelvinSaker: List<SakStatus> = dataSource.transaction { connection ->
+                val sakStatusRepository = SakStatusRepository(connection)
+                personIdenter.flatMap {
+                    sakStatusRepository.hentSakStatus(it)
+                }
+            }
+            respond(kelvinSaker)
         }
     }
 
@@ -241,7 +268,10 @@ fun NormalOpenAPIRoute.api(
                         behandlingsRepository
                     ).vedtak
                 }
-                pipeline.call.response.headers.append(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                pipeline.call.response.headers.append(
+                    HttpHeaders.ContentType,
+                    ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
+                )
                 respond(
                     Medium(
                         arena.hentMaksimum(
@@ -265,7 +295,7 @@ fun NormalOpenAPIRoute.api(
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
-                
+
                 if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
                     respondWithStatus(HttpStatusCode.Forbidden)
                 }
@@ -277,10 +307,46 @@ fun NormalOpenAPIRoute.api(
                         Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato)
                     ).vedtak
                 }
-                pipeline.call.response.headers.append(HttpHeaders.ContentType, ContentType.Application.Json.withCharset(Charsets.UTF_8).toString())
+                pipeline.call.response.headers.append(
+                    HttpHeaders.ContentType,
+                    ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
+                )
                 respond(
                     Maksimum(
                         arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvinSaker
+                    )
+                )
+            }
+        }
+        route("/kelvin/maksimumUtenUtbetaling") {
+            post<CallIdHeader, Medium, InternVedtakRequest>(
+                info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval")
+            ) { callIdHeader, requestBody ->
+                logger.info("Henter maksimum uten utbetalinger fra kelvin")
+                httpCallCounter.httpCallCounter(
+                    "/kelvin/maksimumUtenUtbetaling",
+                    pipeline.call.audience(),
+                    azpName() ?: ""
+                ).increment()
+
+                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
+                    respondWithStatus(HttpStatusCode.Forbidden)
+                }
+
+                val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
+                    val behandlingsRepository = BehandlingsRepository(connection)
+                    hentMediumFraKelvin(
+                        requestBody.personidentifikator,
+                        behandlingsRepository
+                    ).vedtak
+                }
+                pipeline.call.response.headers.append(
+                    HttpHeaders.ContentType,
+                    ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
+                )
+                respond(
+                    Medium(
+                        kelvinSaker
                     )
                 )
             }
@@ -337,7 +403,7 @@ private fun hentAllePersonidenter(
         return identerFraRequest
     }
 
-    val identerFraPdl =  pdlClient.hentAlleIdenterForPerson(identerFraRequest.first()).map { pdlIdent ->
+    val identerFraPdl = pdlClient.hentAlleIdenterForPerson(identerFraRequest.first()).map { pdlIdent ->
         pdlIdent.ident
     }
     require(identerFraRequest.all { requestIdent -> requestIdent in identerFraPdl }) {
