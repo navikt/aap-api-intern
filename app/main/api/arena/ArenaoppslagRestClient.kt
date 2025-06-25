@@ -6,23 +6,16 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logger
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.serialization.jackson.jackson
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.logging.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import io.ktor.utils.io.core.Closeable
 import io.prometheus.metrics.core.metrics.Summary
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
@@ -32,10 +25,9 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
 import no.nav.aap.ktor.client.auth.azure.AzureConfig
-import org.slf4j.LoggerFactory
+import kotlin.io.use
 
 private const val ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME = "arenaoppslag_client_seconds"
-private val sikkerLogg = LoggerFactory.getLogger("secureLog")
 private val clientLatencyStats: Summary = Summary.builder()
     .name(ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME)
     .quantile(0.5, 0.05) // Add 50th percentile (= median) with 5% tolerated error
@@ -54,7 +46,10 @@ class ArenaoppslagRestClient(
 ) : IArenaoppslagRestClient {
     private val tokenProvider = AzureAdTokenProvider(azureConfig)
 
-    override suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse =
+    override suspend fun hentPerioder(
+        callId: String,
+        vedtakRequest: InternVedtakRequest
+    ): PerioderResponse =
         clientLatencyStats.startTimer().use {
             httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder") {
                 accept(ContentType.Application.Json)
@@ -133,14 +128,6 @@ class ArenaoppslagRestClient(
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout)
         install(HttpRequestRetry)
-        install(Logging) {
-            level = LogLevel.BODY
-            logger = object : Logger {
-                override fun log(message: String) {
-                    sikkerLogg.info("HTTP client log: '$message'.")
-                }
-            }
-        }
 
         install(ContentNegotiation) {
             jackson {

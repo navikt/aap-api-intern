@@ -9,8 +9,20 @@ import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 
 interface IArenaoppslagRestClient {
     suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse
-    suspend fun hentPerioderInkludert11_17(callId: String, vedtakRequest: InternVedtakRequest): PerioderMed11_17Response
-    suspend fun hentPersonEksistererIAapContext(callId: String, sakerRequest: SakerRequest): PersonEksistererIAAPArena
-    suspend fun hentSakerByFnr(callId: String, req: SakerRequest): List<no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus>
+    suspend fun hentPerioderInkludert11_17(
+        callId: String,
+        vedtakRequest: InternVedtakRequest
+    ): PerioderMed11_17Response
+
+    suspend fun hentPersonEksistererIAapContext(
+        callId: String,
+        sakerRequest: SakerRequest
+    ): PersonEksistererIAAPArena
+
+    suspend fun hentSakerByFnr(
+        callId: String,
+        req: SakerRequest
+    ): List<no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus>
+
     suspend fun hentMaksimum(callId: String, req: InternVedtakRequest): Maksimum
 }

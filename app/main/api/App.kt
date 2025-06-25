@@ -26,7 +26,6 @@ import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
-import org.flywaydb.core.Flyway
 import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
@@ -45,23 +44,6 @@ fun PrometheusMeterRegistry.httpCallCounter(
     "http_call",
     listOf(Tag.of("path", path), Tag.of("audience", audience), Tag.of("azp_name", azpName))
 )
-
-fun cleanAndMigrate(dataSource: DataSource, wipe: Boolean = false) {
-    if (wipe){
-        cleanDatabase(dataSource)
-    }
-    Migrering.migrate(dataSource)
-}
-
-private fun cleanDatabase(dataSource: DataSource) {
-    val flyway = Flyway
-        .configure()
-        .dataSource(dataSource)
-        .cleanDisabled(false)
-        .load()
-
-    flyway.clean()
-}
 
 fun Application.api(
     prometheus: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
