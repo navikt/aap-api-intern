@@ -128,13 +128,6 @@ class ArenaoppslagRestClient(
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout)
         install(HttpRequestRetry)
-        install(Logging) {
-            level = LogLevel.BODY
-            logger = object : Logger {
-                override fun log(message: String) {
-                }
-            }
-        }
 
         install(ContentNegotiation) {
             jackson {
