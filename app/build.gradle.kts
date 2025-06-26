@@ -87,6 +87,8 @@ dependencies {
 
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
+    testImplementation("org.assertj:assertj-core:3.27.3")
+    testImplementation("io.github.nchaugen:tabletest-junit:0.5.0")
     testImplementation(kotlin("test"))
 }
 
