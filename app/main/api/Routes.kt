@@ -509,11 +509,12 @@ fun hentMediumFraKelvin(
 fun utledVedtakStatus(
     behandlingStatus: no.nav.aap.behandlingsflyt.kontrakt.behandling.Status,
     sakStatus: Status,
-    periode: Periode
+    periode: Periode,
+    nå: LocalDate = LocalDate.now()
 ): String =
     if (
         behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES ||
-        periode.tom.isAfter(LocalDate.now()) ||
+        periode.tom.isAfter(nå) ||
         sakStatus != Status.AVSLUTTET
     ) {
         Status.LØPENDE.toString()
