@@ -9,16 +9,17 @@ import no.nav.aap.behandlingsflyt.kontrakt.sak.Status as SakStatus
 
 
 class RoutesTest {
-    private val nå = LocalDate.of(2025, 6, 26)
+    private val nå = LocalDate.of(2025, 6, 1)
 
     @TableTest(
-        """  
+        """
           BehandlingStatus | SakStatus | PeriodeFom | PeriodeTom | ForventetStatus
-    AVSLUTTET              | AVSLUTTET | 2021-01-01 | 2023-01-15 | AVSLUTTET
-    AVSLUTTET              | UTREDES   | 2021-01-01 | 2023-01-15 | LØPENDE
-    IVERKSETTES            | UTREDES   | 2021-01-01 | 2026-01-15 | LØPENDE
-    UTREDES                | AVSLUTTET | 2021-01-01 | 2025-05-15 | UTREDES
-    UTREDES                | UTREDES   | 2021-01-01 | 2025-05-15 | LØPENDE
+UTREDES                    | UTREDES   | 2021-01-01 | 2023-01-15 | LØPENDE
+AVSLUTTET                  | AVSLUTTET | 2021-01-01 | 2023-01-15 | AVSLUTTET
+AVSLUTTET                  | UTREDES   | 2021-01-01 | 2023-01-15 | LØPENDE
+IVERKSETTES                | UTREDES   | 2021-01-01 | 2026-01-15 | LØPENDE
+UTREDES                    | AVSLUTTET | 2021-01-01 | 2025-05-15 | UTREDES
+UTREDES                    | UTREDES   | 2021-01-01 | 2025-05-15 | LØPENDE
     """
     )
     fun `fsdf dsf `(
