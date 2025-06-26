@@ -13,7 +13,7 @@ data class Medium(val vedtak: List<VedtakUtenUtbetaling>)
 data class Vedtak(
     val dagsats: Int,
     val vedtakId: String,
-    val status: String, //Hypotese, vedtaksstatuskode
+    val status: String,
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
     val periode: Periode,

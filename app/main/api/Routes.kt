@@ -403,9 +403,10 @@ private fun hentAllePersonidenter(
         return identerFraRequest
     }
 
-    val identerFraPdl = pdlClient.hentAlleIdenterForPerson(identerFraRequest.first()).map { pdlIdent ->
-        pdlIdent.ident
-    }
+    val identerFraPdl =
+        pdlClient.hentAlleIdenterForPerson(identerFraRequest.first()).map { pdlIdent ->
+            pdlIdent.ident
+        }
     require(identerFraRequest.all { requestIdent -> requestIdent in identerFraPdl }) {
         "Liste med personidentifikatorer i request inneholder identer for mer enn én person"
     }
@@ -472,7 +473,11 @@ fun hentMediumFraKelvin(
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.vedtakId.toString(),
                         dagsats = right?.verdi?.dagsats ?: 0,
-                        status = utledVedtakStatus(behandling.behandlingStatus, behandling.sak.status, periode),
+                        status = utledVedtakStatus(
+                            behandling.behandlingStatus,
+                            behandling.sak.status,
+                            periode
+                        ),
                         saksnummer = behandling.sak.saksnummer,
                         vedtaksdato = behandling.vedtaksDato,
                         vedtaksTypeKode = null,
