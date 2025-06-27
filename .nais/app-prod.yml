@@ -69,9 +69,6 @@ spec:
         - application: saas-proxy
           namespace: teamcrm
           cluster: prod-gcp
-        - application: modiapersonoversikt-api
-          namespace: personoversikt
-          cluster: prod-gcp
         - application: salesforce
           namespace: teamcrm
           cluster: prod-external
