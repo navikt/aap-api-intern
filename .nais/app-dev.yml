@@ -20,6 +20,11 @@ spec:
   azure:
     application:
       enabled: true
+      allowAllUsers: true
+      claims:
+        extra:
+          - NAVident
+          - azp_name
   gcp:
     sqlInstances:
       - type: POSTGRES_16
@@ -59,9 +64,6 @@ spec:
         - application: meldekort-backend
         - application: tilleggsstonader-integrasjoner
           namespace: tilleggsstonader
-          cluster: dev-gcp
-        - application: azure-token-generator
-          namespace: nais
           cluster: dev-gcp
         - application: arena
           namespace: teamarenanais
