@@ -74,9 +74,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
         val nyBehandlingId = connection.queryFirst(
             """
-                INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, TYPE, OPPRETTET_TID, BEHANDLING_REFERANSE,
+                INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, OPPRETTET_TID, BEHANDLING_REFERANSE,
                                         SAMID, VEDTAKID)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT (sak_id) DO UPDATE SET STATUS        = EXCLUDED.status,
                                                    vedtaks_dato  = excluded.vedtaks_dato,
                                                    OPPRETTET_TID = excluded.opprettet_tid
@@ -87,11 +87,10 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setLong(1, sakId)
                 setString(2, behandling.behandlingStatus.toString())
                 setLocalDate(3, behandling.vedtaksDato)
-                setString(4, "TYPE") // ????
-                setLocalDateTime(5, behandling.sak.opprettetTidspunkt)
-                setString(6, behandling.behandlingsReferanse)
-                setString(7, behandling.samId)
-                setLong(8, behandling.vedtakId)
+                setLocalDateTime(4, behandling.sak.opprettetTidspunkt)
+                setString(5, behandling.behandlingsReferanse)
+                setString(6, behandling.samId)
+                setLong(7, behandling.vedtakId)
             }
 
             setRowMapper { row ->
