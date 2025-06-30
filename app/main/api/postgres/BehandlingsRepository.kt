@@ -10,12 +10,15 @@ import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 
 class BehandlingsRepository(private val connection: DBConnection) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     fun lagreBehandling(behandling: DatadelingDTO) {
         val gammelSak = connection.queryFirstOrNull(
             """SELECT ID FROM SAK WHERE SAKSNUMMER = ?""".trimIndent()
@@ -27,6 +30,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 row.getLong("ID")
             }
         }
+
+        log.info("Lagrer behandling for sak: ${behandling.sak.saksnummer}, gammel sak id: $gammelSak")
 
         val sakId = gammelSak ?: connection.executeReturnKey(
             """
@@ -67,10 +72,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
-        val nyBehandlingId = connection.queryFirst<Long>(
+        val nyBehandlingId = connection.queryFirst(
             """
-                INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, TYPE, OPPRETTET_TID, BEHANDLING_REFERANSE, SAMID, VEDTAKID)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ? ) ON CONFLICT (sak_id) DO UPDATE SET STATUS = EXCLUDED.status, vedtaks_dato = excluded.vedtaks_dato, OPPRETTET_TID = excluded.opprettet_tid
+                INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, TYPE, OPPRETTET_TID, BEHANDLING_REFERANSE,
+                                        SAMID, VEDTAKID)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT (sak_id) DO UPDATE SET STATUS        = EXCLUDED.status,
+                                                   vedtaks_dato  = excluded.vedtaks_dato,
+                                                   OPPRETTET_TID = excluded.opprettet_tid
                 RETURNING ID
             """.trimIndent()
         ) {
@@ -78,7 +87,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setLong(1, sakId)
                 setString(2, behandling.behandlingStatus.toString())
                 setLocalDate(3, behandling.vedtaksDato)
-                setString(4, "TYPE")
+                setString(4, "TYPE") // ????
                 setLocalDateTime(5, behandling.sak.opprettetTidspunkt)
                 setString(6, behandling.behandlingsReferanse)
                 setString(7, behandling.samId)
@@ -153,7 +162,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
         connection.executeBatch(
             """
-                INSERT INTO TILKJENT_PERIODE (TILKJENT_YTELSE_ID, PERIODE, DAGSATS, GRADERING, GRUNNLAG, GRUNNLAGSFAKTOR, GRUNNBELOP, ANTALL_BARN, BARNETILLEGGSATS, BARNETILLEGG)
+                INSERT INTO TILKJENT_PERIODE (TILKJENT_YTELSE_ID, PERIODE, DAGSATS, GRADERING, GRUNNLAG,
+                                              GRUNNLAGSFAKTOR, GRUNNBELOP, ANTALL_BARN, BARNETILLEGGSATS,
+                                              BARNETILLEGG)
                 VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
             behandling.tilkjent
@@ -174,7 +185,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
     }
 
     fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
-        val kelvinData = hentVedtaksData(fnr)
+        val kelvinData = hentVedtaksData(fnr, interval)
         // TODO, flytt tidslinje ut av denne klassen, ikke gjør logikk i repository
         val vedtak = kelvinData.flatMap { behandling ->
             val rettighetsTypeTidslinje = Tidslinje(
@@ -288,8 +299,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
         return Maksimum(vedtak)
     }
 
-    fun hentVedtaksData(fnr: String): List<DatadelingDTO> {
-        val sakerIder = connection.queryList<Long>(
+    fun hentVedtaksData(fnr: String, periode: Periode): List<DatadelingDTO> {
+        val sakerIder = connection.queryList(
             """
                 SELECT SAK_ID FROM SAK_PERSON
                 WHERE PERSON_IDENT = ?
@@ -301,17 +312,18 @@ class BehandlingsRepository(private val connection: DBConnection) {
             setRowMapper { row ->
                 row.getLong("SAK_ID")
             }
-        }.toSet().toList()
+        }.toSet()
 
         val saker = sakerIder.mapNotNull {
             connection.queryFirstOrNull<SakDB>(
                 """
                     SELECT * FROM SAK
-                    WHERE ID = ?
+                    WHERE ID = ? AND RETTIGHETSPERIODE && ?::daterange
                 """.trimIndent()
             ) {
                 setParams {
                     setLong(1, it)
+                    setPeriode(2, periode)
                 }
                 setRowMapper { row ->
                     SakDB(
@@ -344,7 +356,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     tilkjent = hentTilkjentYtelse(behandling.id),
                     rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id),
                     samId = behandling.samid,
-                    vedtakId = behandling.vedtakId?: 0L,
+                    vedtakId = behandling.vedtakId ?: 0L,
                 )
             }
         }
@@ -386,12 +398,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
             setRowMapper { row ->
                 BehandlingDB(
                     id = row.getLong("ID"),
-                    behandlingStatus = no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.valueOf(
-                        row.getString("STATUS")
-                    ),
+                    behandlingStatus = row.getEnum("STATUS"),
                     vedtaksDato = row.getLocalDate("VEDTAKS_DATO"),
-                    type = row.getString("TYPE"),
-                    oppretterTidspunkt = row.getLocalDate("OPPRETTET_TID"),
+                    opprettetTidspunkt = row.getLocalDate("OPPRETTET_TID"),
                     behandlingReferanse = row.getString("BEHANDLING_REFERANSE"),
                     samid = row.getStringOrNull("SAMID"),
                     vedtakId = row.getLongOrNull("VEDTAKID")
@@ -466,8 +475,7 @@ data class BehandlingDB(
     val id: Long,
     val behandlingStatus: no.nav.aap.behandlingsflyt.kontrakt.behandling.Status,
     val vedtaksDato: LocalDate,
-    val type: String,
-    val oppretterTidspunkt: LocalDate,
+    val opprettetTidspunkt: LocalDate,
     val behandlingReferanse: String,
     val samid: String? = null,
     val vedtakId: Long? = null

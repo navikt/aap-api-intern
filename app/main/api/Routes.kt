@@ -88,7 +88,10 @@ fun NormalOpenAPIRoute.api(
                 val kelvinPerioder = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     val vedtaksdata =
-                        behandlingsRepository.hentVedtaksData(requestBody.personidentifikator)
+                        behandlingsRepository.hentVedtaksData(
+                            requestBody.personidentifikator,
+                            Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato)
+                        )
                     perioderMedAAp(
                         vedtaksdata
                     )
@@ -265,6 +268,7 @@ fun NormalOpenAPIRoute.api(
                     val behandlingsRepository = BehandlingsRepository(connection)
                     hentMediumFraKelvin(
                         requestBody.personidentifikator,
+                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato),
                         behandlingsRepository
                     ).vedtak
                 }
@@ -337,6 +341,7 @@ fun NormalOpenAPIRoute.api(
                     val behandlingsRepository = BehandlingsRepository(connection)
                     hentMediumFraKelvin(
                         requestBody.personidentifikator,
+                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato),
                         behandlingsRepository
                     ).vedtak
                 }
@@ -434,9 +439,10 @@ fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
 
 fun hentMediumFraKelvin(
     fnr: String,
+    periode: Periode,
     behandlingsRepository: BehandlingsRepository
 ): Medium {
-    val kelvinData = behandlingsRepository.hentVedtaksData(fnr)
+    val kelvinData = behandlingsRepository.hentVedtaksData(fnr, periode)
     val vedtak: List<VedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
         val rettighetsTypeTidslinje = Tidslinje(
             behandling.rettighetsTypeTidsLinje.map {
