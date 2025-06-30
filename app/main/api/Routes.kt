@@ -43,8 +43,8 @@ import javax.sql.DataSource
 private val logger = LoggerFactory.getLogger("App")
 
 data class CallIdHeader(
-    @HeaderParam("callId") val `Nav-CallId`: String? = null,
-    @HeaderParam("correlation id") val `X-Correlation-Id`: String? = null,
+    @param:HeaderParam("callId") val `Nav-CallId`: String? = null,
+    @param:HeaderParam("correlation id") val `X-Correlation-Id`: String? = null,
 ) {
     fun callId(): String? {
         val callId = listOfNotNull(`Nav-CallId`, `X-Correlation-Id`).firstOrNull()

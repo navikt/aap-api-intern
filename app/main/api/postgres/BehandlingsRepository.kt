@@ -508,7 +508,7 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
 data class VedtakUtenUtbetalingUtenPeriode(
     val vedtakId: String,
     val dagsats: Int,
-    @Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
+    @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
