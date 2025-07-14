@@ -2,7 +2,8 @@ package api
 
 import api.util.Fakes
 import api.util.port
-import no.nav.aap.ktor.client.auth.azure.AzureConfig
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import java.net.URI
 
 object TestConfig {
     internal val postgres = DbConfig(
@@ -11,7 +12,7 @@ object TestConfig {
         url = "jdbc:h2:mem:test_db;MODE=PostgreSQL",
     )
     val azure = AzureConfig(
-        tokenEndpoint = "http://localhost:${Fakes().azure.port()}/jwt",
+        tokenEndpoint = "http://localhost:${Fakes().azure.port()}/jwt".let(URI::create),
         clientId = "test",
         clientSecret = "test",
         jwksUri = "test",

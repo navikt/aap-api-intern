@@ -10,12 +10,10 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
-import io.ktor.utils.io.core.Closeable
 import io.prometheus.metrics.core.metrics.Summary
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
@@ -23,9 +21,6 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
-import no.nav.aap.ktor.client.auth.azure.AzureAdTokenProvider
-import no.nav.aap.ktor.client.auth.azure.AzureConfig
-import kotlin.io.use
 
 private const val ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME = "arenaoppslag_client_seconds"
 private val clientLatencyStats: Summary = Summary.builder()
@@ -42,9 +37,9 @@ private val objectMapper = jacksonObjectMapper()
 
 class ArenaoppslagRestClient(
     private val arenaoppslagConfig: ArenaoppslagConfig,
-    azureConfig: AzureConfig,
+    azureConfig: no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig,
 ) : IArenaoppslagRestClient {
-    private val tokenProvider = AzureAdTokenProvider(azureConfig)
+    private val tokenProvider = api.util.auth.AzureAdTokenProvider(azureConfig)
 
     override suspend fun hentPerioder(
         callId: String,

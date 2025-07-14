@@ -36,8 +36,6 @@ val kontraktVersjon = "0.0.25"
 
 dependencies {
     implementation(project(":kontrakt"))
-    implementation("com.github.navikt.aap-libs:ktor-auth:$aapLibVersion")
-
     implementation("org.flywaydb:flyway-core:11.10.2")
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
@@ -61,10 +59,7 @@ dependencies {
         implementation("io.netty:netty-common:4.2.2.Final")
     }
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
-    implementation("io.ktor:ktor-server-webjars:$ktorVersion")
     implementation("io.ktor:ktor-server-call-id:$ktorVersion")
-
-    implementation("io.ktor:ktor-server-swagger:$ktorVersion")
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
 
     implementation("io.ktor:ktor-client-auth:$ktorVersion")

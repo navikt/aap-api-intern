@@ -1,6 +1,8 @@
 package api
 
-import no.nav.aap.ktor.client.auth.azure.AzureConfig
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import java.net.URI
+
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
 
@@ -8,7 +10,7 @@ data class Config(
     val arenaoppslag: ArenaoppslagConfig = ArenaoppslagConfig(),
     val kelvinConfig: KelvinConfig = KelvinConfig(),
     val azure: AzureConfig = AzureConfig(
-        tokenEndpoint = getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT"),
+        tokenEndpoint = URI.create(getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT")),
         clientId = getEnvVar("AZURE_APP_CLIENT_ID"),
         clientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET"),
         jwksUri = getEnvVar("AZURE_OPENID_CONFIG_JWKS_URI"),
@@ -29,7 +31,6 @@ data class KelvinConfig(
 )
 
 class DbConfig(
-
     val url: String = getEnvVar("NAIS_DATABASE_API_INTERN_API_JDBC_URL"),
     val username: String = System.getenv("NAIS_DATABASE_API_INTERN_API_USERNAME"),
     val password: String = System.getenv("NAIS_DATABASE_API_INTERN_API_PASSWORD")
