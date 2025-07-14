@@ -58,6 +58,7 @@ spec:
           namespace: tilleggsstonader
           cluster: prod-gcp
         - application: postmottak-backend
+        - application: innsyn
         - application: arena
           namespace: teamarenanais
           cluster: prod-fss

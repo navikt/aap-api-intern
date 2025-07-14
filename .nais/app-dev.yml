@@ -57,6 +57,7 @@ spec:
       rules:
         - application: postmottak-backend
         - application: meldekort-backend
+        - application: innsyn
         - application: tilleggsstonader-integrasjoner
           namespace: tilleggsstonader
           cluster: dev-gcp
