@@ -6,6 +6,7 @@ import api.kelvin.dataInsertion
 import api.pdl.IPdlClient
 import api.pdl.PdlClient
 import api.postgres.initDatasource
+import api.util.registerCircuitBreakerMetrics
 import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
@@ -52,7 +53,9 @@ fun Application.api(
     arenaRestClient: IArenaoppslagRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure),
     pdlClient: IPdlClient = PdlClient(),
 ) {
+
     Migrering.migrate(datasource)
+    registerCircuitBreakerMetrics(prometheus)
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
