@@ -16,6 +16,7 @@ val ktorVersion = "3.2.3"
 val tilgangVersjon = "1.0.121"
 val behandlingsflytversjon = "0.0.423"
 val kontraktVersjon = "0.0.26"
+val resilience4jVersion = "2.3.0"
 
 dependencies {
     implementation(project(":kontrakt"))
@@ -59,6 +60,10 @@ dependencies {
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.4.1")
 
     implementation("com.zaxxer:HikariCP:7.0.2")
+
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:${resilience4jVersion}")
+    implementation("io.github.resilience4j:resilience4j-kotlin:${resilience4jVersion}")
+    implementation("io.github.resilience4j:resilience4j-micrometer:${resilience4jVersion}")
 
     implementation("no.nav:ktor-openapi-generator:1.0.123")
 
