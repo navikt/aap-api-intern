@@ -25,6 +25,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.api.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.auth.audience
@@ -322,8 +323,8 @@ fun NormalOpenAPIRoute.api(
                 )
             }
         }
-        route("/kelvin/maksimumUtenUtbetaling") {
-            post<CallIdHeader, Medium, InternVedtakRequest>(
+        route("/kelvin/") {
+            route("maksimumUtenUtbetaling").post<CallIdHeader, Medium, InternVedtakRequest>(
                 info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum uten utbetalinger fra kelvin")
@@ -354,6 +355,31 @@ fun NormalOpenAPIRoute.api(
                         kelvinSaker
                     )
                 )
+            }
+
+            route("behandling").post<CallIdHeader, List<DatadelingDTO>, InternVedtakRequest>(
+                info(description = "Henter ut behandlings data for en person innen gitte datointerval uten behandling av datasett")
+            ){callIdHeader, requestBody ->
+                logger.info("Henter data for behandling uten formatering av datasett")
+                httpCallCounter.httpCallCounter(
+                    "/kelvin/behandling",
+                    pipeline.call.audience(),
+                    azpName() ?: ""
+                ).increment()
+
+                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
+                    respondWithStatus(HttpStatusCode.Forbidden)
+                }
+
+                val kelvinSaker = dataSource.transaction { connection ->
+                    val behandlingsRepository = BehandlingsRepository(connection)
+                    behandlingsRepository.hentVedtaksData(
+                        requestBody.personidentifikator,
+                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato)
+                    )
+                }
+
+                respond(kelvinSaker)
             }
         }
     }
