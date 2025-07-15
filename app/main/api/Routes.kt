@@ -358,7 +358,7 @@ fun NormalOpenAPIRoute.api(
             }
 
             route("behandling").post<CallIdHeader, List<DatadelingDTO>, InternVedtakRequest>(
-                info(description = "Henter ut behandlings data for en person innen gitte datointerval uten behandling av datasett")
+                info(description = "Henter ut behandlings data for en person innen gitte datointerval uten behandling av datasett", deprecated = true)
             ){callIdHeader, requestBody ->
                 logger.info("Henter data for behandling uten formatering av datasett")
                 httpCallCounter.httpCallCounter(
