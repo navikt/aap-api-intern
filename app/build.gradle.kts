@@ -36,7 +36,7 @@ val kontraktVersjon = "0.0.25"
 
 dependencies {
     implementation(project(":kontrakt"))
-    implementation("org.flywaydb:flyway-core:11.10.2")
+    implementation("org.flywaydb:flyway-core:11.10.3")
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")

@@ -21,7 +21,7 @@ repositories {
     }
 }
 dependencies {
-    implementation("org.flywaydb:flyway-core:11.10.2")
+    implementation("org.flywaydb:flyway-core:11.10.3")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.0")
 }
 
