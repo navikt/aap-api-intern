@@ -31,7 +31,7 @@ val aapLibVersion = "5.0.103"
 val komponenterVersjon = "1.0.290"
 val ktorVersion = "3.2.2"
 val tilgangVersjon = "1.0.97"
-val behandlingsflytversjon = "0.0.329"
+val behandlingsflytversjon = "0.0.384"
 val kontraktVersjon = "0.0.25"
 
 dependencies {
