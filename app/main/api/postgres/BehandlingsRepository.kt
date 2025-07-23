@@ -163,8 +163,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
             """
                 INSERT INTO TILKJENT_PERIODE (TILKJENT_YTELSE_ID, PERIODE, DAGSATS, GRADERING, GRUNNLAG,
                                               GRUNNLAGSFAKTOR, GRUNNBELOP, ANTALL_BARN, BARNETILLEGGSATS,
-                                              BARNETILLEGG)
-                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?)
+                                              BARNETILLEGG, UFOREGRADERING)
+                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
             behandling.tilkjent
         ) {
@@ -179,6 +179,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setInt(8, it.antallBarn)
                 setBigDecimal(9, it.barnetilleggsats)
                 setBigDecimal(10, it.barnetillegg)
+                setInt(11, it.samordningUføregradering)
             }
         }
     }
@@ -208,7 +209,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             it.grunnbeløp,
                             it.antallBarn,
                             it.barnetilleggsats,
-                            it.barnetillegg
+                            it.barnetillegg,
+                            it.samordningUføregradering
                         )
                     )
                 }
@@ -456,7 +458,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     grunnbeløp = it.getBigDecimal("GRUNNBELOP"),
                     antallBarn = it.getInt("ANTALL_BARN"),
                     barnetilleggsats = it.getBigDecimal("BARNETILLEGGSATS"),
-                    barnetillegg = it.getBigDecimal("BARNETILLEGG")
+                    barnetillegg = it.getBigDecimal("BARNETILLEGG"),
+                    samordningUføregradering = 100-(it.getIntOrNull("UFOREGRADERING") ?: 0)
                 )
             }
         }
@@ -489,6 +492,7 @@ data class TilkjentDB(
     val antallBarn: Int,
     val barnetilleggsats: BigDecimal,
     val barnetillegg: BigDecimal,
+    val uføregrad: Int? = 0,
 )
 
 fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
