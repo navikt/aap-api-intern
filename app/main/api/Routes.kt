@@ -250,7 +250,7 @@ fun NormalOpenAPIRoute.api(
     tag(Tag.Maksimum) {
         route("/maksimumUtenUtbetaling") {
             post<CallIdHeader, Medium, InternVedtakRequest>(
-                info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval")
+                info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval. dagsatsEtterUføreReduksjon er kun tilgjenelig fra kelvin")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum uten utbetalinger")
                 httpCallCounter.httpCallCounter(
@@ -290,7 +290,7 @@ fun NormalOpenAPIRoute.api(
         }
         route("/maksimum") {
             post<CallIdHeader, Maksimum, InternVedtakRequest>(
-                info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
+                info(description = "Henter maksimumsløsning for en person innen gitte datointerval. dagsatsEtterUføreReduksjon er kun tilgjenelig fra kelvin")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
                 httpCallCounter.httpCallCounter(
