@@ -54,6 +54,8 @@ class VedtakService(
                         VedtakUtenUtbetalingUtenPeriode(
                             vedtakId = behandling.vedtakId.toString(),
                             dagsats = right?.verdi?.dagsats ?: 0,
+                            dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times((100 - (right.verdi.uføregrad ?: 0)) / 100)
+                                ?: 0,
                             status = utledVedtakStatus(
                                 behandling.behandlingStatus,
                                 behandling.sak.status,
@@ -66,7 +68,7 @@ class VedtakService(
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
                             kildesystem = Kilde.KELVIN.toString(),
                             samordningsId = behandling.samId,
-                            opphorsAarsak = null
+                            opphorsAarsak = null,
                         )
                     )
                 }
@@ -82,6 +84,7 @@ class VedtakService(
                         Vedtak(
                             vedtakId = left.verdi.vedtakId,
                             dagsats = left.verdi.dagsats,
+                            dagsatsEtterUføreReduksjon = left.verdi.dagsatsEtterUføreReduksjon,
                             status = left.verdi.status,
                             saksnummer = left.verdi.saksnummer,
                             vedtaksdato = left.verdi.vedtaksdato,

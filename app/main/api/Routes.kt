@@ -186,14 +186,14 @@ fun NormalOpenAPIRoute.api(
             sjekkTilgangTilPerson(requestBody.personidentifikatorer)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
-            val kelvinSaker: List<no.nav.aap.api.intern.SakStatus> =
+            val kelvinSaker: List<SakStatus> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
                     personIdenter.flatMap {
                         sakStatusRepository.hentSakStatus(it)
                     }
                 }
-            val arenaSaker: List<no.nav.aap.api.intern.SakStatus> =
+            val arenaSaker: List<SakStatus> =
                 arena.hentSakerByFnr(callId, SakerRequest(personIdenter)).map {
                     arenaSakStatusTilDomene(it)
                 }
@@ -232,7 +232,7 @@ fun NormalOpenAPIRoute.api(
             }
         }
 
-        route("/kelvin/sakerByFnr").post<CallIdHeader, List<no.nav.aap.api.intern.SakStatus>, SakerRequest>(
+        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { _, requestBody ->
             logger.info("Henter saker for en person fra kelvin")
@@ -245,7 +245,7 @@ fun NormalOpenAPIRoute.api(
             sjekkTilgangTilPerson(requestBody.personidentifikatorer)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
-            val kelvinSaker: List<no.nav.aap.api.intern.SakStatus> =
+            val kelvinSaker: List<SakStatus> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
                     personIdenter.flatMap {
@@ -366,7 +366,7 @@ fun NormalOpenAPIRoute.api(
                 respond(Medium(kelvinSaker))
             }
 
-            route("behandling").post<CallIdHeader, List<api.postgres.DatadelingDTO>, InternVedtakRequest>(
+            route("behandling").post<CallIdHeader, List<DatadelingDTO>, InternVedtakRequest>(
                 info(
                     description = "Henter ut behandlingsdata for en person innen gitte datointerval uten behandling av datasett",
                     deprecated = true
@@ -434,7 +434,7 @@ private fun harTilgangTilPerson(personIdent: String, token: OidcToken): Boolean 
 }
 
 private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus) =
-    no.nav.aap.api.intern.SakStatus(
+    SakStatus(
         sakId = it.sakId,
         statusKode = when (it.statusKode) {
             no.nav.aap.arenaoppslag.kontrakt.intern.Status.AVSLU -> no.nav.aap.api.intern.Status.AVSLU
@@ -527,7 +527,8 @@ fun hentMediumFraKelvin(
                         it.grunnbeløp,
                         it.antallBarn,
                         it.barnetilleggsats,
-                        it.barnetillegg
+                        it.barnetillegg,
+                        it.samordningUføregradering
                     )
                 )
             }
@@ -541,6 +542,8 @@ fun hentMediumFraKelvin(
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.vedtakId.toString(),
                         dagsats = right?.verdi?.dagsats ?: 0,
+                        dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times((100 - (right.verdi.uføregrad ?: 0)) / 100)
+                            ?: 0,
                         status = utledVedtakStatus(
                             behandling.behandlingStatus,
                             behandling.sak.status,

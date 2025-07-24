@@ -2,6 +2,7 @@
   "vedtak": [
     {
       "dagsats": 1022,
+      "dagsatsEtterUføreReduksjon": 0,
       "vedtakId": "3",
       "status": "LØPENDE",
       "saksnummer": "4LDSUJK",
