@@ -17,6 +17,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum.fraKontrakt(): Maksimum {
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
     return Vedtak(
         this.dagsats,
+        null,
         this.vedtaksId,
         this.status,
         this.saksnummer,
@@ -34,6 +35,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling(): VedtakUtenUtbetaling {
     return VedtakUtenUtbetaling(
         this.dagsats,
+        null,
         this.vedtaksId,
         this.status,
         this.saksnummer,
