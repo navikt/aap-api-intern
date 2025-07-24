@@ -224,6 +224,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         VedtakUtenUtbetalingUtenPeriode(
                             vedtakId = behandling.vedtakId.toString(),
                             dagsats = right?.verdi?.dagsats ?: 0,
+                            dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times((100 - (right.verdi.uføregrad ?: 0)) / 100)?.toInt() ?: 0,
                             status = utledVedtakStatus(
                                 behandling.behandlingStatus,
                                 behandling.sak.status,
@@ -254,6 +255,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         Vedtak(
                             vedtakId = left.verdi.vedtakId,
                             dagsats = left.verdi.dagsats,
+                            dagsatsEtterUføreReduksjon = left.verdi.dagsatsEtterUføreReduksjon,
                             status = left.verdi.status,
                             saksnummer = left.verdi.saksnummer,
                             vedtaksdato = left.verdi.vedtaksdato,
@@ -512,6 +514,7 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
 data class VedtakUtenUtbetalingUtenPeriode(
     val vedtakId: String,
     val dagsats: Int,
+    val dagsatsEtterUføreReduksjon: Int,
     @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
@@ -529,6 +532,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
         return VedtakUtenUtbetaling(
             vedtakId = this.vedtakId,
             dagsats = this.dagsats,
+            dagsatsEtterUføreReduksjon = this.dagsatsEtterUføreReduksjon,
             status = this.status,
             saksnummer = this.saksnummer,
             vedtaksdato = this.vedtaksdato,
