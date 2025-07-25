@@ -76,7 +76,7 @@ dependencies {
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.3.10")
 
-    implementation("com.zaxxer:HikariCP:6.3.0")
+    implementation("com.zaxxer:HikariCP:6.3.2")
 
     implementation("no.nav:ktor-openapi-generator:1.0.118")
 
