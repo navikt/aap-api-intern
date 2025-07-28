@@ -32,7 +32,8 @@ import javax.sql.DataSource
 private val logger = LoggerFactory.getLogger("App")
 
 fun main() {
-    Thread.currentThread().setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil", e) }
+    Thread.currentThread()
+        .setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.cause}", e) }
     embeddedServer(Netty, port = 8080, module = Application::api).start(wait = true)
 }
 
@@ -49,15 +50,25 @@ fun Application.api(
     prometheus: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
     config: Config = Config(),
     datasource: DataSource = initDatasource(config.dbConfig, prometheus),
-    arenaRestClient: IArenaoppslagRestClient = ArenaoppslagRestClient(config.arenaoppslag, config.azure),
+    arenaRestClient: IArenaoppslagRestClient = ArenaoppslagRestClient(
+        config.arenaoppslag,
+        config.azure
+    ),
     pdlClient: IPdlClient = PdlClient(),
 ) {
     Migrering.migrate(datasource)
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            logger.error("Uhåndtert feil ved kall til '{}'", call.request.local.uri, cause)
-            call.respondText(text = "Feil i tjeneste: ${cause.message}", status = HttpStatusCode.InternalServerError)
+            logger.error(
+                "Uhåndtert feil ved kall til '{}'. Type: $cause",
+                call.request.local.uri,
+                cause
+            )
+            call.respondText(
+                text = "Feil i tjeneste: ${cause.message}",
+                status = HttpStatusCode.InternalServerError
+            )
         }
     }
 
