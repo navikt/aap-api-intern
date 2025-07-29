@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.util.*
 import javax.sql.DataSource
+import kotlin.time.times
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -249,7 +250,7 @@ fun NormalOpenAPIRoute.api(
     tag(Tag.Maksimum) {
         route("/maksimumUtenUtbetaling") {
             post<CallIdHeader, Medium, InternVedtakRequest>(
-                info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval")
+                info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval. dagsatsEtterUføreReduksjon er kun tilgjenelig fra kelvin")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum uten utbetalinger")
                 httpCallCounter.httpCallCounter(
@@ -289,7 +290,7 @@ fun NormalOpenAPIRoute.api(
         }
         route("/maksimum") {
             post<CallIdHeader, Maksimum, InternVedtakRequest>(
-                info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
+                info(description = "Henter maksimumsløsning for en person innen gitte datointerval. dagsatsEtterUføreReduksjon er kun tilgjenelig fra kelvin")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
                 httpCallCounter.httpCallCounter(
@@ -491,7 +492,8 @@ fun hentMediumFraKelvin(
                         it.grunnbeløp,
                         it.antallBarn,
                         it.barnetilleggsats,
-                        it.barnetillegg
+                        it.barnetillegg,
+                        it.samordningUføregradering
                     )
                 )
             }
@@ -505,6 +507,7 @@ fun hentMediumFraKelvin(
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.vedtakId.toString(),
                         dagsats = right?.verdi?.dagsats ?: 0,
+                        dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times((100 - (right.verdi.uføregrad ?: 0)) / 100)?.toInt() ?: 0,
                         status = utledVedtakStatus(
                             behandling.behandlingStatus,
                             behandling.sak.status,
