@@ -512,8 +512,6 @@ fun hentMediumFraKelvin(
                         ),
                         saksnummer = behandling.sak.saksnummer,
                         vedtaksdato = behandling.vedtaksDato,
-                        vedtaksTypeKode = null,
-                        vedtaksTypeNavn = null,
                         rettighetsType = left.verdi,
                         beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?.times(260) ?: 0,
                         barnMedStonad = right?.verdi?.antallBarn ?: 0,

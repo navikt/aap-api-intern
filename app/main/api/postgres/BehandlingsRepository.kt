@@ -231,8 +231,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             ),
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
-                            vedtaksTypeKode = null,
-                            vedtaksTypeNavn = null,
                             rettighetsType = left.verdi,
                             beregningsgrunnlag = right?.verdi?.grunnlag?.toInt() ?: 0,
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
@@ -262,8 +260,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                             // TODO: bør bruke felles logikk her
                             beregningsgrunnlag = left.verdi.beregningsgrunnlag * 260, //GANGER MED 260 FOR Å FÅ ÅRLIG SUM
                             barnMedStonad = left.verdi.barnMedStonad,
-                            vedtaksTypeKode = left.verdi.vedtaksTypeKode,
-                            vedtaksTypeNavn = left.verdi.vedtaksTypeNavn,
+                            vedtaksTypeKode = null,
+                            vedtaksTypeNavn = null,
                             utbetaling = right?.verdi?.filter {
                                 it.periode.tom.isBefore(LocalDate.now()) || it.periode.tom.isEqual(
                                     LocalDate.now()
@@ -516,11 +514,11 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
-    val vedtaksTypeKode: String?,
-    val vedtaksTypeNavn: String?,
+    @param:Description("Rettighetsgruppe. For data fra Arena er dette aktivitetsfasekode.")
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
+    @param:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
     val kildesystem: String = "ARENA",
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
@@ -532,8 +530,8 @@ data class VedtakUtenUtbetalingUtenPeriode(
             status = this.status,
             saksnummer = this.saksnummer,
             vedtaksdato = this.vedtaksdato,
-            vedtaksTypeKode = this.vedtaksTypeKode,
-            vedtaksTypeNavn = this.vedtaksTypeNavn,
+            vedtaksTypeKode = null,
+            vedtaksTypeNavn = null,
             periode = periode,
             rettighetsType = this.rettighetsType,
             beregningsgrunnlag = this.beregningsgrunnlag,
