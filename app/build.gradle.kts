@@ -33,6 +33,7 @@ val ktorVersion = "3.2.3"
 val tilgangVersjon = "1.0.98"
 val behandlingsflytversjon = "0.0.398"
 val kontraktVersjon = "0.0.25"
+val resilience4jVersion = "2.3.0"
 
 dependencies {
     implementation(project(":kontrakt"))
@@ -79,6 +80,11 @@ dependencies {
     implementation("com.zaxxer:HikariCP:7.0.1")
 
     implementation("no.nav:ktor-openapi-generator:1.0.118")
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:$resilience4jVersion")
+    implementation("io.github.resilience4j:resilience4j-kotlin:$resilience4jVersion")
+    implementation("io.github.resilience4j:resilience4j-micrometer:$resilience4jVersion")
+
+    implementation("no.nav:ktor-openapi-generator:1.0.117")
 
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
