@@ -298,6 +298,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
         return Maksimum(vedtak)
     }
 
+    // TODO: ikke returner DTO fra behandlingsflyt her, heller dupliser i kode her
+    // Kommer til å bli kronglete ved modellendringer
     fun hentVedtaksData(fnr: String, periode: Periode): List<DatadelingDTO> {
         val sakerIder = connection.queryList(
             """
@@ -457,7 +459,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     antallBarn = it.getInt("ANTALL_BARN"),
                     barnetilleggsats = it.getBigDecimal("BARNETILLEGGSATS"),
                     barnetillegg = it.getBigDecimal("BARNETILLEGG"),
-                    samordningUføregradering = 100-(it.getIntOrNull("UFOREGRADERING") ?: 0)
+                    samordningUføregradering = 100 - (it.getIntOrNull("UFOREGRADERING") ?: 0)
                 )
             }
         }
