@@ -307,7 +307,7 @@ fun NormalOpenAPIRoute.api(
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentMaksimum(
+                    VedtakService(behandlingsRepository).hentMaksimum(
                         requestBody.personidentifikator,
                         Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato)
                     ).vedtak
@@ -358,8 +358,11 @@ fun NormalOpenAPIRoute.api(
             }
 
             route("behandling").post<CallIdHeader, List<DatadelingDTO>, InternVedtakRequest>(
-                info(description = "Henter ut behandlings data for en person innen gitte datointerval uten behandling av datasett", deprecated = true)
-            ){callIdHeader, requestBody ->
+                info(
+                    description = "Henter ut behandlingsdata for en person innen gitte datointerval uten behandling av datasett",
+                    deprecated = true
+                )
+            ) { callIdHeader, requestBody ->
                 logger.info("Henter data for behandling uten formatering av datasett \n---- UNDER UTVIKLING ----")
                 httpCallCounter.httpCallCounter(
                     "/kelvin/behandling",
