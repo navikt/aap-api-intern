@@ -47,6 +47,12 @@ fun PrometheusMeterRegistry.httpCallCounter(
     listOf(Tag.of("path", path), Tag.of("audience", audience), Tag.of("azp_name", azpName))
 )
 
+fun PrometheusMeterRegistry.kildesystemTeller(kildesystem: String, path: String): Counter =
+    this.counter(
+        "api_intern_kildesystem",
+        listOf(Tag.of("kildesystem", kildesystem), Tag.of("path", path))
+    )
+
 fun Application.api(
     prometheus: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
     config: Config = Config(),

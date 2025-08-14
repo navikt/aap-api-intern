@@ -63,7 +63,7 @@ enum class Tag(override val description: String) : APITag {
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arena: IArenaoppslagRestClient,
-    httpCallCounter: PrometheusMeterRegistry,
+    prometheus: PrometheusMeterRegistry,
     pdlClient: IPdlClient,
     nå: LocalDate = LocalDate.now(),
 ) {
@@ -74,7 +74,7 @@ fun NormalOpenAPIRoute.api(
             ) { callIdHeader, requestBody ->
                 logger.info("Henter perioder")
                 val azpName = azpName()
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/perioder",
                     pipeline.call.audience(),
                     azpName ?: ""
@@ -96,20 +96,25 @@ fun NormalOpenAPIRoute.api(
                         vedtaksdata
                     )
                 }
+
+                val arenaPerioder = arena.hentPerioder(
+                    callId,
+                    requestBody
+                ).perioder
+
+                prometheus.tellKildesystem(kelvinPerioder, arenaPerioder, "/perioder")
+
                 respond(
                     PerioderResponse(
-                        arena.hentPerioder(
-                            callId,
-                            requestBody
-                        ).perioder + kelvinPerioder
+                        arenaPerioder + kelvinPerioder
                     )
                 )
             }
 
             route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequest>(
-                info(description = "Henter perioder med vedtak (inkl. aktivitetsfase) for en person innen gitte datointerval")
+                info(description = "Henter perioder med vedtak fra Arena (inkl. aktivitetsfase) for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/perioder/aktivitetfase",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -122,6 +127,12 @@ fun NormalOpenAPIRoute.api(
                 sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val arenaSvar = arena.hentPerioderInkludert11_17(callId, requestBody)
+
+                prometheus.tellKildesystem(
+                    null,
+                    arenaSvar.perioder,
+                    "/perioder/aktivitetfase"
+                )
 
                 respond(
                     PerioderInkludert11_17Response(
@@ -150,6 +161,9 @@ fun NormalOpenAPIRoute.api(
                     val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
                     meldekortPerioderRepository.hentMeldekortPerioder(requestBody.personidentifikator)
                 }.filter { it.tom > requestBody.fraOgMedDato && it.fom < requestBody.tilOgMedDato }
+
+                prometheus.tellKildesystem(perioder, null, "/perioder/meldekort")
+
                 respond(perioder, HttpStatusCode.OK)
             }
         }
@@ -160,8 +174,7 @@ fun NormalOpenAPIRoute.api(
         route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { callIdHeader, requestBody ->
-            logger.info("Henter saker for en person")
-            httpCallCounter.httpCallCounter(
+            prometheus.httpCallCounter(
                 "/sakerByFnr",
                 pipeline.call.audience(),
                 azpName() ?: ""
@@ -183,6 +196,9 @@ fun NormalOpenAPIRoute.api(
             val arenaSaker = arena.hentSakerByFnr(callId, SakerRequest(personIdenter)).map {
                 arenaSakStatusTilDomene(it)
             }
+
+            prometheus.tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
+
             respond(arenaSaker + kelvinSaker)
         }
 
@@ -191,7 +207,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Sjekker om en person eksisterer i AAP-arena")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om person eksisterer i aap-arena")
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/arena/person/aap/eksisterer",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -219,7 +235,7 @@ fun NormalOpenAPIRoute.api(
             info(description = "Henter saker for en person")
         ) { _, requestBody ->
             logger.info("Henter saker for en person fra kelvin")
-            httpCallCounter.httpCallCounter(
+            prometheus.httpCallCounter(
                 "/kelvin/sakerByFnr",
                 pipeline.call.audience(),
                 azpName() ?: ""
@@ -234,6 +250,7 @@ fun NormalOpenAPIRoute.api(
                     sakStatusRepository.hentSakStatus(it)
                 }
             }
+            prometheus.tellKildesystem(kelvinSaker, null, "/kelvin/sakerByFnr")
             respond(kelvinSaker)
         }
     }
@@ -243,14 +260,13 @@ fun NormalOpenAPIRoute.api(
             post<CallIdHeader, Medium, InternVedtakRequest>(
                 info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
-                logger.info("Henter maksimum uten utbetalinger")
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/maksimumUtenUtbetaling",
                     pipeline.call.audience(),
                     azpName() ?: ""
                 ).increment()
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
-                    logger.info("CallID ble ikke gitt på kall mot: /maksimum")
+                    logger.info("CallID ble ikke gitt på kall mot: /maksimumUtenUtbetaling")
                 }
 
                 sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
@@ -267,14 +283,15 @@ fun NormalOpenAPIRoute.api(
                     HttpHeaders.ContentType,
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
-                respond(
-                    Medium(
-                        arena.hentMaksimum(
-                            callId,
-                            requestBody
-                        ).vedtak.map { it.fraKontraktUtenUtbetaling() } + kelvinSaker
-                    )
-                )
+
+                val arenaRespons = arena.hentMaksimum(
+                    callId,
+                    requestBody
+                ).vedtak.map { it.fraKontraktUtenUtbetaling() }
+
+                prometheus.tellKildesystem(kelvinSaker, arenaRespons, "/maksimumUtenUtbetaling")
+
+                respond(Medium(arenaRespons + kelvinSaker))
             }
         }
         route("/maksimum") {
@@ -282,7 +299,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/maksimum",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -300,13 +317,18 @@ fun NormalOpenAPIRoute.api(
                         Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato),
                     ).vedtak
                 }
+                val arenaVedtak = arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak
+
+                prometheus.tellKildesystem(kelvinSaker, arenaVedtak, "/maksimum")
+
                 pipeline.call.response.headers.append(
                     HttpHeaders.ContentType,
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
+
                 respond(
                     Maksimum(
-                        arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvinSaker
+                        arenaVedtak + kelvinSaker
                     )
                 )
             }
@@ -316,7 +338,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval")
             ) { _, requestBody ->
                 logger.info("Henter maksimum uten utbetalinger fra kelvin")
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/kelvin/maksimumUtenUtbetaling",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -336,11 +358,10 @@ fun NormalOpenAPIRoute.api(
                     HttpHeaders.ContentType,
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
-                respond(
-                    Medium(
-                        kelvinSaker
-                    )
-                )
+
+                prometheus.tellKildesystem(kelvinSaker, null, "/kelvin/maksimumUtenUtbetaling")
+
+                respond(Medium(kelvinSaker))
             }
 
             route("behandling").post<CallIdHeader, List<DatadelingDTO>, InternVedtakRequest>(
@@ -349,8 +370,7 @@ fun NormalOpenAPIRoute.api(
                     deprecated = true
                 )
             ) { _, requestBody ->
-                logger.info("Henter data for behandling uten formatering av datasett \n---- UNDER UTVIKLING ----")
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/kelvin/behandling",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -366,9 +386,29 @@ fun NormalOpenAPIRoute.api(
                     )
                 }
 
+                prometheus.tellKildesystem(kelvinSaker, null, "/kelvin/behandling")
+
                 respond(kelvinSaker)
             }
         }
+    }
+}
+
+private fun PrometheusMeterRegistry.tellKildesystem(
+    kelvinData: List<*>?,
+    arenaData: List<*>?,
+    path: String
+) {
+    if (kelvinData.isNullOrEmpty()) {
+        this.kildesystemTeller("kelvin", path).increment()
+    }
+
+    if (arenaData.isNullOrEmpty()) {
+        this.kildesystemTeller("arena", path).increment()
+    }
+
+    if (arenaData?.isNotEmpty() == true && kelvinData?.isNotEmpty() == true) {
+        logger.error("Fant data på person i både Kelvin og Arena.")
     }
 }
 
