@@ -399,11 +399,11 @@ private fun PrometheusMeterRegistry.tellKildesystem(
     arenaData: List<*>?,
     path: String
 ) {
-    if (kelvinData.isNullOrEmpty()) {
+    if (!kelvinData.isNullOrEmpty()) {
         this.kildesystemTeller("kelvin", path).increment()
     }
 
-    if (arenaData.isNullOrEmpty()) {
+    if (!arenaData.isNullOrEmpty()) {
         this.kildesystemTeller("arena", path).increment()
     }
 
