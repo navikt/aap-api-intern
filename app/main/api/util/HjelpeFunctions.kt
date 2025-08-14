@@ -75,6 +75,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.UtbetalingMedMer.fraKontrakt(): Ut
         this.periode.fraKontrakt(),
         this.belop,
         this.dagsats,
+        this.barnetillegg,
         this.barnetillegg
     )
 }

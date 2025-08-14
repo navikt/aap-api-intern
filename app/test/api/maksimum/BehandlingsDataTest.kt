@@ -9,27 +9,25 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
-import no.nav.aap.api.intern.Maksimum
-import no.nav.aap.api.intern.Medium
-import no.nav.aap.api.intern.PerioderResponse
+import no.nav.aap.api.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.Random
-import java.util.UUID
+import java.util.*
 import kotlin.test.assertEquals
 
 val testObject = DatadelingDTO(
@@ -425,6 +423,60 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
             ),
             result
         )
+    }
+
+    @Test
+    fun `ekte data kopiert fra behandlingsflyt, snapshot-test`() {
+        // Oppdater json-filene ved endring
+        val config = TestConfig.default(fakes)
+        val azure = AzureTokenGen("test", "test")
+
+        val testfil =
+            javaClass.getResource("/forstegangsvedtak_fra_behandlingsflyt.json")!!.readText()
+        val testData = DefaultJsonMapper.fromJson<DatadelingDTO>(testfil)
+
+
+        testApplication {
+            application {
+                api(
+                    config = config,
+                    datasource = dataSource,
+                    arenaRestClient = ArenaClient(),
+                    // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
+                    nå = LocalDate.of(2025, 12, 13)
+                )
+            }
+
+            jsonHttpClient.post("/api/insert/vedtak") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    testData
+                )
+            }
+
+            val maksimumRespons = jsonHttpClient.post("/maksimum") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    InternVedtakRequest(
+                        "01410038710",
+                        LocalDate.now().minusYears(10),
+                        LocalDate.now().plusYears(10)
+                    )
+                )
+            }
+            assertThat(maksimumRespons.status).isEqualTo(HttpStatusCode.OK)
+
+            val uthentetFraApi = maksimumRespons.body<Maksimum>()
+            assertThat(uthentetFraApi.vedtak).hasSize(1)
+
+            val forventetResultatFraResources =
+                javaClass.getResource("/forstegangsvedtak_fra_api.json")!!.readText()
+            val forventet = DefaultJsonMapper.fromJson<Maksimum>(forventetResultatFraResources)
+
+            assertThat(uthentetFraApi).isEqualTo(forventet)
+        }
     }
 
 

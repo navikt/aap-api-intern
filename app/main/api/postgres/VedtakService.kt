@@ -12,10 +12,12 @@ import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import java.time.LocalDate
 
-class VedtakService(private val repo: BehandlingsRepository) {
+class VedtakService(
+    private val behandlingsRepository: BehandlingsRepository,
+    private val nå: LocalDate = LocalDate.now()
+) {
     fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
-        val kelvinData = repo.hentVedtaksData(fnr, interval)
-        // TODO, flytt tidslinje ut av denne klassen, ikke gjør logikk i repository
+        val kelvinData = behandlingsRepository.hentVedtaksData(fnr, interval)
         val vedtak = kelvinData.flatMap { behandling ->
             val rettighetsTypeTidslinje = Tidslinje(
                 behandling.rettighetsTypeTidsLinje.map {
@@ -92,9 +94,7 @@ class VedtakService(private val repo: BehandlingsRepository) {
                             vedtaksTypeKode = null,
                             vedtaksTypeNavn = null,
                             utbetaling = right?.verdi?.filter {
-                                it.periode.tom.isBefore(LocalDate.now()) || it.periode.tom.isEqual(
-                                    LocalDate.now()
-                                )
+                                it.periode.tom.isBefore(nå) || it.periode.tom.isEqual(nå)
                             }?.map { utbetaling ->
                                 UtbetalingMedMer(
                                     reduksjon = null,
@@ -109,7 +109,8 @@ class VedtakService(private val repo: BehandlingsRepository) {
                                         utbetaling.periode.tom
                                     ),
                                     dagsats = utbetaling.verdi.dagsats * utbetaling.verdi.gradering / 100,
-                                    barnetilegg = utbetaling.verdi.barnetillegg.toInt()
+                                    barnetilegg = utbetaling.verdi.barnetillegg.toInt(),
+                                    barnetillegg = utbetaling.verdi.barnetillegg.toInt(),
                                 )
                             } ?: emptyList(),
                             kildesystem = Kilde.valueOf(left.verdi.kildesystem),

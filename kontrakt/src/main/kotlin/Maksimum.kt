@@ -28,12 +28,6 @@ data class Vedtak(
     val utbetaling: List<UtbetalingMedMer>,
 )
 
-enum class VedtakStatus {
-    AVSLUTTET,
-    LØPENDE,
-    UTREDES
-}
-
 data class VedtakUtenUtbetaling(
     val dagsats: Int,
     val vedtakId: String,
@@ -60,7 +54,9 @@ data class UtbetalingMedMer(
     val periode: Periode,
     val belop: Int,
     val dagsats: Int,
+    @Deprecated("Bruk barnetillegg")
     val barnetilegg: Int,
+    val barnetillegg: Int,
 )
 
 data class Reduksjon(

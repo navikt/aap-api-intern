@@ -1,0 +1,145 @@
+{
+  "vedtak": [
+    {
+      "dagsats": 1022,
+      "vedtakId": "3",
+      "status": "LØPENDE",
+      "saksnummer": "4LDSUJK",
+      "vedtaksdato": "2025-08-13",
+      "periode": {
+        "fraOgMedDato": "2025-08-13",
+        "tilOgMedDato": "2026-08-12"
+      },
+      "rettighetsType": "BISTANDSBEHOV",
+      "beregningsgrunnlag": 265720,
+      "barnMedStonad": 1,
+      "kildesystem": "KELVIN",
+      "samordningsId": null,
+      "opphorsAarsak": null,
+      "vedtaksTypeKode": null,
+      "vedtaksTypeNavn": null,
+      "utbetaling": [
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 29,
+          "periode": {
+            "fraOgMedDato": "2025-08-13",
+            "tilOgMedDato": "2025-08-24"
+          },
+          "belop": 2456,
+          "dagsats": 296,
+          "barnetilegg": 37,
+          "barnetillegg": 37
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 38,
+          "periode": {
+            "fraOgMedDato": "2025-08-25",
+            "tilOgMedDato": "2025-08-31"
+          },
+          "belop": 2010,
+          "dagsats": 388,
+          "barnetilegg": 37,
+          "barnetillegg": 37
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 38,
+          "periode": {
+            "fraOgMedDato": "2025-09-01",
+            "tilOgMedDato": "2025-09-07"
+          },
+          "belop": 2010,
+          "dagsats": 388,
+          "barnetilegg": 37,
+          "barnetillegg": 37
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 45,
+          "periode": {
+            "fraOgMedDato": "2025-09-08",
+            "tilOgMedDato": "2025-09-21"
+          },
+          "belop": 4760,
+          "dagsats": 459,
+          "barnetilegg": 37,
+          "barnetillegg": 37
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 45,
+          "periode": {
+            "fraOgMedDato": "2025-09-22",
+            "tilOgMedDato": "2025-09-30"
+          },
+          "belop": 3332,
+          "dagsats": 459,
+          "barnetilegg": 37,
+          "barnetillegg": 37
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 100,
+          "periode": {
+            "fraOgMedDato": "2025-10-01",
+            "tilOgMedDato": "2025-10-05"
+          },
+          "belop": 3177,
+          "dagsats": 1022,
+          "barnetilegg": 37,
+          "barnetillegg": 37
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 100,
+          "periode": {
+            "fraOgMedDato": "2025-10-06",
+            "tilOgMedDato": "2025-10-19"
+          },
+          "belop": 10590,
+          "dagsats": 1022,
+          "barnetilegg": 37,
+          "barnetillegg": 37
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 100,
+          "periode": {
+            "fraOgMedDato": "2025-10-20",
+            "tilOgMedDato": "2025-11-02"
+          },
+          "belop": 10590,
+          "dagsats": 1022,
+          "barnetilegg": 37,
+          "barnetillegg": 37
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 100,
+          "periode": {
+            "fraOgMedDato": "2025-11-03",
+            "tilOgMedDato": "2025-11-16"
+          },
+          "belop": 10590,
+          "dagsats": 1022,
+          "barnetilegg": 37,
+          "barnetillegg": 37
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 100,
+          "periode": {
+            "fraOgMedDato": "2025-11-17",
+            "tilOgMedDato": "2025-11-30"
+          },
+          "belop": 10590,
+          "dagsats": 1022,
+          "barnetilegg": 37,
+          "barnetillegg": 37
+        }
+      ]
+    }
+  ]
+}

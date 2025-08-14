@@ -28,10 +28,10 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.httpklient.auth.audience
-import no.nav.aap.komponenter.httpklient.auth.token
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.server.auth.audience
+import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
@@ -65,6 +65,7 @@ fun NormalOpenAPIRoute.api(
     arena: IArenaoppslagRestClient,
     httpCallCounter: PrometheusMeterRegistry,
     pdlClient: IPdlClient,
+    nå: LocalDate = LocalDate.now(),
 ) {
     tag(Tag.Perioder) {
         route("/perioder") {
@@ -82,9 +83,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /perioder")
                 }
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinPerioder = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -120,9 +119,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /perioder/aktivitetfase")
                 }
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val arenaSvar = arena.hentPerioderInkludert11_17(callId, requestBody)
 
@@ -145,11 +142,10 @@ fun NormalOpenAPIRoute.api(
             }
             route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequest>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
-            ) { callIdHeader, requestBody ->
+            ) { _, requestBody ->
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+
                 val perioder = dataSource.transaction { connection ->
                     val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
                     meldekortPerioderRepository.hentMeldekortPerioder(requestBody.personidentifikator)
@@ -175,9 +171,7 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            if (!harTilgangTilPerson(requestBody.personidentifikatorer.first(), token())) {
-                respondWithStatus(HttpStatusCode.Forbidden)
-            }
+            sjekkTilgangTilPerson(requestBody.personidentifikatorer)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
             val kelvinSaker: List<SakStatus> = dataSource.transaction { connection ->
@@ -223,7 +217,7 @@ fun NormalOpenAPIRoute.api(
 
         route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
-        ) { callIdHeader, requestBody ->
+        ) { _, requestBody ->
             logger.info("Henter saker for en person fra kelvin")
             httpCallCounter.httpCallCounter(
                 "/kelvin/sakerByFnr",
@@ -231,9 +225,7 @@ fun NormalOpenAPIRoute.api(
                 azpName() ?: ""
             ).increment()
 
-            if (!harTilgangTilPerson(requestBody.personidentifikatorer.first(), token())) {
-                respondWithStatus(HttpStatusCode.Forbidden)
-            }
+            sjekkTilgangTilPerson(requestBody.personidentifikatorer)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
             val kelvinSaker: List<SakStatus> = dataSource.transaction { connection ->
@@ -261,9 +253,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -301,15 +291,13 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    VedtakService(behandlingsRepository).hentMaksimum(
+                    VedtakService(behandlingsRepository, nå = nå).hentMaksimum(
                         requestBody.personidentifikator,
-                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato)
+                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato),
                     ).vedtak
                 }
                 pipeline.call.response.headers.append(
@@ -326,7 +314,7 @@ fun NormalOpenAPIRoute.api(
         route("/kelvin/") {
             route("maksimumUtenUtbetaling").post<CallIdHeader, Medium, InternVedtakRequest>(
                 info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval")
-            ) { callIdHeader, requestBody ->
+            ) { _, requestBody ->
                 logger.info("Henter maksimum uten utbetalinger fra kelvin")
                 httpCallCounter.httpCallCounter(
                     "/kelvin/maksimumUtenUtbetaling",
@@ -334,9 +322,7 @@ fun NormalOpenAPIRoute.api(
                     azpName() ?: ""
                 ).increment()
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -362,7 +348,7 @@ fun NormalOpenAPIRoute.api(
                     description = "Henter ut behandlingsdata for en person innen gitte datointerval uten behandling av datasett",
                     deprecated = true
                 )
-            ) { callIdHeader, requestBody ->
+            ) { _, requestBody ->
                 logger.info("Henter data for behandling uten formatering av datasett \n---- UNDER UTVIKLING ----")
                 httpCallCounter.httpCallCounter(
                     "/kelvin/behandling",
@@ -370,9 +356,7 @@ fun NormalOpenAPIRoute.api(
                     azpName() ?: ""
                 ).increment()
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinSaker = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -385,6 +369,14 @@ fun NormalOpenAPIRoute.api(
                 respond(kelvinSaker)
             }
         }
+    }
+}
+
+private suspend inline fun <reified E : Any> OpenAPIPipelineResponseContext<E>.sjekkTilgangTilPerson(
+    identifikatorer: List<String>
+) {
+    if (!harTilgangTilPerson(identifikatorer.first(), token())) {
+        respondWithStatus(HttpStatusCode.Forbidden)
     }
 }
 

@@ -391,6 +391,9 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
     return count
 }
 
+/**
+ * @param vedtakId Svarer til ID til vedtak-tabellen i behandlingsflyt.
+ */
 data class VedtakUtenUtbetalingUtenPeriode(
     val vedtakId: String,
     val dagsats: Int,

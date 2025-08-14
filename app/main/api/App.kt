@@ -27,6 +27,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureC
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
@@ -55,6 +56,7 @@ fun Application.api(
         config.azure
     ),
     pdlClient: IPdlClient = PdlClient(),
+    nå: LocalDate = LocalDate.now()
 ) {
     Migrering.migrate(datasource)
 
@@ -93,7 +95,7 @@ fun Application.api(
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(datasource, arenaRestClient, prometheus, pdlClient)
+                api(datasource, arenaRestClient, prometheus, pdlClient, nå)
                 dataInsertion(datasource)
             }
         }

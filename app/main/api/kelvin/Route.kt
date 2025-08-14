@@ -44,8 +44,7 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
             ),
             modules = listOf(
                 info(
-                    "Legg inn meldekortperioder",
-                    "Legg inn meldekortperioder for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                    "Legg inn sakstatus for en person. Endepunktet kan kun brukes av behandlingsflyt"
                 )
             ).toTypedArray(),
         ) { _, body ->
