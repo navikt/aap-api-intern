@@ -27,7 +27,6 @@ repositories {
     }
 }
 
-val aapLibVersion = "5.0.103"
 val komponenterVersjon = "1.0.318"
 val ktorVersion = "3.2.3"
 val tilgangVersjon = "1.0.98"
@@ -55,9 +54,6 @@ dependencies {
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    constraints {
-        implementation("io.netty:netty-common:4.2.3.Final")
-    }
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-server-call-id:$ktorVersion")
     implementation("io.ktor:ktor-server-cors:$ktorVersion")
@@ -82,6 +78,9 @@ dependencies {
 
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
+    constraints {
+        implementation("commons-codec:commons-codec:1.13")
+    }
     testImplementation("org.assertj:assertj-core:3.27.4")
     testImplementation("io.github.nchaugen:tabletest-junit:0.5.0")
     testImplementation(kotlin("test"))
