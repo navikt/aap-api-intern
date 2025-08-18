@@ -45,7 +45,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling()
         barnMedStonad = this.barnMedStonad,
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
-        barnetillegg = this.barnMedStonad*this.utbetaling.first().barnetillegg
+        barnetillegg = this.barnMedStonad*(this.utbetaling.firstOrNull()?.barnetillegg?:0)
     )
 }
 
