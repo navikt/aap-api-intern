@@ -1,9 +1,7 @@
 package api.util
 
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
-
 fun perioderMedAAp(
-    input: List<DatadelingDTO>
+    input: List<api.postgres.DatadelingDTO>
 ): List<no.nav.aap.api.intern.Periode> {
     return input.flatMap { sak ->
         sak.rettighetsTypeTidsLinje.map { segment ->

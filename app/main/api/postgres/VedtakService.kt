@@ -34,7 +34,6 @@ class VedtakService(
                         Periode(it.tilkjentFom, it.tilkjentTom),
                         TilkjentDB(
                             it.dagsats,
-                            it.grunnlag,
                             it.gradering,
                             it.grunnlagsfaktor,
                             it.grunnbeløp,
@@ -63,7 +62,8 @@ class VedtakService(
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
-                            beregningsgrunnlag = right?.verdi?.grunnlag?.toInt() ?: 0,
+                            // TODO: bruk beregningsgrunnlag
+                            beregningsgrunnlag = right?.verdi?.dagsats ?: 0,
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
                             kildesystem = Kilde.KELVIN.toString(),
                             samordningsId = behandling.samId,

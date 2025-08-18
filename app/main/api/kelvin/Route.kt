@@ -3,8 +3,8 @@ package api.kelvin
 import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortPerioderRepository
 import api.postgres.SakStatusRepository
-import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.info
+import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import io.ktor.server.response.*
@@ -32,7 +32,10 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
         ) { _, body ->
             dataSource.transaction { connection ->
                 val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
-                meldekortPerioderRepository.lagreMeldekortPerioder(body.personIdent, body.meldekortPerioder)
+                meldekortPerioderRepository.lagreMeldekortPerioder(
+                    body.personIdent,
+                    body.meldekortPerioder
+                )
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
@@ -69,7 +72,7 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
         ) { _, body ->
             dataSource.transaction { connection ->
                 val behandlingsRepository = BehandlingsRepository(connection)
-                behandlingsRepository.lagreBehandling(body)
+                behandlingsRepository.lagreBehandling(body.tilDomene())
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
