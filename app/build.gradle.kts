@@ -27,9 +27,9 @@ repositories {
     }
 }
 
-val komponenterVersjon = "1.0.318"
+val komponenterVersjon = "1.0.326"
 val ktorVersion = "3.2.3"
-val tilgangVersjon = "1.0.98"
+val tilgangVersjon = "1.0.110"
 val behandlingsflytversjon = "0.0.410"
 val kontraktVersjon = "0.0.25"
 
@@ -68,7 +68,7 @@ dependencies {
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.2")
     implementation("com.nimbusds:nimbus-jose-jwt:10.4.1")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.15.2")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.15.3")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.3.10")
 
