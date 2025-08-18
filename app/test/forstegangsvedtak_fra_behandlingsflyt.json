@@ -257,7 +257,8 @@
   "rettighetsPeriodeTom": "2026-08-12",
   "behandlingStatus": "IVERKSETTES",
   "behandlingsId": "4",
-  "vedtaksDato": "2025-08-13",
+  "vedtaksDato": "2025-08-23",
+  "beregningsgrunnlag": 600000.00,
   "sak": {
     "saksnummer": "4LDSUJK",
     "status": "UTREDES",

@@ -25,7 +25,6 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.api.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -187,15 +186,17 @@ fun NormalOpenAPIRoute.api(
             sjekkTilgangTilPerson(requestBody.personidentifikatorer)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
-            val kelvinSaker: List<SakStatus> = dataSource.transaction { connection ->
-                val sakStatusRepository = SakStatusRepository(connection)
-                personIdenter.flatMap {
-                    sakStatusRepository.hentSakStatus(it)
+            val kelvinSaker: List<no.nav.aap.api.intern.SakStatus> =
+                dataSource.transaction { connection ->
+                    val sakStatusRepository = SakStatusRepository(connection)
+                    personIdenter.flatMap {
+                        sakStatusRepository.hentSakStatus(it)
+                    }
                 }
-            }
-            val arenaSaker = arena.hentSakerByFnr(callId, SakerRequest(personIdenter)).map {
-                arenaSakStatusTilDomene(it)
-            }
+            val arenaSaker: List<no.nav.aap.api.intern.SakStatus> =
+                arena.hentSakerByFnr(callId, SakerRequest(personIdenter)).map {
+                    arenaSakStatusTilDomene(it)
+                }
 
             prometheus.tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
 
@@ -231,7 +232,7 @@ fun NormalOpenAPIRoute.api(
             }
         }
 
-        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
+        route("/kelvin/sakerByFnr").post<CallIdHeader, List<no.nav.aap.api.intern.SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { _, requestBody ->
             logger.info("Henter saker for en person fra kelvin")
@@ -244,12 +245,13 @@ fun NormalOpenAPIRoute.api(
             sjekkTilgangTilPerson(requestBody.personidentifikatorer)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
-            val kelvinSaker: List<SakStatus> = dataSource.transaction { connection ->
-                val sakStatusRepository = SakStatusRepository(connection)
-                personIdenter.flatMap {
-                    sakStatusRepository.hentSakStatus(it)
+            val kelvinSaker: List<no.nav.aap.api.intern.SakStatus> =
+                dataSource.transaction { connection ->
+                    val sakStatusRepository = SakStatusRepository(connection)
+                    personIdenter.flatMap {
+                        sakStatusRepository.hentSakStatus(it)
+                    }
                 }
-            }
             prometheus.tellKildesystem(kelvinSaker, null, "/kelvin/sakerByFnr")
             respond(kelvinSaker)
         }
@@ -296,7 +298,7 @@ fun NormalOpenAPIRoute.api(
         }
         route("/maksimum") {
             post<CallIdHeader, Maksimum, InternVedtakRequest>(
-                info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
+                info(description = "Henter maksimumsløsning for en person innen gitte datointerval. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag.")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
                 prometheus.httpCallCounter(
@@ -335,7 +337,7 @@ fun NormalOpenAPIRoute.api(
         }
         route("/kelvin/") {
             route("maksimumUtenUtbetaling").post<CallIdHeader, Medium, InternVedtakRequest>(
-                info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval")
+                info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag.")
             ) { _, requestBody ->
                 logger.info("Henter maksimum uten utbetalinger fra kelvin")
                 prometheus.httpCallCounter(
@@ -364,7 +366,7 @@ fun NormalOpenAPIRoute.api(
                 respond(Medium(kelvinSaker))
             }
 
-            route("behandling").post<CallIdHeader, List<DatadelingDTO>, InternVedtakRequest>(
+            route("behandling").post<CallIdHeader, List<api.postgres.DatadelingDTO>, InternVedtakRequest>(
                 info(
                     description = "Henter ut behandlingsdata for en person innen gitte datointerval uten behandling av datasett",
                     deprecated = true
@@ -432,7 +434,7 @@ private fun harTilgangTilPerson(personIdent: String, token: OidcToken): Boolean 
 }
 
 private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus) =
-    SakStatus(
+    no.nav.aap.api.intern.SakStatus(
         sakId = it.sakId,
         statusKode = when (it.statusKode) {
             no.nav.aap.arenaoppslag.kontrakt.intern.Status.AVSLU -> no.nav.aap.api.intern.Status.AVSLU
@@ -520,7 +522,6 @@ fun hentMediumFraKelvin(
                     Periode(it.tilkjentFom, it.tilkjentTom),
                     TilkjentDB(
                         it.dagsats,
-                        it.grunnlag,
                         it.gradering,
                         it.grunnlagsfaktor,
                         it.grunnbeløp,
@@ -548,7 +549,7 @@ fun hentMediumFraKelvin(
                         saksnummer = behandling.sak.saksnummer,
                         vedtaksdato = behandling.vedtaksDato,
                         rettighetsType = left.verdi,
-                        beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?.times(260) ?: 0,
+                        beregningsgrunnlag = behandling.beregningsgrunnlag.toInt(),
                         barnMedStonad = right?.verdi?.antallBarn ?: 0,
                         kildesystem = Kilde.KELVIN.toString(),
                         samordningsId = behandling.samId,
@@ -572,18 +573,18 @@ fun hentMediumFraKelvin(
 }
 
 fun utledVedtakStatus(
-    behandlingStatus: no.nav.aap.behandlingsflyt.kontrakt.behandling.Status,
-    sakStatus: Status,
+    behandlingStatus: KelvinBehandlingStatus,
+    sakStatus: KelvinSakStatus,
     periode: Periode,
     nå: LocalDate = LocalDate.now()
 ): String =
     if (
-        behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES ||
+        behandlingStatus == KelvinBehandlingStatus.IVERKSETTES ||
         periode.tom.isAfter(nå) ||
-        sakStatus != Status.AVSLUTTET
+        sakStatus != KelvinSakStatus.AVSLUTTET
     ) {
         Status.LØPENDE.toString()
-    } else if (behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET) {
+    } else if (behandlingStatus == KelvinBehandlingStatus.AVSLUTTET) {
         Status.AVSLUTTET.toString()
     } else {
         Status.UTREDES.toString()

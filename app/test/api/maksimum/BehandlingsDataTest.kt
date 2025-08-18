@@ -2,6 +2,7 @@ package api.maksimum
 
 import api.TestConfig
 import api.api
+import api.kelvin.tilDomene
 import api.util.*
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -13,7 +14,9 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
-import no.nav.aap.api.intern.*
+import no.nav.aap.api.intern.Maksimum
+import no.nav.aap.api.intern.Medium
+import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
@@ -25,6 +28,7 @@ import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -111,7 +115,8 @@ val testObject = DatadelingDTO(
         )
     ),
     samId = "1234asd",
-    vedtakId = 123456789L
+    vedtakId = 123456789L,
+    beregningsgrunnlag = BigDecimal.valueOf(500_000)
 )
 
 val dataSource = InitTestDatabase.freshDatabase()
@@ -296,7 +301,8 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                         )
                     ),
                     samId = "1234asd",
-                    vedtakId = Random().nextLong()
+                    vedtakId = Random().nextLong(),
+                    beregningsgrunnlag = 600_000.toBigDecimal()
                 )
             )
         }
@@ -340,7 +346,7 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
             assertEquals(HttpStatusCode.OK, perioderResponseObo.status)
             assertEquals(
                 perioderResponseObo.body<PerioderResponse>().perioder,
-                perioderMedAAp(listOf(testObject))
+                perioderMedAAp(listOf(testObject.tilDomene()))
             )
 
             val perioderResponseM2m = jsonHttpClient.post("/perioder") {
@@ -411,7 +417,7 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
 
     @Test
     fun `kan hente perioder fra vedtaksdata`() {
-        val result = perioderMedAAp(listOf(testObject))
+        val result = perioderMedAAp(listOf(testObject.tilDomene()))
 
         assertEquals(1, result.size)
         assertEquals(
@@ -461,8 +467,8 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                 setBody(
                     InternVedtakRequest(
                         "01410038710",
-                        LocalDate.now().minusYears(10),
-                        LocalDate.now().plusYears(10)
+                        LocalDate.now().minusYears(0),
+                        LocalDate.now().plusMonths(1)
                     )
                 )
             }

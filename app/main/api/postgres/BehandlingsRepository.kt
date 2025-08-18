@@ -2,8 +2,6 @@ package api.postgres
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
@@ -157,10 +155,10 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
         connection.executeBatch(
             """
-                INSERT INTO TILKJENT_PERIODE (TILKJENT_YTELSE_ID, PERIODE, DAGSATS, GRADERING, GRUNNLAG,
+                INSERT INTO TILKJENT_PERIODE (TILKJENT_YTELSE_ID, PERIODE, DAGSATS, GRADERING,
                                               GRUNNLAGSFAKTOR, GRUNNBELOP, ANTALL_BARN, BARNETILLEGGSATS,
                                               BARNETILLEGG, UFOREGRADERING)
-                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
             behandling.tilkjent
         ) {
@@ -169,15 +167,23 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setPeriode(2, Periode(it.tilkjentFom, it.tilkjentTom))
                 setBigDecimal(3, it.dagsats.toBigDecimal())
                 setInt(4, it.gradering)
-                setBigDecimal(5, it.grunnlag)
-                setBigDecimal(6, it.grunnlagsfaktor)
-                setBigDecimal(7, it.grunnbeløp)
-                setInt(8, it.antallBarn)
-                setBigDecimal(9, it.barnetilleggsats)
-                setBigDecimal(10, it.barnetillegg)
-                setInt(11, it.samordningUføregradering)
+                setBigDecimal(5, it.grunnlagsfaktor)
+                setBigDecimal(6, it.grunnbeløp)
+                setInt(7, it.antallBarn)
+                setBigDecimal(8, it.barnetilleggsats)
+                setBigDecimal(9, it.barnetillegg)
+                setInt(10, it.samordningUføregradering)
             }
         }
+        connection.execute(
+            """INSERT INTO BEREGNINGSGRUNNLAG (BEHANDLING_ID, BELOP) VALUES (?, ?)""".trimIndent()
+        ){
+            setParams {
+                setLong(1, nyBehandlingId)
+                setBigDecimal(2, behandling.beregningsgrunnlag)
+            }
+        }
+
     }
 
     // TODO: ikke returner DTO fra behandlingsflyt her, heller dupliser i kode her
@@ -211,7 +217,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setRowMapper { row ->
                     SakDB(
                         saksnummer = row.getString("SAKSNUMMER"),
-                        status = Status.valueOf(row.getString("STATUS")),
+                        status = KelvinSakStatus.valueOf(row.getString("STATUS")),
                         rettighetsPeriode = row.getPeriode("RETTIGHETSPERIODE"),
                         id = it
                     )
@@ -240,11 +246,28 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id),
                     samId = behandling.samid,
                     vedtakId = behandling.vedtakId ?: 0L,
+                    beregningsgrunnlag = hentBeregningsGrunnlag(behandling.id)?: BigDecimal.ZERO, // TODO!!!
                 )
             }
         }
 
 
+    }
+
+    fun hentBeregningsGrunnlag(behandlingId: Long): BigDecimal? {
+        return connection.queryFirstOrNull(
+            """
+                SELECT BELOP FROM BEREGNINGSGRUNNLAG
+                WHERE BEHANDLING_ID = ?
+            """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, behandlingId)
+            }
+            setRowMapper { row ->
+                row.getBigDecimal("BELOP")
+            }
+        }
     }
 
     fun hentRettighetsTypeTidslinje(behandlingId: Long): List<RettighetsTypePeriode> {
@@ -335,7 +358,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     tilkjentTom = it.getPeriode("PERIODE").tom,
                     dagsats = it.getBigDecimal("DAGSATS").toInt(),
                     gradering = it.getInt("GRADERING"),
-                    grunnlag = it.getBigDecimal("GRUNNLAG"),
                     grunnlagsfaktor = it.getBigDecimal("GRUNNLAGSFAKTOR"),
                     grunnbeløp = it.getBigDecimal("GRUNNBELOP"),
                     antallBarn = it.getInt("ANTALL_BARN"),
@@ -350,14 +372,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
 data class SakDB(
     val id: Long,
-    val status: Status,
+    val status: KelvinSakStatus,
     val rettighetsPeriode: Periode,
     val saksnummer: String,
 )
 
 data class BehandlingDB(
     val id: Long,
-    val behandlingStatus: no.nav.aap.behandlingsflyt.kontrakt.behandling.Status,
+    val behandlingStatus: KelvinBehandlingStatus,
     val vedtaksDato: LocalDate,
     val opprettetTidspunkt: LocalDate,
     val behandlingReferanse: String,
@@ -367,7 +389,6 @@ data class BehandlingDB(
 
 data class TilkjentDB(
     val dagsats: Int,
-    val grunnlag: BigDecimal,
     val gradering: Int,
     val grunnlagsfaktor: BigDecimal,
     val grunnbeløp: BigDecimal,
