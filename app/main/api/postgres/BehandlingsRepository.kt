@@ -430,6 +430,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val kildesystem: String = "ARENA",
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
+    val barnetilleggSats: BigDecimal? = null
 ) {
     fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode): VedtakUtenUtbetaling {
         return VedtakUtenUtbetaling(
@@ -444,6 +445,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
             rettighetsType = this.rettighetsType,
             beregningsgrunnlag = this.beregningsgrunnlag,
             barnMedStonad = this.barnMedStonad,
+            barnetillegg = barnMedStonad*(this.barnetilleggSats?.toInt()?:0),
             kildesystem = this.kildesystem,
             samordningsId = this.samordningsId,
             opphorsAarsak = this.opphorsAarsak

@@ -13,6 +13,7 @@
       "rettighetsType": "BISTANDSBEHOV",
       "beregningsgrunnlag": 600000,
       "barnMedStonad": 1,
+      "barnetillegg": 37,
       "kildesystem": "KELVIN",
       "samordningsId": null,
       "opphorsAarsak": null,

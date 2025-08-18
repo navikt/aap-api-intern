@@ -553,7 +553,8 @@ fun hentMediumFraKelvin(
                         barnMedStonad = right?.verdi?.antallBarn ?: 0,
                         kildesystem = Kilde.KELVIN.toString(),
                         samordningsId = behandling.samId,
-                        opphorsAarsak = null
+                        opphorsAarsak = null,
+                        barnetilleggSats = right?.verdi?.barnetilleggsats,
                     )
                 )
             }

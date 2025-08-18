@@ -89,6 +89,7 @@ class VedtakService(
                             rettighetsType = left.verdi.rettighetsType,
                             beregningsgrunnlag = left.verdi.beregningsgrunnlag,
                             barnMedStonad = left.verdi.barnMedStonad,
+                            barnetillegg = left.verdi.barnMedStonad*(right?.verdi?.first()?.verdi?.barnetilleggsats?.toInt()?:0),
                             vedtaksTypeKode = null,
                             vedtaksTypeNavn = null,
                             utbetaling = right?.verdi?.filter {
