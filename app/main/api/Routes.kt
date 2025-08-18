@@ -298,7 +298,7 @@ fun NormalOpenAPIRoute.api(
         }
         route("/maksimum") {
             post<CallIdHeader, Maksimum, InternVedtakRequest>(
-                info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
+                info(description = "Henter maksimumsløsning for en person innen gitte datointerval. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag.")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
                 prometheus.httpCallCounter(
@@ -337,7 +337,7 @@ fun NormalOpenAPIRoute.api(
         }
         route("/kelvin/") {
             route("maksimumUtenUtbetaling").post<CallIdHeader, Medium, InternVedtakRequest>(
-                info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval")
+                info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag.")
             ) { _, requestBody ->
                 logger.info("Henter maksimum uten utbetalinger fra kelvin")
                 prometheus.httpCallCounter(
