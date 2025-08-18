@@ -62,8 +62,7 @@ class VedtakService(
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
-                            // TODO: bruk beregningsgrunnlag
-                            beregningsgrunnlag = right?.verdi?.dagsats ?: 0,
+                            beregningsgrunnlag = behandling.beregningsgrunnlag.toInt(),
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
                             kildesystem = Kilde.KELVIN.toString(),
                             samordningsId = behandling.samId,
@@ -88,8 +87,7 @@ class VedtakService(
                             vedtaksdato = left.verdi.vedtaksdato,
                             periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
                             rettighetsType = left.verdi.rettighetsType,
-                            // TODO: bør bruke felles logikk her
-                            beregningsgrunnlag = left.verdi.beregningsgrunnlag * 260, //GANGER MED 260 FOR Å FÅ ÅRLIG SUM
+                            beregningsgrunnlag = left.verdi.beregningsgrunnlag,
                             barnMedStonad = left.verdi.barnMedStonad,
                             vedtaksTypeKode = null,
                             vedtaksTypeNavn = null,

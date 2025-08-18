@@ -175,6 +175,15 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setInt(10, it.samordningUføregradering)
             }
         }
+        connection.execute(
+            """INSERT INTO BEREGNINGSGRUNNLAG (BEHANDLING_ID, BELOP) VALUES (?, ?)""".trimIndent()
+        ){
+            setParams {
+                setLong(1, nyBehandlingId)
+                setBigDecimal(2, behandling.beregningsgrunnlag)
+            }
+        }
+
     }
 
     // TODO: ikke returner DTO fra behandlingsflyt her, heller dupliser i kode her
@@ -237,12 +246,28 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id),
                     samId = behandling.samid,
                     vedtakId = behandling.vedtakId ?: 0L,
-                    beregningsgrunnlag = BigDecimal.ZERO, // TODO!!!
+                    beregningsgrunnlag = hentBeregningsGrunnlag(behandling.id)?: BigDecimal.ZERO, // TODO!!!
                 )
             }
         }
 
 
+    }
+
+    fun hentBeregningsGrunnlag(behandlingId: Long): BigDecimal? {
+        return connection.queryFirstOrNull(
+            """
+                SELECT BELOP FROM BEREGNINGSGRUNNLAG
+                WHERE BEHANDLING_ID = ?
+            """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, behandlingId)
+            }
+            setRowMapper { row ->
+                row.getBigDecimal("BELOP")
+            }
+        }
     }
 
     fun hentRettighetsTypeTidslinje(behandlingId: Long): List<RettighetsTypePeriode> {
@@ -286,19 +311,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     samid = row.getStringOrNull("SAMID"),
                     vedtakId = row.getLongOrNull("VEDTAKID")
                 )
-            }
-        }
-    }
-
-    fun hentBeregningsgrunnlag(behandlingId: Long): BigDecimal? {
-        return connection.queryFirstOrNull("""
-            select * from beregningsgrunnlag where behandling_id = ?
-        """.trimIndent()) {
-            setParams {
-                setLong(1, behandlingId)
-            }
-            setRowMapper { row ->
-                row.getBigDecimal("beregningsgrunnlag")
             }
         }
     }

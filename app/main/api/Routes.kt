@@ -549,7 +549,7 @@ fun hentMediumFraKelvin(
                         saksnummer = behandling.sak.saksnummer,
                         vedtaksdato = behandling.vedtaksDato,
                         rettighetsType = left.verdi,
-                        beregningsgrunnlag = right?.verdi?.dagsats?.times(260) ?: 0, // TODO bruk beregningsgrunnlag
+                        beregningsgrunnlag = behandling.beregningsgrunnlag.toInt(),
                         barnMedStonad = right?.verdi?.antallBarn ?: 0,
                         kildesystem = Kilde.KELVIN.toString(),
                         samordningsId = behandling.samId,
