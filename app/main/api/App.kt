@@ -39,9 +39,7 @@ fun main() {
 }
 
 fun PrometheusMeterRegistry.httpCallCounter(
-    path: String,
-    audience: String,
-    azpName: String
+    path: String, audience: String, azpName: String
 ): Counter = this.counter(
     "http_call",
     listOf(Tag.of("path", path), Tag.of("audience", audience), Tag.of("azp_name", azpName))
@@ -49,8 +47,7 @@ fun PrometheusMeterRegistry.httpCallCounter(
 
 fun PrometheusMeterRegistry.kildesystemTeller(kildesystem: String, path: String): Counter =
     this.counter(
-        "api_intern_kildesystem",
-        listOf(Tag.of("kildesystem", kildesystem), Tag.of("path", path))
+        "api_intern_kildesystem", listOf(Tag.of("kildesystem", kildesystem), Tag.of("path", path))
     )
 
 fun Application.api(
@@ -58,8 +55,7 @@ fun Application.api(
     config: Config = Config(),
     datasource: DataSource = initDatasource(config.dbConfig, prometheus),
     arenaRestClient: IArenaoppslagRestClient = ArenaoppslagRestClient(
-        config.arenaoppslag,
-        config.azure
+        config.arenaoppslag, config.azure
     ),
     pdlClient: IPdlClient = PdlClient(),
     nå: LocalDate = LocalDate.now()
@@ -68,22 +64,36 @@ fun Application.api(
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            logger.error(
-                "Uhåndtert feil ved kall til '{}'. Type: $cause",
-                call.request.local.uri,
-                cause
-            )
-            call.respondText(
-                text = "Feil i tjeneste: ${cause.message}",
-                status = HttpStatusCode.InternalServerError
-            )
+
+            when (cause) {
+                is IllegalArgumentException -> {
+                    logger.warn(
+                        "Valideringsfeil ved kall til '{}'. Type: ${cause.javaClass}",
+                        call.request.local.uri,
+                        cause
+                    )
+                    call.respondText(
+                        "Valideringsfeil. ${cause.message}", status = HttpStatusCode.BadRequest
+                    )
+                }
+
+                else -> {
+                    logger.error(
+                        "Uhåndtert feil ved kall til '{}'. Type: $cause",
+                        call.request.local.uri,
+                        cause
+                    )
+                    call.respondText(
+                        text = "Feil i tjeneste: ${cause.message}",
+                        status = HttpStatusCode.InternalServerError
+                    )
+                }
+            }
         }
     }
 
     commonKtorModule(
-        prometheus = prometheus,
-        azureConfig = AzureConfig(),
-        infoModel = InfoModel(
+        prometheus = prometheus, azureConfig = AzureConfig(), infoModel = InfoModel(
             title = "aap-api-intern",
             description = "aap-intern-api tilbyr et internt API for henting av aap-data\nBruker Azure til autentisering",
             contact = ContactModel(
