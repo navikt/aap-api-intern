@@ -79,7 +79,7 @@ dependencies {
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     constraints {
-        implementation("commons-codec:commons-codec:1.13")
+        implementation("commons-codec:commons-codec:1.19.0")
     }
     testImplementation("org.assertj:assertj-core:3.27.4")
     testImplementation("io.github.nchaugen:tabletest-junit:0.5.0")
