@@ -177,7 +177,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
         connection.execute(
             """INSERT INTO BEREGNINGSGRUNNLAG (BEHANDLING_ID, BELOP) VALUES (?, ?)""".trimIndent()
-        ){
+        ) {
             setParams {
                 setLong(1, nyBehandlingId)
                 setBigDecimal(2, behandling.beregningsgrunnlag)
@@ -246,7 +246,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id),
                     samId = behandling.samid,
                     vedtakId = behandling.vedtakId ?: 0L,
-                    beregningsgrunnlag = hentBeregningsGrunnlag(behandling.id)?: BigDecimal.ZERO, // TODO!!!
+                    beregningsgrunnlag = hentBeregningsGrunnlag(behandling.id)
+                        ?: BigDecimal.ZERO, // TODO!!!
                 )
             }
         }
@@ -418,6 +419,8 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
 data class VedtakUtenUtbetalingUtenPeriode(
     val vedtakId: String,
     val dagsats: Int,
+    @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin).")
+    val dagsatsEtterUføreReduksjon: Int,
     @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
@@ -436,6 +439,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
         return VedtakUtenUtbetaling(
             vedtakId = this.vedtakId,
             dagsats = this.dagsats,
+            dagsatsEtterUføreReduksjon = this.dagsatsEtterUføreReduksjon,
             status = this.status,
             saksnummer = this.saksnummer,
             vedtaksdato = this.vedtaksdato,
@@ -445,7 +449,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
             rettighetsType = this.rettighetsType,
             beregningsgrunnlag = this.beregningsgrunnlag,
             barnMedStonad = this.barnMedStonad,
-            barnetillegg = barnMedStonad*(this.barnetilleggSats?.toInt()?:0),
+            barnetillegg = barnMedStonad * (this.barnetilleggSats?.toInt() ?: 0),
             kildesystem = this.kildesystem,
             samordningsId = this.samordningsId,
             opphorsAarsak = this.opphorsAarsak

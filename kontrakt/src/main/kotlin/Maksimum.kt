@@ -12,6 +12,7 @@ data class Medium(val vedtak: List<VedtakUtenUtbetaling>)
  */
 data class Vedtak(
     val dagsats: Int,
+    val dagsatsEtterUføreReduksjon: Int?,
     val vedtakId: String,
     val status: String,
     val saksnummer: String,
@@ -31,6 +32,7 @@ data class Vedtak(
 
 data class VedtakUtenUtbetaling(
     val dagsats: Int,
+    val dagsatsEtterUføreReduksjon: Int?,
     val vedtakId: String,
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
