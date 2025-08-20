@@ -27,7 +27,7 @@ repositories {
     }
 }
 
-val komponenterVersjon = "1.0.326"
+val komponenterVersjon = "1.0.332"
 val ktorVersion = "3.2.3"
 val tilgangVersjon = "1.0.110"
 val behandlingsflytversjon = "0.0.410"
