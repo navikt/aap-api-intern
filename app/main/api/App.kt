@@ -24,6 +24,7 @@ import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
@@ -64,8 +65,18 @@ fun Application.api(
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-
             when (cause) {
+                is DeserializationException -> {
+                    logger.warn(
+                        "Feil ved deserialisering av request til '{}'. Type: ${cause.javaClass}",
+                        call.request.local.uri,
+                        cause
+                    )
+                    call.respondText(
+                        text = "Feil i mottatte data: ${cause.message}",
+                        status = HttpStatusCode.BadRequest
+                    )
+                }
                 is IllegalArgumentException -> {
                     logger.warn(
                         "Valideringsfeil ved kall til '{}'. Type: ${cause.javaClass}",
