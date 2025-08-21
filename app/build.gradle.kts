@@ -3,28 +3,12 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("api-intern.conventions")
     id("io.ktor.plugin") version "3.2.3"
-    id ("org.flywaydb.flyway") version "9.0.0"
+    id("org.flywaydb.flyway") version "9.0.0"
     application
 }
 
 application {
     mainClass.set("api.AppKt")
-}
-
-repositories {
-    mavenCentral()
-    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
-    maven {
-        name = "GitHubPackages"
-        url = uri("https://maven.pkg.github.com/navikt/behandlingsflyt")
-        credentials {
-            username = "x-access-token"
-            password = (project.findProperty("githubPassword")
-                ?: System.getenv("GITHUB_PASSWORD")
-                ?: System.getenv("GITHUB_TOKEN")
-                ?: error("")).toString()
-        }
-    }
 }
 
 val komponenterVersjon = "1.0.332"
@@ -35,7 +19,7 @@ val kontraktVersjon = "0.0.25"
 
 dependencies {
     implementation(project(":kontrakt"))
-    implementation("org.flywaydb:flyway-core:11.11.1")
+
     implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
     implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
@@ -44,6 +28,7 @@ dependencies {
     implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
     implementation("no.nav.aap.arenaoppslag:kontrakt:$kontraktVersjon")
+
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
@@ -64,6 +49,7 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
+    implementation("org.flywaydb:flyway-core:11.11.1")
     implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.19.2")
@@ -86,11 +72,7 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
-
 tasks {
-    withType<Test> {
-        useJUnitPlatform()
-    }
     withType<ShadowJar> {
         mergeServiceFiles()
     }
