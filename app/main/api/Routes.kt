@@ -593,16 +593,16 @@ fun utledVedtakStatus(
     } else {
         Status.UTREDES.toString()
     }
-public data class InternVedtakRequestApiIntern(
+data class InternVedtakRequestApiIntern(
     val personidentifikator: String,
-    val fraOgMedDato: LocalDate? = LocalDate.MIN,
-    val tilOgMedDato: LocalDate? = LocalDate.MAX
+    val fraOgMedDato: LocalDate? = LocalDate.of(1, 1, 1),
+    val tilOgMedDato: LocalDate? = LocalDate.of(9999, 12, 31)
 ){
     fun tilKontrakt(): InternVedtakRequest {
         return InternVedtakRequest(
             personidentifikator = personidentifikator,
-            fraOgMedDato = fraOgMedDato ?: LocalDate.MIN,
-            tilOgMedDato = tilOgMedDato ?: LocalDate.MAX
+            fraOgMedDato = fraOgMedDato ?: LocalDate.of(1, 1, 1),
+            tilOgMedDato = tilOgMedDato ?: LocalDate.of(9999, 12, 31)
         )
     }
 }

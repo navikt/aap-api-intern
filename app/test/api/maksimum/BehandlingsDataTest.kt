@@ -1,5 +1,6 @@
 package api.maksimum
 
+import api.InternVedtakRequestApiIntern
 import api.TestConfig
 import api.api
 import api.kelvin.tilDomene
@@ -185,6 +186,49 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                 )
             }
             assertEquals(HttpStatusCode.OK, maksimumResponseObo.status)
+        }
+    }
+
+    @Test
+    fun `kan lagre ned og hente maksimum med null param`() {
+        val config = TestConfig.default(fakes)
+        val azure = AzureTokenGen("test", "test")
+
+        testApplication {
+            application {
+                api(
+                    config = config,
+                    datasource = dataSource,
+                    arenaRestClient = ArenaClient()
+                )
+            }
+
+            val res = jsonHttpClient.post("/api/insert/vedtak") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    testObject
+                )
+            }
+
+            assertEquals(HttpStatusCode.OK, res.status)
+            val perioder = countTilkjentPerioder()
+            assert(perioder > 0)
+
+            val maksimumResponseM2m = jsonHttpClient.post("/maksimum") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    InternVedtakRequestApiIntern(
+                        "12345678910",
+                        null,
+                        null
+                    )
+                )
+            }
+
+            assertEquals(HttpStatusCode.OK, maksimumResponseM2m.status)
+            assertEquals(3, maksimumResponseM2m.body<Maksimum>().vedtak.size)
         }
     }
 
