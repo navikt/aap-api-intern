@@ -73,6 +73,9 @@ dependencies {
 }
 
 tasks {
+    withType<Test> {
+        useJUnitPlatform()
+    }
     withType<ShadowJar> {
         mergeServiceFiles()
     }
