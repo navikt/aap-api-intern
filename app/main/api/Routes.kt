@@ -259,7 +259,7 @@ fun NormalOpenAPIRoute.api(
 
     tag(Tag.Maksimum) {
         route("/maksimumUtenUtbetaling") {
-            post<CallIdHeader, Medium, InternVedtakRequest>(
+            post<CallIdHeader, Medium, InternVedtakRequestApiIntern>(
                 info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval. dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin.")
             ) { callIdHeader, requestBody ->
                 prometheus.httpCallCounter(
@@ -270,14 +270,14 @@ fun NormalOpenAPIRoute.api(
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                     logger.info("CallID ble ikke gitt på kall mot: /maksimumUtenUtbetaling")
                 }
-
+                val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     hentMediumFraKelvin(
-                        requestBody.personidentifikator,
-                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato),
+                        body.personidentifikator,
+                        Periode(body.fraOgMedDato, body.tilOgMedDato),
                         behandlingsRepository
                     ).vedtak
                 }
@@ -288,7 +288,7 @@ fun NormalOpenAPIRoute.api(
 
                 val arenaRespons = arena.hentMaksimum(
                     callId,
-                    requestBody
+                    body
                 ).vedtak.map { it.fraKontraktUtenUtbetaling() }
 
                 prometheus.tellKildesystem(kelvinSaker, arenaRespons, "/maksimumUtenUtbetaling")
@@ -297,7 +297,7 @@ fun NormalOpenAPIRoute.api(
             }
         }
         route("/maksimum") {
-            post<CallIdHeader, Maksimum, InternVedtakRequest>(
+            post<CallIdHeader, Maksimum, InternVedtakRequestApiIntern>(
                 info(description = "Henter maksimumsløsning for en person innen gitte datointerval. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag. dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
@@ -309,17 +309,17 @@ fun NormalOpenAPIRoute.api(
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
-
+                val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     VedtakService(behandlingsRepository, nå = nå).hentMaksimum(
                         requestBody.personidentifikator,
-                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato),
+                        Periode(body.fraOgMedDato, body.tilOgMedDato),
                     ).vedtak
                 }
-                val arenaVedtak = arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak
+                val arenaVedtak = arena.hentMaksimum(callId, body).fraKontrakt().vedtak
 
                 prometheus.tellKildesystem(kelvinSaker, arenaVedtak, "/maksimum")
 
@@ -593,3 +593,16 @@ fun utledVedtakStatus(
     } else {
         Status.UTREDES.toString()
     }
+public data class InternVedtakRequestApiIntern(
+    val personidentifikator: String,
+    val fraOgMedDato: LocalDate? = LocalDate.MIN,
+    val tilOgMedDato: LocalDate? = LocalDate.MAX
+){
+    fun tilKontrakt(): InternVedtakRequest {
+        return InternVedtakRequest(
+            personidentifikator = personidentifikator,
+            fraOgMedDato = fraOgMedDato ?: LocalDate.MIN,
+            tilOgMedDato = tilOgMedDato ?: LocalDate.MAX
+        )
+    }
+}
