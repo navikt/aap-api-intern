@@ -25,7 +25,6 @@ publishing {
             credentials {
                 username = "x-access-token"
                 password = System.getenv("GITHUB_TOKEN")
-                    ?: error("GITHUB_TOKEN not set")
             }
         }
     }
