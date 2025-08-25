@@ -80,6 +80,9 @@ spec:
         - application: salesforce
           namespace: teamcrm
           cluster: dev-external
+        - application: pensjon-pen-q2
+          namespace: pensjon-q2
+          cluster: prod-fss
         - application: behandlingsflyt
           namespace: aap
           cluster: dev-gcp
