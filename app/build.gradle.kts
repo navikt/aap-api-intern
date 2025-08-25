@@ -56,7 +56,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:10.4.2")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.3")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
-    implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.3.10")
+    implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.4.1")
 
     implementation("com.zaxxer:HikariCP:7.0.2")
 
