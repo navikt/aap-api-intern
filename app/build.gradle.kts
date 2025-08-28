@@ -68,7 +68,7 @@ dependencies {
         implementation("commons-codec:commons-codec:1.19.0")
     }
     testImplementation("org.assertj:assertj-core:3.27.4")
-    testImplementation("io.github.nchaugen:tabletest-junit:0.5.0")
+    testImplementation("io.github.nchaugen:tabletest-junit:0.5.1")
     testImplementation(kotlin("test"))
 }
 
