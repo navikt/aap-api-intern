@@ -91,6 +91,8 @@ jobs:
       contents: read
       id-token: write
     needs: gradle
+    concurrency:
+      group: deploy-dev
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
     secrets: inherit
     with:
@@ -104,6 +106,8 @@ jobs:
       contents: read
       id-token: write
     needs: dev
+    concurrency:
+      group: deploy-prod
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
     secrets: inherit
     with:
