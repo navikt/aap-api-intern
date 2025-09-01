@@ -76,5 +76,21 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
+        route("/meldekort").authorizedPost<Unit, Unit, DetaljertMeldekortListeDTO>(routeConfig = AuthorizationBodyPathConfig(
+            operasjon = Operasjon.SE,
+            applicationsOnly = true,
+            applicationRole = "add-data",
+        ),
+            modules = listOf(
+                info(
+                    "Legg inn meldekort data",
+                    "Legg inn meldekort data for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                )
+            ).toTypedArray()
+        ) { _, body ->
+
+
+
+        }
     }
 }
