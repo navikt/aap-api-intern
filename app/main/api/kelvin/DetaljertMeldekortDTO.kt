@@ -1,20 +1,20 @@
 package api.kelvin
 
-import java.sql.Date
+import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class DetaljertMeldekortListeDTO (
+data class MeldekortDetaljListeDTO (
     val personIdent: String,
-    val meldeperioder: List<meldekortDTO>,
+    val meldeperioder: List<MeldekortDTO>,
 )
 
-data class meldekortDTO(
-    val innsendtTidspunkt: LocalDateTime,
-    val meldekortDager: List<MeldeDagDTO>,
-    val aarsak_til_opprettelse: String,
+data class MeldekortDTO(
+    val mottattTidspunkt: LocalDateTime,
+    val arbeidPerDag: List<MeldeDagDTO>,
 )
 
 data class MeldeDagDTO(
-    val date: Date,
-    val timer_arbeidet: Double,
+    val dag: LocalDate,
+    val timerArbeidet: BigDecimal,
 )

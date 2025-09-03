@@ -1,6 +1,7 @@
 package api.kelvin
 
 import api.postgres.BehandlingsRepository
+import api.postgres.MeldekortDetaljerRepository
 import api.postgres.MeldekortPerioderRepository
 import api.postgres.SakStatusRepository
 import com.papsign.ktor.openapigen.route.info
@@ -76,11 +77,12 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
-        route("/meldekort").authorizedPost<Unit, Unit, DetaljertMeldekortListeDTO>(routeConfig = AuthorizationBodyPathConfig(
-            operasjon = Operasjon.SE,
-            applicationsOnly = true,
-            applicationRole = "add-data",
-        ),
+        route("/meldekort").authorizedPost<Unit, Unit, MeldekortDetaljListeDTO>(
+            routeConfig = AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
+                applicationsOnly = true,
+                applicationRole = "add-data",
+            ),
             modules = listOf(
                 info(
                     "Legg inn meldekort data",
@@ -88,9 +90,12 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
                 )
             ).toTypedArray()
         ) { _, body ->
-
-
-
+            dataSource.transaction { connection ->
+                val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
+                meldekortPerioderRepository.lagre(body)
+            }
+            pipeline.call.respond(HttpStatusCode.OK)
         }
+
     }
 }
