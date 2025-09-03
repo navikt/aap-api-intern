@@ -78,7 +78,7 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
-        route("/meldekort").authorizedPost<Unit, Unit, MeldekortDetaljListeDTO>(
+        route("/meldekort").authorizedPost<Unit, Unit, MeldekortDTO>(
             routeConfig = AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SE,
                 applicationsOnly = true,

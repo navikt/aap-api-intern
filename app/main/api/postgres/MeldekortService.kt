@@ -9,10 +9,10 @@ class MeldekortService(connection: DBConnection) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), LocalDate.now())
 
-    fun hentHvisEksisterer(personIdentifikator: String, fraDato: LocalDate? = null): List<Pair<MeldekortDTO, Vedtak>>? {
-        val meldekortDetaljListe = meldekortDetaljerRepository.hentHvisEksisterer(personIdentifikator, fraDato)
+    fun hentAlle(personIdentifikator: String, fraDato: LocalDate? = null): List<Pair<MeldekortDTO, Vedtak>> {
+        val meldekortDetaljListe = meldekortDetaljerRepository.hentAlle(personIdentifikator, fraDato)
 
-        return meldekortDetaljListe?.meldekort?.map { meldekort ->
+        return meldekortDetaljListe.map { meldekort ->
             // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info
             val meldePeriode = meldekort.meldePeriode
             val maksimum = vedtakService.hentMaksimum(personIdentifikator, meldePeriode)

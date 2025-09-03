@@ -180,19 +180,17 @@ fun NormalOpenAPIRoute.api(
             val personIdentifikator = requestBody.personidentifikator
             sjekkTilgangTilPerson(listOf(personIdentifikator))
 
-            val meldekort: List<MeldekortDetalj> =
-                dataSource.transaction { connection ->
-                    val meldekortService = MeldekortService(connection)
-                    meldekortService.hentHvisEksisterer(personIdentifikator, requestBody.fraOgMedDato)
-                        ?.map { (meldekort, vedtak) ->
-                            meldekort.tilKontrakt(vedtak)
-                        }
-                } ?: emptyList()
+            val meldekortListe = dataSource.transaction { connection ->
+                val meldekortService = MeldekortService(connection)
+                meldekortService.hentAlle(personIdentifikator, requestBody.fraOgMedDato)
+                    .map { (meldekort, vedtak) ->
+                        meldekort.tilKontrakt(vedtak)
+                    }
+            }
 
-            prometheus.tellKildesystem(meldekort, null, "/meldekort-detaljer")
-
-            val responseBody = MeldekortDetaljerResponse(personIdentifikator, meldekort)
-            if (meldekort.isEmpty()) {
+            prometheus.tellKildesystem(meldekortListe, null, "/meldekort-detaljer")
+            val responseBody = MeldekortDetaljerResponse(personIdentifikator, meldekortListe)
+            if (meldekortListe.isEmpty()) {
                 logger.info("Fant ingen meldekort for person $personIdentifikator i den angitte perioden")
                 respond(responseBody, HttpStatusCode.NotFound)
             } else {

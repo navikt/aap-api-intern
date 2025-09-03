@@ -92,22 +92,21 @@ fun no.nav.aap.behandlingsflyt.kontrakt.sak.Status.tilDomene(): KelvinSakStatus 
     }
 }
 
-fun ArbeidIPeriodeDTO.tilDomene(): MeldekortDTO.MeldeDagDTO {
-    return MeldekortDTO.MeldeDagDTO(
+fun ArbeidIPeriodeDTO.tilDomene(): MeldekortDTO.MeldeDag {
+    return MeldekortDTO.MeldeDag(
         timerArbeidet = this.timerArbeidet,
         dag = this.periodeFom // antar at periodeFom og periodeTom er samme
     )
 }
 
-fun DetaljertMeldekortDTO.tilDomene(): MeldekortDetaljListeDTO {
-    return MeldekortDetaljListeDTO(
+fun DetaljertMeldekortDTO.tilDomene(): MeldekortDTO {
+    return MeldekortDTO(
         personIdent = this.personIdent,
-        meldekort = listOf(
-            MeldekortDTO(
-                mottattTidspunkt = this.mottattTidspunkt,
-                meldePeriode = Periode(this.meldeperiodeFom, this.meldeperiodeTom),
-                arbeidPerDag = this.timerArbeidPerPeriode.map { it.tilDomene() },
-            )
-        )
+        saksnummer = this.saksnummer,
+        mottattTidspunkt = this.mottattTidspunkt,
+        meldePeriode = Periode(this.meldeperiodeFom, this.meldeperiodeTom),
+        arbeidPerDag = this.timerArbeidPerPeriode.map { it.tilDomene() },
+        meldepliktStatusKode = this.meldepliktStatusKode,
+        rettighetsTypeKode = this.rettighetsTypeKode,
     )
 }

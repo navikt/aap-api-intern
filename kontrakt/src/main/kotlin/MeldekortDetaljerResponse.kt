@@ -10,6 +10,7 @@ public data class MeldekortDetaljerResponse(
 )
 
 public data class MeldekortDetalj(
+    val saksnummer: String,
     val mottattTidspunkt: LocalDateTime,
     val meldePeriode: Periode,
     val arbeidPerDag: List<TimerPåDag>,

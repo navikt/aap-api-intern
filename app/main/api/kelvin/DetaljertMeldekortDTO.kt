@@ -9,19 +9,18 @@ import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-data class MeldekortDetaljListeDTO(
-    val personIdent: String,
-    val meldekort: List<MeldekortDTO>,
-)
-
 data class MeldekortDTO(
+    val personIdent: String,
+    val saksnummer: String,
     val mottattTidspunkt: LocalDateTime,
     val meldePeriode: Periode,
-    val arbeidPerDag: List<MeldeDagDTO>,
+    val arbeidPerDag: List<MeldeDag>,
+    val meldepliktStatusKode: String?,
+    val rettighetsTypeKode: String?,
 ) {
-
     fun tilKontrakt(vedtak: Vedtak): MeldekortDetalj {
         return MeldekortDetalj(
+            saksnummer = this.saksnummer,
             mottattTidspunkt = this.mottattTidspunkt,
             meldePeriode = no.nav.aap.api.intern.Periode(this.meldePeriode.fom, this.meldePeriode.fom),
             arbeidPerDag = this.arbeidPerDag.map {
@@ -38,7 +37,7 @@ data class MeldekortDTO(
 
     }
 
-    data class MeldeDagDTO(
+    data class MeldeDag(
         val dag: LocalDate,
         val timerArbeidet: BigDecimal,
     )
