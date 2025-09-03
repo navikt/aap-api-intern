@@ -150,6 +150,8 @@ fun NormalOpenAPIRoute.api(
                     )
                 )
             }
+
+            // FIXME bør ha et mer spesifikt navn enn meldekort, f.eks. meldekortperioder
             route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequest>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { _, requestBody ->
@@ -166,6 +168,35 @@ fun NormalOpenAPIRoute.api(
                 respond(perioder, HttpStatusCode.OK)
             }
         }
+
+        route("/meldekort_detalj_liste").post<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
+            info(description = "Henter detaljerte meldekort for en person fra og med en gitt dato")
+        ) { _, requestBody ->
+
+            val personIdentifikator = requestBody.personidentifikator
+            sjekkTilgangTilPerson(listOf(personIdentifikator))
+
+            val meldekort: List<MeldekortDetalj> =
+                dataSource.transaction { connection ->
+                    val meldekortService = MeldekortService(connection)
+                    meldekortService.hentHvisEksisterer(personIdentifikator, requestBody.fraOgMedDato)
+                        ?.map { (meldekort, vedtak) ->
+                            meldekort.tilKontrakt(vedtak)
+                        }
+                } ?: emptyList()
+
+            prometheus.tellKildesystem(meldekort, null, "/perioder/meldekort_detalj")
+
+            val responseBody = MeldekortDetaljerResponse(personIdentifikator, meldekort)
+            if (meldekort.isEmpty()) {
+                logger.info("Fant ingen meldekort for person $personIdentifikator i den angitte perioden")
+                respond(responseBody, HttpStatusCode.NotFound)
+            } else {
+                respond(responseBody, HttpStatusCode.OK)
+            }
+
+        }
+
     }
 
     tag(Tag.Saker) {
@@ -542,7 +573,9 @@ fun hentMediumFraKelvin(
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.vedtakId.toString(),
                         dagsats = right?.verdi?.dagsats ?: 0,
-                        dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times((100 - (right.verdi.uføregrad ?: 0)) / 100)
+                        dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times(
+                            (100 - (right.verdi.uføregrad ?: 0)) / 100
+                        )
                             ?: 0,
                         status = utledVedtakStatus(
                             behandling.behandlingStatus,
@@ -593,11 +626,12 @@ fun utledVedtakStatus(
     } else {
         Status.UTREDES.toString()
     }
+
 data class InternVedtakRequestApiIntern(
     val personidentifikator: String,
     val fraOgMedDato: LocalDate? = LocalDate.of(1, 1, 1),
     val tilOgMedDato: LocalDate? = LocalDate.of(9999, 12, 31)
-){
+) {
     fun tilKontrakt(): InternVedtakRequest {
         return InternVedtakRequest(
             personidentifikator = personidentifikator,
