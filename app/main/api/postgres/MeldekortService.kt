@@ -14,7 +14,8 @@ class MeldekortService(connection: DBConnection) {
 
         return meldekortDetaljListe?.meldekort?.map { meldekort ->
             // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info
-            val maksimum = vedtakService.hentMaksimum(personIdentifikator, meldekort.meldePeriode)
+            val meldePeriode = meldekort.meldePeriode
+            val maksimum = vedtakService.hentMaksimum(personIdentifikator, meldePeriode)
             val vedtak = maksimum.vedtak.first()
 
             Pair(meldekort, vedtak)

@@ -4,6 +4,7 @@ import no.nav.aap.api.intern.MeldekortDetalj
 import no.nav.aap.api.intern.TimerPåDag
 import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.komponenter.type.Periode
+
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -22,9 +23,7 @@ data class MeldekortDTO(
     fun tilKontrakt(vedtak: Vedtak): MeldekortDetalj {
         return MeldekortDetalj(
             mottattTidspunkt = this.mottattTidspunkt,
-            meldePeriode = no.nav.aap.api.intern.Periode(
-                this.meldePeriode.fom, this.meldePeriode.tom
-            ),
+            meldePeriode = no.nav.aap.api.intern.Periode(this.meldePeriode.fom, this.meldePeriode.fom),
             arbeidPerDag = this.arbeidPerDag.map {
                 TimerPåDag(
                     dag = it.dag,
@@ -43,6 +42,5 @@ data class MeldekortDTO(
         val dag: LocalDate,
         val timerArbeidet: BigDecimal,
     )
-
 
 }

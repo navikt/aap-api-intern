@@ -3,11 +3,14 @@ package api.kelvin
 import api.postgres.KelvinBehandlingStatus
 import api.postgres.KelvinSakStatus
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArbeidIPeriodeDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.RettighetsTypePeriode
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.UnderveisDTO
+import no.nav.aap.komponenter.type.Periode
 
 fun DatadelingDTO.tilDomene(): api.postgres.DatadelingDTO {
     return api.postgres.DatadelingDTO(
@@ -87,4 +90,24 @@ fun no.nav.aap.behandlingsflyt.kontrakt.sak.Status.tilDomene(): KelvinSakStatus 
         no.nav.aap.behandlingsflyt.kontrakt.sak.Status.LØPENDE -> KelvinSakStatus.LØPENDE
         no.nav.aap.behandlingsflyt.kontrakt.sak.Status.AVSLUTTET -> KelvinSakStatus.AVSLUTTET
     }
+}
+
+fun ArbeidIPeriodeDTO.tilDomene(): MeldekortDTO.MeldeDagDTO {
+    return MeldekortDTO.MeldeDagDTO(
+        timerArbeidet = this.timerArbeidet,
+        dag = this.periodeFom // antar at periodeFom og periodeTom er samme
+    )
+}
+
+fun DetaljertMeldekortDTO.tilDomene(): MeldekortDetaljListeDTO {
+    return MeldekortDetaljListeDTO(
+        personIdent = this.personIdent,
+        meldekort = listOf(
+            MeldekortDTO(
+                mottattTidspunkt = this.mottattTidspunkt,
+                meldePeriode = Periode(this.meldeperiodeFom, this.meldeperiodeTom),
+                arbeidPerDag = this.timerArbeidPerPeriode.map { it.tilDomene() },
+            )
+        )
+    )
 }

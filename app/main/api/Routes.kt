@@ -56,6 +56,7 @@ data class CallIdHeader(
 enum class Tag(override val description: String) : APITag {
     Perioder("For å hente perioder med AAP"),
     Saker("For å hente AAP-saker"),
+    Meldekort("For å hente AAP-meldekort"),
     Maksimum("For å hente maksimumsløsning")
 }
 
@@ -168,8 +169,11 @@ fun NormalOpenAPIRoute.api(
                 respond(perioder, HttpStatusCode.OK)
             }
         }
+    }
 
-        route("/meldekort_detalj_liste").post<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
+    tag(Tag.Meldekort) {
+
+        route("/meldekort-detaljer").post<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
             info(description = "Henter detaljerte meldekort for en person fra og med en gitt dato")
         ) { _, requestBody ->
 
@@ -185,7 +189,7 @@ fun NormalOpenAPIRoute.api(
                         }
                 } ?: emptyList()
 
-            prometheus.tellKildesystem(meldekort, null, "/perioder/meldekort_detalj")
+            prometheus.tellKildesystem(meldekort, null, "/meldekort-detaljer")
 
             val responseBody = MeldekortDetaljerResponse(personIdentifikator, meldekort)
             if (meldekort.isEmpty()) {

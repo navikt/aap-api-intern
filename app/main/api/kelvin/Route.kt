@@ -10,6 +10,7 @@ import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import io.ktor.server.response.*
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
@@ -93,6 +94,25 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
             dataSource.transaction { connection ->
                 val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
                 meldekortPerioderRepository.lagre(body)
+            }
+            pipeline.call.respond(HttpStatusCode.OK)
+        }
+        route("/meldekort-detaljer").authorizedPost<Unit, Unit, DetaljertMeldekortDTO>(
+            routeConfig = AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
+                applicationsOnly = true,
+                applicationRole = "add-data",
+            ),
+            modules = listOf(
+                info(
+                    "Legg inn meldekort data",
+                    "Legg inn meldekort data for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                )
+            ).toTypedArray()
+        ) { _, body: DetaljertMeldekortDTO ->
+            dataSource.transaction { connection ->
+                val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
+                meldekortPerioderRepository.lagre(body.tilDomene())
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
