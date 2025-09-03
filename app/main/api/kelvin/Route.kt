@@ -78,25 +78,6 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
-        route("/meldekort").authorizedPost<Unit, Unit, MeldekortDTO>(
-            routeConfig = AuthorizationBodyPathConfig(
-                operasjon = Operasjon.SE,
-                applicationsOnly = true,
-                applicationRole = "add-data",
-            ),
-            modules = listOf(
-                info(
-                    "Legg inn meldekort data",
-                    "Legg inn meldekort data for en person. Endepunktet kan kun brukes av behandlingsflyt"
-                )
-            ).toTypedArray()
-        ) { _, body ->
-            dataSource.transaction { connection ->
-                val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
-                meldekortPerioderRepository.lagre(body)
-            }
-            pipeline.call.respond(HttpStatusCode.OK)
-        }
         route("/meldekort-detaljer").authorizedPost<Unit, Unit, DetaljertMeldekortDTO>(
             routeConfig = AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SE,

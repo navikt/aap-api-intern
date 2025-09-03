@@ -1,3 +1,5 @@
+-- TODO tilpass modellen som den er i kotlin
+
 CREATE TABLE MELDEKORT
 (
     ID                BIGSERIAL PRIMARY KEY,

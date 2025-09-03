@@ -8,9 +8,7 @@ class MeldekortRepository(private val connection: Connection) {
     private val log = LoggerFactory.getLogger(MeldekortRepository::class.java)
 
     fun lagreMeldekort(meldekort: MeldekortDTO){
-
+        TODO()
     }
-
-
 
 }

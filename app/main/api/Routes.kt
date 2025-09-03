@@ -575,9 +575,7 @@ fun hentMediumFraKelvin(
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.vedtakId.toString(),
                         dagsats = right?.verdi?.dagsats ?: 0,
-                        dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times(
-                            (100 - (right.verdi.uføregrad ?: 0)) / 100
-                        )
+                        dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times((100 - (right.verdi.uføregrad ?: 0)) / 100)
                             ?: 0,
                         status = utledVedtakStatus(
                             behandling.behandlingStatus,
@@ -628,12 +626,11 @@ fun utledVedtakStatus(
     } else {
         Status.UTREDES.toString()
     }
-
 data class InternVedtakRequestApiIntern(
     val personidentifikator: String,
     val fraOgMedDato: LocalDate? = LocalDate.of(1, 1, 1),
     val tilOgMedDato: LocalDate? = LocalDate.of(9999, 12, 31)
-) {
+){
     fun tilKontrakt(): InternVedtakRequest {
         return InternVedtakRequest(
             personidentifikator = personidentifikator,
