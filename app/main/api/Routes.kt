@@ -19,6 +19,7 @@ import com.papsign.ktor.openapigen.route.tag
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
@@ -188,15 +189,14 @@ fun NormalOpenAPIRoute.api(
                     }
             }
 
-            prometheus.tellKildesystem(meldekortListe, null, "/meldekort-detaljer")
-            val responseBody = MeldekortDetaljerResponse(personIdentifikator, meldekortListe)
+            prometheus.tellKelvinKall(pipeline.call.request)
+
             if (meldekortListe.isEmpty()) {
                 logger.info("Fant ingen meldekort for person $personIdentifikator i den angitte perioden")
-                respond(responseBody, HttpStatusCode.NotFound)
-            } else {
-                respond(responseBody, HttpStatusCode.OK)
             }
 
+            val responseBody = MeldekortDetaljerResponse(personIdentifikator, meldekortListe)
+            respond(responseBody, HttpStatusCode.OK)
         }
 
     }
@@ -429,6 +429,10 @@ fun NormalOpenAPIRoute.api(
     }
 }
 
+private fun PrometheusMeterRegistry.tellKelvinKall(request: ApplicationRequest) {
+    this.kildesystemTeller("kelvin", request.path()).increment()
+}
+
 private fun PrometheusMeterRegistry.tellKildesystem(
     kelvinData: List<*>?,
     arenaData: List<*>?,
@@ -575,7 +579,9 @@ fun hentMediumFraKelvin(
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.vedtakId.toString(),
                         dagsats = right?.verdi?.dagsats ?: 0,
-                        dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times((100 - (right.verdi.uføregrad ?: 0)) / 100)
+                        dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times(
+                            (100 - (right.verdi.uføregrad ?: 0)) / 100
+                        )
                             ?: 0,
                         status = utledVedtakStatus(
                             behandling.behandlingStatus,
@@ -626,11 +632,12 @@ fun utledVedtakStatus(
     } else {
         Status.UTREDES.toString()
     }
+
 data class InternVedtakRequestApiIntern(
     val personidentifikator: String,
     val fraOgMedDato: LocalDate? = LocalDate.of(1, 1, 1),
     val tilOgMedDato: LocalDate? = LocalDate.of(9999, 12, 31)
-){
+) {
     fun tilKontrakt(): InternVedtakRequest {
         return InternVedtakRequest(
             personidentifikator = personidentifikator,

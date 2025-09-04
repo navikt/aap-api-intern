@@ -10,17 +10,25 @@ class MeldekortService(connection: DBConnection) {
     val vedtakService = VedtakService(BehandlingsRepository(connection), LocalDate.now())
 
     fun hentAlle(personIdentifikator: String, fraDato: LocalDate? = null): List<Pair<MeldekortDTO, Vedtak>> {
+        // TODO bør hente alle personIdent fra PDL, og bruke dem i db-query
         val meldekortDetaljListe = meldekortDetaljerRepository.hentAlle(personIdentifikator, fraDato)
 
         return meldekortDetaljListe.map { meldekort ->
-            // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info
-            val meldePeriode = meldekort.meldePeriode
-            val maksimum = vedtakService.hentMaksimum(personIdentifikator, meldePeriode)
-            val vedtak = maksimum.vedtak.first()
+            val vedtak = finnRelatertVedtak(meldekort, personIdentifikator)
 
             Pair(meldekort, vedtak)
         }
 
+    }
+
+    private fun finnRelatertVedtak(
+        meldekort: MeldekortDTO, personIdentifikator: String
+    ): Vedtak {
+        val meldePeriode = meldekort.meldePeriode
+        // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info:
+        val maksimum = vedtakService.hentMaksimum(personIdentifikator, meldePeriode)
+        val vedtak = maksimum.vedtak.first()
+        return vedtak
     }
 
 }
