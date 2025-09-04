@@ -17,6 +17,7 @@ data class MeldekortDTO(
     val arbeidPerDag: List<MeldeDag>,
     val meldepliktStatusKode: String?,
     val rettighetsTypeKode: String?,
+    val avslagsårsakKode: String?,
 ) {
     fun tilKontrakt(vedtak: Vedtak): MeldekortDetalj {
         return MeldekortDetalj(

@@ -108,5 +108,6 @@ fun DetaljertMeldekortDTO.tilDomene(): MeldekortDTO {
         arbeidPerDag = this.timerArbeidPerPeriode.map { it.tilDomene() },
         meldepliktStatusKode = this.meldepliktStatusKode,
         rettighetsTypeKode = this.rettighetsTypeKode,
+        avslagsårsakKode = this.avslagsårsakKode
     )
 }
