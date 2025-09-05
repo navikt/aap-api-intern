@@ -1,3 +1,5 @@
+@file:Suppress("ClassName")
+
 package no.nav.aap.api.intern
 
 data class PerioderResponse(val perioder: List<Periode>)

@@ -69,7 +69,7 @@ fun NormalOpenAPIRoute.api(
     tag(Tag.Perioder) {
         route("/perioder") {
             post<CallIdHeader, PerioderResponse, InternVedtakRequest>(
-                info(description = "Henter perioder med vedtak for en person innen gitte datointerval")
+                info(description = "Henter perioder med vedtak for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter perioder")
                 val azpName = azpName()
@@ -111,7 +111,7 @@ fun NormalOpenAPIRoute.api(
             }
 
             route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequest>(
-                info(description = "Henter perioder med vedtak fra Arena (inkl. aktivitetsfase) for en person innen gitte datointerval")
+                info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
                 prometheus.httpCallCounter(
                     "/perioder/aktivitetfase",
