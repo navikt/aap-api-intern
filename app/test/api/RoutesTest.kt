@@ -1,11 +1,11 @@
 package api
 
+import api.postgres.KelvinBehandlingStatus
+import api.postgres.KelvinSakStatus
 import io.github.nchaugen.tabletest.junit.TableTest
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
 import java.time.LocalDate
-import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status as BehandlingStatus
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Status as SakStatus
 
 
 class RoutesTest {
@@ -23,8 +23,8 @@ UTREDES                    | UTREDES   | 2021-01-01 | 2025-05-15 | LØPENDE
     """
     )
     fun `fsdf dsf `(
-        behandlingStatus: BehandlingStatus,
-        sakStatus: SakStatus,
+        behandlingStatus: KelvinBehandlingStatus,
+        sakStatus: KelvinSakStatus,
         periodeFom: LocalDate,
         periodeTom: LocalDate,
         forventetStatus: String

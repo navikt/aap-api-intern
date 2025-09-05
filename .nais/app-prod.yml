@@ -72,6 +72,12 @@ spec:
         - application: salesforce
           namespace: teamcrm
           cluster: prod-external
+        - application: pensjon-pen
+          namespace: pensjondeployer
+          cluster: prod-fss
+        - application: veilarbportefolje
+          namespace: obo
+          cluster: prod-gcp
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp

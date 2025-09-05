@@ -12,6 +12,7 @@ data class Medium(val vedtak: List<VedtakUtenUtbetaling>)
  */
 data class Vedtak(
     val dagsats: Int,
+    val dagsatsEtterUføreReduksjon: Int?,
     val vedtakId: String,
     val status: String,
     val saksnummer: String,
@@ -20,6 +21,7 @@ data class Vedtak(
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
+    val barnetillegg: Int,
     val kildesystem: Kilde = Kilde.ARENA,
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
@@ -28,14 +30,9 @@ data class Vedtak(
     val utbetaling: List<UtbetalingMedMer>,
 )
 
-enum class VedtakStatus {
-    AVSLUTTET,
-    LØPENDE,
-    UTREDES
-}
-
 data class VedtakUtenUtbetaling(
     val dagsats: Int,
+    val dagsatsEtterUføreReduksjon: Int?,
     val vedtakId: String,
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
@@ -46,6 +43,7 @@ data class VedtakUtenUtbetaling(
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
+    val barnetillegg: Int,
     val kildesystem: String = "ARENA",
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
@@ -60,7 +58,9 @@ data class UtbetalingMedMer(
     val periode: Periode,
     val belop: Int,
     val dagsats: Int,
+    @Deprecated("Bruk barnetillegg")
     val barnetilegg: Int,
+    val barnetillegg: Int,
 )
 
 data class Reduksjon(

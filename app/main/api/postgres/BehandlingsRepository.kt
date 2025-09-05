@@ -1,14 +1,8 @@
 package api.postgres
 
-import api.utledVedtakStatus
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
-import no.nav.aap.api.intern.*
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.tidslinje.JoinStyle
-import no.nav.aap.komponenter.tidslinje.Segment
-import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
@@ -161,10 +155,10 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
         connection.executeBatch(
             """
-                INSERT INTO TILKJENT_PERIODE (TILKJENT_YTELSE_ID, PERIODE, DAGSATS, GRADERING, GRUNNLAG,
+                INSERT INTO TILKJENT_PERIODE (TILKJENT_YTELSE_ID, PERIODE, DAGSATS, GRADERING,
                                               GRUNNLAGSFAKTOR, GRUNNBELOP, ANTALL_BARN, BARNETILLEGGSATS,
                                               BARNETILLEGG, UFOREGRADERING)
-                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
             behandling.tilkjent
         ) {
@@ -173,133 +167,27 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setPeriode(2, Periode(it.tilkjentFom, it.tilkjentTom))
                 setBigDecimal(3, it.dagsats.toBigDecimal())
                 setInt(4, it.gradering)
-                setBigDecimal(5, it.grunnlag)
-                setBigDecimal(6, it.grunnlagsfaktor)
-                setBigDecimal(7, it.grunnbeløp)
-                setInt(8, it.antallBarn)
-                setBigDecimal(9, it.barnetilleggsats)
-                setBigDecimal(10, it.barnetillegg)
-                setInt(11, it.samordningUføregradering)
+                setBigDecimal(5, it.grunnlagsfaktor)
+                setBigDecimal(6, it.grunnbeløp)
+                setInt(7, it.antallBarn)
+                setBigDecimal(8, it.barnetilleggsats)
+                setBigDecimal(9, it.barnetillegg)
+                setInt(10, it.samordningUføregradering)
             }
         }
-    }
-
-    fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
-        val kelvinData = hentVedtaksData(fnr, interval)
-        // TODO, flytt tidslinje ut av denne klassen, ikke gjør logikk i repository
-        val vedtak = kelvinData.flatMap { behandling ->
-            val rettighetsTypeTidslinje = Tidslinje(
-                behandling.rettighetsTypeTidsLinje.map {
-                    Segment(
-                        Periode(it.fom, it.tom),
-                        it.verdi
-                    )
-                }
-            )
-
-            val tilkjent = Tidslinje(
-                behandling.tilkjent.map {
-                    Segment(
-                        Periode(it.tilkjentFom, it.tilkjentTom),
-                        TilkjentDB(
-                            it.dagsats,
-                            it.grunnlag,
-                            it.gradering,
-                            it.grunnlagsfaktor,
-                            it.grunnbeløp,
-                            it.antallBarn,
-                            it.barnetilleggsats,
-                            it.barnetillegg,
-                            it.samordningUføregradering
-                        )
-                    )
-                }
-            )
-
-            val perioderTidslinje = rettighetsTypeTidslinje.kombiner(
-                tilkjent,
-                JoinStyle.LEFT_JOIN { periode, left, right ->
-                    Segment(
-                        periode,
-                        VedtakUtenUtbetalingUtenPeriode(
-                            vedtakId = behandling.vedtakId.toString(),
-                            dagsats = right?.verdi?.dagsats ?: 0,
-                            status = utledVedtakStatus(
-                                behandling.behandlingStatus,
-                                behandling.sak.status,
-                                periode
-                            ),
-                            saksnummer = behandling.sak.saksnummer,
-                            vedtaksdato = behandling.vedtaksDato,
-                            vedtaksTypeKode = null,
-                            vedtaksTypeNavn = null,
-                            rettighetsType = left.verdi,
-                            beregningsgrunnlag = right?.verdi?.grunnlag?.toInt() ?: 0,
-                            barnMedStonad = right?.verdi?.antallBarn ?: 0,
-                            kildesystem = Kilde.KELVIN.toString(),
-                            samordningsId = behandling.samId,
-                            opphorsAarsak = null
-                        )
-                    )
-                }
-            ).komprimer()
-            val tilkjentPerioder =
-                tilkjent.splittOppIPerioder(perioderTidslinje.perioder().toList())
-
-            perioderTidslinje.kombiner(
-                tilkjentPerioder,
-                JoinStyle.LEFT_JOIN { periode, left, right ->
-                    Segment(
-                        periode,
-                        Vedtak(
-                            vedtakId = left.verdi.vedtakId,
-                            dagsats = left.verdi.dagsats,
-                            status = left.verdi.status,
-                            saksnummer = left.verdi.saksnummer,
-                            vedtaksdato = left.verdi.vedtaksdato,
-                            periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
-                            rettighetsType = left.verdi.rettighetsType,
-                            // TODO: bør bruke felles logikk her
-                            beregningsgrunnlag = left.verdi.beregningsgrunnlag * 260, //GANGER MED 260 FOR Å FÅ ÅRLIG SUM
-                            barnMedStonad = left.verdi.barnMedStonad,
-                            vedtaksTypeKode = left.verdi.vedtaksTypeKode,
-                            vedtaksTypeNavn = left.verdi.vedtaksTypeNavn,
-                            utbetaling = right?.verdi?.filter {
-                                it.periode.tom.isBefore(LocalDate.now()) || it.periode.tom.isEqual(
-                                    LocalDate.now()
-                                )
-                            }?.map { utbetaling ->
-                                UtbetalingMedMer(
-                                    reduksjon = null,
-                                    utbetalingsgrad = utbetaling.verdi.gradering,
-                                    periode = no.nav.aap.api.intern.Periode(
-                                        utbetaling.periode.fom,
-                                        utbetaling.periode.tom
-                                    ),
-                                    // TODO: bør hente korrekt beløp på samme måte som i behandlingsflyt
-                                    belop = ((utbetaling.verdi.dagsats + utbetaling.verdi.barnetillegg.toInt()) * utbetaling.verdi.gradering) / 100 * weekdaysBetween(
-                                        utbetaling.periode.fom,
-                                        utbetaling.periode.tom
-                                    ),
-                                    dagsats = utbetaling.verdi.dagsats * utbetaling.verdi.gradering / 100,
-                                    barnetilegg = utbetaling.verdi.barnetillegg.toInt()
-                                )
-                            } ?: emptyList(),
-                            kildesystem = Kilde.valueOf(left.verdi.kildesystem),
-                            samordningsId = left.verdi.samordningsId,
-                            opphorsAarsak = left.verdi.opphorsAarsak
-                        )
-                    )
-                }
-            ).komprimer().map { it.verdi }
-                .filter { it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString() }
-
-
+        connection.execute(
+            """INSERT INTO BEREGNINGSGRUNNLAG (BEHANDLING_ID, BELOP) VALUES (?, ?)""".trimIndent()
+        ) {
+            setParams {
+                setLong(1, nyBehandlingId)
+                setBigDecimal(2, behandling.beregningsgrunnlag)
+            }
         }
 
-        return Maksimum(vedtak)
     }
 
+    // TODO: ikke returner DTO fra behandlingsflyt her, heller dupliser i kode her
+    // Kommer til å bli kronglete ved modellendringer
     fun hentVedtaksData(fnr: String, periode: Periode): List<DatadelingDTO> {
         val sakerIder = connection.queryList(
             """
@@ -329,7 +217,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setRowMapper { row ->
                     SakDB(
                         saksnummer = row.getString("SAKSNUMMER"),
-                        status = Status.valueOf(row.getString("STATUS")),
+                        status = KelvinSakStatus.valueOf(row.getString("STATUS")),
                         rettighetsPeriode = row.getPeriode("RETTIGHETSPERIODE"),
                         id = it
                     )
@@ -358,11 +246,29 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id),
                     samId = behandling.samid,
                     vedtakId = behandling.vedtakId ?: 0L,
+                    beregningsgrunnlag = hentBeregningsGrunnlag(behandling.id)
+                        ?: BigDecimal.ZERO, // TODO!!!
                 )
             }
         }
 
 
+    }
+
+    fun hentBeregningsGrunnlag(behandlingId: Long): BigDecimal? {
+        return connection.queryFirstOrNull(
+            """
+                SELECT BELOP FROM BEREGNINGSGRUNNLAG
+                WHERE BEHANDLING_ID = ?
+            """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, behandlingId)
+            }
+            setRowMapper { row ->
+                row.getBigDecimal("BELOP")
+            }
+        }
     }
 
     fun hentRettighetsTypeTidslinje(behandlingId: Long): List<RettighetsTypePeriode> {
@@ -453,13 +359,12 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     tilkjentTom = it.getPeriode("PERIODE").tom,
                     dagsats = it.getBigDecimal("DAGSATS").toInt(),
                     gradering = it.getInt("GRADERING"),
-                    grunnlag = it.getBigDecimal("GRUNNLAG"),
                     grunnlagsfaktor = it.getBigDecimal("GRUNNLAGSFAKTOR"),
                     grunnbeløp = it.getBigDecimal("GRUNNBELOP"),
                     antallBarn = it.getInt("ANTALL_BARN"),
                     barnetilleggsats = it.getBigDecimal("BARNETILLEGGSATS"),
                     barnetillegg = it.getBigDecimal("BARNETILLEGG"),
-                    samordningUføregradering = 100-(it.getIntOrNull("UFOREGRADERING") ?: 0)
+                    samordningUføregradering = 100 - (it.getIntOrNull("UFOREGRADERING") ?: 0)
                 )
             }
         }
@@ -468,14 +373,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
 data class SakDB(
     val id: Long,
-    val status: Status,
+    val status: KelvinSakStatus,
     val rettighetsPeriode: Periode,
     val saksnummer: String,
 )
 
 data class BehandlingDB(
     val id: Long,
-    val behandlingStatus: no.nav.aap.behandlingsflyt.kontrakt.behandling.Status,
+    val behandlingStatus: KelvinBehandlingStatus,
     val vedtaksDato: LocalDate,
     val opprettetTidspunkt: LocalDate,
     val behandlingReferanse: String,
@@ -485,7 +390,6 @@ data class BehandlingDB(
 
 data class TilkjentDB(
     val dagsats: Int,
-    val grunnlag: BigDecimal,
     val gradering: Int,
     val grunnlagsfaktor: BigDecimal,
     val grunnbeløp: BigDecimal,
@@ -509,35 +413,43 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
     return count
 }
 
+/**
+ * @param vedtakId Svarer til ID til vedtak-tabellen i behandlingsflyt.
+ */
 data class VedtakUtenUtbetalingUtenPeriode(
     val vedtakId: String,
     val dagsats: Int,
+    @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin).")
+    val dagsatsEtterUføreReduksjon: Int,
     @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
     val status: String, //Hypotese, vedtaksstatuskode
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
-    val vedtaksTypeKode: String?,
-    val vedtaksTypeNavn: String?,
+    @param:Description("Rettighetsgruppe. For data fra Arena er dette aktivitetsfasekode.")
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
+    @param:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
     val kildesystem: String = "ARENA",
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
+    val barnetilleggSats: BigDecimal? = null
 ) {
     fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode): VedtakUtenUtbetaling {
         return VedtakUtenUtbetaling(
             vedtakId = this.vedtakId,
             dagsats = this.dagsats,
+            dagsatsEtterUføreReduksjon = this.dagsatsEtterUføreReduksjon,
             status = this.status,
             saksnummer = this.saksnummer,
             vedtaksdato = this.vedtaksdato,
-            vedtaksTypeKode = this.vedtaksTypeKode,
-            vedtaksTypeNavn = this.vedtaksTypeNavn,
+            vedtaksTypeKode = null,
+            vedtaksTypeNavn = null,
             periode = periode,
             rettighetsType = this.rettighetsType,
             beregningsgrunnlag = this.beregningsgrunnlag,
             barnMedStonad = this.barnMedStonad,
+            barnetillegg = barnMedStonad * (this.barnetilleggSats?.toInt() ?: 0),
             kildesystem = this.kildesystem,
             samordningsId = this.samordningsId,
             opphorsAarsak = this.opphorsAarsak

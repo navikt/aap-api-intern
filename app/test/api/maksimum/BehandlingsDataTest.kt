@@ -1,7 +1,9 @@
 package api.maksimum
 
+import api.InternVedtakRequestApiIntern
 import api.TestConfig
 import api.api
+import api.kelvin.tilDomene
 import api.util.*
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -9,7 +11,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
@@ -22,14 +24,15 @@ import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
+import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.Random
-import java.util.UUID
+import java.util.*
 import kotlin.test.assertEquals
 
 val testObject = DatadelingDTO(
@@ -113,7 +116,8 @@ val testObject = DatadelingDTO(
         )
     ),
     samId = "1234asd",
-    vedtakId = 123456789L
+    vedtakId = 123456789L,
+    beregningsgrunnlag = BigDecimal.valueOf(500_000)
 )
 
 val dataSource = InitTestDatabase.freshDatabase()
@@ -182,6 +186,49 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                 )
             }
             assertEquals(HttpStatusCode.OK, maksimumResponseObo.status)
+        }
+    }
+
+    @Test
+    fun `kan lagre ned og hente maksimum med null param`() {
+        val config = TestConfig.default(fakes)
+        val azure = AzureTokenGen("test", "test")
+
+        testApplication {
+            application {
+                api(
+                    config = config,
+                    datasource = dataSource,
+                    arenaRestClient = ArenaClient()
+                )
+            }
+
+            val res = jsonHttpClient.post("/api/insert/vedtak") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    testObject
+                )
+            }
+
+            assertEquals(HttpStatusCode.OK, res.status)
+            val perioder = countTilkjentPerioder()
+            assert(perioder > 0)
+
+            val maksimumResponseM2m = jsonHttpClient.post("/maksimum") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    InternVedtakRequestApiIntern(
+                        "12345678910",
+                        null,
+                        null
+                    )
+                )
+            }
+
+            assertEquals(HttpStatusCode.OK, maksimumResponseM2m.status)
+            assertEquals(3, maksimumResponseM2m.body<Maksimum>().vedtak.size)
         }
     }
 
@@ -298,7 +345,8 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                         )
                     ),
                     samId = "1234asd",
-                    vedtakId = Random().nextLong()
+                    vedtakId = Random().nextLong(),
+                    beregningsgrunnlag = 600_000.toBigDecimal()
                 )
             )
         }
@@ -342,7 +390,7 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
             assertEquals(HttpStatusCode.OK, perioderResponseObo.status)
             assertEquals(
                 perioderResponseObo.body<PerioderResponse>().perioder,
-                perioderMedAAp(listOf(testObject))
+                perioderMedAAp(listOf(testObject.tilDomene()))
             )
 
             val perioderResponseM2m = jsonHttpClient.post("/perioder") {
@@ -413,7 +461,7 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
 
     @Test
     fun `kan hente perioder fra vedtaksdata`() {
-        val result = perioderMedAAp(listOf(testObject))
+        val result = perioderMedAAp(listOf(testObject.tilDomene()))
 
         assertEquals(1, result.size)
         assertEquals(
@@ -425,6 +473,60 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
             ),
             result
         )
+    }
+
+    @Test
+    fun `ekte data kopiert fra behandlingsflyt, snapshot-test`() {
+        // Oppdater json-filene ved endring
+        val config = TestConfig.default(fakes)
+        val azure = AzureTokenGen("test", "test")
+
+        val testfil =
+            javaClass.getResource("/forstegangsvedtak_fra_behandlingsflyt.json")!!.readText()
+        val testData = DefaultJsonMapper.fromJson<DatadelingDTO>(testfil)
+
+
+        testApplication {
+            application {
+                api(
+                    config = config,
+                    datasource = dataSource,
+                    arenaRestClient = ArenaClient(),
+                    // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
+                    nå = LocalDate.of(2025, 12, 13)
+                )
+            }
+
+            jsonHttpClient.post("/api/insert/vedtak") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    testData
+                )
+            }
+
+            val maksimumRespons = jsonHttpClient.post("/maksimum") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    InternVedtakRequest(
+                        "01410038710",
+                        LocalDate.now().minusYears(0),
+                        LocalDate.now().plusMonths(1)
+                    )
+                )
+            }
+            assertThat(maksimumRespons.status).isEqualTo(HttpStatusCode.OK)
+
+            val uthentetFraApi = maksimumRespons.body<Maksimum>()
+            assertThat(uthentetFraApi.vedtak).hasSize(1)
+
+            val forventetResultatFraResources =
+                javaClass.getResource("/forstegangsvedtak_fra_api.json")!!.readText()
+            val forventet = DefaultJsonMapper.fromJson<Maksimum>(forventetResultatFraResources)
+
+            assertThat(uthentetFraApi).isEqualTo(forventet)
+        }
     }
 
 

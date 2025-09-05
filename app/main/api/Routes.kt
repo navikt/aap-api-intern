@@ -25,13 +25,12 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.api.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.httpklient.auth.audience
-import no.nav.aap.komponenter.httpklient.auth.token
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.miljo.Miljø
+import no.nav.aap.komponenter.server.auth.audience
+import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
@@ -63,8 +62,9 @@ enum class Tag(override val description: String) : APITag {
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arena: IArenaoppslagRestClient,
-    httpCallCounter: PrometheusMeterRegistry,
+    prometheus: PrometheusMeterRegistry,
     pdlClient: IPdlClient,
+    nå: LocalDate = LocalDate.now(),
 ) {
     tag(Tag.Perioder) {
         route("/perioder") {
@@ -73,7 +73,7 @@ fun NormalOpenAPIRoute.api(
             ) { callIdHeader, requestBody ->
                 logger.info("Henter perioder")
                 val azpName = azpName()
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/perioder",
                     pipeline.call.audience(),
                     azpName ?: ""
@@ -82,9 +82,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /perioder")
                 }
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinPerioder = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -97,20 +95,25 @@ fun NormalOpenAPIRoute.api(
                         vedtaksdata
                     )
                 }
+
+                val arenaPerioder = arena.hentPerioder(
+                    callId,
+                    requestBody
+                ).perioder
+
+                prometheus.tellKildesystem(kelvinPerioder, arenaPerioder, "/perioder")
+
                 respond(
                     PerioderResponse(
-                        arena.hentPerioder(
-                            callId,
-                            requestBody
-                        ).perioder + kelvinPerioder
+                        arenaPerioder + kelvinPerioder
                     )
                 )
             }
 
             route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequest>(
-                info(description = "Henter perioder med vedtak (inkl. aktivitetsfase) for en person innen gitte datointerval")
+                info(description = "Henter perioder med vedtak fra Arena (inkl. aktivitetsfase) for en person innen gitte datointerval")
             ) { callIdHeader, requestBody ->
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/perioder/aktivitetfase",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -120,11 +123,15 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /perioder/aktivitetfase")
                 }
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val arenaSvar = arena.hentPerioderInkludert11_17(callId, requestBody)
+
+                prometheus.tellKildesystem(
+                    null,
+                    arenaSvar.perioder,
+                    "/perioder/aktivitetfase"
+                )
 
                 respond(
                     PerioderInkludert11_17Response(
@@ -145,15 +152,17 @@ fun NormalOpenAPIRoute.api(
             }
             route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequest>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
-            ) { callIdHeader, requestBody ->
+            ) { _, requestBody ->
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+
                 val perioder = dataSource.transaction { connection ->
                     val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
                     meldekortPerioderRepository.hentMeldekortPerioder(requestBody.personidentifikator)
                 }.filter { it.tom > requestBody.fraOgMedDato && it.fom < requestBody.tilOgMedDato }
+
+                prometheus.tellKildesystem(perioder, null, "/perioder/meldekort")
+
                 respond(perioder, HttpStatusCode.OK)
             }
         }
@@ -164,8 +173,7 @@ fun NormalOpenAPIRoute.api(
         route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { callIdHeader, requestBody ->
-            logger.info("Henter saker for en person")
-            httpCallCounter.httpCallCounter(
+            prometheus.httpCallCounter(
                 "/sakerByFnr",
                 pipeline.call.audience(),
                 azpName() ?: ""
@@ -175,20 +183,23 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            if (!harTilgangTilPerson(requestBody.personidentifikatorer.first(), token())) {
-                respondWithStatus(HttpStatusCode.Forbidden)
-            }
+            sjekkTilgangTilPerson(requestBody.personidentifikatorer)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
-            val kelvinSaker: List<SakStatus> = dataSource.transaction { connection ->
-                val sakStatusRepository = SakStatusRepository(connection)
-                personIdenter.flatMap {
-                    sakStatusRepository.hentSakStatus(it)
+            val kelvinSaker: List<SakStatus> =
+                dataSource.transaction { connection ->
+                    val sakStatusRepository = SakStatusRepository(connection)
+                    personIdenter.flatMap {
+                        sakStatusRepository.hentSakStatus(it)
+                    }
                 }
-            }
-            val arenaSaker = arena.hentSakerByFnr(callId, SakerRequest(personIdenter)).map {
-                arenaSakStatusTilDomene(it)
-            }
+            val arenaSaker: List<SakStatus> =
+                arena.hentSakerByFnr(callId, SakerRequest(personIdenter)).map {
+                    arenaSakStatusTilDomene(it)
+                }
+
+            prometheus.tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
+
             respond(arenaSaker + kelvinSaker)
         }
 
@@ -197,7 +208,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Sjekker om en person eksisterer i AAP-arena")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om person eksisterer i aap-arena")
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/arena/person/aap/eksisterer",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -223,53 +234,50 @@ fun NormalOpenAPIRoute.api(
 
         route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
-        ) { callIdHeader, requestBody ->
+        ) { _, requestBody ->
             logger.info("Henter saker for en person fra kelvin")
-            httpCallCounter.httpCallCounter(
+            prometheus.httpCallCounter(
                 "/kelvin/sakerByFnr",
                 pipeline.call.audience(),
                 azpName() ?: ""
             ).increment()
 
-            if (!harTilgangTilPerson(requestBody.personidentifikatorer.first(), token())) {
-                respondWithStatus(HttpStatusCode.Forbidden)
-            }
+            sjekkTilgangTilPerson(requestBody.personidentifikatorer)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
-            val kelvinSaker: List<SakStatus> = dataSource.transaction { connection ->
-                val sakStatusRepository = SakStatusRepository(connection)
-                personIdenter.flatMap {
-                    sakStatusRepository.hentSakStatus(it)
+            val kelvinSaker: List<SakStatus> =
+                dataSource.transaction { connection ->
+                    val sakStatusRepository = SakStatusRepository(connection)
+                    personIdenter.flatMap {
+                        sakStatusRepository.hentSakStatus(it)
+                    }
                 }
-            }
+            prometheus.tellKildesystem(kelvinSaker, null, "/kelvin/sakerByFnr")
             respond(kelvinSaker)
         }
     }
 
     tag(Tag.Maksimum) {
         route("/maksimumUtenUtbetaling") {
-            post<CallIdHeader, Medium, InternVedtakRequest>(
-                info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval")
+            post<CallIdHeader, Medium, InternVedtakRequestApiIntern>(
+                info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval. dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin.")
             ) { callIdHeader, requestBody ->
-                logger.info("Henter maksimum uten utbetalinger")
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/maksimumUtenUtbetaling",
                     pipeline.call.audience(),
                     azpName() ?: ""
                 ).increment()
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
-                    logger.info("CallID ble ikke gitt på kall mot: /maksimum")
+                    logger.info("CallID ble ikke gitt på kall mot: /maksimumUtenUtbetaling")
                 }
-
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                val body = requestBody.tilKontrakt()
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     hentMediumFraKelvin(
-                        requestBody.personidentifikator,
-                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato),
+                        body.personidentifikator,
+                        Periode(body.fraOgMedDato, body.tilOgMedDato),
                         behandlingsRepository
                     ).vedtak
                 }
@@ -277,22 +285,23 @@ fun NormalOpenAPIRoute.api(
                     HttpHeaders.ContentType,
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
-                respond(
-                    Medium(
-                        arena.hentMaksimum(
-                            callId,
-                            requestBody
-                        ).vedtak.map { it.fraKontraktUtenUtbetaling() } + kelvinSaker
-                    )
-                )
+
+                val arenaRespons = arena.hentMaksimum(
+                    callId,
+                    body
+                ).vedtak.map { it.fraKontraktUtenUtbetaling() }
+
+                prometheus.tellKildesystem(kelvinSaker, arenaRespons, "/maksimumUtenUtbetaling")
+
+                respond(Medium(arenaRespons + kelvinSaker))
             }
         }
         route("/maksimum") {
-            post<CallIdHeader, Maksimum, InternVedtakRequest>(
-                info(description = "Henter maksimumsløsning for en person innen gitte datointerval")
+            post<CallIdHeader, Maksimum, InternVedtakRequestApiIntern>(
+                info(description = "Henter maksimumsløsning for en person innen gitte datointerval. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag. dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/maksimum",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -300,43 +309,44 @@ fun NormalOpenAPIRoute.api(
                 val callId = callIdHeader.callId() ?: UUID.randomUUID().toString().also {
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
-
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                val body = requestBody.tilKontrakt()
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentMaksimum(
+                    VedtakService(behandlingsRepository, nå = nå).hentMaksimum(
                         requestBody.personidentifikator,
-                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato)
+                        Periode(body.fraOgMedDato, body.tilOgMedDato),
                     ).vedtak
                 }
+                val arenaVedtak = arena.hentMaksimum(callId, body).fraKontrakt().vedtak
+
+                prometheus.tellKildesystem(kelvinSaker, arenaVedtak, "/maksimum")
+
                 pipeline.call.response.headers.append(
                     HttpHeaders.ContentType,
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
+
                 respond(
                     Maksimum(
-                        arena.hentMaksimum(callId, requestBody).fraKontrakt().vedtak + kelvinSaker
+                        arenaVedtak + kelvinSaker
                     )
                 )
             }
         }
         route("/kelvin/") {
             route("maksimumUtenUtbetaling").post<CallIdHeader, Medium, InternVedtakRequest>(
-                info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval")
-            ) { callIdHeader, requestBody ->
+                info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag.")
+            ) { _, requestBody ->
                 logger.info("Henter maksimum uten utbetalinger fra kelvin")
-                httpCallCounter.httpCallCounter(
+                prometheus.httpCallCounter(
                     "/kelvin/maksimumUtenUtbetaling",
                     pipeline.call.audience(),
                     azpName() ?: ""
                 ).increment()
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -350,26 +360,25 @@ fun NormalOpenAPIRoute.api(
                     HttpHeaders.ContentType,
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
-                respond(
-                    Medium(
-                        kelvinSaker
-                    )
-                )
+
+                prometheus.tellKildesystem(kelvinSaker, null, "/kelvin/maksimumUtenUtbetaling")
+
+                respond(Medium(kelvinSaker))
             }
 
             route("behandling").post<CallIdHeader, List<DatadelingDTO>, InternVedtakRequest>(
-                info(description = "Henter ut behandlings data for en person innen gitte datointerval uten behandling av datasett", deprecated = true)
-            ){callIdHeader, requestBody ->
-                logger.info("Henter data for behandling uten formatering av datasett \n---- UNDER UTVIKLING ----")
-                httpCallCounter.httpCallCounter(
+                info(
+                    description = "Henter ut behandlingsdata for en person innen gitte datointerval uten behandling av datasett",
+                    deprecated = true
+                )
+            ) { _, requestBody ->
+                prometheus.httpCallCounter(
                     "/kelvin/behandling",
                     pipeline.call.audience(),
                     azpName() ?: ""
                 ).increment()
 
-                if (!harTilgangTilPerson(requestBody.personidentifikator, token())) {
-                    respondWithStatus(HttpStatusCode.Forbidden)
-                }
+                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
                 val kelvinSaker = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -379,9 +388,37 @@ fun NormalOpenAPIRoute.api(
                     )
                 }
 
+                prometheus.tellKildesystem(kelvinSaker, null, "/kelvin/behandling")
+
                 respond(kelvinSaker)
             }
         }
+    }
+}
+
+private fun PrometheusMeterRegistry.tellKildesystem(
+    kelvinData: List<*>?,
+    arenaData: List<*>?,
+    path: String
+) {
+    if (!kelvinData.isNullOrEmpty()) {
+        this.kildesystemTeller("kelvin", path).increment()
+    }
+
+    if (!arenaData.isNullOrEmpty()) {
+        this.kildesystemTeller("arena", path).increment()
+    }
+
+    if (arenaData?.isNotEmpty() == true && kelvinData?.isNotEmpty() == true) {
+        logger.error("Fant data på person i både Kelvin og Arena.")
+    }
+}
+
+private suspend inline fun <reified E : Any> OpenAPIPipelineResponseContext<E>.sjekkTilgangTilPerson(
+    identifikatorer: List<String>
+) {
+    if (!harTilgangTilPerson(identifikatorer.first(), token())) {
+        respondWithStatus(HttpStatusCode.Forbidden)
     }
 }
 
@@ -485,13 +522,13 @@ fun hentMediumFraKelvin(
                     Periode(it.tilkjentFom, it.tilkjentTom),
                     TilkjentDB(
                         it.dagsats,
-                        it.grunnlag,
                         it.gradering,
                         it.grunnlagsfaktor,
                         it.grunnbeløp,
                         it.antallBarn,
                         it.barnetilleggsats,
-                        it.barnetillegg
+                        it.barnetillegg,
+                        it.samordningUføregradering
                     )
                 )
             }
@@ -505,6 +542,8 @@ fun hentMediumFraKelvin(
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.vedtakId.toString(),
                         dagsats = right?.verdi?.dagsats ?: 0,
+                        dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times((100 - (right.verdi.uføregrad ?: 0)) / 100)
+                            ?: 0,
                         status = utledVedtakStatus(
                             behandling.behandlingStatus,
                             behandling.sak.status,
@@ -512,14 +551,13 @@ fun hentMediumFraKelvin(
                         ),
                         saksnummer = behandling.sak.saksnummer,
                         vedtaksdato = behandling.vedtaksDato,
-                        vedtaksTypeKode = null,
-                        vedtaksTypeNavn = null,
                         rettighetsType = left.verdi,
-                        beregningsgrunnlag = right?.verdi?.grunnlag?.toInt()?.times(260) ?: 0,
+                        beregningsgrunnlag = behandling.beregningsgrunnlag.toInt(),
                         barnMedStonad = right?.verdi?.antallBarn ?: 0,
                         kildesystem = Kilde.KELVIN.toString(),
                         samordningsId = behandling.samId,
-                        opphorsAarsak = null
+                        opphorsAarsak = null,
+                        barnetilleggSats = right?.verdi?.barnetilleggsats,
                     )
                 )
             }
@@ -539,19 +577,32 @@ fun hentMediumFraKelvin(
 }
 
 fun utledVedtakStatus(
-    behandlingStatus: no.nav.aap.behandlingsflyt.kontrakt.behandling.Status,
-    sakStatus: Status,
+    behandlingStatus: KelvinBehandlingStatus,
+    sakStatus: KelvinSakStatus,
     periode: Periode,
     nå: LocalDate = LocalDate.now()
 ): String =
     if (
-        behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.IVERKSETTES ||
+        behandlingStatus == KelvinBehandlingStatus.IVERKSETTES ||
         periode.tom.isAfter(nå) ||
-        sakStatus != Status.AVSLUTTET
+        sakStatus != KelvinSakStatus.AVSLUTTET
     ) {
         Status.LØPENDE.toString()
-    } else if (behandlingStatus == no.nav.aap.behandlingsflyt.kontrakt.behandling.Status.AVSLUTTET) {
+    } else if (behandlingStatus == KelvinBehandlingStatus.AVSLUTTET) {
         Status.AVSLUTTET.toString()
     } else {
         Status.UTREDES.toString()
     }
+data class InternVedtakRequestApiIntern(
+    val personidentifikator: String,
+    val fraOgMedDato: LocalDate? = LocalDate.of(1, 1, 1),
+    val tilOgMedDato: LocalDate? = LocalDate.of(9999, 12, 31)
+){
+    fun tilKontrakt(): InternVedtakRequest {
+        return InternVedtakRequest(
+            personidentifikator = personidentifikator,
+            fraOgMedDato = fraOgMedDato ?: LocalDate.of(1, 1, 1),
+            tilOgMedDato = tilOgMedDato ?: LocalDate.of(9999, 12, 31)
+        )
+    }
+}

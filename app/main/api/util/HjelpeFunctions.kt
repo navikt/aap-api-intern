@@ -17,6 +17,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum.fraKontrakt(): Maksimum {
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
     return Vedtak(
         this.dagsats,
+        null,
         this.vedtaksId,
         this.status,
         this.saksnummer,
@@ -28,12 +29,14 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
         utbetaling = this.utbetaling.map { it.fraKontrakt() },
+        barnetillegg = this.barnMedStonad * (this.utbetaling.firstOrNull()?.barnetillegg?:0)
     )
 }
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling(): VedtakUtenUtbetaling {
     return VedtakUtenUtbetaling(
         this.dagsats,
+        null,
         this.vedtaksId,
         this.status,
         this.saksnummer,
@@ -44,6 +47,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling()
         barnMedStonad = this.barnMedStonad,
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
+        barnetillegg = this.barnMedStonad*(this.utbetaling.firstOrNull()?.barnetillegg?:0)
     )
 }
 
@@ -75,6 +79,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.UtbetalingMedMer.fraKontrakt(): Ut
         this.periode.fraKontrakt(),
         this.belop,
         this.dagsats,
+        this.barnetillegg,
         this.barnetillegg
     )
 }
