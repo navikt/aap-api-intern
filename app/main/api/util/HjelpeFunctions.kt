@@ -29,7 +29,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
         utbetaling = this.utbetaling.map { it.fraKontrakt() },
-        barnetillegg = this.barnMedStonad * (this.utbetaling.firstOrNull()?.barnetillegg?:0)
+        barnetillegg = this.barnMedStonad * (this.utbetaling.firstOrNull()?.barnetillegg ?: 0)
     )
 }
 
@@ -47,7 +47,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling()
         barnMedStonad = this.barnMedStonad,
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
-        barnetillegg = this.barnMedStonad*(this.utbetaling.firstOrNull()?.barnetillegg?:0)
+        barnetillegg = this.barnMedStonad * (this.utbetaling.firstOrNull()?.barnetillegg ?: 0)
     )
 }
 

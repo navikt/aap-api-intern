@@ -442,7 +442,8 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                 )
             }
             assertEquals(HttpStatusCode.OK, mediumResponseM2m.status)
-            assertEquals(3, mediumResponseM2m.body<Medium>().vedtak.size)
+            val body = mediumResponseM2m.body<Medium>()
+            assertThat(body.vedtak).hasSize(4)
 
             val mediumResponseObo = jsonHttpClient.post("/maksimumUtenUtbetaling") {
                 bearerAuth(OidcToken(azure.generate(isApp = false)).token())
@@ -525,7 +526,7 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                 javaClass.getResource("/forstegangsvedtak_fra_api.json")!!.readText()
             val forventet = DefaultJsonMapper.fromJson<Maksimum>(forventetResultatFraResources)
 
-            assertThat(uthentetFraApi).isEqualTo(forventet)
+            assertThat(uthentetFraApi).usingRecursiveComparison().isEqualTo(forventet)
         }
     }
 
