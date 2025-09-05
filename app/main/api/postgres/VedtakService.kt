@@ -54,8 +54,7 @@ class VedtakService(
                         VedtakUtenUtbetalingUtenPeriode(
                             vedtakId = behandling.vedtakId.toString(),
                             dagsats = right?.verdi?.dagsats ?: 0,
-                            dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times((100 - (right.verdi.uføregrad ?: 0)) / 100)
-                                ?: 0,
+                            dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times((100 - (right.verdi.uføregrad ?: 0)) / 100),
                             status = utledVedtakStatus(
                                 behandling.behandlingStatus,
                                 behandling.sak.status,
