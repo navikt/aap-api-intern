@@ -419,7 +419,7 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
 data class VedtakUtenUtbetalingUtenPeriode(
     val vedtakId: String,
     val dagsats: Int,
-    @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin).")
+    @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin). Ved manglende data er denne null.")
     val dagsatsEtterUføreReduksjon: Int,
     @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
     val status: String, //Hypotese, vedtaksstatuskode
