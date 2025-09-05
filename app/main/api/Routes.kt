@@ -266,10 +266,12 @@ fun NormalOpenAPIRoute.api(
     tag(Tag.Maksimum) {
         route("/maksimumUtenUtbetaling") {
             post<CallIdHeader, Medium, InternVedtakRequestApiIntern>(
-                info(description = """
+                info(
+                    description = """
                     Henter maksimumsløsning uten utbetalinger for en person innen gitte datointervall.
                     dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin.
-                    """.trimIndent())
+                    """.trimIndent()
+                )
             ) { callIdHeader, requestBody ->
                 prometheus.httpCallCounter(
                     "/maksimumUtenUtbetaling",
@@ -307,9 +309,11 @@ fun NormalOpenAPIRoute.api(
         }
         route("/maksimum") {
             post<CallIdHeader, Maksimum, InternVedtakRequestApiIntern>(
-                info(description = """
+                info(
+                    description = """
                     Henter maksimumsløsning for en person innen gitte datointervall. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag.
-                    dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin""".trimIndent())
+                    dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin""".trimIndent()
+                )
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
                 prometheus.httpCallCounter(
@@ -553,9 +557,7 @@ fun hentMediumFraKelvin(
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.vedtakId.toString(),
                         dagsats = right?.verdi?.dagsats ?: 0,
-                        dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times(
-                            (100 - (right.verdi.uføregrad ?: 0)) / 100
-                        )
+                        dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
                             ?: 0,
                         status = utledVedtakStatus(
                             behandling.behandlingStatus,
@@ -570,7 +572,7 @@ fun hentMediumFraKelvin(
                         kildesystem = Kilde.KELVIN.toString(),
                         samordningsId = behandling.samId,
                         opphorsAarsak = null,
-                        barnetilleggSats = right?.verdi?.barnetilleggsats,
+                        barnetilleggSats = right?.verdi?.gradertBarnetillegg(),
                     )
                 )
             }
