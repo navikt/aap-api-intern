@@ -54,7 +54,8 @@ class VedtakService(
                         VedtakUtenUtbetalingUtenPeriode(
                             vedtakId = behandling.vedtakId.toString(),
                             dagsats = right?.verdi?.dagsats ?: 0,
-                            dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times((100 - (right.verdi.uføregrad ?: 0)) / 100) ?: 0,
+                            dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
+                                ?: 0,
                             status = utledVedtakStatus(
                                 behandling.behandlingStatus,
                                 behandling.sak.status,
@@ -91,7 +92,8 @@ class VedtakService(
                             rettighetsType = left.verdi.rettighetsType,
                             beregningsgrunnlag = left.verdi.beregningsgrunnlag,
                             barnMedStonad = left.verdi.barnMedStonad,
-                            barnetillegg = left.verdi.barnMedStonad*(right?.verdi?.first()?.verdi?.barnetilleggsats?.toInt()?:0),
+                            barnetillegg = left.verdi.barnMedStonad * (right?.verdi?.first()?.verdi?.barnetilleggsats?.toInt()
+                                ?: 0),
                             vedtaksTypeKode = null,
                             vedtaksTypeNavn = null,
                             utbetaling = right?.verdi?.filter {
@@ -110,10 +112,12 @@ class VedtakService(
                                         utbetaling.periode.tom
                                     ),
                                     dagsats = utbetaling.verdi.dagsats * utbetaling.verdi.gradering / 100,
-                                    barnetilegg = utbetaling.verdi.barnetillegg.toInt(),
-                                    barnetillegg = utbetaling.verdi.barnetillegg.toInt(),
+                                    barnetilegg = utbetaling.verdi.gradertBarnetillegg()
+                                        .toInt(),
+                                    barnetillegg = utbetaling.verdi.gradertBarnetillegg()
+                                        .toInt()
                                 )
-                            } ?: emptyList(),
+                            }.orEmpty(),
                             kildesystem = Kilde.valueOf(left.verdi.kildesystem),
                             samordningsId = left.verdi.samordningsId,
                             opphorsAarsak = left.verdi.opphorsAarsak
