@@ -14,7 +14,7 @@ application {
 val komponenterVersjon = "1.0.346"
 val ktorVersion = "3.2.3"
 val tilgangVersjon = "1.0.115"
-val behandlingsflytversjon = "0.0.422"
+val behandlingsflytversjon = "0.0.423"
 val kontraktVersjon = "0.0.26"
 
 dependencies {
