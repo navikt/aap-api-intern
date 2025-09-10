@@ -60,7 +60,7 @@ dependencies {
 
     implementation("com.zaxxer:HikariCP:7.0.2")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.122")
+    implementation("no.nav:ktor-openapi-generator:1.0.123")
 
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
