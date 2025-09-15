@@ -12,6 +12,12 @@ tasks {
         useJUnitPlatform()
         maxParallelForks = Runtime.getRuntime().availableProcessors() / 2
     }
+
+    // Bruk et unikt navn for jar-filen til distTar, for å unngå navnekollisjoner i multi-modul prosjekt,
+    // og dermed feil av typen Entry <name>.jar is a duplicate but no duplicate handling strategy has been set.
+    withType<Jar> {
+        archiveFileName.set("${rootProject.name}-${project.name}.jar")
+    }
 }
 
 kotlin {
