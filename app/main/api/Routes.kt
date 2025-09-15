@@ -319,10 +319,9 @@ fun NormalOpenAPIRoute.api(
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    hentMediumFraKelvin(
+                    VedtakService(behandlingsRepository, nå = nå).hentMediumFraKelvin(
                         body.personidentifikator,
-                        Periode(body.fraOgMedDato, body.tilOgMedDato),
-                        behandlingsRepository
+                        Periode(body.fraOgMedDato, body.tilOgMedDato)
                     ).vedtak
                 }
                 pipeline.call.response.headers.append(
@@ -398,10 +397,9 @@ fun NormalOpenAPIRoute.api(
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    hentMediumFraKelvin(
+                    VedtakService(behandlingsRepository, nå = nå).hentMediumFraKelvin(
                         requestBody.personidentifikator,
                         Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato),
-                        behandlingsRepository
                     ).vedtak
                 }
                 pipeline.call.response.headers.append(
@@ -552,81 +550,6 @@ fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
     }
 }
 
-fun hentMediumFraKelvin(
-    fnr: String,
-    periode: Periode,
-    behandlingsRepository: BehandlingsRepository
-): Medium {
-    val kelvinData = behandlingsRepository.hentVedtaksData(fnr, periode)
-    val vedtak: List<VedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
-        val rettighetsTypeTidslinje = Tidslinje(
-            behandling.rettighetsTypeTidsLinje.map {
-                Segment(
-                    Periode(it.fom, it.tom),
-                    it.verdi
-                )
-            }
-        )
-
-        val tilkjent = Tidslinje(
-            behandling.tilkjent.map {
-                Segment(
-                    Periode(it.tilkjentFom, it.tilkjentTom),
-                    TilkjentDB(
-                        it.dagsats,
-                        it.gradering,
-                        it.grunnlagsfaktor,
-                        it.grunnbeløp,
-                        it.antallBarn,
-                        it.barnetilleggsats,
-                        it.barnetillegg,
-                        it.samordningUføregradering
-                    )
-                )
-            }
-        )
-
-        rettighetsTypeTidslinje.kombiner(
-            tilkjent,
-            JoinStyle.LEFT_JOIN { periode, left, right ->
-                Segment(
-                    periode,
-                    VedtakUtenUtbetalingUtenPeriode(
-                        vedtakId = behandling.vedtakId.toString(),
-                        dagsats = right?.verdi?.dagsats ?: 0,
-                        dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
-                            ?: 0,
-                        status = utledVedtakStatus(
-                            behandling.behandlingStatus,
-                            behandling.sak.status,
-                            periode
-                        ),
-                        saksnummer = behandling.sak.saksnummer,
-                        vedtaksdato = behandling.vedtaksDato,
-                        rettighetsType = left.verdi,
-                        beregningsgrunnlag = behandling.beregningsgrunnlag.toInt(),
-                        barnMedStonad = right?.verdi?.antallBarn ?: 0,
-                        kildesystem = Kilde.KELVIN.toString(),
-                        samordningsId = behandling.samId,
-                        opphorsAarsak = null,
-                        barnetilleggSats = right?.verdi?.gradertBarnetillegg(),
-                    )
-                )
-            }
-        ).komprimer()
-            .map {
-                it.verdi.tilVedtakUtenUtbetaling(
-                    no.nav.aap.api.intern.Periode(
-                        it.periode.fom,
-                        it.periode.tom
-                    )
-                )
-            }
-            .filter { (it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString()) }
-    }
-
-    return Medium(vedtak)
-}
 
 fun utledVedtakStatus(
     behandlingStatus: KelvinBehandlingStatus,

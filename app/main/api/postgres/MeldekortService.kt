@@ -4,6 +4,7 @@ import api.kelvin.MeldekortDTO
 import api.pdl.IPdlClient
 import api.pdl.PdlClient
 import no.nav.aap.api.intern.Vedtak
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import java.time.LocalDate
 
@@ -16,27 +17,26 @@ class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient) {
         return meldekortDetaljerRepository.hentAlle(personIdenter, fraDato)
     }
 
-    fun hentAlle(personIdentifikator: String, fraDato: LocalDate? = null): List<Pair<MeldekortDTO, Vedtak>> {
-
+    fun hentAlle(personIdentifikator: String, fraDato: LocalDate? = null): Pair<VedtakUtenUtbetaling, List<MeldekortDTO>> {
         val personIdenter = pdlClient.hentAlleIdenterForPerson(personIdentifikator).map { personIdentifikator }
         val meldekortDetaljListe = meldekortDetaljerRepository.hentAlle(personIdenter, fraDato)
 
-        return meldekortDetaljListe.map { meldekort ->
-            val vedtak = finnRelatertVedtak(meldekort, personIdentifikator)
-
-            Pair(meldekort, vedtak)
-        }
+        return Pair(
+            finnNyesteRelaterteVedtak(meldekortDetaljListe.first(), personIdentifikator),
+            meldekortDetaljListe
+        )
 
     }
 
-    private fun finnRelatertVedtak(
+
+    private fun finnNyesteRelaterteVedtak(
         meldekort: MeldekortDTO, personIdentifikator: String
-    ): Vedtak {
+    ): VedtakUtenUtbetaling {
         val meldePeriode = meldekort.meldePeriode
         // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info:
-        val maksimum = vedtakService.hentMaksimum(personIdentifikator, meldePeriode)
-        val vedtak = maksimum.vedtak.first()
-        return vedtak
+        val medium = vedtakService.hentMediumFraKelvin(personIdentifikator, meldePeriode).vedtak
+        val vedtak = medium.filter { it.status =="LØPENDE" }
+        return vedtak.first()
     }
 
 }

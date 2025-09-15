@@ -3,8 +3,10 @@ package api.postgres
 import api.utledVedtakStatus
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.Maksimum
+import no.nav.aap.api.intern.Medium
 import no.nav.aap.api.intern.UtbetalingMedMer
 import no.nav.aap.api.intern.Vedtak
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
@@ -131,5 +133,81 @@ class VedtakService(
         }
 
         return Maksimum(vedtak)
+    }
+
+
+    fun hentMediumFraKelvin(
+        fnr: String,
+        periode: Periode
+    ): Medium {
+        val kelvinData = behandlingsRepository.hentVedtaksData(fnr, periode)
+        val vedtak: List<VedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
+            val rettighetsTypeTidslinje = Tidslinje(
+                behandling.rettighetsTypeTidsLinje.map {
+                    Segment(
+                        Periode(it.fom, it.tom),
+                        it.verdi
+                    )
+                }
+            )
+
+            val tilkjent = Tidslinje(
+                behandling.tilkjent.map {
+                    Segment(
+                        Periode(it.tilkjentFom, it.tilkjentTom),
+                        TilkjentDB(
+                            it.dagsats,
+                            it.gradering,
+                            it.grunnlagsfaktor,
+                            it.grunnbeløp,
+                            it.antallBarn,
+                            it.barnetilleggsats,
+                            it.barnetillegg,
+                            it.samordningUføregradering
+                        )
+                    )
+                }
+            )
+
+            rettighetsTypeTidslinje.kombiner(
+                tilkjent,
+                JoinStyle.LEFT_JOIN { periode, left, right ->
+                    Segment(
+                        periode,
+                        VedtakUtenUtbetalingUtenPeriode(
+                            vedtakId = behandling.vedtakId.toString(),
+                            dagsats = right?.verdi?.dagsats ?: 0,
+                            dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
+                                ?: 0,
+                            status = utledVedtakStatus(
+                                behandling.behandlingStatus,
+                                behandling.sak.status,
+                                periode
+                            ),
+                            saksnummer = behandling.sak.saksnummer,
+                            vedtaksdato = behandling.vedtaksDato,
+                            rettighetsType = left.verdi,
+                            beregningsgrunnlag = behandling.beregningsgrunnlag.toInt(),
+                            barnMedStonad = right?.verdi?.antallBarn ?: 0,
+                            kildesystem = Kilde.KELVIN.toString(),
+                            samordningsId = behandling.samId,
+                            opphorsAarsak = null,
+                            barnetilleggSats = right?.verdi?.gradertBarnetillegg(),
+                        )
+                    )
+                }
+            ).komprimer()
+                .map {
+                    it.verdi.tilVedtakUtenUtbetaling(
+                        no.nav.aap.api.intern.Periode(
+                            it.periode.fom,
+                            it.periode.tom
+                        )
+                    )
+                }
+                .filter { (it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString()) }
+        }
+
+        return Medium(vedtak)
     }
 }
