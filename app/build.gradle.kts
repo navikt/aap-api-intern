@@ -49,6 +49,8 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
+    implementation("org.apache.kafka:kafka-clients:4.0.0")
+
     implementation("org.flywaydb:flyway-core:11.12.0")
     implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("com.auth0:java-jwt:4.5.0")
