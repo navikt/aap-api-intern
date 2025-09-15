@@ -3,6 +3,7 @@ package api.kelvin
 import no.nav.aap.api.intern.MeldekortDetalj
 import no.nav.aap.api.intern.TimerPåDag
 import no.nav.aap.api.intern.Vedtak
+import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.type.Periode
 
 import java.math.BigDecimal
@@ -11,7 +12,7 @@ import java.time.LocalDateTime
 
 data class MeldekortDTO(
     val personIdent: String,
-    val saksnummer: String,
+    val saksnummer: Saksnummer,
     val mottattTidspunkt: LocalDateTime,
     val meldePeriode: Periode,
     val arbeidPerDag: List<MeldeDag>,
@@ -21,7 +22,7 @@ data class MeldekortDTO(
 ) {
     fun tilKontrakt(vedtak: Vedtak): MeldekortDetalj {
         return MeldekortDetalj(
-            saksnummer = this.saksnummer,
+            saksnummer = this.saksnummer.toString(),
             mottattTidspunkt = this.mottattTidspunkt,
             meldePeriode = no.nav.aap.api.intern.Periode(this.meldePeriode.fom, this.meldePeriode.fom),
             arbeidPerDag = this.arbeidPerDag.map {
