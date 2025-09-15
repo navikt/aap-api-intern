@@ -78,6 +78,9 @@ spec:
         - application: veilarbportefolje
           namespace: obo
           cluster: prod-gcp
+        - application: familie-ef-sak
+          namespace: teamfamilie
+          cluster: prod-gcp
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp

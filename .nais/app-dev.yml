@@ -86,6 +86,9 @@ spec:
         - application: veilarbportefolje
           namespace: obo
           cluster: dev-gcp
+        - application: familie-ef-sak
+          namespace: teamfamilie
+          cluster: dev-gcp
         - application: behandlingsflyt
           namespace: aap
           cluster: dev-gcp

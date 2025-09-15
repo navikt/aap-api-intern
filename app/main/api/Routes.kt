@@ -8,6 +8,7 @@ import api.util.fraKontraktUtenUtbetaling
 import api.util.perioderMedAAp
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
+import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
@@ -61,6 +62,11 @@ enum class Tag(override val description: String) : APITag {
     Maksimum("For å hente maksimumsløsning")
 }
 
+data class SakerRequest(
+    @param:Description("Liste med personidentifikatorer. Må svare til samme person.")
+    val personidentifikatorer: List<String>
+)
+
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arena: IArenaoppslagRestClient,
@@ -71,7 +77,7 @@ fun NormalOpenAPIRoute.api(
     tag(Tag.Perioder) {
         route("/perioder") {
             post<CallIdHeader, PerioderResponse, InternVedtakRequest>(
-                info(description = "Henter perioder med vedtak for en person innen gitte datointerval")
+                info(description = "Henter perioder med vedtak for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter perioder")
                 val azpName = azpName()
@@ -113,7 +119,7 @@ fun NormalOpenAPIRoute.api(
             }
 
             route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequest>(
-                info(description = "Henter perioder med vedtak fra Arena (inkl. aktivitetsfase) for en person innen gitte datointerval")
+                info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
                 prometheus.httpCallCounter(
                     "/perioder/aktivitetfase",
@@ -203,7 +209,7 @@ fun NormalOpenAPIRoute.api(
 
     tag(Tag.Saker) {
         // TODO: Flytt logikk til en egen service
-        route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
+        route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, api.SakerRequest>(
             info(description = "Henter saker for en person")
         ) { callIdHeader, requestBody ->
             prometheus.httpCallCounter(
@@ -237,7 +243,7 @@ fun NormalOpenAPIRoute.api(
         }
 
         route("/arena/person/aap/eksisterer") {
-            post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
+            post<CallIdHeader, PersonEksistererIAAPArena, api.SakerRequest>(
                 info(description = "Sjekker om en person eksisterer i AAP-arena")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om person eksisterer i aap-arena")
@@ -258,17 +264,17 @@ fun NormalOpenAPIRoute.api(
                     PersonEksistererIAAPArena(
                         arena.hentPersonEksistererIAapContext(
                             callId,
-                            requestBody
+                            SakerRequest(requestBody.personidentifikatorer)
                         ).eksisterer
                     )
                 )
             }
         }
 
-        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
+        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, api.SakerRequest>(
             info(description = "Henter saker for en person")
         ) { _, requestBody ->
-            logger.info("Henter saker for en person fra kelvin")
+            logger.info("Henter saker for en person fra Kelvin.")
             prometheus.httpCallCounter(
                 "/kelvin/sakerByFnr",
                 pipeline.call.audience(),
@@ -293,7 +299,12 @@ fun NormalOpenAPIRoute.api(
     tag(Tag.Maksimum) {
         route("/maksimumUtenUtbetaling") {
             post<CallIdHeader, Medium, InternVedtakRequestApiIntern>(
-                info(description = "Henter maksimumsløsning uten utbetalinger for en person innen gitte datointerval. dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin.")
+                info(
+                    description = """
+                    Henter maksimumsløsning uten utbetalinger for en person innen gitte datointervall.
+                    dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin.
+                    """.trimIndent()
+                )
             ) { callIdHeader, requestBody ->
                 prometheus.httpCallCounter(
                     "/maksimumUtenUtbetaling",
@@ -331,7 +342,11 @@ fun NormalOpenAPIRoute.api(
         }
         route("/maksimum") {
             post<CallIdHeader, Maksimum, InternVedtakRequestApiIntern>(
-                info(description = "Henter maksimumsløsning for en person innen gitte datointerval. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag. dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin")
+                info(
+                    description = """
+                    Henter maksimumsløsning for en person innen gitte datointervall. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag.
+                    dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin""".trimIndent()
+                )
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
                 prometheus.httpCallCounter(
@@ -579,9 +594,7 @@ fun hentMediumFraKelvin(
                     VedtakUtenUtbetalingUtenPeriode(
                         vedtakId = behandling.vedtakId.toString(),
                         dagsats = right?.verdi?.dagsats ?: 0,
-                        dagsatsEtterUføreReduksjon = right?.verdi?.dagsats?.times(
-                            (100 - (right.verdi.uføregrad ?: 0)) / 100
-                        )
+                        dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
                             ?: 0,
                         status = utledVedtakStatus(
                             behandling.behandlingStatus,
@@ -596,7 +609,7 @@ fun hentMediumFraKelvin(
                         kildesystem = Kilde.KELVIN.toString(),
                         samordningsId = behandling.samId,
                         opphorsAarsak = null,
-                        barnetilleggSats = right?.verdi?.barnetilleggsats,
+                        barnetilleggSats = right?.verdi?.gradertBarnetillegg(),
                     )
                 )
             }

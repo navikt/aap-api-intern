@@ -6,6 +6,7 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -397,7 +398,18 @@ data class TilkjentDB(
     val barnetilleggsats: BigDecimal,
     val barnetillegg: BigDecimal,
     val uføregrad: Int? = 0,
-)
+) {
+    fun gradertBarnetillegg(): BigDecimal =
+        this.barnetillegg.multiply(
+            this.gradering.toBigDecimal()
+                .divide(100.toBigDecimal())
+        ).setScale(0, RoundingMode.HALF_UP)
+
+    fun regnUtDagsatsEtterUføreReduksjon(): Int =
+        this.dagsats.times(
+            (100 - (this.uføregrad ?: 0)) / 100
+        )
+}
 
 fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
     var count = 0
@@ -419,7 +431,7 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
 data class VedtakUtenUtbetalingUtenPeriode(
     val vedtakId: String,
     val dagsats: Int,
-    @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin).")
+    @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin). Ved manglende data er denne null.")
     val dagsatsEtterUføreReduksjon: Int,
     @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
     val status: String, //Hypotese, vedtaksstatuskode

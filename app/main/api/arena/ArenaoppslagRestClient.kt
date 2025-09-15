@@ -1,11 +1,15 @@
 package api.arena
 
 import api.ArenaoppslagConfig
+import api.util.CircuitBreakerDsl
+import api.util.circuitBreaker
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.github.resilience4j.circuitbreaker.CircuitBreaker
+import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
@@ -15,6 +19,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.prometheus.metrics.core.metrics.Summary
+import java.time.Duration
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
@@ -35,26 +40,30 @@ private val objectMapper = jacksonObjectMapper()
     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
     .registerModule(JavaTimeModule())
 
+
 class ArenaoppslagRestClient(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     azureConfig: no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig,
 ) : IArenaoppslagRestClient {
     private val tokenProvider = api.util.auth.AzureAdTokenProvider(azureConfig)
+    private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker")
 
     override suspend fun hentPerioder(
         callId: String,
         vedtakRequest: InternVedtakRequest
     ): PerioderResponse =
         clientLatencyStats.startTimer().use {
-            httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder") {
-                accept(ContentType.Application.Json)
-                header("Nav-Call-Id", callId)
-                bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                contentType(ContentType.Application.Json)
-                setBody(vedtakRequest)
+            circuitBreaker.executeSuspendFunction {
+                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder") {
+                    accept(ContentType.Application.Json)
+                    header("Nav-Call-Id", callId)
+                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                    contentType(ContentType.Application.Json)
+                    setBody(vedtakRequest)
+                }
+                    .bodyAsText()
+                    .let(objectMapper::readValue)
             }
-                .bodyAsText()
-                .let(objectMapper::readValue)
         }
 
     override suspend fun hentPerioderInkludert11_17(
@@ -62,15 +71,17 @@ class ArenaoppslagRestClient(
         vedtakRequest: InternVedtakRequest,
     ): PerioderMed11_17Response =
         clientLatencyStats.startTimer().use {
-            httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder/11-17") {
-                accept(ContentType.Application.Json)
-                header("Nav-Call-Id", callId)
-                bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                contentType(ContentType.Application.Json)
-                setBody(vedtakRequest)
+            circuitBreaker.executeSuspendFunction {
+                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder/11-17") {
+                    accept(ContentType.Application.Json)
+                    header("Nav-Call-Id", callId)
+                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                    contentType(ContentType.Application.Json)
+                    setBody(vedtakRequest)
+                }
+                    .bodyAsText()
+                    .let(objectMapper::readValue)
             }
-                .bodyAsText()
-                .let(objectMapper::readValue)
         }
 
     override suspend fun hentPersonEksistererIAapContext(
@@ -78,15 +89,17 @@ class ArenaoppslagRestClient(
         sakerRequest: SakerRequest,
     ): PersonEksistererIAAPArena =
         clientLatencyStats.startTimer().use {
-            httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/person/aap/eksisterer") {
-                accept(ContentType.Application.Json)
-                header("Nav-Call-Id", callId)
-                bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                contentType(ContentType.Application.Json)
-                setBody(sakerRequest)
+            circuitBreaker.executeSuspendFunction {
+                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/person/aap/eksisterer") {
+                    accept(ContentType.Application.Json)
+                    header("Nav-Call-Id", callId)
+                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                    contentType(ContentType.Application.Json)
+                    setBody(sakerRequest)
+                }
+                    .bodyAsText()
+                    .let(objectMapper::readValue)
             }
-                .bodyAsText()
-                .let(objectMapper::readValue)
         }
 
     override suspend fun hentSakerByFnr(
@@ -94,34 +107,42 @@ class ArenaoppslagRestClient(
         req: SakerRequest,
     ): List<no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus> =
         clientLatencyStats.startTimer().use {
-            httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/saker") {
-                accept(ContentType.Application.Json)
-                header("Nav-Call-Id", callId)
-                bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                contentType(ContentType.Application.Json)
-                setBody(req)
+            circuitBreaker.executeSuspendFunction {
+                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/saker") {
+                    accept(ContentType.Application.Json)
+                    header("Nav-Call-Id", callId)
+                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
+                    contentType(ContentType.Application.Json)
+                    setBody(req)
+                }
+                    .bodyAsText()
+                    .let(objectMapper::readValue)
             }
-                .bodyAsText()
-                .let(objectMapper::readValue)
         }
 
     override suspend fun hentMaksimum(callId: String, req: InternVedtakRequest): Maksimum {
         return clientLatencyStats.startTimer().use {
-            val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope)
-            httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/maksimum") {
-                accept(ContentType.Application.Json)
-                header("Nav-Call-Id", callId)
-                bearerAuth(token)
-                contentType(ContentType.Application.Json)
-                setBody(req)
+            circuitBreaker.executeSuspendFunction {
+                val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope)
+                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/maksimum") {
+                    accept(ContentType.Application.Json)
+                    header("Nav-Call-Id", callId)
+                    bearerAuth(token)
+                    contentType(ContentType.Application.Json)
+                    setBody(req)
+                }
+                    .bodyAsText()
+                    .let(objectMapper::readValue)
             }
-                .bodyAsText()
-                .let(objectMapper::readValue)
         }
     }
 
     private val httpClient = HttpClient(CIO) {
-        install(HttpTimeout)
+        install(HttpTimeout) {
+            requestTimeoutMillis = 2000
+            connectTimeoutMillis = 2000
+            socketTimeoutMillis = 2000
+        }
         install(HttpRequestRetry)
 
         install(ContentNegotiation) {
