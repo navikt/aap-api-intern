@@ -188,7 +188,7 @@ fun NormalOpenAPIRoute.api(
             sjekkTilgangTilPerson(listOf(personIdentifikator))
 
             val meldekortListe = dataSource.transaction { connection ->
-                val meldekortService = MeldekortService(connection)
+                val meldekortService = MeldekortService(connection,pdlClient)
                 meldekortService.hentAlle(personIdentifikator, requestBody.fraOgMedDato)
                     .map { (meldekort, vedtak) ->
                         meldekort.tilKontrakt(vedtak)

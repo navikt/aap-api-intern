@@ -1,17 +1,25 @@
 package api.postgres
 
 import api.kelvin.MeldekortDTO
+import api.pdl.IPdlClient
+import api.pdl.PdlClient
 import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import java.time.LocalDate
 
-class MeldekortService(connection: DBConnection) {
+class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), LocalDate.now())
 
+    fun hentAlleMeldekort(personIdentifikator: String, fraDato: LocalDate? = null): List<MeldekortDTO> {
+        val personIdenter = pdlClient.hentAlleIdenterForPerson(personIdentifikator).map { personIdentifikator }
+        return meldekortDetaljerRepository.hentAlle(personIdenter, fraDato)
+    }
+
     fun hentAlle(personIdentifikator: String, fraDato: LocalDate? = null): List<Pair<MeldekortDTO, Vedtak>> {
-        // TODO bør hente alle personIdent fra PDL, og bruke dem i db-query
-        val meldekortDetaljListe = meldekortDetaljerRepository.hentAlle(personIdentifikator, fraDato)
+
+        val personIdenter = pdlClient.hentAlleIdenterForPerson(personIdentifikator).map { personIdentifikator }
+        val meldekortDetaljListe = meldekortDetaljerRepository.hentAlle(personIdenter, fraDato)
 
         return meldekortDetaljListe.map { meldekort ->
             val vedtak = finnRelatertVedtak(meldekort, personIdentifikator)

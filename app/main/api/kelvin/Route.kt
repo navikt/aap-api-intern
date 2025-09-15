@@ -93,9 +93,9 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
         ) { _, kortene: List<DetaljertMeldekortDTO> ->
             dataSource.transaction { connection ->
                 val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
-                kortene.forEach { kort ->
-                    meldekortPerioderRepository.lagre(kort.tilDomene())
-                }
+                val domeneKort = kortene.map { it.tilDomene() }
+                meldekortPerioderRepository.lagre(domeneKort)
+
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
