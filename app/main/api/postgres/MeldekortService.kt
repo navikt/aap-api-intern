@@ -3,6 +3,7 @@ package api.postgres
 import api.kelvin.MeldekortDTO
 import api.pdl.IPdlClient
 import api.pdl.PdlClient
+import no.nav.aap.api.intern.Medium
 import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -17,14 +18,16 @@ class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient) {
         return meldekortDetaljerRepository.hentAlle(personIdenter, fraDato)
     }
 
-    fun hentAlle(personIdentifikator: String, fraDato: LocalDate? = null): Pair<VedtakUtenUtbetaling, List<MeldekortDTO>> {
+    fun hentAlle(personIdentifikator: String, fraDato: LocalDate? = null): List<Pair<MeldekortDTO, VedtakUtenUtbetaling>> {
+
         val personIdenter = pdlClient.hentAlleIdenterForPerson(personIdentifikator).map { personIdentifikator }
         val meldekortDetaljListe = meldekortDetaljerRepository.hentAlle(personIdenter, fraDato)
 
-        return Pair(
-            finnNyesteRelaterteVedtak(meldekortDetaljListe.first(), personIdentifikator),
-            meldekortDetaljListe
-        )
+        return meldekortDetaljListe.map { meldekort ->
+            val vedtak = finnNyesteRelaterteVedtak(meldekort, personIdentifikator)
+
+            Pair(meldekort, vedtak)
+        }
 
     }
 

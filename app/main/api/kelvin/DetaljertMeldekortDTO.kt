@@ -3,6 +3,7 @@ package api.kelvin
 import no.nav.aap.api.intern.MeldekortDetalj
 import no.nav.aap.api.intern.TimerPåDag
 import no.nav.aap.api.intern.Vedtak
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.type.Periode
 
@@ -20,7 +21,7 @@ data class MeldekortDTO(
     val rettighetsTypeKode: String?,
     val avslagsårsakKode: String?,
 ) {
-    fun tilKontrakt(vedtak: Vedtak): MeldekortDetalj {
+    fun tilKontrakt(vedtak: VedtakUtenUtbetaling): MeldekortDetalj {
         return MeldekortDetalj(
             saksnummer = this.saksnummer.toString(),
             mottattTidspunkt = this.mottattTidspunkt,
