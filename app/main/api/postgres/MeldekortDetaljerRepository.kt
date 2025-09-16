@@ -76,7 +76,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
     }
 
     private fun rowToMeldekortDTO(row: Row): MeldekortDTO{
-        MeldekortDTO(
+        return MeldekortDTO(
             personIdent = row.getString("PERSONIDENT"),
             saksnummer = no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer(row.getString("SAKSNUMMER")),
             mottattTidspunkt = row.getLocalDateTime("MOTTATT_TIDSPUNKT"),
