@@ -139,9 +139,9 @@ class ArenaoppslagRestClient(
 
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout) {
-            requestTimeoutMillis = 4000
-            connectTimeoutMillis = 4000
-            socketTimeoutMillis = 4000
+            requestTimeoutMillis = 20_000
+            connectTimeoutMillis = 20_000
+            socketTimeoutMillis = 20_000
         }
         install(HttpRequestRetry)
 
