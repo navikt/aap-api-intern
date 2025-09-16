@@ -1,5 +1,7 @@
 package api.kelvin
 
+import api.pdl.IPdlClient
+import api.pdl.PdlClient
 import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortDetaljerRepository
 import api.postgres.MeldekortPerioderRepository
@@ -17,7 +19,8 @@ import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
+fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClient) {
+
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
             routeConfig = AuthorizationBodyPathConfig(
@@ -94,9 +97,11 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
             dataSource.transaction { connection ->
                 val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
                 val domeneKort = kortene.map { it.tilDomene() }
-                meldekortPerioderRepository.lagre(domeneKort)
+                val identer = pdlClient.hentAlleIdenterForPerson(domeneKort.first().personIdent).map { it.ident }
+                meldekortPerioderRepository.lagre(domeneKort, identer)
 
             }
+
             pipeline.call.respond(HttpStatusCode.OK)
         }
 

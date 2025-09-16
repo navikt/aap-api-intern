@@ -13,22 +13,18 @@ class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), LocalDate.now())
 
-    fun hentAlleMeldekort(personIdentifikator: String, fraDato: LocalDate? = null): List<MeldekortDTO> {
+    fun hentAlleMeldekort(personIdentifikator: String, fraDato: LocalDate? = null, tilDato: LocalDate? = null): List<MeldekortDTO> {
         val personIdenter = pdlClient.hentAlleIdenterForPerson(personIdentifikator).map { personIdentifikator }
-        return meldekortDetaljerRepository.hentAlle(personIdenter, fraDato)
+        return meldekortDetaljerRepository.hentAlle(personIdenter, fraDato, tilDato)
     }
 
-    fun hentAlle(personIdentifikator: String, fraDato: LocalDate? = null): List<Pair<MeldekortDTO, VedtakUtenUtbetaling>> {
-
-        val personIdenter = pdlClient.hentAlleIdenterForPerson(personIdentifikator).map { personIdentifikator }
-        val meldekortDetaljListe = meldekortDetaljerRepository.hentAlle(personIdenter, fraDato)
+    fun hentAlle(personIdentifikator: String, fom: LocalDate? = null, tom : LocalDate? = null): List<Pair<MeldekortDTO, VedtakUtenUtbetaling>> {
+        val meldekortDetaljListe = hentAlleMeldekort(personIdentifikator, fom, tom)
 
         return meldekortDetaljListe.map { meldekort ->
             val vedtak = finnNyesteRelaterteVedtak(meldekort, personIdentifikator)
-
             Pair(meldekort, vedtak)
         }
-
     }
 
 

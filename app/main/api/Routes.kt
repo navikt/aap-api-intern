@@ -189,7 +189,7 @@ fun NormalOpenAPIRoute.api(
 
             val meldekortListe = dataSource.transaction { connection ->
                 val meldekortService = MeldekortService(connection,pdlClient)
-                meldekortService.hentAlle(personIdentifikator, requestBody.fraOgMedDato)
+                meldekortService.hentAlle(personIdentifikator, requestBody.fraOgMedDato, requestBody.tilOgMedDato)
                     .map { (meldekort, vedtak) ->
                         meldekort.tilKontrakt(vedtak)
                     }
