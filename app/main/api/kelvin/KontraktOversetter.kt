@@ -102,7 +102,7 @@ fun ArbeidIPeriodeDTO.tilDomene(): MeldekortDTO.MeldeDag {
 fun DetaljertMeldekortDTO.tilDomene(): MeldekortDTO {
     return MeldekortDTO(
         personIdent = this.personIdent,
-        saksnummer = this.saksnummer,
+        saksnummer = this.saksnummer.toString(),
         mottattTidspunkt = this.mottattTidspunkt,
         meldePeriode = Periode(this.meldeperiodeFom, this.meldeperiodeTom),
         arbeidPerDag = this.timerArbeidPerPeriode.map { it.tilDomene() },

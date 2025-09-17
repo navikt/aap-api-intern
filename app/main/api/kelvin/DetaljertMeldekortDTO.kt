@@ -13,7 +13,7 @@ import java.time.LocalDateTime
 
 data class MeldekortDTO(
     val personIdent: String,
-    val saksnummer: Saksnummer,
+    val saksnummer: String,
     val mottattTidspunkt: LocalDateTime,
     val meldePeriode: Periode,
     val arbeidPerDag: List<MeldeDag>,
@@ -21,9 +21,9 @@ data class MeldekortDTO(
     val rettighetsTypeKode: String?,
     val avslagsårsakKode: String?,
 ) {
-    fun tilKontrakt(vedtak: VedtakUtenUtbetaling): MeldekortDetalj {
+    fun tilKontrakt(vedtak: VedtakUtenUtbetaling?): MeldekortDetalj {
         return MeldekortDetalj(
-            saksnummer = this.saksnummer.toString(),
+            saksnummer = this.saksnummer,
             mottattTidspunkt = this.mottattTidspunkt,
             meldePeriode = no.nav.aap.api.intern.Periode(this.meldePeriode.fom, this.meldePeriode.fom),
             arbeidPerDag = this.arbeidPerDag.map {
@@ -32,10 +32,10 @@ data class MeldekortDTO(
                     timerArbeidet = it.timerArbeidet,
                 )
             },
-            dagsats = vedtak.dagsats,
-            ukesats = vedtak.dagsats * 5,
-            opphorsAarsak = vedtak.opphorsAarsak,
-            vedtaksdato = vedtak.vedtaksdato,
+            dagsats = vedtak?.dagsats,
+            ukesats = vedtak?.dagsats?.times(5),
+            opphorsAarsak = vedtak?.opphorsAarsak,
+            vedtaksdato = vedtak?.vedtaksdato,
         )
 
     }

@@ -180,7 +180,7 @@ fun NormalOpenAPIRoute.api(
 
     tag(Tag.Meldekort) {
 
-        route("/meldekort-detaljer").post<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
+        route("/kelvin/meldekort-detaljer").post<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
             info(description = "Henter detaljerte meldekort for en person fra og med en gitt dato")
         ) { _, requestBody ->
 

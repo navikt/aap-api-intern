@@ -41,5 +41,12 @@ abstract class PostgresTestBase(val dataSource: DataSource) {
             }
         }
 
+    fun countMeldekort(): Int =
+        dataSource.transaction { con ->
+            con.queryFirst("SELECT count(*) as nr FROM MELDEKORT"){
+                setRowMapper { row -> row.getInt("nr") }
+            }
+        }
+
 
 }

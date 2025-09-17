@@ -1,7 +1,6 @@
 package api.kelvin
 
 import api.pdl.IPdlClient
-import api.pdl.PdlClient
 import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortDetaljerRepository
 import api.postgres.MeldekortPerioderRepository
@@ -97,8 +96,8 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClie
             dataSource.transaction { connection ->
                 val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
                 val domeneKort = kortene.map { it.tilDomene() }
-                val identer = pdlClient.hentAlleIdenterForPerson(domeneKort.first().personIdent).map { it.ident }
-                meldekortPerioderRepository.lagre(domeneKort, identer)
+
+                meldekortPerioderRepository.lagreListeMedMeldekort(domeneKort)
 
             }
 

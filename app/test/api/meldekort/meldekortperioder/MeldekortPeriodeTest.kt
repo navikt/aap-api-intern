@@ -1,4 +1,4 @@
-package api.meldekortperioder
+package api.meldekort.meldekortperioder
 
 import api.TestConfig
 import api.api

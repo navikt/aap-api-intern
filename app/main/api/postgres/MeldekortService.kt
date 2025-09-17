@@ -18,7 +18,7 @@ class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient) {
         return meldekortDetaljerRepository.hentAlle(personIdenter, fraDato, tilDato)
     }
 
-    fun hentAlle(personIdentifikator: String, fom: LocalDate? = null, tom : LocalDate? = null): List<Pair<MeldekortDTO, VedtakUtenUtbetaling>> {
+    fun hentAlle(personIdentifikator: String, fom: LocalDate? = null, tom : LocalDate? = null): List<Pair<MeldekortDTO, VedtakUtenUtbetaling?>> {
         val meldekortDetaljListe = hentAlleMeldekort(personIdentifikator, fom, tom)
 
         return meldekortDetaljListe.map { meldekort ->
@@ -30,12 +30,12 @@ class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient) {
 
     private fun finnNyesteRelaterteVedtak(
         meldekort: MeldekortDTO, personIdentifikator: String
-    ): VedtakUtenUtbetaling {
+    ): VedtakUtenUtbetaling? {
         val meldePeriode = meldekort.meldePeriode
         // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info:
         val medium = vedtakService.hentMediumFraKelvin(personIdentifikator, meldePeriode).vedtak
         val vedtak = medium.filter { it.status =="LØPENDE" }
-        return vedtak.first()
+        return vedtak.firstOrNull()
     }
 
 }
