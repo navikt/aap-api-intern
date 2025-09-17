@@ -1,6 +1,9 @@
-# jlink ligger ikke i jre lengere (etter java 21)
-FROM eclipse-temurin:21-jdk-alpine as jre
+# Bruker Chainguard secure base images, https://sikkerhet.nav.no/docs/sikker-utvikling/baseimages
 
+FROM europe-north1-docker.pkg.dev/cgr-nav/pull-through/nav.no/jdk:openjdk-21-dev as jre
+# trenger jdk image for å få 'jlink'
+
+USER root
 # --strip-debug uses objcopy from binutils
 RUN apk add binutils
 
@@ -16,7 +19,7 @@ RUN jlink \
     --output /customjre
 
 
-FROM alpine:3.22.1 AS app
+FROM cgr.dev/chainguard/static:latest as app
 ENV JAVA_HOME=/jre
 ENV LANG='nb_NO.UTF-8' LANGUAGE='nb_NO:nb' LC_ALL='nb:NO.UTF-8' TZ="Europe/Oslo"
 ENV PATH="${JAVA_HOME}/bin:${PATH}"
