@@ -13,14 +13,14 @@ public data class MeldekortDetalj(
     val saksnummer: String,
     val mottattTidspunkt: LocalDateTime,
     val meldePeriode: Periode,
-    val arbeidPerDag: List<TimerPåDag>,
+    val arbeidPerDag: List<TimerPaaDag>,
     var dagsats: Int?,
     var ukesats: Int?,
     var opphorsAarsak: String?,
     var vedtaksdato: LocalDate?,
 )
 
-public data class TimerPåDag(
+public data class TimerPaaDag(
     val dag: LocalDate,
     val timerArbeidet: BigDecimal,
 )

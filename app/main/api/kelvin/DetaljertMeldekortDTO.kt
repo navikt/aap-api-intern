@@ -1,10 +1,8 @@
 package api.kelvin
 
 import no.nav.aap.api.intern.MeldekortDetalj
-import no.nav.aap.api.intern.TimerPåDag
-import no.nav.aap.api.intern.Vedtak
+import no.nav.aap.api.intern.TimerPaaDag
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import no.nav.aap.komponenter.type.Periode
 
 import java.math.BigDecimal
@@ -27,7 +25,7 @@ data class MeldekortDTO(
             mottattTidspunkt = this.mottattTidspunkt,
             meldePeriode = no.nav.aap.api.intern.Periode(this.meldePeriode.fom, this.meldePeriode.fom),
             arbeidPerDag = this.arbeidPerDag.map {
-                TimerPåDag(
+                TimerPaaDag(
                     dag = it.dag,
                     timerArbeidet = it.timerArbeidet,
                 )
