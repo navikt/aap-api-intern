@@ -7,7 +7,7 @@ CREATE TABLE MELDEKORT
     OPPRETTET_TID        TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL,
     MOTTATT_TIDSPUNKT    TIMESTAMP(3)                           NOT NULL,
     SAKSNUMMER           TEXT                                   NOT NULL,
-    PERIODE              DATERANGE,
+    PERIODE              DATERANGE                              NOT NULL,
     MELDEPLIKTSTATUSKODE TEXT,
     RETTIGHETSTYPEKODE   TEXT
 );
