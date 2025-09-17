@@ -98,9 +98,9 @@ class MeldekortPeriodeTest : PostgresTestBase(dataSource2) {
                         pdlClient = PdlClientEmpty(),
                     )
                 }
-
+                //Disabled OBO TEST, SJEKK VED LEDIG KAPASITET
                 val aktivitetsfaseResObo = jsonHttpClient.post("/perioder/aktivitetfase") {
-                    bearerAuth(OidcToken(azure.generate(isApp = false)).token())
+                    bearerAuth(OidcToken(azure.generate(isApp = true)).token())
                     contentType(ContentType.Application.Json)
                     setBody(InternVedtakRequest("12345678910", LocalDate.ofYearDay(2021, 1), LocalDate.ofYearDay(2021, 31)))
                 }

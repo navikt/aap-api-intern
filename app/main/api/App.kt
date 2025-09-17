@@ -126,7 +126,7 @@ fun Application.api(
         authenticate(AZURE) {
             apiRouting {
                 api(datasource, arenaRestClient, prometheus, pdlClient, nå)
-                dataInsertion(datasource)
+                dataInsertion(datasource, pdlClient)
             }
         }
         actuator(prometheus)

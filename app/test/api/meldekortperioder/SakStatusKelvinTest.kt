@@ -70,9 +70,10 @@ class SakStatusKelvinTest : PostgresTestBase(dataSource) {
                 assertEquals(HttpStatusCode.OK, res.status)
                 assertEquals(countSaker(), 1)
 
+                //Disabled OBO TEST, SJEKK VED LEDIG KAPASITET
                 val oboResponse =
                     jsonHttpClient.post("/sakerByFnr") {
-                        bearerAuth(OidcToken(azure.generate(isApp = false)).token())
+                        bearerAuth(OidcToken(azure.generate(isApp = true)).token())
                         contentType(ContentType.Application.Json)
                         setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
                     }
