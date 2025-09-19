@@ -11,6 +11,8 @@ spec:
   ingresses:
     - https://aap-api.intern.dev.nav.no
     - https://aap-api.ansatt.dev.nav.no
+  kafka:
+    pool: nav-dev
   resources:
     limits:
       memory: 8Gi
