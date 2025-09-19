@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("api-intern.conventions")
-    id("io.ktor.plugin") version "3.2.3"
+    id("io.ktor.plugin") version "3.3.0"
     id("org.flywaydb.flyway") version "11.12.0"
     application
 }
@@ -12,7 +12,7 @@ application {
 }
 
 val komponenterVersjon = "1.0.362"
-val ktorVersion = "3.2.3"
+val ktorVersion = "3.3.0"
 val tilgangVersjon = "1.0.124"
 val behandlingsflytversjon = "0.0.436"
 val kontraktVersjon = "0.0.26"
@@ -79,6 +79,7 @@ dependencies {
 
 tasks {
     withType<ShadowJar> {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         mergeServiceFiles()
     }
 }
