@@ -20,7 +20,7 @@ class ModiaKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
     }
 
     private fun createRecord(personident: String): ProducerRecord<String, String> {
-        val json = ""
+        val json = "" //TODO: få opp riktig JSON her
 
         return ProducerRecord(topic, personident, json)
     }
