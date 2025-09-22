@@ -74,7 +74,7 @@ class SakStatusKelvinTest : PostgresTestBase(dataSource) {
 
                 val oboResponse =
                     jsonHttpClient.post("/sakerByFnr") {
-                        bearerAuth(OidcToken(azure.generate(isApp = false)).token())
+                        bearerAuth(OidcToken(azure.generate(isApp = true)).token())
                         contentType(ContentType.Application.Json)
                         setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
                     }
