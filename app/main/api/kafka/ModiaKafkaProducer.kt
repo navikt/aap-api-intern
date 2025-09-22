@@ -13,8 +13,6 @@ class ModiaKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
             if (err != null) {
                 logger.error("Klarte ikke varsle hendelse for bruker", err)
                 throw KafkaProducerException("Klarte ikke valse hendelse for bruker")
-            } else {
-                logger.debug("Hendelse varslet for for {}: {}", personident, metadata)
             }
         }.get() // Blocking call to ensure the message is sent
     }

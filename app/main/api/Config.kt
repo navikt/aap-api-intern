@@ -18,7 +18,6 @@ data class Config(
         issuer = getEnvVar("AZURE_OPENID_CONFIG_ISSUER")
     ),
     val dbConfig: DbConfig = DbConfig(),
-    val wipe: Boolean = true,
     val kafka: KafkaConfig = KafkaConfig(
         brokers = getEnvVar("KAFKA_BROKERS"),
         truststorePath = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
