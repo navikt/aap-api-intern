@@ -103,6 +103,7 @@ fun DetaljertMeldekortDTO.tilDomene(): MeldekortDTO {
     return MeldekortDTO(
         personIdent = this.personIdent,
         saksnummer = this.saksnummer.toString(),
+        behandlingId = this.behandlingId,
         mottattTidspunkt = this.mottattTidspunkt,
         meldePeriode = Periode(this.meldeperiodeFom, this.meldeperiodeTom),
         arbeidPerDag = this.timerArbeidPerPeriode.map { it.tilDomene() },

@@ -47,7 +47,7 @@ val testObject = DetaljertMeldekortDTO(
     avslagsårsakKode = null,
 )
 
-class MeldekortDetaljerRepoTest : PostgresTestBase(dataSource) {
+class MeldekortDetaljerRepositoryTest : PostgresTestBase(dataSource) {
     companion object {
         private val fakes = Fakes()
 

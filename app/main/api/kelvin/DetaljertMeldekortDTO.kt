@@ -12,6 +12,7 @@ import java.time.LocalDateTime
 data class MeldekortDTO(
     val personIdent: String,
     val saksnummer: String,
+    val behandlingId: Long,
     val mottattTidspunkt: LocalDateTime,
     val meldePeriode: Periode,
     val arbeidPerDag: List<MeldeDag>,
