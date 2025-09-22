@@ -42,6 +42,7 @@ class MeldekortPeriodeTest : PostgresTestBase(dataSource2) {
                         config = config,
                         datasource = dataSource2,
                         arenaRestClient = ArenaClient(),
+                        pdlClient = PdlClientEmpty(),
                         modiaProducer = fakes.kafka
                     )
                 }
