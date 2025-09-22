@@ -58,7 +58,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
 
     private fun hentNyesteBehandlingIdLagretForSaken(saksnummer: String): Long? = connection.queryFirstOrNull(
         """
-                    select max(BEHANDLING_ID) as nyeste FROM MELDEKORT
+                    SELECT max(BEHANDLING_ID) as nyeste FROM MELDEKORT
                     WHERE SAKSNUMMER = ?
                 """.trimIndent()
     ) {
@@ -73,10 +73,12 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
 
     private fun insertMeldekort(connection: DBConnection, meldekort: MeldekortDTO): Long {
         return connection.executeReturnKey(
-            """INSERT INTO MELDEKORT(
-                |PERSON_IDENT, MOTTATT_TIDSPUNKT, SAKSNUMMER, BEHANDLING_ID, 
-                |PERIODE, MELDEPLIKTSTATUSKODE, RETTIGHETSTYPEKODE) 
-                |VALUES (?, ?, ?, ?, ?::daterange, ?, ?)""".trimMargin()
+            """
+                INSERT INTO MELDEKORT(
+                   PERSON_IDENT, MOTTATT_TIDSPUNKT, SAKSNUMMER, BEHANDLING_ID, 
+                   PERIODE, MELDEPLIKTSTATUSKODE, RETTIGHETSTYPEKODE) 
+                   VALUES (?, ?, ?, ?, ?::daterange, ?, ?)
+                """.trimIndent()
         ) {
             setParams {
                 setString(1, meldekort.personIdent)
@@ -96,7 +98,9 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         timerArbeid: List<MeldekortDTO.MeldeDag>
     ) {
         connection.executeBatch(
-            """INSERT INTO MELDEKORT_ARBEIDS_PERIODE(MELDEKORT_ID, DATO, TIMER_ARBEIDET) VALUES (?, ?, ?)""".trimIndent(),
+            """
+                INSERT INTO MELDEKORT_ARBEIDS_PERIODE(MELDEKORT_ID, DATO, TIMER_ARBEIDET) VALUES (?, ?, ?)
+                """.trimIndent(),
             timerArbeid
         ) {
             setParams { it ->
