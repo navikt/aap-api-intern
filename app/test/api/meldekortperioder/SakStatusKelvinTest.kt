@@ -56,7 +56,8 @@ class SakStatusKelvinTest : PostgresTestBase(dataSource) {
                         config = config,
                         datasource = dataSource,
                         arenaRestClient = ArenaClient(),
-                        pdlClient = PdlClientEmpty()
+                        pdlClient = PdlClientEmpty(),
+                        modiaProducer = fakes.kafka
                     )
                 }
 
