@@ -97,7 +97,7 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClie
                 val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
                 val domeneKort = kortene.map { it.tilDomene() }
 
-                meldekortPerioderRepository.lagreListeMedMeldekort(domeneKort)
+                meldekortPerioderRepository.lagre(domeneKort)
 
             }
 
