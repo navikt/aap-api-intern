@@ -17,6 +17,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.job
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
@@ -26,6 +27,7 @@ import no.nav.aap.komponenter.type.Periode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import kotlin.coroutines.coroutineContext
 
 val dataSource = InitTestDatabase.freshDatabase()
 val kelvinSak = SakStatusKelvin(
@@ -60,7 +62,6 @@ class SakStatusKelvinTest : PostgresTestBase(dataSource) {
                     )
                 }
 
-
                 val res = jsonHttpClient.post("/api/insert/sakStatus") {
                     bearerAuth(azure.generate(true))
                     contentType(ContentType.Application.Json)
@@ -70,10 +71,10 @@ class SakStatusKelvinTest : PostgresTestBase(dataSource) {
                 assertEquals(HttpStatusCode.OK, res.status)
                 assertEquals(countSaker(), 1)
 
-                //Disabled OBO TEST, SJEKK VED LEDIG KAPASITET
+
                 val oboResponse =
                     jsonHttpClient.post("/sakerByFnr") {
-                        bearerAuth(OidcToken(azure.generate(isApp = true)).token())
+                        bearerAuth(OidcToken(azure.generate(isApp = false)).token())
                         contentType(ContentType.Application.Json)
                         setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
                     }
