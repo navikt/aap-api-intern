@@ -16,7 +16,6 @@ public data class MeldekortDetalj(
     val arbeidPerDag: List<TimerPaaDag>,
     var dagsats: Int?,
     var ukesats: Int?,
-    var opphorsAarsak: String?,
     var vedtaksdato: LocalDate?,
 )
 

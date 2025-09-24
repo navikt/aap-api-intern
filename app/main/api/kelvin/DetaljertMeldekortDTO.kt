@@ -33,7 +33,6 @@ data class MeldekortDTO(
             },
             dagsats = vedtak?.dagsats,
             ukesats = vedtak?.dagsats?.times(5),
-            opphorsAarsak = vedtak?.opphorsAarsak,
             vedtaksdato = vedtak?.vedtaksdato,
         )
 

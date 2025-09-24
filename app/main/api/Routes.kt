@@ -181,7 +181,7 @@ fun NormalOpenAPIRoute.api(
     tag(Tag.Meldekort) {
 
         route("/kelvin/meldekort-detaljer").post<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
-            info(description = "Henter detaljerte meldekort for en person fra og med en gitt dato")
+            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode")
         ) { _, requestBody ->
 
             val personIdentifikator = requestBody.personidentifikator
