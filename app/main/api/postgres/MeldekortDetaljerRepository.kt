@@ -123,16 +123,14 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         }
         return connection.queryList(
             """SELECT * FROM MELDEKORT WHERE PERSON_IDENT = ANY(?)
-                AND ( ? IS NULL OR MOTTATT_TIDSPUNKT >= ?::date) 
-                AND ( ? IS NULL OR MOTTATT_TIDSPUNKT <= ?::date)
+                AND MOTTATT_TIDSPUNKT >= COALESCE(CAST(? AS DATE), MOTTATT_TIDSPUNKT)
+                AND MOTTATT_TIDSPUNKT <= COALESCE(CAST(? AS DATE), MOTTATT_TIDSPUNKT);
             """.trimIndent()
         ) {
             setParams {
                 setArray(1, personIdentifikatorer)
                 setLocalDate(2, fom)
-                setLocalDate(3, fom)
-                setLocalDate(4, tom)
-                setLocalDate(5, tom)
+                setLocalDate(3, tom)
             }
             setRowMapper { row ->
                 rowToMeldekortDTO(row)

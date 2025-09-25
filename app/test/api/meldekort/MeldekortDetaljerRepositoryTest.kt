@@ -31,6 +31,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 val testObject = DetaljertMeldekortDTO(
@@ -88,7 +89,11 @@ class MeldekortDetaljerRepositoryTest : PostgresTestBase(dataSource) {
             val meldekortResponse = jsonHttpClient.post("/kelvin/meldekort-detaljer"){
                 bearerAuth(azure.generate(isApp = true))
                 contentType(ContentType.Application.Json)
-                setBody(MeldekortDetaljerRequest("12345678901"))
+                setBody(MeldekortDetaljerRequest(
+                    "12345678901",
+                    fraOgMedDato = LocalDate.now().minusYears(3),
+                    tilOgMedDato = LocalDate.now().plusDays(1)
+                    ))
             }
 
             assert(meldekortResponse.status == HttpStatusCode.OK)
