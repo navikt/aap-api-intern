@@ -8,7 +8,7 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 
-class ArenaClient : IArenaoppslagRestClient {
+class MockedArenaClient : IArenaoppslagRestClient {
     override suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse {
         return PerioderResponse(emptyList())
     }

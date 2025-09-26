@@ -3,7 +3,7 @@ package api.meldekortperioder
 import api.TestConfig
 import api.api
 import api.kelvin.MeldekortPerioderDTO
-import api.util.ArenaClient
+import api.util.MockedArenaClient
 import api.util.AzureTokenGen
 import api.util.Fakes
 import api.util.PdlClientEmpty
@@ -41,7 +41,7 @@ class MeldekortPeriodeTest : PostgresTestBase(dataSource2) {
                     api(
                         config = config,
                         datasource = dataSource2,
-                        arenaRestClient = ArenaClient()
+                        arenaRestClient = MockedArenaClient()
                     )
                 }
 
@@ -94,7 +94,7 @@ class MeldekortPeriodeTest : PostgresTestBase(dataSource2) {
                     api(
                         config = config,
                         datasource = dataSource2,
-                        arenaRestClient = ArenaClient(),
+                        arenaRestClient = MockedArenaClient(),
                         pdlClient = PdlClientEmpty(),
                     )
                 }
