@@ -2,6 +2,9 @@ package api
 
 import api.arena.ArenaoppslagRestClient
 import api.arena.IArenaoppslagRestClient
+import api.kafka.KafkaProducer
+import api.kafka.ModiaKafkaProducer
+import api.kafka.ProducerHolder
 import api.kelvin.dataInsertion
 import api.pdl.IPdlClient
 import api.pdl.PdlClient
@@ -60,11 +63,14 @@ fun Application.api(
         config.arenaoppslag, config.azure
     ),
     pdlClient: IPdlClient = PdlClient(),
-    nå: LocalDate = LocalDate.now()
+    nå: LocalDate = LocalDate.now(),
+    modiaProducer: KafkaProducer = ModiaKafkaProducer(config.kafka),
 ) {
 
     Migrering.migrate(datasource)
     registerCircuitBreakerMetrics(prometheus)
+
+    ProducerHolder.setProducer(modiaProducer)
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
