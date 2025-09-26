@@ -94,13 +94,13 @@ class VedtakService(
                             rettighetsType = left.verdi.rettighetsType,
                             beregningsgrunnlag = left.verdi.beregningsgrunnlag,
                             barnMedStonad = left.verdi.barnMedStonad,
-                            barnetillegg = left.verdi.barnMedStonad * (right?.verdi?.first()?.verdi?.barnetilleggsats?.toInt()
+                            barnetillegg = left.verdi.barnMedStonad * (right?.verdi?.segmenter()?.first()?.verdi?.barnetilleggsats?.toInt()
                                 ?: 0),
                             vedtaksTypeKode = null,
                             vedtaksTypeNavn = null,
                             utbetaling = right?.verdi?.filter {
                                 it.periode.tom.isBefore(nå) || it.periode.tom.isEqual(nå)
-                            }?.map { utbetaling ->
+                            }?.segmenter()?.map { utbetaling ->
                                 UtbetalingMedMer(
                                     reduksjon = null,
                                     utbetalingsgrad = utbetaling.verdi.gradering,
@@ -126,7 +126,7 @@ class VedtakService(
                         )
                     )
                 }
-            ).komprimer().map { it.verdi }
+            ).komprimer().segmenter().map { it.verdi }
                 .filter { it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString() }
 
 
@@ -197,6 +197,7 @@ class VedtakService(
                     )
                 }
             ).komprimer()
+                .segmenter()
                 .map {
                     it.verdi.tilVedtakUtenUtbetaling(
                         no.nav.aap.api.intern.Periode(
