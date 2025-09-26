@@ -3,7 +3,7 @@ package api.meldekort
 import api.TestConfig
 import api.api
 import api.maksimum.dataSource
-import api.util.ArenaClient
+import api.util.MockedArenaClient
 import api.util.AzureTokenGen
 import api.util.Fakes
 import api.util.PdlClientEmpty
@@ -69,7 +69,7 @@ class MeldekortDetaljerRepositoryTest : PostgresTestBase(dataSource) {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = ArenaClient(),
+                    arenaRestClient = MockedArenaClient(),
                     pdlClient = PdlClientEmpty()
                 )
             }

@@ -3,7 +3,7 @@ package api.meldekortperioder
 import api.TestConfig
 import api.api
 import api.kelvin.SakStatusKelvin
-import api.util.ArenaClient
+import api.util.MockedArenaClient
 import api.util.AzureTokenGen
 import api.util.Fakes
 import api.util.PdlClientEmpty
@@ -17,7 +17,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.job
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
@@ -27,7 +26,6 @@ import no.nav.aap.komponenter.type.Periode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import kotlin.coroutines.coroutineContext
 
 val dataSource = InitTestDatabase.freshDatabase()
 val kelvinSak = SakStatusKelvin(
@@ -57,7 +55,7 @@ class SakStatusKelvinTest : PostgresTestBase(dataSource) {
                     api(
                         config = config,
                         datasource = dataSource,
-                        arenaRestClient = ArenaClient(),
+                        arenaRestClient = MockedArenaClient(),
                         pdlClient = PdlClientEmpty()
                     )
                 }
