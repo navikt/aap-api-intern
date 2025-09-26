@@ -11,7 +11,7 @@ application {
     mainClass.set("api.AppKt")
 }
 
-val komponenterVersjon = "1.0.362"
+val komponenterVersjon = "1.0.373"
 val ktorVersion = "3.3.0"
 val tilgangVersjon = "1.0.125"
 val behandlingsflytversjon = "0.0.445"
@@ -73,7 +73,7 @@ dependencies {
         implementation("commons-codec:commons-codec:1.19.0")
     }
     testImplementation("org.assertj:assertj-core:3.27.6")
-    testImplementation("io.github.nchaugen:tabletest-junit:0.5.1")
+    testImplementation("io.github.nchaugen:tabletest-junit:0.5.2")
     testImplementation(kotlin("test"))
 }
 
