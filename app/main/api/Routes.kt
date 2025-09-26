@@ -508,7 +508,7 @@ private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.
         ),
         kilde = when (it.kilde) {
             no.nav.aap.arenaoppslag.kontrakt.intern.Kilde.ARENA -> Kilde.ARENA
-            no.nav.aap.arenaoppslag.kontrakt.intern.Kilde.KELVIN -> Kilde.ARENA
+            no.nav.aap.arenaoppslag.kontrakt.intern.Kilde.KELVIN -> Kilde.KELVIN
         }
     )
 
