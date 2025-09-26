@@ -72,7 +72,7 @@ dependencies {
     constraints {
         implementation("commons-codec:commons-codec:1.19.0")
     }
-    testImplementation("org.assertj:assertj-core:3.27.5")
+    testImplementation("org.assertj:assertj-core:3.27.6")
     testImplementation("io.github.nchaugen:tabletest-junit:0.5.1")
     testImplementation(kotlin("test"))
 }
