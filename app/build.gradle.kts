@@ -15,7 +15,7 @@ val komponenterVersjon = "1.0.373"
 val ktorVersion = "3.3.0"
 val tilgangVersjon = "1.0.125"
 val behandlingsflytversjon = "0.0.445"
-val kontraktVersjon = "0.0.26"
+val arenaOppslagVersjon = "0.0.26"
 val resilience4jVersion = "2.3.0"
 
 dependencies {
@@ -28,7 +28,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:tidslinje:$komponenterVersjon")
     implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
-    implementation("no.nav.aap.arenaoppslag:kontrakt:$kontraktVersjon")
+    implementation("no.nav.aap.arenaoppslag:kontrakt:$arenaOppslagVersjon")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
