@@ -1,14 +1,13 @@
 package api.arena
 
 import api.ArenaoppslagConfig
-import api.util.CircuitBreakerDsl
 import api.util.circuitBreaker
+import api.util.findRootCause
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.github.resilience4j.circuitbreaker.CircuitBreaker
 import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -19,26 +18,23 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.prometheus.metrics.core.metrics.Summary
-import java.time.Duration
 import no.nav.aap.api.intern.PerioderResponse
-import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
-import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
+import org.slf4j.LoggerFactory
+
+private val secureLog = LoggerFactory.getLogger("secureLog")
+private val log = LoggerFactory.getLogger(ArenaoppslagRestClient::class.java)
 
 private const val ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME = "arenaoppslag_client_seconds"
-private val clientLatencyStats: Summary = Summary.builder()
-    .name(ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME)
+private val clientLatencyStats: Summary = Summary.builder().name(ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME)
     .quantile(0.5, 0.05) // Add 50th percentile (= median) with 5% tolerated error
     .quantile(0.9, 0.01) // Add 90th percentile with 1% tolerated error
     .quantile(0.99, 0.001) // Add 99th percentile with 0.1% tolerated error
-    .help("Latency arenaoppslag, in seconds")
-    .register()
+    .help("Latency arenaoppslag, in seconds").register()
 
-private val objectMapper = jacksonObjectMapper()
-    .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-    .registerModule(JavaTimeModule())
+private val objectMapper =
+    jacksonObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(JavaTimeModule())
 
 
 class ArenaoppslagRestClient(
@@ -49,90 +45,57 @@ class ArenaoppslagRestClient(
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker")
 
     override suspend fun hentPerioder(
-        callId: String,
-        vedtakRequest: InternVedtakRequest
-    ): PerioderResponse =
-        clientLatencyStats.startTimer().use {
-            circuitBreaker.executeSuspendFunction {
-                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder") {
-                    accept(ContentType.Application.Json)
-                    header("Nav-Call-Id", callId)
-                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                    contentType(ContentType.Application.Json)
-                    setBody(vedtakRequest)
-                }
-                    .bodyAsText()
-                    .let(objectMapper::readValue)
-            }
-        }
+        callId: String, vedtakRequest: InternVedtakRequest
+    ): PerioderResponse = gjørArenaOppslag<PerioderResponse, InternVedtakRequest>(
+        "/intern/perioder", callId, vedtakRequest
+    ).getOrThrow()
 
     override suspend fun hentPerioderInkludert11_17(
-        callId: String,
-        vedtakRequest: InternVedtakRequest,
-    ): PerioderMed11_17Response =
-        clientLatencyStats.startTimer().use {
-            circuitBreaker.executeSuspendFunction {
-                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/perioder/11-17") {
-                    accept(ContentType.Application.Json)
-                    header("Nav-Call-Id", callId)
-                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                    contentType(ContentType.Application.Json)
-                    setBody(vedtakRequest)
-                }
-                    .bodyAsText()
-                    .let(objectMapper::readValue)
-            }
-        }
+        callId: String, req: InternVedtakRequest,
+    ): PerioderMed11_17Response = gjørArenaOppslag<PerioderMed11_17Response, InternVedtakRequest>(
+        "/intern/perioder/11-17", callId, req
+    ).getOrThrow()
 
     override suspend fun hentPersonEksistererIAapContext(
-        callId: String,
-        sakerRequest: SakerRequest,
-    ): PersonEksistererIAAPArena =
-        clientLatencyStats.startTimer().use {
-            circuitBreaker.executeSuspendFunction {
-                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/person/aap/eksisterer") {
-                    accept(ContentType.Application.Json)
-                    header("Nav-Call-Id", callId)
-                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                    contentType(ContentType.Application.Json)
-                    setBody(sakerRequest)
-                }
-                    .bodyAsText()
-                    .let(objectMapper::readValue)
-            }
-        }
+        callId: String, req: SakerRequest,
+    ): PersonEksistererIAAPArena = gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
+        "/intern/person/aap/eksisterer", callId, req
+    ).getOrThrow()
 
     override suspend fun hentSakerByFnr(
-        callId: String,
-        req: SakerRequest,
-    ): List<no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus> =
-        clientLatencyStats.startTimer().use {
-            circuitBreaker.executeSuspendFunction {
-                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/saker") {
-                    accept(ContentType.Application.Json)
-                    header("Nav-Call-Id", callId)
-                    bearerAuth(tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope))
-                    contentType(ContentType.Application.Json)
-                    setBody(req)
-                }
-                    .bodyAsText()
-                    .let(objectMapper::readValue)
-            }
-        }
+        callId: String, req: SakerRequest
+    ): List<SakStatus> = gjørArenaOppslag<List<SakStatus>, SakerRequest>(
+        "/intern/saker", callId, req
+    ).getOrThrow()
 
-    override suspend fun hentMaksimum(callId: String, req: InternVedtakRequest): Maksimum {
-        return clientLatencyStats.startTimer().use {
-            circuitBreaker.executeSuspendFunction {
+    override suspend fun hentMaksimum(
+        callId: String, req: InternVedtakRequest
+    ): Maksimum = gjørArenaOppslag<Maksimum, InternVedtakRequest>(
+        "/intern/maksimum", callId, req
+    ).getOrThrow()
+
+    private suspend inline fun <reified T, reified V> gjørArenaOppslag(
+        endepunkt: String, callId: String, req: V
+    ): Result<T> = clientLatencyStats.startTimer().use {
+        circuitBreaker.executeSuspendFunction {
+            runCatching {
                 val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope)
-                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}/intern/maksimum") {
+                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}$endepunkt") {
                     accept(ContentType.Application.Json)
                     header("Nav-Call-Id", callId)
                     bearerAuth(token)
                     contentType(ContentType.Application.Json)
                     setBody(req)
                 }
-                    .bodyAsText()
-                    .let(objectMapper::readValue)
+            }.onFailure { e ->
+                val årsak = e.findRootCause()
+                log.error("Fetch-feil mot '$endepunkt': ${årsak.message}", e)
+            }.mapCatching { responseText ->
+                objectMapper.readValue<T>(responseText.bodyAsText())
+            }.onFailure { e ->
+                val årsak = e.findRootCause()
+                log.error("Parsefeil for '$endepunkt'. Se securelog for stacktrace.")
+                secureLog.error("Parsefeil for '$endepunkt': ${årsak.message}", e)
             }
         }
     }

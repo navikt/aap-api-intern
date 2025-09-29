@@ -11,12 +11,12 @@ interface IArenaoppslagRestClient {
     suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse
     suspend fun hentPerioderInkludert11_17(
         callId: String,
-        vedtakRequest: InternVedtakRequest
+        req: InternVedtakRequest
     ): PerioderMed11_17Response
 
     suspend fun hentPersonEksistererIAapContext(
         callId: String,
-        sakerRequest: SakerRequest
+        req: SakerRequest
     ): PersonEksistererIAAPArena
 
     suspend fun hentSakerByFnr(
