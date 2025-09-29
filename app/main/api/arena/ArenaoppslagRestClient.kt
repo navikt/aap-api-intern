@@ -94,6 +94,7 @@ class ArenaoppslagRestClient(
                 objectMapper.readValue<T>(responseText.bodyAsText())
             }.onFailure { e ->
                 val årsak = e.findRootCause()
+                log.error("Parsefeil for '$endepunkt'. Se securelog for stacktrace.")
                 secureLog.error("Parsefeil for '$endepunkt': ${årsak.message}", e)
             }
         }
