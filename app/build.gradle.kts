@@ -75,6 +75,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.6")
     testImplementation("io.github.nchaugen:tabletest-junit:0.5.2")
     testImplementation(kotlin("test"))
+    testImplementation("org.slf4j:jul-to-slf4j:2.0.13")
 }
 
 tasks {
