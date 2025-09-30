@@ -81,6 +81,9 @@ spec:
         - application: familie-ef-sak
           namespace: teamfamilie
           cluster: prod-gcp
+        - application: modiapersonoversikt-api
+          namespace: personoversikt
+          cluster: prod-gcp
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp
