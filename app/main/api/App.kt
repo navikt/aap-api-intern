@@ -36,7 +36,7 @@ private val logger = LoggerFactory.getLogger("App")
 
 fun main() {
     Thread.currentThread()
-        .setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.cause}", e) }
+        .setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.javaClass}", e) }
     embeddedServer(Netty, port = 8080, module = Application::api).start(wait = true)
 }
 
@@ -80,6 +80,7 @@ fun Application.api(
                         status = HttpStatusCode.BadRequest
                     )
                 }
+
                 is IllegalArgumentException -> {
                     logger.warn(
                         "Valideringsfeil ved kall til '{}'. Type: ${cause.javaClass}",
