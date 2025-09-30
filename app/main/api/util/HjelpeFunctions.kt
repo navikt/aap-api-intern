@@ -10,8 +10,7 @@ import java.time.format.DateTimeParseException
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum.fraKontrakt(): Maksimum {
     return Maksimum(
-        vedtak = this.vedtak.map { it.fraKontrakt() }
-    )
+        vedtak = this.vedtak.map { it.fraKontrakt() })
 }
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
@@ -29,7 +28,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
         utbetaling = this.utbetaling.map { it.fraKontrakt() },
-        barnetillegg = this.barnMedStonad * (this.utbetaling.firstOrNull()?.barnetillegg ?: 0)
+        barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0
     )
 }
 
@@ -47,7 +46,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling()
         barnMedStonad = this.barnMedStonad,
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
-        barnetillegg = this.barnMedStonad * (this.utbetaling.firstOrNull()?.barnetillegg ?: 0)
+        barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0
     )
 }
 
@@ -88,15 +87,12 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Reduksjon.fraKontrakt(): Reduksjon
     return Reduksjon(
         this.timerArbeidet,
         this.annenReduksjon.fraKontrakt()
-            .let { (it.fraver ?: 0F) + (it.sykedager ?: 0F) + it.sentMeldekort }
-    )
+            .let { (it.fraver ?: 0F) + (it.sykedager ?: 0F) + it.sentMeldekort })
 }
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.AnnenReduksjon.fraKontrakt(): AnnenReduksjon {
     return AnnenReduksjon(
-        this.sykedager,
-        if (this.sentMeldekort == true) 1 else 0,
-        this.fraver
+        this.sykedager, if (this.sentMeldekort == true) 1 else 0, this.fraver
     )
 }
 
