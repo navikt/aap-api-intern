@@ -6,6 +6,12 @@ data class Maksimum(val vedtak: List<Vedtak>)
 
 data class Medium(val vedtak: List<VedtakUtenUtbetaling>)
 
+data class InternVedtakRequestApiIntern(
+    val personidentifikator: String,
+    val fraOgMedDato: LocalDate? = LocalDate.of(1, 1, 1),
+    val tilOgMedDato: LocalDate? = LocalDate.of(9999, 12, 31)
+)
+
 /**
  * @param status Hypotese, vedtaksstatuskode
  * @param saksnummer hypotese sak_id

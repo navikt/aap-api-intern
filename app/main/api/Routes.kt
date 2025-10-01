@@ -33,9 +33,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.auth.audience
 import no.nav.aap.komponenter.server.auth.token
-import no.nav.aap.komponenter.tidslinje.JoinStyle
-import no.nav.aap.komponenter.tidslinje.Segment
-import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -76,10 +73,9 @@ fun NormalOpenAPIRoute.api(
 ) {
     tag(Tag.Perioder) {
         route("/perioder") {
-            post<CallIdHeader, PerioderResponse, InternVedtakRequest>(
+            post<CallIdHeader, PerioderResponse, InternVedtakRequestApiIntern>(
                 info(description = "Henter perioder med vedtak for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
-                logger.info("Henter perioder")
                 val azpName = azpName()
                 prometheus.httpCallCounter(
                     "/perioder",
@@ -92,12 +88,14 @@ fun NormalOpenAPIRoute.api(
 
                 sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
+                val tilArenaKontrakt = requestBody.tilKontrakt()
+
                 val kelvinPerioder = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     val vedtaksdata =
                         behandlingsRepository.hentVedtaksData(
                             requestBody.personidentifikator,
-                            Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato)
+                            Periode(tilArenaKontrakt.fraOgMedDato, tilArenaKontrakt.tilOgMedDato)
                         )
                     perioderMedAAp(
                         vedtaksdata
@@ -106,7 +104,7 @@ fun NormalOpenAPIRoute.api(
 
                 val arenaPerioder = arena.hentPerioder(
                     callId,
-                    requestBody
+                    tilArenaKontrakt
                 ).perioder
 
                 prometheus.tellKildesystem(kelvinPerioder, arenaPerioder, "/perioder")
@@ -118,7 +116,7 @@ fun NormalOpenAPIRoute.api(
                 )
             }
 
-            route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequest>(
+            route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequestApiIntern>(
                 info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
                 prometheus.httpCallCounter(
@@ -132,8 +130,8 @@ fun NormalOpenAPIRoute.api(
                 }
 
                 sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
-
-                val arenaSvar = arena.hentPerioderInkludert11_17(callId, requestBody)
+                val tilArenaKontrakt = requestBody.tilKontrakt()
+                val arenaSvar = arena.hentPerioderInkludert11_17(callId, tilArenaKontrakt)
 
                 prometheus.tellKildesystem(
                     null,
@@ -160,7 +158,7 @@ fun NormalOpenAPIRoute.api(
             }
 
             // FIXME bør ha et mer spesifikt navn enn meldekort, f.eks. meldekortperioder
-            route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequest>(
+            route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequestApiIntern>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { _, requestBody ->
 
@@ -179,7 +177,6 @@ fun NormalOpenAPIRoute.api(
     }
 
     tag(Tag.Meldekort) {
-
         route("/kelvin/meldekort-detaljer").post<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
             info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode")
         ) { _, requestBody ->
@@ -188,8 +185,12 @@ fun NormalOpenAPIRoute.api(
             sjekkTilgangTilPerson(listOf(personIdentifikator))
 
             val meldekortListe = dataSource.transaction { connection ->
-                val meldekortService = MeldekortService(connection,pdlClient)
-                meldekortService.hentAlle(personIdentifikator, requestBody.fraOgMedDato, requestBody.tilOgMedDato)
+                val meldekortService = MeldekortService(connection, pdlClient)
+                meldekortService.hentAlle(
+                    personIdentifikator,
+                    requestBody.fraOgMedDato,
+                    requestBody.tilOgMedDato
+                )
                     .map { (meldekort, vedtak) ->
                         meldekort.tilKontrakt(vedtak)
                     }
@@ -320,7 +321,7 @@ fun NormalOpenAPIRoute.api(
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     VedtakService(behandlingsRepository, nå = nå).hentMediumFraKelvin(
-                        body.personidentifikator,
+                        requestBody.personidentifikator,
                         Periode(body.fraOgMedDato, body.tilOgMedDato)
                     ).vedtak
                 }
@@ -383,7 +384,7 @@ fun NormalOpenAPIRoute.api(
             }
         }
         route("/kelvin/") {
-            route("maksimumUtenUtbetaling").post<CallIdHeader, Medium, InternVedtakRequest>(
+            route("maksimumUtenUtbetaling").post<CallIdHeader, Medium, InternVedtakRequestApiIntern>(
                 info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag.")
             ) { _, requestBody ->
                 logger.info("Henter maksimum uten utbetalinger fra kelvin")
@@ -395,11 +396,13 @@ fun NormalOpenAPIRoute.api(
 
                 sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
+                val tilArenaKontrakt = requestBody.tilKontrakt()
+
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     VedtakService(behandlingsRepository, nå = nå).hentMediumFraKelvin(
                         requestBody.personidentifikator,
-                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato),
+                        Periode(tilArenaKontrakt.fraOgMedDato, tilArenaKontrakt.tilOgMedDato),
                     ).vedtak
                 }
                 pipeline.call.response.headers.append(
@@ -412,7 +415,7 @@ fun NormalOpenAPIRoute.api(
                 respond(Medium(kelvinSaker))
             }
 
-            route("behandling").post<CallIdHeader, List<DatadelingDTO>, InternVedtakRequest>(
+            route("behandling").post<CallIdHeader, List<DatadelingDTO>, InternVedtakRequestApiIntern>(
                 info(
                     description = "Henter ut behandlingsdata for en person innen gitte datointerval uten behandling av datasett",
                     deprecated = true
@@ -426,11 +429,13 @@ fun NormalOpenAPIRoute.api(
 
                 sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
 
+                val tilArenaKontrakt = requestBody.tilKontrakt()
+
                 val kelvinSaker = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     behandlingsRepository.hentVedtaksData(
                         requestBody.personidentifikator,
-                        Periode(requestBody.fraOgMedDato, requestBody.tilOgMedDato)
+                        Periode(tilArenaKontrakt.fraOgMedDato, tilArenaKontrakt.tilOgMedDato)
                     )
                 }
 
@@ -569,16 +574,11 @@ fun utledVedtakStatus(
         Status.UTREDES.toString()
     }
 
-data class InternVedtakRequestApiIntern(
-    val personidentifikator: String,
-    val fraOgMedDato: LocalDate? = LocalDate.of(1, 1, 1),
-    val tilOgMedDato: LocalDate? = LocalDate.of(9999, 12, 31)
-) {
-    fun tilKontrakt(): InternVedtakRequest {
-        return InternVedtakRequest(
-            personidentifikator = personidentifikator,
-            fraOgMedDato = fraOgMedDato ?: LocalDate.of(1, 1, 1),
-            tilOgMedDato = tilOgMedDato ?: LocalDate.of(9999, 12, 31)
-        )
-    }
+
+fun InternVedtakRequestApiIntern.tilKontrakt(): InternVedtakRequest {
+    return InternVedtakRequest(
+        personidentifikator = personidentifikator,
+        fraOgMedDato = fraOgMedDato ?: LocalDate.of(1, 1, 1),
+        tilOgMedDato = tilOgMedDato ?: LocalDate.of(9999, 12, 31)
+    )
 }

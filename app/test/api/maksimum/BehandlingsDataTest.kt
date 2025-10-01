@@ -1,6 +1,5 @@
 package api.maksimum
 
-import api.InternVedtakRequestApiIntern
 import api.TestConfig
 import api.api
 import api.kelvin.tilDomene
@@ -15,6 +14,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
+import no.nav.aap.api.intern.InternVedtakRequestApiIntern
 import no.nav.aap.api.intern.Maksimum
 import no.nav.aap.api.intern.Medium
 import no.nav.aap.api.intern.PerioderResponse
