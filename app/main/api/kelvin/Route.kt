@@ -1,5 +1,8 @@
 package api.kelvin
 
+import api.kafka.ModiaKafkaProducer
+import api.kafka.ModiaRecord
+import api.pdl.PdlClient
 import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortPerioderRepository
 import api.postgres.SakStatusRepository
@@ -15,7 +18,7 @@ import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
+fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, kafkaProducer: ModiaKafkaProducer) {
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
             routeConfig = AuthorizationBodyPathConfig(
@@ -70,11 +73,16 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource) {
                 )
             ).toTypedArray(),
         ) { _, body ->
+            var meldingstype : ModiaRecord.Meldingstype ?= null
             dataSource.transaction { connection ->
                 val behandlingsRepository = BehandlingsRepository(connection)
-                behandlingsRepository.lagreBehandling(body.tilDomene())
+                meldingstype = behandlingsRepository.lagreBehandling(body.tilDomene())
             }
-            pipeline.call.respond(HttpStatusCode.OK)
+            try {
+                kafkaProducer.produce(body.sak.fnr.first(), meldingstype!!)
+            }finally {
+                pipeline.call.respond(HttpStatusCode.OK)
+            }
         }
     }
 }

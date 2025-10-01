@@ -129,7 +129,7 @@ fun Application.api(
         authenticate(AZURE) {
             apiRouting {
                 api(datasource, arenaRestClient, prometheus, pdlClient, nå)
-                dataInsertion(datasource)
+                dataInsertion(datasource, modiaProducer as ModiaKafkaProducer)
             }
         }
         actuator(prometheus)
