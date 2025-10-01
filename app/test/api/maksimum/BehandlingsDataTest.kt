@@ -200,7 +200,7 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient()
+                    arenaRestClient = MockedArenaClient(),
                     modiaProducer = fakes.kafka
                 )
             }
@@ -246,7 +246,7 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient()
+                    arenaRestClient = MockedArenaClient(),
                     modiaProducer = fakes.kafka
                 )
             }
@@ -366,7 +366,7 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient()
+                    arenaRestClient = MockedArenaClient(),
                     modiaProducer = fakes.kafka
                 )
             }
@@ -422,7 +422,7 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient()
+                    arenaRestClient = MockedArenaClient(),
                     modiaProducer = fakes.kafka
                 )
             }
@@ -497,7 +497,7 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient()
+                    arenaRestClient = MockedArenaClient(),
                     modiaProducer = fakes.kafka,
                     // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
                     nå = LocalDate.of(2025, 12, 13)

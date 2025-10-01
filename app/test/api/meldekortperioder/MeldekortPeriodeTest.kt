@@ -41,7 +41,7 @@ class MeldekortPeriodeTest : PostgresTestBase(dataSource2) {
                     api(
                         config = config,
                         datasource = dataSource2,
-                        arenaRestClient = MockedArenaClient()
+                        arenaRestClient = MockedArenaClient(),
                         pdlClient = PdlClientEmpty(),
                         modiaProducer = fakes.kafka
                     )

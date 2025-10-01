@@ -3,6 +3,7 @@ package api.kelvin
 import api.kafka.KafkaProducer
 import api.kafka.ModiaKafkaProducer
 import api.kafka.ModiaRecord
+import api.pdl.IPdlClient
 import api.pdl.PdlClient
 import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortDetaljerRepository
