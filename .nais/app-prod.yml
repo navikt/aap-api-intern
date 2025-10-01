@@ -22,7 +22,8 @@ spec:
       allowAllUsers: true
       claims:
         extra:
-          - "NAVident"
+          - NAVident
+          - azp_name
   gcp:
     sqlInstances:
       - type: POSTGRES_16
