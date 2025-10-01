@@ -1,0 +1,21 @@
+-- TODO tilpass modellen som den er i kotlin
+
+CREATE TABLE MELDEKORT
+(
+    ID                   BIGSERIAL PRIMARY KEY,
+    PERSON_IDENT         VARCHAR(11)                            NOT NULL,
+    OPPRETTET_TID        TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    MOTTATT_TIDSPUNKT    TIMESTAMP(3)                           NOT NULL,
+    SAKSNUMMER           TEXT                                   NOT NULL,
+    PERIODE              DATERANGE                              NOT NULL,
+    MELDEPLIKTSTATUSKODE TEXT,
+    RETTIGHETSTYPEKODE   TEXT
+);
+
+CREATE TABLE MELDEKORT_ARBEIDS_PERIODE
+(
+    ID             BIGSERIAL PRIMARY KEY,
+    MELDEKORT_ID   BIGINT        NOT NULL REFERENCES MELDEKORT (ID) ON DELETE CASCADE,
+    DATO           TIMESTAMP(3)  NOT NULL,
+    TIMER_ARBEIDET NUMERIC(5, 2) NOT NULL
+)

@@ -5,6 +5,7 @@ import api.kafka.ModiaKafkaProducer
 import api.kafka.ModiaRecord
 import api.pdl.PdlClient
 import api.postgres.BehandlingsRepository
+import api.postgres.MeldekortDetaljerRepository
 import api.postgres.MeldekortPerioderRepository
 import api.postgres.SakStatusRepository
 import com.papsign.ktor.openapigen.route.info
@@ -13,13 +14,14 @@ import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import io.ktor.server.response.*
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, kafkaProducer: KafkaProducer) {
+fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClient, kafkaProducer: KafkaProducer) {
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
             routeConfig = AuthorizationBodyPathConfig(
@@ -85,5 +87,29 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, kafkaProducer: Kafk
                 pipeline.call.respond(HttpStatusCode.OK)
             }
         }
+        route("/meldekort-detaljer").authorizedPost<Unit, Unit, List<DetaljertMeldekortDTO>>(
+            routeConfig = AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
+                applicationsOnly = true,
+                applicationRole = "add-data",
+            ),
+            modules = listOf(
+                info(
+                    "Legg inn detaljerte meldekort",
+                    "Legg inn meldekort-liste for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                )
+            ).toTypedArray()
+        ) { _, kortene: List<DetaljertMeldekortDTO> ->
+            dataSource.transaction { connection ->
+                val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
+                val domeneKort = kortene.map { it.tilDomene() }
+
+                meldekortPerioderRepository.lagre(domeneKort)
+
+            }
+
+            pipeline.call.respond(HttpStatusCode.OK)
+        }
+
     }
 }

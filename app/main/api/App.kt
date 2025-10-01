@@ -9,6 +9,7 @@ import api.kelvin.dataInsertion
 import api.pdl.IPdlClient
 import api.pdl.PdlClient
 import api.postgres.initDatasource
+import api.util.registerCircuitBreakerMetrics
 import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
@@ -38,7 +39,7 @@ private val logger = LoggerFactory.getLogger("App")
 
 fun main() {
     Thread.currentThread()
-        .setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.cause}", e) }
+        .setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.javaClass}", e) }
     embeddedServer(Netty, port = 8080, module = Application::api).start(wait = true)
 }
 
@@ -65,7 +66,9 @@ fun Application.api(
     nå: LocalDate = LocalDate.now(),
     modiaProducer: KafkaProducer = ModiaKafkaProducer(config.kafka),
 ) {
+
     Migrering.migrate(datasource)
+    registerCircuitBreakerMetrics(prometheus)
 
     ProducerHolder.setProducer(modiaProducer)
 
@@ -83,6 +86,7 @@ fun Application.api(
                         status = HttpStatusCode.BadRequest
                     )
                 }
+
                 is IllegalArgumentException -> {
                     logger.warn(
                         "Valideringsfeil ved kall til '{}'. Type: ${cause.javaClass}",
@@ -129,7 +133,7 @@ fun Application.api(
         authenticate(AZURE) {
             apiRouting {
                 api(datasource, arenaRestClient, prometheus, pdlClient, nå)
-                dataInsertion(datasource, modiaProducer)
+                dataInsertion(datasource, pdlClient, modiaProducer)
             }
         }
         actuator(prometheus)

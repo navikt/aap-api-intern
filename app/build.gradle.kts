@@ -2,8 +2,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("api-intern.conventions")
-    id("io.ktor.plugin") version "3.2.3"
-    id("org.flywaydb.flyway") version "11.12.0"
+    id("io.ktor.plugin") version "3.3.0"
+    id("org.flywaydb.flyway") version "11.13.2"
     application
 }
 
@@ -11,11 +11,12 @@ application {
     mainClass.set("api.AppKt")
 }
 
-val komponenterVersjon = "1.0.353"
-val ktorVersion = "3.2.3"
-val tilgangVersjon = "1.0.121"
-val behandlingsflytversjon = "0.0.426"
-val kontraktVersjon = "0.0.26"
+val komponenterVersjon = "1.0.375"
+val ktorVersion = "3.3.0"
+val tilgangVersjon = "1.0.128"
+val behandlingsflytversjon = "0.0.448"
+val arenaOppslagVersjon = "0.0.29"
+val resilience4jVersion = "2.3.0"
 
 dependencies {
     implementation(project(":kontrakt"))
@@ -27,7 +28,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:tidslinje:$komponenterVersjon")
     implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
-    implementation("no.nav.aap.arenaoppslag:kontrakt:$kontraktVersjon")
+    implementation("no.nav.aap.arenaoppslag:kontrakt:$arenaOppslagVersjon")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 
@@ -50,32 +51,36 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     implementation("org.apache.kafka:kafka-clients:4.0.0")
-
-    implementation("org.flywaydb:flyway-core:11.12.0")
+    implementation("org.flywaydb:flyway-core:11.13.2")
     implementation("ch.qos.logback:logback-classic:1.5.18")
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
-    implementation("com.nimbusds:nimbus-jose-jwt:10.4.2")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.5")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.4")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.4.1")
 
     implementation("com.zaxxer:HikariCP:7.0.2")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.123")
+    implementation("io.github.resilience4j:resilience4j-circuitbreaker:${resilience4jVersion}")
+    implementation("io.github.resilience4j:resilience4j-kotlin:${resilience4jVersion}")
+    implementation("io.github.resilience4j:resilience4j-micrometer:${resilience4jVersion}")
+
+    implementation("no.nav:ktor-openapi-generator:1.0.125")
 
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     constraints {
         implementation("commons-codec:commons-codec:1.19.0")
     }
-    testImplementation("org.assertj:assertj-core:3.27.4")
-    testImplementation("io.github.nchaugen:tabletest-junit:0.5.1")
+    testImplementation("org.assertj:assertj-core:3.27.6")
+    testImplementation("io.github.nchaugen:tabletest-junit:0.5.2")
     testImplementation(kotlin("test"))
 }
 
 tasks {
     withType<ShadowJar> {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
         mergeServiceFiles()
     }
 }

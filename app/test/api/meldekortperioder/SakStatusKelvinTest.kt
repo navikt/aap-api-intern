@@ -3,7 +3,7 @@ package api.meldekortperioder
 import api.TestConfig
 import api.api
 import api.kelvin.SakStatusKelvin
-import api.util.ArenaClient
+import api.util.MockedArenaClient
 import api.util.AzureTokenGen
 import api.util.Fakes
 import api.util.PdlClientEmpty
@@ -55,12 +55,11 @@ class SakStatusKelvinTest : PostgresTestBase(dataSource) {
                     api(
                         config = config,
                         datasource = dataSource,
-                        arenaRestClient = ArenaClient(),
+                        arenaRestClient = MockedArenaClient(),
                         pdlClient = PdlClientEmpty(),
                         modiaProducer = fakes.kafka
                     )
                 }
-
 
                 val res = jsonHttpClient.post("/api/insert/sakStatus") {
                     bearerAuth(azure.generate(true))
@@ -71,9 +70,10 @@ class SakStatusKelvinTest : PostgresTestBase(dataSource) {
                 assertEquals(HttpStatusCode.OK, res.status)
                 assertEquals(countSaker(), 1)
 
+
                 val oboResponse =
                     jsonHttpClient.post("/sakerByFnr") {
-                        bearerAuth(OidcToken(azure.generate(isApp = false)).token())
+                        bearerAuth(OidcToken(azure.generate(isApp = true)).token())
                         contentType(ContentType.Application.Json)
                         setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
                     }
