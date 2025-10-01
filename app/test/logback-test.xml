@@ -11,6 +11,9 @@
         <appender-ref ref="pretty"/>
     </root>
 
+    <logger level="DEBUG" name="org.postgresql"/>
+    <logger level="DEBUG" name="com.zaxxer.hikari"/>
+
     <logger name="secureLog" level="TRACE" additivity="false">
         <appender-ref ref="pretty"/>
     </logger>
