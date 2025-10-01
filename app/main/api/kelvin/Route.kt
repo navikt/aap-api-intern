@@ -1,5 +1,6 @@
 package api.kelvin
 
+import api.kafka.KafkaProducer
 import api.kafka.ModiaKafkaProducer
 import api.kafka.ModiaRecord
 import api.pdl.PdlClient
@@ -18,7 +19,7 @@ import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, kafkaProducer: ModiaKafkaProducer) {
+fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, kafkaProducer: KafkaProducer) {
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
             routeConfig = AuthorizationBodyPathConfig(
