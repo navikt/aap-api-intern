@@ -32,6 +32,7 @@ jobs:
 
   publiser-kontrakt:
     needs: gradle
+    concurrency: kontrakt
     permissions:
       contents: write
       packages: write
