@@ -65,7 +65,7 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-kotlin:${resilience4jVersion}")
     implementation("io.github.resilience4j:resilience4j-micrometer:${resilience4jVersion}")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.125")
+    implementation("no.nav:ktor-openapi-generator:1.0.128")
 
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
