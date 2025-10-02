@@ -1,5 +1,5 @@
 package no.nav.aap.api.intern
 
-data class PersonEksistererIAAPArena(
+public data class PersonEksistererIAAPArena(
     val eksisterer: Boolean
 )
