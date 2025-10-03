@@ -1,6 +1,10 @@
 package api.kelvin
 
+import api.kafka.KafkaProducer
+import api.kafka.ModiaKafkaProducer
+import api.kafka.ModiaRecord
 import api.pdl.IPdlClient
+import api.pdl.PdlClient
 import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortDetaljerRepository
 import api.postgres.MeldekortPerioderRepository
@@ -18,8 +22,7 @@ import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClient) {
-
+fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClient, kafkaProducer: KafkaProducer) {
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
             routeConfig = AuthorizationBodyPathConfig(
@@ -74,11 +77,16 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClie
                 )
             ).toTypedArray(),
         ) { _, body ->
+            var meldingstype : ModiaRecord.Meldingstype ?= null
             dataSource.transaction { connection ->
                 val behandlingsRepository = BehandlingsRepository(connection)
-                behandlingsRepository.lagreBehandling(body.tilDomene())
+                meldingstype = behandlingsRepository.lagreBehandling(body.tilDomene())
             }
-            pipeline.call.respond(HttpStatusCode.OK)
+            try {
+                kafkaProducer.produce(body.sak.fnr.first(), meldingstype!!)
+            }finally {
+                pipeline.call.respond(HttpStatusCode.OK)
+            }
         }
         route("/meldekort-detaljer").authorizedPost<Unit, Unit, List<DetaljertMeldekortDTO>>(
             routeConfig = AuthorizationBodyPathConfig(
