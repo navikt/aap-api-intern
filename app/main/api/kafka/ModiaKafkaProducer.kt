@@ -15,7 +15,7 @@ class ModiaKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
                 logger.error("Klarte ikke varsle hendelse for bruker", err)
                 throw KafkaProducerException("Klarte ikke valse hendelse for bruker")
             } else {
-                logger.info("Sendte melding til topic ${metadata.topic()}")
+                logger.info("Sendte melding til topic ${metadata.topic()} : record=${record.key() }") // TODO: KUN I DEV!!!!!!
             }
         }.get() // Blocking call to ensure the message is sent
     }
