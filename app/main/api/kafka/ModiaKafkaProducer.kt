@@ -6,7 +6,7 @@ import org.slf4j.LoggerFactory
 
 class ModiaKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
     private val producer = KafkaFactory.createProducer("aap-api", config)
-    private val topic = "obo.ytelse-v1"
+    private val topic = "obo.ytelser-v1"
     private val logger = LoggerFactory.getLogger(javaClass)
     override fun produce(personident: String, meldingstype: ModiaRecord.Meldingstype?) {
         val record = createRecord(personident, meldingstype?: ModiaRecord.Meldingstype.OPPDATER)
