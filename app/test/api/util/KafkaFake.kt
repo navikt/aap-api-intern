@@ -5,7 +5,7 @@ import api.kafka.KafkaProducer
 class KafkaFake: KafkaProducer {
     private val messages = mutableListOf<String>()
 
-    override fun produce(personident: String, meldingstype: api.kafka.ModiaRecord.Meldingstype?) {
+    override fun produce(personident: String, nyttVedtak: Boolean) {
         messages.add(personident)
     }
 

@@ -1,6 +1,5 @@
 package api.postgres
 
-import api.kafka.ModiaRecord
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -15,7 +14,7 @@ import java.time.LocalDateTime
 class BehandlingsRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun lagreBehandling(behandling: DatadelingDTO): ModiaRecord.Meldingstype {
+    fun lagreBehandling(behandling: DatadelingDTO) {
         val gammelSak = connection.queryFirstOrNull(
             """SELECT ID FROM SAK WHERE SAKSNUMMER = ?""".trimIndent()
         ) {
@@ -185,8 +184,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setBigDecimal(2, behandling.beregningsgrunnlag)
             }
         }
-        if (gammelSak!=null){return ModiaRecord.Meldingstype.OPPDATER}
-        else return ModiaRecord.Meldingstype.OPPDATER
     }
 
     // TODO: ikke returner DTO fra behandlingsflyt her, heller dupliser i kode her

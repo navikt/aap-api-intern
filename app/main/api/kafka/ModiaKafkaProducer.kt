@@ -9,8 +9,13 @@ class ModiaKafkaProducer(config: KafkaConfig, modiaConfig: ModiaConfig) : KafkaP
     private val producer = KafkaFactory.createProducer("aap-api", config)
     private val topic = modiaConfig.topic
     private val logger = LoggerFactory.getLogger(javaClass)
-    override fun produce(personident: String, meldingstype: ModiaRecord.Meldingstype?) {
-        val record = createRecord(personident, meldingstype?: ModiaRecord.Meldingstype.OPPDATER)
+
+    override fun produce(personident: String, nyttVedtak: Boolean) {
+
+        val meldingstype = if (nyttVedtak) ModiaRecord.Meldingstype.OPPRETT else ModiaRecord.Meldingstype.OPPDATER
+
+        val record = createRecord(personident, meldingstype)
+
         producer.send(record) { metadata, err ->
             if (err != null) {
                 logger.error("Klarte ikke varsle hendelse for bruker", err)
