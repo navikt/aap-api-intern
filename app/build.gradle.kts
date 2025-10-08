@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("api-intern.conventions")
     id("io.ktor.plugin") version "3.3.0"
-    id("org.flywaydb.flyway") version "11.13.2"
+    id("org.flywaydb.flyway") version "11.13.3"
     application
 }
 
@@ -50,7 +50,7 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-    implementation("org.flywaydb:flyway-core:11.13.2")
+    implementation("org.flywaydb:flyway-core:11.13.3")
     implementation("ch.qos.logback:logback-classic:1.5.19")
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
