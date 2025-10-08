@@ -64,7 +64,7 @@ fun Application.api(
     ),
     pdlClient: IPdlClient = PdlClient(),
     nå: LocalDate = LocalDate.now(),
-    modiaProducer: KafkaProducer = ModiaKafkaProducer(config.kafka),
+    modiaProducer: KafkaProducer = ModiaKafkaProducer(config.kafka, config.modia),
 ) {
 
     Migrering.migrate(datasource)

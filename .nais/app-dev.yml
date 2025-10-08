@@ -124,3 +124,5 @@ spec:
       value: http://tilgang
     - name: INTEGRASJON_TILGANG_SCOPE
       value: api://dev-gcp.aap.tilgang/.default
+    - name: MODIA_TOPIC
+      value: obo.ytelser-v1

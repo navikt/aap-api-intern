@@ -1,12 +1,13 @@
 package api.kafka
 
+import api.ModiaConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 
-class ModiaKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
+class ModiaKafkaProducer(config: KafkaConfig, modiaConfig: ModiaConfig) : KafkaProducer, AutoCloseable {
     private val producer = KafkaFactory.createProducer("aap-api", config)
-    private val topic = "obo.ytelser-v1"
+    private val topic = modiaConfig.topic
     private val logger = LoggerFactory.getLogger(javaClass)
     override fun produce(personident: String, meldingstype: ModiaRecord.Meldingstype?) {
         val record = createRecord(personident, meldingstype?: ModiaRecord.Meldingstype.OPPDATER)
@@ -14,8 +15,6 @@ class ModiaKafkaProducer(config: KafkaConfig) : KafkaProducer, AutoCloseable {
             if (err != null) {
                 logger.error("Klarte ikke varsle hendelse for bruker", err)
                 throw KafkaProducerException("Klarte ikke valse hendelse for bruker")
-            } else {
-                logger.info("Sendte melding til topic ${metadata.topic()} : record=${record.key() }") // TODO: KUN I DEV!!!!!!
             }
         }.get() // Blocking call to ensure the message is sent
     }

@@ -24,11 +24,16 @@ data class Config(
         keystorePath = getEnvVar("KAFKA_KEYSTORE_PATH"),
         credstorePsw = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
     ),
+    val modia: ModiaConfig = ModiaConfig()
 )
 
 data class ArenaoppslagConfig(
     val proxyBaseUrl: String = getEnvVar("ARENAOPPSLAG_PROXY_BASE_URL"),
     val scope: String = getEnvVar("ARENAOPPSLAG_SCOPE")
+)
+
+data class ModiaConfig(
+    val topic: String = getEnvVar("MODIA_TOPIC"),
 )
 
 data class KelvinConfig(

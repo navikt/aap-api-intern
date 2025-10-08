@@ -37,7 +37,10 @@ object TestConfig {
                 credstorePsw = "test"
             ),
             azure = azure,
-            dbConfig = postgres
+            dbConfig = postgres,
+            modia = ModiaConfig(
+                topic = "test"
+            )
         )
     }
 
