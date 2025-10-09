@@ -2,7 +2,7 @@ package no.nav.aap.api.intern
 
 import java.time.LocalDate
 
-data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalDate?) {
+public data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalDate?) {
     init {
         if (fraOgMedDato != null && tilOgMedDato != null && fraOgMedDato != tilOgMedDato) {
             require(fraOgMedDato.isBefore(tilOgMedDato)) { "Fra og med-dato må være før til og med-dato: $fraOgMedDato, $tilOgMedDato" }
@@ -10,19 +10,19 @@ data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalDate?) {
     }
 }
 
-data class SakStatus(
+public data class SakStatus(
     val sakId: String,
     val statusKode: Status,
     val periode: Periode,
     val kilde: Kilde = Kilde.ARENA
 )
 
-enum class Kilde {
+public enum class Kilde {
     ARENA,
     KELVIN
 }
 
-enum class Status {
+public enum class Status {
     AVSLU,
     FORDE,
     GODKJ,

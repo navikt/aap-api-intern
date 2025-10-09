@@ -46,7 +46,8 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling()
         barnMedStonad = this.barnMedStonad,
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
-        barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0
+        barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0,
+        kildesystem = "ARENA"
     )
 }
 

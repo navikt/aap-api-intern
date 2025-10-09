@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("api-intern.conventions")
     id("io.ktor.plugin") version "3.3.0"
-    id("org.flywaydb.flyway") version "11.13.2"
+    id("org.flywaydb.flyway") version "11.13.3"
     application
 }
 
@@ -11,11 +11,11 @@ application {
     mainClass.set("api.AppKt")
 }
 
-val komponenterVersjon = "1.0.375"
+val komponenterVersjon = "1.0.387"
 val ktorVersion = "3.3.0"
-val tilgangVersjon = "1.0.128"
-val behandlingsflytversjon = "0.0.448"
-val arenaOppslagVersjon = "0.0.29"
+val tilgangVersjon = "1.0.134"
+val behandlingsflytversjon = "0.0.459"
+val arenaOppslagVersjon = "0.0.30"
 val resilience4jVersion = "2.3.0"
 
 dependencies {
@@ -51,8 +51,8 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     implementation("org.apache.kafka:kafka-clients:4.0.0")
-    implementation("org.flywaydb:flyway-core:11.13.2")
-    implementation("ch.qos.logback:logback-classic:1.5.18")
+    implementation("org.flywaydb:flyway-core:11.13.3")
+    implementation("ch.qos.logback:logback-classic:1.5.19")
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.5")
@@ -66,7 +66,7 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-kotlin:${resilience4jVersion}")
     implementation("io.github.resilience4j:resilience4j-micrometer:${resilience4jVersion}")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.125")
+    implementation("no.nav:ktor-openapi-generator:1.0.128")
 
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
@@ -76,6 +76,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.27.6")
     testImplementation("io.github.nchaugen:tabletest-junit:0.5.2")
     testImplementation(kotlin("test"))
+    testImplementation("org.slf4j:jul-to-slf4j:2.0.17")
 }
 
 tasks {

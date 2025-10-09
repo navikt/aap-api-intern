@@ -22,6 +22,11 @@ spec:
   azure:
     application:
       enabled: true
+      allowAllUsers: true
+      claims:
+        extra:
+          - NAVident
+          - azp_name
   gcp:
     sqlInstances:
       - type: POSTGRES_16

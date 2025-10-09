@@ -35,14 +35,14 @@ class VedtakService(
                     Segment(
                         Periode(it.tilkjentFom, it.tilkjentTom),
                         TilkjentDB(
-                            it.dagsats,
-                            it.gradering,
-                            it.grunnlagsfaktor,
-                            it.grunnbeløp,
-                            it.antallBarn,
-                            it.barnetilleggsats,
-                            it.barnetillegg,
-                            it.samordningUføregradering
+                            dagsats = it.dagsats,
+                            gradering = it.gradering,
+                            grunnlagsfaktor = it.grunnlagsfaktor,
+                            grunnbeløp = it.grunnbeløp,
+                            antallBarn = it.antallBarn,
+                            barnetilleggsats = it.barnetilleggsats,
+                            barnetillegg = it.barnetillegg,
+                            uføregrad = it.samordningUføregradering
                         )
                     )
                 }

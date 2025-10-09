@@ -6,12 +6,10 @@ API’et henter data fra 2 kilder
 Arena – det eksisterende saksbehandlingsverktøyet NAV bruker til å behandle AAP-saker
 Kelvin – nytt saksbehandlingsverktøy
 
-Intern dokumentasjon kan finnes på [aap-sysdoc](https://aap-sysdoc.ansatt.nav.no/funksjonalitet/Datadeling/funksjonell).
+Intern dokumentasjon kan finnes på [aap-sysdoc](https://aap-sysdoc.ansatt.nav.no/funksjonalitet/Datadeling/).
 
 # Komme i gang
 Bruker gradle wrapper, så bare klon og kjør `./gradlew build`
-Det er ikke lagt opp til at denne skal kjøre standalone, siden den er avhengig av Arena.
-All logikk ligger i testene.
 
 API-specs:
 - [Dev](https://aap-api.intern.dev.nav.no/swagger-ui/index.html)
@@ -20,6 +18,7 @@ API-specs:
 # Metrics og Monitoring
 
 ## Circuit Breaker Metrics
+
 Applikasjonen eksponerer Prometheus-metrics for circuit breakers som kan brukes i Grafana dashboards.
 Følgende metrics er tilgjengelige:
 

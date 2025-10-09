@@ -2,11 +2,11 @@ package no.nav.aap.api.intern
 
 import java.time.LocalDate
 
-data class Maksimum(val vedtak: List<Vedtak>)
+public data class Maksimum(val vedtak: List<Vedtak>)
 
-data class Medium(val vedtak: List<VedtakUtenUtbetaling>)
+public data class Medium(val vedtak: List<VedtakUtenUtbetaling>)
 
-data class InternVedtakRequestApiIntern(
+public data class InternVedtakRequestApiIntern(
     val personidentifikator: String,
     val fraOgMedDato: LocalDate? = LocalDate.of(1, 1, 1),
     val tilOgMedDato: LocalDate? = LocalDate.of(9999, 12, 31)
@@ -15,8 +15,9 @@ data class InternVedtakRequestApiIntern(
 /**
  * @param status Hypotese, vedtaksstatuskode
  * @param saksnummer hypotese sak_id
+ * @param dagsats Dagsats før reduksjoner.
  */
-data class Vedtak(
+public data class Vedtak(
     val dagsats: Int,
     val dagsatsEtterUføreReduksjon: Int?,
     val vedtakId: String,
@@ -36,7 +37,10 @@ data class Vedtak(
     val utbetaling: List<UtbetalingMedMer>,
 )
 
-data class VedtakUtenUtbetaling(
+/**
+ * @param dagsats Dagsats før reduksjoner.
+ */
+public data class VedtakUtenUtbetaling(
     val dagsats: Int,
     val dagsatsEtterUføreReduksjon: Int?,
     val vedtakId: String,
@@ -50,15 +54,15 @@ data class VedtakUtenUtbetaling(
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
     val barnetillegg: Int,
-    val kildesystem: String = "ARENA",
+    val kildesystem: String,
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
 )
 
 /**
- * @param barnetilegg Hvor mange kroner i barnetillegg.
+ * @param barnetillegg Hvor mange kroner i barnetillegg.
  */
-data class UtbetalingMedMer(
+public data class UtbetalingMedMer(
     val reduksjon: Reduksjon? = null,
     val utbetalingsgrad: Int? = null,
     val periode: Periode,
@@ -69,12 +73,12 @@ data class UtbetalingMedMer(
     val barnetillegg: Int,
 )
 
-data class Reduksjon(
+public data class Reduksjon(
     val timerArbeidet: Double,
     val annenReduksjon: Float
 )
 
-data class AnnenReduksjon(
+public data class AnnenReduksjon(
     val sykedager: Float?,
     val sentMeldekort: Int,
     val fraver: Float?
