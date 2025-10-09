@@ -1,10 +1,7 @@
 package api.kelvin
 
 import api.kafka.KafkaProducer
-import api.kafka.ModiaKafkaProducer
-import api.kafka.ModiaRecord
 import api.pdl.IPdlClient
-import api.pdl.PdlClient
 import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortDetaljerRepository
 import api.postgres.MeldekortPerioderRepository
@@ -14,7 +11,6 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import io.ktor.server.response.*
-import no.nav.aap.api.intern.Periode
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -27,7 +23,7 @@ import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
-fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClient, kafkaProducer: KafkaProducer) {
+fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClient, modiaKafkaProducer: KafkaProducer) {
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
             routeConfig = AuthorizationBodyPathConfig(
@@ -95,7 +91,7 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClie
             }
 
             try {
-                kafkaProducer.produce(body.sak.fnr.first(), nyttVedtak)
+                modiaKafkaProducer.produce(body.sak.fnr.first(), nyttVedtak)
             } catch (e: Exception) {
                 logger.error("Klarte ikke sende melding til kafka", e)
             }
