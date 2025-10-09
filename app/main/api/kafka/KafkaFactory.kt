@@ -16,6 +16,7 @@ data class KafkaConfig(
     val credstorePsw: String,
 )
 
+//Denne kommer fra AAP-INNSENDING
 class KafkaFactory private constructor() {
     companion object {
         fun <T : Any> createProducer(
