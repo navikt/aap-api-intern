@@ -184,7 +184,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setBigDecimal(2, behandling.beregningsgrunnlag)
             }
         }
-
     }
 
     // TODO: ikke returner DTO fra behandlingsflyt her, heller dupliser i kode her

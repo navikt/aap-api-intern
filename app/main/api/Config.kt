@@ -1,5 +1,6 @@
 package api
 
+import api.kafka.KafkaConfig
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import java.net.URI
 
@@ -17,12 +18,22 @@ data class Config(
         issuer = getEnvVar("AZURE_OPENID_CONFIG_ISSUER")
     ),
     val dbConfig: DbConfig = DbConfig(),
-    val wipe: Boolean = true
+    val kafka: KafkaConfig = KafkaConfig(
+        brokers = getEnvVar("KAFKA_BROKERS"),
+        truststorePath = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
+        keystorePath = getEnvVar("KAFKA_KEYSTORE_PATH"),
+        credstorePsw = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
+    ),
+    val modia: ModiaConfig = ModiaConfig()
 )
 
 data class ArenaoppslagConfig(
     val proxyBaseUrl: String = getEnvVar("ARENAOPPSLAG_PROXY_BASE_URL"),
     val scope: String = getEnvVar("ARENAOPPSLAG_SCOPE")
+)
+
+data class ModiaConfig(
+    val topic: String = getEnvVar("MODIA_TOPIC"),
 )
 
 data class KelvinConfig(

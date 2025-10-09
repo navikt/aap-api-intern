@@ -11,6 +11,8 @@ spec:
   ingresses:
     - https://aap-api.intern.dev.nav.no
     - https://aap-api.ansatt.dev.nav.no
+  kafka:
+    pool: nav-dev
   resources:
     limits:
       memory: 8Gi
@@ -127,3 +129,5 @@ spec:
       value: http://tilgang
     - name: INTEGRASJON_TILGANG_SCOPE
       value: api://dev-gcp.aap.tilgang/.default
+    - name: MODIA_TOPIC
+      value: obo.ytelser-v1

@@ -1,5 +1,6 @@
 package api.kelvin
 
+import api.kafka.KafkaProducer
 import api.pdl.IPdlClient
 import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortDetaljerRepository
@@ -16,10 +17,13 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
+import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import javax.sql.DataSource
 
-fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClient) {
+private val logger = LoggerFactory.getLogger("App")
 
+fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClient, modiaKafkaProducer: KafkaProducer) {
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
             routeConfig = AuthorizationBodyPathConfig(
@@ -74,11 +78,26 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClie
                 )
             ).toTypedArray(),
         ) { _, body ->
-            dataSource.transaction { connection ->
+            val nyttVedtak = dataSource.transaction { connection ->
                 val behandlingsRepository = BehandlingsRepository(connection)
+                val tidligereVedtak = behandlingsRepository.hentVedtaksData(
+                    body.sak.fnr.first(),
+                    no.nav.aap.komponenter.type.Periode(
+                        LocalDate.now().minusYears(100),
+                        LocalDate.now().plusYears(1000))
+                ).isEmpty()
                 behandlingsRepository.lagreBehandling(body.tilDomene())
+                tidligereVedtak
             }
+
+            try {
+                modiaKafkaProducer.produce(body.sak.fnr.first(), nyttVedtak)
+            } catch (e: Exception) {
+                logger.error("Klarte ikke sende melding til kafka", e)
+            }
+
             pipeline.call.respond(HttpStatusCode.OK)
+
         }
         route("/meldekort-detaljer").authorizedPost<Unit, Unit, List<DetaljertMeldekortDTO>>(
             routeConfig = AuthorizationBodyPathConfig(

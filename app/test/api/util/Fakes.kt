@@ -23,12 +23,14 @@ class Fakes():AutoCloseable {
     val arena = embeddedServer(Netty, port = 0, module = Application::arena).start()
     val pdl = embeddedServer(Netty, port = 0, module = Application::pdlFake).start()
     val tilgang = embeddedServer(Netty, port = 0, module = Application::tilgangFake).start()
+    val kafka = KafkaFake()
 
     override fun close() {
         azure.stop(0L, 0L)
         arena.stop(0L, 0L)
         pdl.stop(0L, 0L)
         tilgang.stop(0L, 0L)
+        kafka.close()
     }
 
     init {

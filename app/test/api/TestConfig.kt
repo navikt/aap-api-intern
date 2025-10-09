@@ -1,5 +1,6 @@
 package api
 
+import api.kafka.KafkaConfig
 import api.util.Fakes
 import api.util.port
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
@@ -29,9 +30,17 @@ object TestConfig {
                 proxyBaseUrl = "",
                 scope = "api://behandlingsflyt/.default"
             ),
+            kafka = KafkaConfig(
+                brokers = "localhost:2222",
+                truststorePath = "test",
+                keystorePath = "test",
+                credstorePsw = "test"
+            ),
             azure = azure,
             dbConfig = postgres,
-            wipe = false
+            modia = ModiaConfig(
+                topic = "test"
+            )
         )
     }
 
