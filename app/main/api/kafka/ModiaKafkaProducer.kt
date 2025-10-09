@@ -18,8 +18,8 @@ class ModiaKafkaProducer(config: KafkaConfig, modiaConfig: ModiaConfig) : KafkaP
 
         producer.send(record) { metadata, err ->
             if (err != null) {
-                logger.error("Klarte ikke varsle hendelse for bruker", err)
-                throw KafkaProducerException("Klarte ikke valse hendelse for bruker")
+                logger.error("Klarte ikke varsle hendelse for bruker, metadata: $metadata", err)
+                throw KafkaProducerException("Klarte ikke varsle hendelse for bruker", err)
             }
         }.get() // Blocking call to ensure the message is sent
     }

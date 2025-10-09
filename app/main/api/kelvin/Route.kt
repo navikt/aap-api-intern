@@ -94,8 +94,6 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClie
                 tidligereVedtak
             }
 
-
-
             try {
                 kafkaProducer.produce(body.sak.fnr.first(), nyttVedtak)
             } catch (e: Exception) {
