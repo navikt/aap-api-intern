@@ -11,7 +11,7 @@ application {
     mainClass.set("api.AppKt")
 }
 
-val komponenterVersjon = "1.0.398"
+val komponenterVersjon = "1.0.400"
 val ktorVersion = "3.3.1"
 val tilgangVersjon = "1.0.136"
 val behandlingsflytversjon = "0.0.463"
