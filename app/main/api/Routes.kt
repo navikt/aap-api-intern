@@ -97,9 +97,7 @@ fun NormalOpenAPIRoute.api(
                             requestBody.personidentifikator,
                             Periode(tilArenaKontrakt.fraOgMedDato, tilArenaKontrakt.tilOgMedDato)
                         )
-                    perioderMedAAp(
-                        vedtaksdata
-                    )
+                    perioderMedAAp(vedtaksdata)
                 }
 
                 val arenaPerioder = arena.hentPerioder(
@@ -465,7 +463,8 @@ private fun PrometheusMeterRegistry.tellKildesystem(
     }
 
     if (arenaData?.isNotEmpty() == true && kelvinData?.isNotEmpty() == true) {
-        logger.error("Fant data på person i både Kelvin og Arena.")
+        val toLog = arenaData.filterIsInstance<SakStatus>()
+        logger.error("Fant data på person i både Kelvin og Arena på endepunkt $path. Sakstatuser fra Arena: $toLog")
     }
 }
 
