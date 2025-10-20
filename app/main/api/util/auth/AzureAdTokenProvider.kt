@@ -1,28 +1,38 @@
 package api.util.auth
 
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.jackson.jackson
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+
+internal val defaultHttpClient = HttpClient(CIO) {
+    install(ContentNegotiation) {
+        jackson {
+            registerModule(JavaTimeModule())
+            disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        }
+    }
+    install(HttpRequestRetry) {
+        retryOnServerErrors(maxRetries = 3)
+        exponentialDelay()
+    }
+    install(HttpTimeout) {
+        requestTimeoutMillis = 5_000
+    }
+}
 
 class AzureAdTokenProvider(
     private val config: AzureConfig = AzureConfig(),
     client: HttpClient = defaultHttpClient,
 ) {
-    private val tokenClient = TokenClient(client)
-
-    suspend fun getUsernamePasswordToken(scope: String, username: String, password: String) =
-        tokenClient.getAccessToken(config.tokenEndpoint.toString(), username) {
-            """
-                client_id=${config.clientId}&
-                client_secret=${config.clientSecret}&
-                scope=$scope&
-                username=$username&
-                password=$password&
-                grant_type=password
-            """.asUrlPart()
-        }
+    private val cachingTokenClient = CachingTokenClient(client)
 
     suspend fun getClientCredentialToken(scope: String) =
-        tokenClient.getAccessToken(config.tokenEndpoint.toString(), scope) {
+        cachingTokenClient.getAccessToken(config.tokenEndpoint.toString(), scope) {
             """
                 client_id=${config.clientId}&
                 client_secret=${config.clientSecret}&
@@ -31,17 +41,6 @@ class AzureAdTokenProvider(
             """.asUrlPart()
         }
 
-    suspend fun getOnBehalfOfToken(scope: String, accessToken: String) =
-        tokenClient.getAccessToken(config.tokenEndpoint.toString(), scope) {
-            """
-                client_id=${config.clientId}&
-                client_secret=${config.clientSecret}&
-                assertion=$accessToken&
-                scope=$scope&
-                grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&
-                requested_token_use=on_behalf_of
-            """.asUrlPart()
-        }
 }
 
 internal fun String.asUrlPart() =
