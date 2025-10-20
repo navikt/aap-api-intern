@@ -78,27 +78,43 @@ class ArenaoppslagRestClient(
         endepunkt: String, callId: String, req: V
     ): Result<T> = clientLatencyStats.startTimer().use {
         circuitBreaker.executeSuspendFunction {
-            runCatching {
-                val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope)
-                httpClient.post("${arenaoppslagConfig.proxyBaseUrl}$endepunkt") {
+            // Vi starter en kjede av kall og prosessering, hvor hvert steg kan feile.
+            var fikkToken = false
+            var fikkArenaData = false
+
+            val parsedResult = runCatching {
+                val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope).also {
+                    fikkToken = true
+                }
+
+                val arenaResponse = httpClient.post("${arenaoppslagConfig.proxyBaseUrl}$endepunkt") {
                     accept(ContentType.Application.Json)
                     header("Nav-Call-Id", callId)
                     bearerAuth(token)
                     contentType(ContentType.Application.Json)
                     setBody(req)
+                }.also { it ->
+                    if (it.status.isSuccess()) {
+                        fikkArenaData = true
+                    }
                 }
+
+                objectMapper.readValue<T>(arenaResponse.bodyAsText())
             }.onFailure { e ->
                 val årsak = e.findRootCause()
-                log.error("Fetch-feil mot '$endepunkt': ${årsak.message}", e)
-            }.mapCatching { responseText ->
-                objectMapper.readValue<T>(responseText.bodyAsText())
-            }.onFailure { e ->
-                val årsak = e.findRootCause()
-                log.error("Parsefeil for '$endepunkt'. Se securelog for stacktrace.")
-                secureLog.error("Parsefeil for '$endepunkt': ${årsak.message}", e)
+                when {
+                    !fikkToken -> log.error("Fetch av token for Arena-oppslag feilet: ${årsak.message}", e)
+                    !fikkArenaData -> log.error("Fetch av Arena-data feilet for '$endepunkt': ${årsak.message}", e)
+                    else -> {
+                        log.error("Parsefeil for '$endepunkt'. Se securelog for stacktrace.")
+                        secureLog.error("Parsefeil for '$endepunkt': ${årsak.message}", e)
+                    }
+                }
             }
+            parsedResult
         }
     }
+
 
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout) {
