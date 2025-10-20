@@ -11,6 +11,9 @@ internal class CachingTokenClient(private val client: HttpClient) {
     private val cache = TokenCache()
     private val secureLog = LoggerFactory.getLogger("secureLog")
 
+    /**
+     * @throws Exception hvis kall til token-endepunkt feiler
+     */
     suspend fun getAccessToken(tokenEndpoint: String, cacheKey: String, body: () -> String): String {
         val token = cache.get(cacheKey)
             ?: client.post(tokenEndpoint) {
@@ -22,6 +25,7 @@ internal class CachingTokenClient(private val client: HttpClient) {
                     secureLog.warn("Feilet token-kall {}: {}", it.status.value, it.bodyAsText())
                 }
             }.body<Token>().also {
+                // Vi har fått et token og parset det, så det kan trygt caches
                 cache.add(cacheKey, it)
             }
 
