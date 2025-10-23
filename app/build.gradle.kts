@@ -11,10 +11,10 @@ application {
     mainClass.set("api.AppKt")
 }
 
-val komponenterVersjon = "1.0.403"
+val komponenterVersjon = "1.0.408"
 val ktorVersion = "3.3.1"
 val tilgangVersjon = "1.0.138"
-val behandlingsflytversjon = "0.0.465"
+val behandlingsflytversjon = "0.0.467"
 val arenaOppslagVersjon = "0.0.32"
 val resilience4jVersion = "2.3.0"
 
