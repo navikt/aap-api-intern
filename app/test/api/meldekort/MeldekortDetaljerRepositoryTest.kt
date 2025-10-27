@@ -2,7 +2,6 @@ package api.meldekort
 
 import api.TestConfig
 import api.api
-import api.maksimum.dataSource
 import api.util.MockedArenaClient
 import api.util.AzureTokenGen
 import api.util.Fakes
@@ -34,22 +33,23 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-val testObject = DetaljertMeldekortDTO(
-    personIdent = "12345678901",
-    saksnummer = Saksnummer("asd123"),
-    mottattTidspunkt = LocalDateTime.now(),
-    journalpostId = "1234",
-    meldeperiodeFom = localDate("2023-01-01"),
-    meldeperiodeTom = localDate("2023-01-15"),
-    behandlingId = 1234,
-    timerArbeidPerPeriode = listOf(ArbeidIPeriodeDTO(localDate("2023-01-01"), localDate("2023-01-01"), 2.5.toBigDecimal())),
-    meldepliktStatusKode = null,
-    rettighetsTypeKode = null,
-    avslagsårsakKode = null,
-)
 
-class MeldekortDetaljerRepositoryTest : PostgresTestBase(dataSource) {
+class MeldekortDetaljerRepositoryTest : PostgresTestBase() {
     companion object {
+        val testObject = DetaljertMeldekortDTO(
+            personIdent = "12345678901",
+            saksnummer = Saksnummer("asd123"),
+            mottattTidspunkt = LocalDateTime.now(),
+            journalpostId = "1234",
+            meldeperiodeFom = localDate("2023-01-01"),
+            meldeperiodeTom = localDate("2023-01-15"),
+            behandlingId = 1234,
+            timerArbeidPerPeriode = listOf(ArbeidIPeriodeDTO(localDate("2023-01-01"), localDate("2023-01-01"), 2.5.toBigDecimal())),
+            meldepliktStatusKode = null,
+            rettighetsTypeKode = null,
+            avslagsårsakKode = null,
+        )
+
         private val fakes = Fakes()
 
         @AfterAll
