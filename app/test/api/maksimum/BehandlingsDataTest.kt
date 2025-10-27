@@ -22,7 +22,6 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
-import no.nav.aap.komponenter.dbtest.InitTestDatabase
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
@@ -35,95 +34,95 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.test.assertEquals
 
-val testObject = DatadelingDTO(
-    behandlingsId = 123456789L.toString(),
-    behandlingsReferanse = "1234567890987654321",
-    underveisperiode = listOf(
-        UnderveisDTO(
-            underveisFom = LocalDate.now().minusYears(2),
-            underveisTom = LocalDate.now().minusYears(1),
-            meldeperiodeFom = LocalDate.now().minusYears(2),
-            meldeperiodeTom = LocalDate.now().minusYears(1),
-            utfall = "",
-            rettighetsType = RettighetsType.STUDENT.name,
-            avslagsårsak = ""
-        )
-    ),
-    rettighetsPeriodeFom = LocalDate.now().minusYears(2),
-    rettighetsPeriodeTom = LocalDate.now().minusYears(1),
-    behandlingStatus = Status.IVERKSETTES,
-    vedtaksDato = LocalDate.now().minusYears(2).plusDays(20),
-    sak = SakDTO(
-        saksnummer = "test",
-        status = no.nav.aap.behandlingsflyt.kontrakt.sak.Status.LØPENDE,
-        fnr = listOf("12345678910", "10987654321"),
-        opprettetTidspunkt = LocalDateTime.now().minusYears(2),
-    ),
-    tilkjent = listOf(
-        TilkjentDTO(
-            tilkjentFom = LocalDate.now().minusYears(2),
-            tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(2).minusDays(1),
-            dagsats = 200,
-            gradering = 100,
-            grunnlag = 2000.toBigDecimal(),
-            grunnlagsfaktor = 2.4.toBigDecimal(),
-            grunnbeløp = 123321.toBigDecimal(),
-            antallBarn = 2,
-            barnetilleggsats = 36.toBigDecimal(),
-            barnetillegg = (36 * 2).toBigDecimal()
-        ),
-        TilkjentDTO(
-            tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(2),
-            tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(4).minusDays(1),
-            dagsats = 200,
-            gradering = 100,
-            grunnlag = 2000.toBigDecimal(),
-            grunnlagsfaktor = 2.4.toBigDecimal(),
-            grunnbeløp = 123321.toBigDecimal(),
-            antallBarn = 2,
-            barnetilleggsats = 36.toBigDecimal(),
-            barnetillegg = (36 * 2).toBigDecimal()
-        ), TilkjentDTO(
-            tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(4),
-            tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(6).minusDays(1),
-            dagsats = 300,
-            gradering = 0,
-            grunnlag = 2000.toBigDecimal(),
-            grunnlagsfaktor = 2.4.toBigDecimal(),
-            grunnbeløp = 123321.toBigDecimal(),
-            antallBarn = 2,
-            barnetilleggsats = 36.toBigDecimal(),
-            barnetillegg = (36 * 2).toBigDecimal()
-        ),
-        TilkjentDTO(
-            tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(6),
-            tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(8).minusDays(1),
-            dagsats = 300,
-            gradering = 100,
-            grunnlag = 2000.toBigDecimal(),
-            grunnlagsfaktor = 2.4.toBigDecimal(),
-            grunnbeløp = 123321.toBigDecimal(),
-            antallBarn = 2,
-            barnetilleggsats = 36.toBigDecimal(),
-            barnetillegg = (36 * 2).toBigDecimal()
-        )
-    ),
-    rettighetsTypeTidsLinje = listOf(
-        RettighetsTypePeriode(
-            fom = LocalDate.now().minusYears(2),
-            tom = LocalDate.now().minusYears(1),
-            verdi = RettighetsType.BISTANDSBEHOV.name,
-        )
-    ),
-    samId = "1234asd",
-    vedtakId = 123456789L,
-    beregningsgrunnlag = BigDecimal.valueOf(500_000)
-)
 
-val dataSource = InitTestDatabase.freshDatabase()
-
-class BehandlingsDataTest : PostgresTestBase(dataSource) {
+class BehandlingsDataTest : PostgresTestBase() {
     companion object {
+
+        val testObject = DatadelingDTO(
+            behandlingsId = 123456789L.toString(),
+            behandlingsReferanse = "1234567890987654321",
+            underveisperiode = listOf(
+                UnderveisDTO(
+                    underveisFom = LocalDate.now().minusYears(2),
+                    underveisTom = LocalDate.now().minusYears(1),
+                    meldeperiodeFom = LocalDate.now().minusYears(2),
+                    meldeperiodeTom = LocalDate.now().minusYears(1),
+                    utfall = "",
+                    rettighetsType = RettighetsType.STUDENT.name,
+                    avslagsårsak = ""
+                )
+            ),
+            rettighetsPeriodeFom = LocalDate.now().minusYears(2),
+            rettighetsPeriodeTom = LocalDate.now().minusYears(1),
+            behandlingStatus = Status.IVERKSETTES,
+            vedtaksDato = LocalDate.now().minusYears(2).plusDays(20),
+            sak = SakDTO(
+                saksnummer = "test",
+                status = no.nav.aap.behandlingsflyt.kontrakt.sak.Status.LØPENDE,
+                fnr = listOf("12345678910", "10987654321"),
+                opprettetTidspunkt = LocalDateTime.now().minusYears(2),
+            ),
+            tilkjent = listOf(
+                TilkjentDTO(
+                    tilkjentFom = LocalDate.now().minusYears(2),
+                    tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(2).minusDays(1),
+                    dagsats = 200,
+                    gradering = 100,
+                    grunnlag = 2000.toBigDecimal(),
+                    grunnlagsfaktor = 2.4.toBigDecimal(),
+                    grunnbeløp = 123321.toBigDecimal(),
+                    antallBarn = 2,
+                    barnetilleggsats = 36.toBigDecimal(),
+                    barnetillegg = (36 * 2).toBigDecimal()
+                ),
+                TilkjentDTO(
+                    tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(2),
+                    tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(4).minusDays(1),
+                    dagsats = 200,
+                    gradering = 100,
+                    grunnlag = 2000.toBigDecimal(),
+                    grunnlagsfaktor = 2.4.toBigDecimal(),
+                    grunnbeløp = 123321.toBigDecimal(),
+                    antallBarn = 2,
+                    barnetilleggsats = 36.toBigDecimal(),
+                    barnetillegg = (36 * 2).toBigDecimal()
+                ), TilkjentDTO(
+                    tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(4),
+                    tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(6).minusDays(1),
+                    dagsats = 300,
+                    gradering = 0,
+                    grunnlag = 2000.toBigDecimal(),
+                    grunnlagsfaktor = 2.4.toBigDecimal(),
+                    grunnbeløp = 123321.toBigDecimal(),
+                    antallBarn = 2,
+                    barnetilleggsats = 36.toBigDecimal(),
+                    barnetillegg = (36 * 2).toBigDecimal()
+                ),
+                TilkjentDTO(
+                    tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(6),
+                    tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(8).minusDays(1),
+                    dagsats = 300,
+                    gradering = 100,
+                    grunnlag = 2000.toBigDecimal(),
+                    grunnlagsfaktor = 2.4.toBigDecimal(),
+                    grunnbeløp = 123321.toBigDecimal(),
+                    antallBarn = 2,
+                    barnetilleggsats = 36.toBigDecimal(),
+                    barnetillegg = (36 * 2).toBigDecimal()
+                )
+            ),
+            rettighetsTypeTidsLinje = listOf(
+                RettighetsTypePeriode(
+                    fom = LocalDate.now().minusYears(2),
+                    tom = LocalDate.now().minusYears(1),
+                    verdi = RettighetsType.BISTANDSBEHOV.name,
+                )
+            ),
+            samId = "1234asd",
+            vedtakId = 123456789L,
+            beregningsgrunnlag = BigDecimal.valueOf(500_000)
+        )
+
         private val fakes = Fakes()
 
         @AfterAll
@@ -144,7 +143,7 @@ class BehandlingsDataTest : PostgresTestBase(dataSource) {
                     config = config,
                     datasource = dataSource,
                     arenaRestClient = MockedArenaClient(),
-                    modiaProducer = fakes.kafka 
+                    modiaProducer = fakes.kafka
                 )
             }
 

@@ -20,15 +20,14 @@ import io.ktor.server.testing.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.komponenter.dbtest.InitTestDatabase
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.type.Periode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-private val dataSource2 = InitTestDatabase.freshDatabase()
-
-class MeldekortPeriodeTest : PostgresTestBase(dataSource2) {
+class MeldekortPeriodeTest : PostgresTestBase() {
 
     @Test
     fun `kan lagre ned og hente meldekortperioder`() {
@@ -40,7 +39,7 @@ class MeldekortPeriodeTest : PostgresTestBase(dataSource2) {
                 application {
                     api(
                         config = config,
-                        datasource = dataSource2,
+                        datasource = dataSource,
                         arenaRestClient = MockedArenaClient(),
                         pdlClient = PdlClientEmpty(),
                         modiaProducer = fakes.kafka
@@ -95,7 +94,7 @@ class MeldekortPeriodeTest : PostgresTestBase(dataSource2) {
                 application {
                     api(
                         config = config,
-                        datasource = dataSource2,
+                        datasource = dataSource,
                         arenaRestClient = MockedArenaClient(),
                         pdlClient = PdlClientEmpty(),
                         modiaProducer = fakes.kafka
