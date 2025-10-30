@@ -74,7 +74,7 @@ dependencies {
         implementation("commons-codec:commons-codec:1.19.0")
     }
     testImplementation("org.assertj:assertj-core:3.27.6")
-    testImplementation("io.github.nchaugen:tabletest-junit:0.5.2")
+    testImplementation("io.github.nchaugen:tabletest-junit:0.5.3")
     testImplementation(kotlin("test"))
     testImplementation("org.slf4j:jul-to-slf4j:2.0.17")
 }
