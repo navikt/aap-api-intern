@@ -1,7 +1,6 @@
 package api.kelvin
 
 import api.kafka.KafkaProducer
-import api.pdl.IPdlClient
 import api.postgres.BehandlingsRepository
 import api.postgres.MeldekortDetaljerRepository
 import api.postgres.MeldekortPerioderRepository
@@ -23,7 +22,7 @@ import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
-fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, pdlClient: IPdlClient, modiaKafkaProducer: KafkaProducer) {
+fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, modiaKafkaProducer: KafkaProducer) {
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
             routeConfig = AuthorizationBodyPathConfig(

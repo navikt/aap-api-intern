@@ -22,7 +22,7 @@ UTREDES                    | AVSLUTTET | 2021-01-01 | 2025-05-15 | UTREDES
 UTREDES                    | UTREDES   | 2021-01-01 | 2025-05-15 | LØPENDE
     """
     )
-    fun `fsdf dsf `(
+    fun `Konvertering av vedtakStatus`(
         behandlingStatus: KelvinBehandlingStatus,
         sakStatus: KelvinSakStatus,
         periodeFom: LocalDate,

@@ -22,6 +22,7 @@ import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.type.Periode
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -68,7 +69,7 @@ class SakStatusKelvinTest : PostgresTestBase() {
                 }
 
                 assertEquals(HttpStatusCode.OK, res.status)
-                assertEquals(countSaker(), 1)
+                assertThat(countSaker()).isEqualTo(1)
 
 
                 val oboResponse =

@@ -13,7 +13,4 @@ class KafkaFake: KafkaProducer {
         messages.clear()
     }
 
-    fun hasProduced(personident: String): Boolean {
-        return messages.contains(personident)
-    }
 }
