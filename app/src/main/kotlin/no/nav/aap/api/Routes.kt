@@ -56,7 +56,8 @@ enum class Tag(override val description: String) : APITag {
     Perioder("For å hente perioder med AAP"),
     Saker("For å hente AAP-saker"),
     Meldekort("For å hente AAP-meldekort"),
-    Maksimum("For å hente maksimumsløsning")
+    Maksimum("For å hente maksimumsløsning"),
+    DSOP("For DSOP-relaterte endepunkter"),
 }
 
 data class SakerRequest(
@@ -441,6 +442,12 @@ fun NormalOpenAPIRoute.api(
 
                 respond(kelvinSaker)
             }
+
+        }
+    }
+
+    tag(Tag.DSOP) {
+        route("/kelvin/") {
             route("dsop/vedtak").post<CallIdHeader, DsopResponse, DsopRequest>(
                 info(
                     description = """Henter ut vedtaks data for en person for dsop.
