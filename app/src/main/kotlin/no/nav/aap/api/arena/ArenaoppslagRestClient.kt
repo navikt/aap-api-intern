@@ -22,6 +22,7 @@ import no.nav.aap.api.util.findRootCause
 import no.nav.aap.arenaoppslag.kontrakt.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
+import java.time.Duration
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
 private val log = LoggerFactory.getLogger(ArenaoppslagRestClient::class.java)
@@ -42,7 +43,10 @@ class ArenaoppslagRestClient(
     azureConfig: no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig,
 ) : IArenaoppslagRestClient {
     private val tokenProvider = no.nav.aap.api.util.auth.AzureAdTokenProvider(azureConfig)
-    private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker")
+    private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
+        // Mange kall til arenaoppslag tar gjerne 300-400ms har vi sett av prometheus-metrikker. Legger denne derfor litt over dette
+        slowCallDurationThreshold = Duration.ofMillis(600)
+    }
 
     override suspend fun hentPerioder(
         callId: String, vedtakRequest: InternVedtakRequest
