@@ -441,6 +441,36 @@ fun NormalOpenAPIRoute.api(
 
                 respond(kelvinSaker)
             }
+            route("dsop/vedtak").post<CallIdHeader, DsopResponse, DsopRequest>(
+                info(
+                    description = """Henter ut vedtaks data for en person for dsop.
+                        Verdier som mangler er ikke tilgjengelige fra kelvin.
+                        Vedtakstype vil kun være O frem til første meldekort kommer inn.
+                    """.trimMargin(),
+                )
+            ) { _, requestBody ->
+                logger.info("Henter vedtak fra DSOP")
+                prometheus.httpCallCounter(
+                    "/kelvin/dsop/vedtak",
+                    pipeline.call.audience(),
+                    azpName() ?: ""
+                ).increment()
+                val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
+
+                sjekkTilgangTilPerson(listOf(requestBody.personIdent))
+
+                val kelvinVedtak = dataSource.transaction { connection ->
+                    val behandlingsRepository = BehandlingsRepository(connection)
+                    behandlingsRepository.hentDsopVedtak(requestBody.personIdent, utrekksperiode)
+                }
+
+                respond(
+                    DsopResponse(
+                        utrekksperiode,
+                        kelvinVedtak
+                    )
+                )
+            }
         }
     }
 }
