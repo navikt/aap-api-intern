@@ -3,19 +3,19 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("api-intern.conventions")
     id("io.ktor.plugin") version "3.3.1"
-    id("org.flywaydb.flyway") version "11.14.1"
+    id("org.flywaydb.flyway") version "11.15.0"
     application
 }
 
 application {
-    mainClass.set("api.AppKt")
+    mainClass.set("no.nav.aap.api.AppKt")
 }
 
-val komponenterVersjon = "1.0.401"
+val komponenterVersjon = "1.0.422"
 val ktorVersion = "3.3.1"
-val tilgangVersjon = "1.0.136"
-val behandlingsflytversjon = "0.0.463"
-val arenaOppslagVersjon = "0.0.32"
+val tilgangVersjon = "1.0.148"
+val behandlingsflytversjon = "0.0.478"
+val arenaOppslagVersjon = "0.0.35"
 val resilience4jVersion = "2.3.0"
 
 dependencies {
@@ -51,8 +51,8 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     implementation("org.apache.kafka:kafka-clients:4.1.0")
-    implementation("org.flywaydb:flyway-core:11.14.1")
-    implementation("ch.qos.logback:logback-classic:1.5.19")
+    implementation("org.flywaydb:flyway-core:11.15.0")
+    implementation("ch.qos.logback:logback-classic:1.5.20")
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
     implementation("com.nimbusds:nimbus-jose-jwt:10.5")
@@ -74,7 +74,7 @@ dependencies {
         implementation("commons-codec:commons-codec:1.19.0")
     }
     testImplementation("org.assertj:assertj-core:3.27.6")
-    testImplementation("io.github.nchaugen:tabletest-junit:0.5.2")
+    testImplementation("io.github.nchaugen:tabletest-junit:0.5.3")
     testImplementation(kotlin("test"))
     testImplementation("org.slf4j:jul-to-slf4j:2.0.17")
 }
