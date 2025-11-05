@@ -1,4 +1,4 @@
-package api
+package no.nav.aap.api
 
 import api.postgres.KelvinBehandlingStatus
 import api.postgres.KelvinSakStatus
