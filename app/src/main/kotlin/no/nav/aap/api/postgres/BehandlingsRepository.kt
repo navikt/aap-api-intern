@@ -10,6 +10,7 @@ import java.math.RoundingMode
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.math.roundToInt
 
 class BehandlingsRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -406,8 +407,8 @@ data class TilkjentDB(
 
     fun regnUtDagsatsEtterUføreReduksjon(): Int =
         this.dagsats.times(
-            (100 - (this.uføregrad ?: 0)) / 100
-        )
+            (100 - (this.uføregrad ?: 0)) / 100.0
+        ).roundToInt()
 }
 
 fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
