@@ -8,7 +8,7 @@ plugins {
 }
 
 application {
-    mainClass.set("api.AppKt")
+    mainClass.set("no.nav.aap.api.AppKt")
 }
 
 val komponenterVersjon = "1.0.422"
