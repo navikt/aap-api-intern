@@ -443,7 +443,7 @@ fun NormalOpenAPIRoute.api(
             }
             route("dsop/vedtak").post<CallIdHeader, DsopResponse, DsopRequest>(
                 info(
-                    description = """Henter ut vedtaks data for en person for dsop.
+                    description = """Henter ut vedtaksdata for en person for DSOP.
                         Verdier som mangler er ikke tilgjengelige fra kelvin.
                         Vedtakstype vil kun være O frem til første meldekort kommer inn.
                     """.trimMargin(),
