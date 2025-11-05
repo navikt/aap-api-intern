@@ -196,7 +196,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 DsopVedtak(
                     VedtakId = it.behandlingsId,
                     virkningsperiode = Periode(rettighetsTypePeriode.fom,rettighetsTypePeriode.tom),
-                    vedtakstype = "",
                     rettighetsType = rettighetsTypePeriode.verdi,
                     utfall = "JA",
                     aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi)
@@ -502,7 +501,6 @@ data class DsopResponse(
 data class DsopVedtak(
     val VedtakId: String,
     val virkningsperiode: Periode,
-    val vedtakstype: String,
     val rettighetsType:String = "AAP",
     val utfall: String = "JA",
     val aktivitetsfase: RettighetsType
