@@ -1,12 +1,8 @@
 package api.util
 
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.junit.jupiter.api.BeforeEach
-import org.slf4j.bridge.SLF4JBridgeHandler
-import java.util.logging.Level
-import javax.sql.DataSource
 
 abstract class PostgresTestBase {
     val dataSource = TestDataSource()

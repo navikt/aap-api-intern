@@ -20,6 +20,7 @@ import io.ktor.server.testing.*
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
@@ -33,7 +34,7 @@ class SakStatusKelvinTest : PostgresTestBase() {
             ident = "12345678910",
             status = api.kelvin.SakStatus(
                 sakId = "1234",
-                statusKode = no.nav.aap.arenaoppslag.kontrakt.intern.Status.IVERK,
+                statusKode = Status.IVERK,
                 periode = Periode(
                     fom = LocalDate.ofYearDay(2021, 1),
                     tom = LocalDate.ofYearDay(
