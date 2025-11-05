@@ -1,7 +1,7 @@
 package no.nav.aap.api
 
-import api.postgres.KelvinBehandlingStatus
-import api.postgres.KelvinSakStatus
+import no.nav.aap.api.postgres.KelvinBehandlingStatus
+import no.nav.aap.api.postgres.KelvinSakStatus
 import io.github.nchaugen.tabletest.junit.TableTest
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat

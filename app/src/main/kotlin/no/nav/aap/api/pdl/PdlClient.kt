@@ -1,8 +1,8 @@
 package no.nav.aap.api.pdl
 
-import api.util.graphql.GraphQLResponse
-import api.util.graphql.GraphQLResponseHandler
-import api.util.graphql.GraphQLRequest
+import no.nav.aap.api.util.graphql.GraphQLRequest
+import no.nav.aap.api.util.graphql.GraphQLResponse
+import no.nav.aap.api.util.graphql.GraphQLResponseHandler
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.Header

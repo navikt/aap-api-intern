@@ -1,6 +1,6 @@
 package no.nav.aap.api.postgres
 
-import api.utledVedtakStatus
+import no.nav.aap.api.utledVedtakStatus
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.Maksimum
 import no.nav.aap.api.intern.Medium

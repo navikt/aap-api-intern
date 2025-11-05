@@ -1,10 +1,10 @@
 package no.nav.aap.api.kelvin
 
-import api.kafka.KafkaProducer
-import api.postgres.BehandlingsRepository
-import api.postgres.MeldekortDetaljerRepository
-import api.postgres.MeldekortPerioderRepository
-import api.postgres.SakStatusRepository
+import no.nav.aap.api.kafka.KafkaProducer
+import no.nav.aap.api.postgres.BehandlingsRepository
+import no.nav.aap.api.postgres.MeldekortDetaljerRepository
+import no.nav.aap.api.postgres.MeldekortPerioderRepository
+import no.nav.aap.api.postgres.SakStatusRepository
 import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.route

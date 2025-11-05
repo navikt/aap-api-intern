@@ -1,6 +1,6 @@
 package no.nav.aap.api.kafka
 
-import api.ModiaConfig
+import no.nav.aap.api.ModiaConfig
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory

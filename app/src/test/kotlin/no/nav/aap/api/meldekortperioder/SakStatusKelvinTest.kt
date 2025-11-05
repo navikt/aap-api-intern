@@ -1,24 +1,20 @@
 package no.nav.aap.api.meldekortperioder
 
-import api.TestConfig
-import api.api
-import api.kelvin.SakStatusKelvin
-import api.util.MockedArenaClient
-import api.util.AzureTokenGen
-import api.util.Fakes
-import api.util.PdlClientEmpty
-import api.util.PostgresTestBase
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
-import io.ktor.client.call.body
+import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
+import no.nav.aap.api.TestConfig
+import no.nav.aap.api.api
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.SakStatus
+import no.nav.aap.api.kelvin.SakStatusKelvin
+import no.nav.aap.api.util.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -32,7 +28,7 @@ class SakStatusKelvinTest : PostgresTestBase() {
     companion object {
         val kelvinSak = SakStatusKelvin(
             ident = "12345678910",
-            status = api.kelvin.SakStatus(
+            status = no.nav.aap.api.kelvin.SakStatus(
                 sakId = "1234",
                 statusKode = Status.IVERK,
                 periode = Periode(
@@ -80,7 +76,10 @@ class SakStatusKelvinTest : PostgresTestBase() {
                         setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
                     }
                 assertEquals(HttpStatusCode.OK, oboResponse.status)
-                assertEquals(oboResponse.body<List<SakStatus>>().first().sakId, kelvinSak.status.sakId)
+                assertEquals(
+                    oboResponse.body<List<SakStatus>>().first().sakId,
+                    kelvinSak.status.sakId
+                )
 
                 val m2mResponse =
                     jsonHttpClient.post("/sakerByFnr") {

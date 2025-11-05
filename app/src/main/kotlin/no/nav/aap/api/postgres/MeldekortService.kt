@@ -1,8 +1,8 @@
 package no.nav.aap.api.postgres
 
-import api.kelvin.MeldekortDTO
-import api.pdl.IPdlClient
-import api.pdl.PdlClient
+import no.nav.aap.api.kelvin.MeldekortDTO
+import no.nav.aap.api.pdl.IPdlClient
+import no.nav.aap.api.pdl.PdlClient
 import no.nav.aap.api.intern.Medium
 import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.api.intern.VedtakUtenUtbetaling

@@ -1,9 +1,9 @@
 package no.nav.aap.api.maksimum
 
-import api.TestConfig
-import api.api
-import api.kelvin.tilDomene
-import api.util.*
+import no.nav.aap.api.TestConfig
+import no.nav.aap.api.api
+import no.nav.aap.api.kelvin.tilDomene
+import no.nav.aap.api.util.*
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*

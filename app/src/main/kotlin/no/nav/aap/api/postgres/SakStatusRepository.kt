@@ -1,6 +1,6 @@
 package no.nav.aap.api.postgres
 
-import api.kelvin.SakStatus
+import no.nav.aap.api.kelvin.SakStatus
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 

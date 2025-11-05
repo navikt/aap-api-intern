@@ -1,8 +1,8 @@
 package no.nav.aap.api
 
-import api.kafka.KafkaConfig
-import api.util.Fakes
-import api.util.port
+import no.nav.aap.api.kafka.KafkaConfig
+import no.nav.aap.api.util.Fakes
+import no.nav.aap.api.util.port
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import java.net.URI
 

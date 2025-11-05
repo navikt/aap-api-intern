@@ -1,7 +1,7 @@
 package no.nav.aap.api.util
 
 fun perioderMedAAp(
-    input: List<api.postgres.DatadelingDTO>
+    input: List<no.nav.aap.api.postgres.DatadelingDTO>
 ): List<no.nav.aap.api.intern.Periode> {
     return input.flatMap { sak ->
         sak.rettighetsTypeTidsLinje.map { segment ->

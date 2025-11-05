@@ -1,9 +1,9 @@
 package no.nav.aap.api.postgres
 
-import api.DbConfig
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.api.DbConfig
 import javax.sql.DataSource
 
 fun initDatasource(dbConfig: DbConfig, prometheus: PrometheusMeterRegistry): DataSource = HikariDataSource(HikariConfig().apply {

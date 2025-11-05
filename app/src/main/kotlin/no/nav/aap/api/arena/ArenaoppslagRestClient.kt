@@ -1,8 +1,5 @@
 package no.nav.aap.api.arena
 
-import api.ArenaoppslagConfig
-import api.util.circuitBreaker
-import api.util.findRootCause
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
@@ -18,7 +15,10 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.prometheus.metrics.core.metrics.Summary
+import no.nav.aap.api.ArenaoppslagConfig
 import no.nav.aap.api.intern.PerioderResponse
+import no.nav.aap.api.util.circuitBreaker
+import no.nav.aap.api.util.findRootCause
 import no.nav.aap.arenaoppslag.kontrakt.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
@@ -41,7 +41,7 @@ class ArenaoppslagRestClient(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     azureConfig: no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig,
 ) : IArenaoppslagRestClient {
-    private val tokenProvider = api.util.auth.AzureAdTokenProvider(azureConfig)
+    private val tokenProvider = no.nav.aap.api.util.auth.AzureAdTokenProvider(azureConfig)
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker")
 
     override suspend fun hentPerioder(

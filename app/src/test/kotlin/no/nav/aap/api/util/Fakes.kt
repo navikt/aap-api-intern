@@ -1,8 +1,8 @@
 package no.nav.aap.api.util
 
-import api.pdl.PdlIdenter
-import api.pdl.PdlIdenterData
-import api.util.graphql.GraphQLResponse
+import no.nav.aap.api.pdl.PdlIdenter
+import no.nav.aap.api.pdl.PdlIdenterData
+import no.nav.aap.api.util.graphql.GraphQLResponse
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*

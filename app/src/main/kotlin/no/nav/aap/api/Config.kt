@@ -1,6 +1,6 @@
 package no.nav.aap.api
 
-import api.kafka.KafkaConfig
+import no.nav.aap.api.kafka.KafkaConfig
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import java.net.URI
 

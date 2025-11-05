@@ -1,13 +1,13 @@
 package no.nav.aap.api.meldekort
 
-import api.TestConfig
-import api.api
-import api.util.MockedArenaClient
-import api.util.AzureTokenGen
-import api.util.Fakes
-import api.util.PdlClientEmpty
-import api.util.PostgresTestBase
-import api.util.localDate
+import no.nav.aap.api.TestConfig
+import no.nav.aap.api.api
+import no.nav.aap.api.util.MockedArenaClient
+import no.nav.aap.api.util.AzureTokenGen
+import no.nav.aap.api.util.Fakes
+import no.nav.aap.api.util.PdlClientEmpty
+import no.nav.aap.api.util.PostgresTestBase
+import no.nav.aap.api.util.localDate
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.HttpClient

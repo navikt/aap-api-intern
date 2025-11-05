@@ -1,6 +1,6 @@
 package no.nav.aap.api.postgres
 
-import api.kelvin.MeldekortDTO
+import no.nav.aap.api.kelvin.MeldekortDTO
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import org.slf4j.LoggerFactory

@@ -1,6 +1,6 @@
 package no.nav.aap.api.util
 
-import api.kafka.KafkaProducer
+import no.nav.aap.api.kafka.KafkaProducer
 
 class KafkaFake: KafkaProducer {
     private val messages = mutableListOf<String>()

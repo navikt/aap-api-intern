@@ -1,11 +1,5 @@
 package no.nav.aap.api
 
-import api.arena.IArenaoppslagRestClient
-import api.pdl.IPdlClient
-import api.postgres.*
-import api.util.fraKontrakt
-import api.util.fraKontraktUtenUtbetaling
-import api.util.perioderMedAAp
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
@@ -24,7 +18,13 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.api.arena.IArenaoppslagRestClient
 import no.nav.aap.api.intern.*
+import no.nav.aap.api.pdl.IPdlClient
+import no.nav.aap.api.postgres.*
+import no.nav.aap.api.util.fraKontrakt
+import no.nav.aap.api.util.fraKontraktUtenUtbetaling
+import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
@@ -208,7 +208,7 @@ fun NormalOpenAPIRoute.api(
 
     tag(Tag.Saker) {
         // TODO: Flytt logikk til en egen service
-        route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, api.SakerRequest>(
+        route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { callIdHeader, requestBody ->
             prometheus.httpCallCounter(
@@ -242,7 +242,7 @@ fun NormalOpenAPIRoute.api(
         }
 
         route("/arena/person/aap/eksisterer") {
-            post<CallIdHeader, PersonEksistererIAAPArena, api.SakerRequest>(
+            post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
                 info(description = "Sjekker om en person eksisterer i AAP-arena")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om person eksisterer i aap-arena")
@@ -270,7 +270,7 @@ fun NormalOpenAPIRoute.api(
             }
         }
 
-        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, api.SakerRequest>(
+        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { _, requestBody ->
             logger.info("Henter saker for en person fra Kelvin.")
