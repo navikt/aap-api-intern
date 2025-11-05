@@ -2,6 +2,7 @@ package no.nav.aap.api.postgres
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
@@ -183,6 +184,22 @@ class BehandlingsRepository(private val connection: DBConnection) {
             setParams {
                 setLong(1, nyBehandlingId)
                 setBigDecimal(2, behandling.beregningsgrunnlag)
+            }
+        }
+    }
+
+    fun hentDsopVedtak(fnr: String, uttrekksperiode: Periode): List<DsopVedtak>{
+        val vedtaksdata = hentVedtaksData(fnr, uttrekksperiode)
+
+        return vedtaksdata.flatMap {
+            it.rettighetsTypeTidsLinje.map { rettighetsTypePeriode ->
+                DsopVedtak(
+                    VedtakId = it.behandlingsId,
+                    virkningsperiode = Periode(rettighetsTypePeriode.fom,rettighetsTypePeriode.tom),
+                    rettighetsType = rettighetsTypePeriode.verdi,
+                    utfall = "JA",
+                    aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi)
+                )
             }
         }
     }
@@ -469,3 +486,22 @@ data class VedtakUtenUtbetalingUtenPeriode(
         )
     }
 }
+
+data class DsopRequest(
+    val personIdent: String,
+    val fomDato: LocalDate,
+    val tomDato: LocalDate,
+)
+
+data class DsopResponse(
+    val uttrekksperiode: Periode,
+    val vedtak: List<DsopVedtak>
+)
+
+data class DsopVedtak(
+    val VedtakId: String,
+    val virkningsperiode: Periode,
+    val rettighetsType:String = "AAP",
+    val utfall: String = "JA",
+    val aktivitetsfase: RettighetsType
+)
