@@ -1,6 +1,7 @@
 package no.nav.aap.api.postgres
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
+import no.nav.aap.api.intern.Status
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -195,6 +196,10 @@ class BehandlingsRepository(private val connection: DBConnection) {
             it.rettighetsTypeTidsLinje.map { rettighetsTypePeriode ->
                 DsopVedtak(
                     VedtakId = it.behandlingsId,
+                    vedtakStatus = when ((rettighetsTypePeriode.tom >= LocalDate.now() && rettighetsTypePeriode.fom <= LocalDate.now())) {
+                        true -> no.nav.aap.behandlingsflyt.kontrakt.sak.Status.LØPENDE
+                        else -> no.nav.aap.behandlingsflyt.kontrakt.sak.Status.AVSLUTTET
+                    },
                     virkningsperiode = Periode(rettighetsTypePeriode.fom,rettighetsTypePeriode.tom),
                     rettighetsType = rettighetsTypePeriode.verdi,
                     utfall = "JA",
@@ -503,6 +508,7 @@ data class DsopResponse(
 
 data class DsopVedtak(
     val VedtakId: String,
+    val vedtakStatus: no.nav.aap.behandlingsflyt.kontrakt.sak.Status,
     val virkningsperiode: Periode,
     val rettighetsType:String = "AAP",
     val utfall: String = "JA",
