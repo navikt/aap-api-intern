@@ -3,6 +3,7 @@ package no.nav.aap.api
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
+import no.nav.aap.komponenter.httpklient.httpclient.error.UhåndtertHttpResponsException
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -10,6 +11,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBeha
 import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
 import java.net.URI
+import kotlin.io.resolve
 
 object TilgangGateway {
     private val baseUrl = URI.create(requiredConfigForKey("integrasjon.tilgang.url"))
@@ -34,13 +36,21 @@ object TilgangGateway {
                 body = personTilgangRequest,
                 currentToken = token,
             )
-        val respons =
-            requireNotNull(
+
+        return try {
+            val respons = requireNotNull(
                 client.post<_, TilgangResponse>(
                     uri = baseUrl.resolve("/tilgang/person"),
                     request = httpRequest,
-                ),
+                )
             )
-        return respons.tilgang
+            respons.tilgang
+        } catch (e: UhåndtertHttpResponsException) {
+            if (e.message?.contains("408") == true) {
+                false
+            } else {
+                throw e
+            }
+        }
     }
 }
