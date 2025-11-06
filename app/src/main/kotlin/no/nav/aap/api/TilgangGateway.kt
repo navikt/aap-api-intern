@@ -37,20 +37,14 @@ object TilgangGateway {
                 currentToken = token,
             )
 
-        return try {
+
             val respons = requireNotNull(
                 client.post<_, TilgangResponse>(
                     uri = baseUrl.resolve("/tilgang/person"),
                     request = httpRequest,
                 )
             )
-            respons.tilgang
-        } catch (e: UhåndtertHttpResponsException) {
-            if (e.message?.contains("408") == true) {
-                false
-            } else {
-                throw e
-            }
-        }
+
+            return respons.tilgang
     }
 }

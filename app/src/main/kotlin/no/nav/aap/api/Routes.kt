@@ -29,6 +29,7 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.httpklient.httpclient.error.UhåndtertHttpResponsException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.auth.audience
@@ -548,8 +549,14 @@ private fun PrometheusMeterRegistry.tellKildesystem(
 private suspend inline fun <reified E : Any> OpenAPIPipelineResponseContext<E>.sjekkTilgangTilPerson(
     identifikatorer: List<String>
 ) {
-    if (!harTilgangTilPerson(identifikatorer.first(), token())) {
-        respondWithStatus(HttpStatusCode.Forbidden)
+    try {
+        if (!harTilgangTilPerson(identifikatorer.first(), token())) {
+            respondWithStatus(HttpStatusCode.Forbidden)
+        }
+    } catch (e: UhåndtertHttpResponsException) {
+        if(e.message?.contains("408")==true){
+            respondWithStatus(HttpStatusCode.RequestTimeout)
+        }
     }
 }
 
