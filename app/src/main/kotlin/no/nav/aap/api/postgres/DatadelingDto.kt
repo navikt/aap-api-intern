@@ -35,6 +35,9 @@ data class SakDTO(
     val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
 )
 
+/**
+ * @param samordningUføregradering Svarer til prosent uføre. 100% bør medføre 0% gradering.
+ */
 data class TilkjentDTO(
     val tilkjentFom: LocalDate,
     val tilkjentTom: LocalDate,
@@ -64,7 +67,6 @@ enum class KelvinSakStatus {
     LØPENDE,
     AVSLUTTET
 }
-
 
 
 enum class KelvinBehandlingStatus {

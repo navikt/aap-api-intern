@@ -382,7 +382,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     antallBarn = it.getInt("ANTALL_BARN"),
                     barnetilleggsats = it.getBigDecimal("BARNETILLEGGSATS"),
                     barnetillegg = it.getBigDecimal("BARNETILLEGG"),
-                    samordningUføregradering = 100 - (it.getIntOrNull("UFOREGRADERING") ?: 0)
+                    samordningUføregradering = it.getIntOrNull("UFOREGRADERING")
                 )
             }
         }
@@ -406,6 +406,9 @@ data class BehandlingDB(
     val vedtakId: Long? = null
 )
 
+/**
+ * @param uføregrad Svarer til prosent uføre.
+ */
 data class TilkjentDB(
     val dagsats: Int,
     val gradering: Int,
