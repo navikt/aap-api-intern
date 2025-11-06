@@ -3,8 +3,11 @@ package no.nav.aap.api.postgres
 import no.nav.aap.api.kelvin.MeldekortDTO
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
+import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
+import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class MeldekortDetaljerRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -172,3 +175,14 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
     }
 
 }
+
+data class DsopMeldekortRespons(
+    val uttrekksperiode: Periode,
+    val meldekort: List<Meldekort>
+)
+
+data class Meldekort(
+    val periode: Periode,
+    val antallTimerArbeidet: BigDecimal,
+    val sistOppdatert: LocalDateTime,
+)

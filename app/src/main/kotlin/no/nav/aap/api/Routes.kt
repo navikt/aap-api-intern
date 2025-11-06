@@ -447,35 +447,76 @@ fun NormalOpenAPIRoute.api(
     }
 
     tag(Tag.DSOP) {
-        route("/kelvin/") {
-            route("dsop/vedtak").post<CallIdHeader, DsopResponse, DsopRequest>(
-                info(
-                    description = """Henter ut vedtaks data for en person for dsop.
+        route("/kelvin") {
+            route("/dsop") {
+                route("/vedtak").post<CallIdHeader, DsopResponse, DsopRequest>(
+                    info(
+                        description = """Henter ut vedtaks data for en person for dsop.
                         Verdier som mangler er ikke tilgjengelige fra kelvin.
                     """.trimMargin(),
-                )
-            ) { _, requestBody ->
-                logger.info("Henter vedtak fra DSOP")
-                prometheus.httpCallCounter(
-                    "/kelvin/dsop/vedtak",
-                    pipeline.call.audience(),
-                    azpName() ?: ""
-                ).increment()
-                val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
-
-                sjekkTilgangTilPerson(listOf(requestBody.personIdent))
-
-                val kelvinVedtak = dataSource.transaction { connection ->
-                    val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentDsopVedtak(requestBody.personIdent, utrekksperiode)
-                }
-
-                respond(
-                    DsopResponse(
-                        utrekksperiode,
-                        kelvinVedtak
                     )
-                )
+                ) { _, requestBody ->
+                    logger.info("Henter vedtak fra DSOP")
+                    prometheus.httpCallCounter(
+                        "/kelvin/dsop/vedtak",
+                        pipeline.call.audience(),
+                        azpName() ?: ""
+                    ).increment()
+                    val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
+
+                    sjekkTilgangTilPerson(listOf(requestBody.personIdent))
+
+                    val kelvinVedtak = dataSource.transaction { connection ->
+                        val behandlingsRepository = BehandlingsRepository(connection)
+                        behandlingsRepository.hentDsopVedtak(requestBody.personIdent, utrekksperiode)
+                    }
+
+                    respond(
+                        DsopResponse(
+                            utrekksperiode,
+                            kelvinVedtak
+                        )
+                    )
+                }
+                route("/meldekort").post<CallIdHeader, DsopMeldekortRespons, DsopRequest>(
+                    info(
+                        description = """Henter ut meldekort for bruker for DSOP api"""
+                    )
+                ) { _, requestBody ->
+                    logger.info("Henter meldekort til DSOP")
+                    prometheus.httpCallCounter(
+                        "/kelvin/dsop/meldekort",
+                        pipeline.call.audience(),
+                        azpName() ?: ""
+                    ).increment()
+                    val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
+
+                    sjekkTilgangTilPerson(listOf(requestBody.personIdent))
+
+                    val meldekortListe = dataSource.transaction { connection ->
+                        val meldekortService = MeldekortService(connection, pdlClient)
+                        meldekortService.hentAlleMeldekort(
+                            requestBody.personIdent,
+                            requestBody.fomDato,
+                            requestBody.tomDato
+                        )
+                            .map { meldekort ->
+                                Meldekort(
+                                    Periode(meldekort.meldePeriode.fom, meldekort.meldePeriode.tom),
+                                    meldekort.arbeidPerDag.sumOf { it.timerArbeidet },
+                                    meldekort.mottattTidspunkt
+                                )
+                            }
+                    }
+
+                    respond(
+                        DsopMeldekortRespons(
+                            utrekksperiode,
+                            meldekortListe
+                        )
+                    )
+
+                }
             }
         }
     }
