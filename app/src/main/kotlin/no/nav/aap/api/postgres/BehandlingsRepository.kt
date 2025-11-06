@@ -195,7 +195,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         return vedtaksdata.flatMap {
             it.rettighetsTypeTidsLinje.map { rettighetsTypePeriode ->
                 DsopVedtak(
-                    VedtakId = it.behandlingsId,
+                    vedtakId = it.behandlingsId,
                     vedtakStatus = when (rettighetsTypePeriode.tom >= LocalDate.now()) {
                         true -> DsopStatus.LØPENDE
                         else -> DsopStatus.AVSLUTTET
@@ -507,7 +507,7 @@ data class DsopResponse(
 )
 
 data class DsopVedtak(
-    val VedtakId: String,
+    val vedtakId: String,
     val vedtakStatus: DsopStatus,
     val virkningsperiode: Periode,
     val rettighetsType:String = "AAP",
