@@ -547,7 +547,7 @@ private fun PrometheusMeterRegistry.tellKildesystem(
 }
 
 private suspend inline fun <reified E : Any> OpenAPIPipelineResponseContext<E>.sjekkTilgangTilPerson(
-    identifikatorer: List<String>
+    identifikatorer: List<String>,
 ) {
     try {
         if (!harTilgangTilPerson(identifikatorer.first(), token())) {
@@ -556,6 +556,7 @@ private suspend inline fun <reified E : Any> OpenAPIPipelineResponseContext<E>.s
     } catch (e: UhåndtertHttpResponsException) {
         if(e.message?.contains("408")==true){
             respondWithStatus(HttpStatusCode.RequestTimeout)
+            logger.error("Timeout mot tilgang: ${e.message}")
         }
     }
 }
