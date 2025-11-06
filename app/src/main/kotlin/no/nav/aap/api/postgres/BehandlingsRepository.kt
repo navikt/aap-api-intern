@@ -196,7 +196,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             it.rettighetsTypeTidsLinje.map { rettighetsTypePeriode ->
                 DsopVedtak(
                     VedtakId = it.behandlingsId,
-                    vedtakStatus = when ((rettighetsTypePeriode.tom >= LocalDate.now() && rettighetsTypePeriode.fom <= LocalDate.now())) {
+                    vedtakStatus = when (rettighetsTypePeriode.tom >= LocalDate.now()) {
                         true -> DsopStatus.LØPENDE
                         else -> DsopStatus.AVSLUTTET
                     },
