@@ -197,8 +197,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 DsopVedtak(
                     VedtakId = it.behandlingsId,
                     vedtakStatus = when ((rettighetsTypePeriode.tom >= LocalDate.now() && rettighetsTypePeriode.fom <= LocalDate.now())) {
-                        true -> no.nav.aap.behandlingsflyt.kontrakt.sak.Status.LØPENDE
-                        else -> no.nav.aap.behandlingsflyt.kontrakt.sak.Status.AVSLUTTET
+                        true -> DsopStatus.LØPENDE
+                        else -> DsopStatus.AVSLUTTET
                     },
                     virkningsperiode = Periode(rettighetsTypePeriode.fom,rettighetsTypePeriode.tom),
                     rettighetsType = rettighetsTypePeriode.verdi,
@@ -508,9 +508,14 @@ data class DsopResponse(
 
 data class DsopVedtak(
     val VedtakId: String,
-    val vedtakStatus: no.nav.aap.behandlingsflyt.kontrakt.sak.Status,
+    val vedtakStatus: DsopStatus,
     val virkningsperiode: Periode,
     val rettighetsType:String = "AAP",
     val utfall: String = "JA",
     val aktivitetsfase: RettighetsType
 )
+
+enum class DsopStatus {
+    LØPENDE,
+    AVSLUTTET
+}
