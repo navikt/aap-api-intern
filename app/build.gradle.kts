@@ -2,8 +2,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("api-intern.conventions")
-    id("io.ktor.plugin") version "3.3.1"
-    id("org.flywaydb.flyway") version "11.15.0"
+    id("io.ktor.plugin") version "3.3.2"
+    id("org.flywaydb.flyway") version "11.16.0"
     application
 }
 
@@ -54,11 +54,11 @@ dependencies {
     implementation("org.flywaydb:flyway-core:11.15.0")
     implementation("ch.qos.logback:logback-classic:1.5.20")
     implementation("com.auth0:java-jwt:4.5.0")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.0")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
     implementation("com.nimbusds:nimbus-jose-jwt:10.5")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.5")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
-    implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.4.1")
+    implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.4.2")
 
     implementation("com.zaxxer:HikariCP:7.0.2")
 
@@ -71,10 +71,10 @@ dependencies {
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     constraints {
-        implementation("commons-codec:commons-codec:1.19.0")
+        implementation("commons-codec:commons-codec:1.20.0")
     }
     testImplementation("org.assertj:assertj-core:3.27.6")
-    testImplementation("io.github.nchaugen:tabletest-junit:0.5.3")
+    testImplementation("io.github.nchaugen:tabletest-junit:0.5.4")
     testImplementation(kotlin("test"))
     testImplementation("org.slf4j:jul-to-slf4j:2.0.17")
 }
