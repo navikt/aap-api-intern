@@ -3,7 +3,6 @@ package no.nav.aap.api
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.error.UhåndtertHttpResponsException
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -11,11 +10,12 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.OnBeha
 import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
 import java.net.URI
+import java.time.Duration
 import kotlin.io.resolve
 
 object TilgangGateway {
     private val baseUrl = URI.create(requiredConfigForKey("integrasjon.tilgang.url"))
-    private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.tilgang.scope"))
+    private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.tilgang.scope"), connectionTimeout =  Duration.ofSeconds(10))
 
     private val client =
         RestClient.withDefaultResponseHandler(
