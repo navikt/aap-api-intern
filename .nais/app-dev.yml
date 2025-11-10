@@ -96,6 +96,18 @@ spec:
         - application: familie-ef-sak
           namespace: teamfamilie
           cluster: dev-gcp
+        - application: arena-dsop-api-q2
+          namespace: teamarenanais
+          cluster: dev-fss
+        - application: arena-dsop-api-q5
+          namespace: teamarenanais
+          cluster: dev-fss
+        - application: arena-dsop-api-u1
+          namespace: teamarenanais
+          cluster: dev-fss
+        - application: arena-dsop-api-u2
+          namespace: teamarenanais
+          cluster: dev-fss
         - application: modiapersonoversikt-api
           namespace: personoversikt
           cluster: dev-gcp

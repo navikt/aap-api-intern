@@ -91,6 +91,9 @@ spec:
         - application: modiapersonoversikt-api
           namespace: personoversikt
           cluster: prod-gcp
+        - application: arena-dsop-api
+          namespace: teamarenanais
+          cluster: prod-fss
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp
