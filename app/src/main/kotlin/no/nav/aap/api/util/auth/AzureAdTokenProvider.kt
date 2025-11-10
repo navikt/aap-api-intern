@@ -17,7 +17,7 @@ internal val defaultHttpClient = HttpClient(CIO) {
         }
     }
     install(HttpRequestRetry) {
-        retryOnServerErrors(maxRetries = 3)
+        retryOnException(maxRetries = 3) // on exceptions during network send, other than timeouts
         exponentialDelay()
     }
     install(HttpTimeout) {
