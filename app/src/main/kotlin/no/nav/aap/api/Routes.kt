@@ -542,7 +542,7 @@ private fun PrometheusMeterRegistry.tellKildesystem(
 
     if (arenaData?.isNotEmpty() == true && kelvinData?.isNotEmpty() == true) {
         val toLog = arenaData.filterIsInstance<SakStatus>()
-        logger.error("Fant data på person i både Kelvin og Arena på endepunkt $path. Sakstatuser fra Arena: $toLog")
+        logger.info("Fant data på person i både Kelvin og Arena på endepunkt $path. Sakstatuser fra Arena: $toLog")
     }
 }
 
