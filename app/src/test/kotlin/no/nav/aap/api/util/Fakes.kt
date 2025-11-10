@@ -54,6 +54,7 @@ class Fakes():AutoCloseable {
         // Tilgang
         System.setProperty("INTEGRASJON_TILGANG_URL", "http://localhost:${tilgang.port()}")
         System.setProperty("INTEGRASJON_TILGANG_SCOPE", "scope")
+        System.setProperty("nais.token.exchange.endpoint", "http://localhost:${azure.port()}")
     }
 }
 data class TestToken(
