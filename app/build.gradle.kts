@@ -12,7 +12,7 @@ application {
 }
 
 val komponenterVersjon = "1.0.430"
-val ktorVersion = "3.3.1"
+val ktorVersion = "3.3.2"
 val tilgangVersjon = "1.0.151"
 val behandlingsflytversjon = "0.0.481"
 val arenaOppslagVersjon = "0.0.35"
@@ -51,12 +51,12 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     implementation("org.apache.kafka:kafka-clients:4.1.0")
-    implementation("org.flywaydb:flyway-core:11.15.0")
+    implementation("org.flywaydb:flyway-core:11.16.0")
     implementation("ch.qos.logback:logback-classic:1.5.20")
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
-    implementation("com.nimbusds:nimbus-jose-jwt:10.5")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.15.5")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.6")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
     implementation("net.logstash.logback:logstash-logback-encoder:8.1")
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.4.2")
 
