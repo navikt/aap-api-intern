@@ -201,7 +201,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         else -> DsopStatus.AVSLUTTET
                     },
                     virkningsperiode = Periode(rettighetsTypePeriode.fom,rettighetsTypePeriode.tom),
-                    rettighetsType = rettighetsTypePeriode.verdi,
                     utfall = "JA",
                     aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi)
                 )
