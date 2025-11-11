@@ -15,7 +15,7 @@ import kotlin.io.resolve
 
 object TilgangGateway {
     private val baseUrl = URI.create(requiredConfigForKey("integrasjon.tilgang.url"))
-    private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.tilgang.scope"), connectionTimeout =  Duration.ofSeconds(10))
+    private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.tilgang.scope"))
 
     private val client =
         RestClient.withDefaultResponseHandler(

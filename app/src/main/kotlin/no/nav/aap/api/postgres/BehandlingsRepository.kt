@@ -518,3 +518,4 @@ enum class DsopStatus {
     LØPENDE,
     AVSLUTTET
 }
+
