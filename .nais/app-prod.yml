@@ -6,6 +6,8 @@ metadata:
   labels:
     team: aap
     komponent: datadeling
+  annotations:
+    texas.nais.io/enabled: "true"
 spec:
   image: {{image}}
   ingresses:
