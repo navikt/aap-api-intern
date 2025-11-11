@@ -13,9 +13,9 @@ application {
 
 val komponenterVersjon = "1.0.430"
 val ktorVersion = "3.3.2"
-val tilgangVersjon = "1.0.151"
-val behandlingsflytversjon = "0.0.481"
-val arenaOppslagVersjon = "0.0.35"
+val tilgangVersjon = "1.0.153"
+val behandlingsflytversjon = "0.0.482"
+val arenaOppslagVersjon = "0.0.36"
 val resilience4jVersion = "2.3.0"
 
 dependencies {
