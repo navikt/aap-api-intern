@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("api-intern.conventions")
     id("io.ktor.plugin") version "3.3.2"
-    id("org.flywaydb.flyway") version "11.16.0"
+    id("org.flywaydb.flyway") version "11.17.0"
     application
 }
 
@@ -58,7 +58,7 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:10.6")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
-    implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.4.2")
+    implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.4.3")
 
     implementation("com.zaxxer:HikariCP:7.0.2")
 
