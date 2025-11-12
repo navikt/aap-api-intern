@@ -66,6 +66,10 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-kotlin:${resilience4jVersion}")
     implementation("io.github.resilience4j:resilience4j-micrometer:${resilience4jVersion}")
 
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
+    implementation("dev.hsbrysk:caffeine-coroutines:2.0.3")
+
+
     implementation("no.nav:ktor-openapi-generator:1.0.131")
 
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
