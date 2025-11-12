@@ -551,9 +551,9 @@ private fun PrometheusMeterRegistry.tellKildesystem(
     }
 }
 
-private inline fun <reified E : Any> OpenAPIPipelineResponseContext<E>.sjekkTilgangTilPerson(
-    identifikatorer: List<String>,
-) = identifikatorer.forEach { kontrollerTilgang(it, token()) }
+private fun <E> OpenAPIPipelineResponseContext<E>.sjekkTilgangTilPerson(identifikatorer: List<String>) {
+    identifikatorer.forEach { kontrollerTilgang(it, token()) }
+}
 
 private fun kontrollerTilgang(personIdent: String, token: OidcToken) {
     if (!token.isClientCredentials()) {
