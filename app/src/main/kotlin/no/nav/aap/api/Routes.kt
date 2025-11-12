@@ -93,7 +93,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /perioder")
                 }
 
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val tilArenaKontrakt = requestBody.tilKontrakt()
 
@@ -134,7 +134,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /perioder/aktivitetfase")
                 }
 
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val tilArenaKontrakt = requestBody.tilKontrakt()
                 val arenaSvar = arena.hentPerioderInkludert11_17(callId, tilArenaKontrakt)
 
@@ -167,7 +167,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { _, requestBody ->
 
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val perioder = dataSource.transaction { connection ->
                     val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
@@ -187,7 +187,7 @@ fun NormalOpenAPIRoute.api(
         ) { _, requestBody ->
 
             val personIdentifikator = requestBody.personidentifikator
-            sjekkTilgangTilPerson(listOf(personIdentifikator))
+            sjekkTilgangTilPerson(personIdentifikator, token())
 
             val meldekortListe = dataSource.transaction { connection ->
                 val meldekortService = MeldekortService(connection, pdlClient)
@@ -228,7 +228,11 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            sjekkTilgangTilPerson(requestBody.personidentifikatorer)
+            /*
+            * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
+            * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
+            */
+            sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
             val kelvinSaker: List<SakStatus> =
@@ -287,7 +291,11 @@ fun NormalOpenAPIRoute.api(
                 azpName() ?: ""
             ).increment()
 
-            sjekkTilgangTilPerson(requestBody.personidentifikatorer)
+            /*
+            * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
+            * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
+            */
+            sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
             val kelvinSaker: List<SakStatus> =
@@ -321,7 +329,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimumUtenUtbetaling")
                 }
                 val body = requestBody.tilKontrakt()
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -363,7 +371,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
                 val body = requestBody.tilKontrakt()
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -399,7 +407,7 @@ fun NormalOpenAPIRoute.api(
                     azpName() ?: ""
                 ).increment()
 
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val tilArenaKontrakt = requestBody.tilKontrakt()
 
@@ -432,7 +440,7 @@ fun NormalOpenAPIRoute.api(
                     azpName() ?: ""
                 ).increment()
 
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val tilArenaKontrakt = requestBody.tilKontrakt()
 
@@ -470,7 +478,7 @@ fun NormalOpenAPIRoute.api(
                     ).increment()
                     val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
-                    sjekkTilgangTilPerson(listOf(requestBody.personIdent))
+                    sjekkTilgangTilPerson(requestBody.personIdent, token())
 
                     val kelvinVedtak = dataSource.transaction { connection ->
                         val behandlingsRepository = BehandlingsRepository(connection)
@@ -497,7 +505,7 @@ fun NormalOpenAPIRoute.api(
                     ).increment()
                     val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
-                    sjekkTilgangTilPerson(listOf(requestBody.personIdent))
+                    sjekkTilgangTilPerson(requestBody.personIdent, token())
 
                     val meldekortListe = dataSource.transaction { connection ->
                         val meldekortService = MeldekortService(connection, pdlClient)
@@ -551,11 +559,7 @@ private fun PrometheusMeterRegistry.tellKildesystem(
     }
 }
 
-private fun <E> OpenAPIPipelineResponseContext<E>.sjekkTilgangTilPerson(identifikatorer: List<String>) {
-    identifikatorer.forEach { kontrollerTilgang(it, token()) }
-}
-
-private fun kontrollerTilgang(personIdent: String, token: OidcToken) {
+private fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
     if (!token.isClientCredentials()) {
         val tilgang = TilgangGateway.harTilgangTilPerson(personIdent, token)
         if (!tilgang) {
