@@ -84,7 +84,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Henter perioder med vedtak for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
                 val azpName = azpName()
-                prometheus.httpCallCounter(
+                prometheus.httpRequestTeller(
                     "/perioder",
                     pipeline.call.audience(),
                     azpName ?: ""
@@ -124,7 +124,7 @@ fun NormalOpenAPIRoute.api(
             route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequestApiIntern>(
                 info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
-                prometheus.httpCallCounter(
+                prometheus.httpRequestTeller(
                     "/perioder/aktivitetfase",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -217,7 +217,7 @@ fun NormalOpenAPIRoute.api(
         route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { callIdHeader, requestBody ->
-            prometheus.httpCallCounter(
+            prometheus.httpRequestTeller(
                 "/sakerByFnr",
                 pipeline.call.audience(),
                 azpName() ?: ""
@@ -256,7 +256,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Sjekker om en person eksisterer i AAP-arena")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om person eksisterer i aap-arena")
-                prometheus.httpCallCounter(
+                prometheus.httpRequestTeller(
                     "/arena/person/aap/eksisterer",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -284,7 +284,7 @@ fun NormalOpenAPIRoute.api(
             info(description = "Henter saker for en person")
         ) { _, requestBody ->
             logger.info("Henter saker for en person fra Kelvin.")
-            prometheus.httpCallCounter(
+            prometheus.httpRequestTeller(
                 "/kelvin/sakerByFnr",
                 pipeline.call.audience(),
                 azpName() ?: ""
@@ -319,7 +319,7 @@ fun NormalOpenAPIRoute.api(
                     """.trimIndent()
                 )
             ) { callIdHeader, requestBody ->
-                prometheus.httpCallCounter(
+                prometheus.httpRequestTeller(
                     "/maksimumUtenUtbetaling",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -361,7 +361,7 @@ fun NormalOpenAPIRoute.api(
                 )
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
-                prometheus.httpCallCounter(
+                prometheus.httpRequestTeller(
                     "/maksimum",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -400,7 +400,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag.")
             ) { _, requestBody ->
                 logger.info("Henter maksimum uten utbetalinger fra kelvin")
-                prometheus.httpCallCounter(
+                prometheus.httpRequestTeller(
                     "/kelvin/maksimumUtenUtbetaling",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -433,7 +433,7 @@ fun NormalOpenAPIRoute.api(
                     deprecated = true
                 )
             ) { _, requestBody ->
-                prometheus.httpCallCounter(
+                prometheus.httpRequestTeller(
                     "/kelvin/behandling",
                     pipeline.call.audience(),
                     azpName() ?: ""
@@ -470,7 +470,7 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) { _, requestBody ->
                     logger.info("Henter vedtak fra DSOP")
-                    prometheus.httpCallCounter(
+                    prometheus.httpRequestTeller(
                         "/kelvin/dsop/vedtak",
                         pipeline.call.audience(),
                         azpName() ?: ""
@@ -497,7 +497,7 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) { _, requestBody ->
                     logger.info("Henter meldekort til DSOP")
-                    prometheus.httpCallCounter(
+                    prometheus.httpRequestTeller(
                         "/kelvin/dsop/meldekort",
                         pipeline.call.audience(),
                         azpName() ?: ""
