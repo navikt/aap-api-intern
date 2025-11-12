@@ -2,43 +2,53 @@ package no.nav.aap.api
 
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
-import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.OpenAPIPipelineResponseContext
 import com.papsign.ktor.openapigen.route.response.respond
-import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
-import io.ktor.http.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.withCharset
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
+import io.ktor.server.request.ApplicationRequest
+import io.ktor.server.request.path
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import java.time.LocalDate
+import java.util.UUID
+import javax.sql.DataSource
 import no.nav.aap.api.arena.IArenaoppslagRestClient
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.pdl.IPdlClient
-import no.nav.aap.api.postgres.*
+import no.nav.aap.api.postgres.BehandlingsRepository
+import no.nav.aap.api.postgres.DatadelingDTO
+import no.nav.aap.api.postgres.DsopMeldekortRespons
+import no.nav.aap.api.postgres.DsopRequest
+import no.nav.aap.api.postgres.DsopResponse
+import no.nav.aap.api.postgres.KelvinBehandlingStatus
+import no.nav.aap.api.postgres.KelvinSakStatus
+import no.nav.aap.api.postgres.Meldekort
+import no.nav.aap.api.postgres.MeldekortPerioderRepository
+import no.nav.aap.api.postgres.MeldekortService
+import no.nav.aap.api.postgres.SakStatusRepository
+import no.nav.aap.api.postgres.VedtakService
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest as ArenaSakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
-import no.nav.aap.komponenter.httpklient.httpclient.error.UhåndtertHttpResponsException
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.auth.audience
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
-import java.util.*
-import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -60,11 +70,6 @@ enum class Tag(override val description: String) : APITag {
     Maksimum("For å hente maksimumsløsning"),
     DSOP("For DSOP-relaterte endepunkter"),
 }
-
-data class SakerRequest(
-    @param:Description("Liste med personidentifikatorer. Må svare til samme person.")
-    val personidentifikatorer: List<String>
-)
 
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
@@ -88,7 +93,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /perioder")
                 }
 
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val tilArenaKontrakt = requestBody.tilKontrakt()
 
@@ -129,7 +134,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /perioder/aktivitetfase")
                 }
 
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val tilArenaKontrakt = requestBody.tilKontrakt()
                 val arenaSvar = arena.hentPerioderInkludert11_17(callId, tilArenaKontrakt)
 
@@ -161,7 +166,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { _, requestBody ->
 
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val perioder = dataSource.transaction { connection ->
                     val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
@@ -181,7 +186,7 @@ fun NormalOpenAPIRoute.api(
         ) { _, requestBody ->
 
             val personIdentifikator = requestBody.personidentifikator
-            sjekkTilgangTilPerson(listOf(personIdentifikator))
+            sjekkTilgangTilPerson(personIdentifikator, token())
 
             val meldekortListe = dataSource.transaction { connection ->
                 val meldekortService = MeldekortService(connection, pdlClient)
@@ -222,7 +227,11 @@ fun NormalOpenAPIRoute.api(
                 logger.info("CallID ble ikke gitt på kall mot: /sakerByFnr")
             }
 
-            sjekkTilgangTilPerson(requestBody.personidentifikatorer)
+            /*
+            * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
+            * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
+            */
+            sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
             val kelvinSaker: List<SakStatus> =
@@ -233,7 +242,7 @@ fun NormalOpenAPIRoute.api(
                     }
                 }
             val arenaSaker: List<SakStatus> =
-                arena.hentSakerByFnr(callId, SakerRequest(personIdenter)).map {
+                arena.hentSakerByFnr(callId, ArenaSakerRequest(personIdenter)).map {
                     arenaSakStatusTilDomene(it)
                 }
 
@@ -264,7 +273,7 @@ fun NormalOpenAPIRoute.api(
                     PersonEksistererIAAPArena(
                         arena.hentPersonEksistererIAapContext(
                             callId,
-                            SakerRequest(requestBody.personidentifikatorer)
+                            ArenaSakerRequest(requestBody.personidentifikatorer)
                         ).eksisterer
                     )
                 )
@@ -281,7 +290,11 @@ fun NormalOpenAPIRoute.api(
                 azpName() ?: ""
             ).increment()
 
-            sjekkTilgangTilPerson(requestBody.personidentifikatorer)
+            /*
+            * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
+            * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
+            */
+            sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
             val kelvinSaker: List<SakStatus> =
@@ -315,7 +328,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimumUtenUtbetaling")
                 }
                 val body = requestBody.tilKontrakt()
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -357,7 +370,7 @@ fun NormalOpenAPIRoute.api(
                     logger.info("CallID ble ikke gitt på kall mot: /maksimum")
                 }
                 val body = requestBody.tilKontrakt()
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -393,7 +406,7 @@ fun NormalOpenAPIRoute.api(
                     azpName() ?: ""
                 ).increment()
 
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val tilArenaKontrakt = requestBody.tilKontrakt()
 
@@ -426,7 +439,7 @@ fun NormalOpenAPIRoute.api(
                     azpName() ?: ""
                 ).increment()
 
-                sjekkTilgangTilPerson(listOf(requestBody.personidentifikator))
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val tilArenaKontrakt = requestBody.tilKontrakt()
 
@@ -464,7 +477,7 @@ fun NormalOpenAPIRoute.api(
                     ).increment()
                     val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
-                    sjekkTilgangTilPerson(listOf(requestBody.personIdent))
+                    sjekkTilgangTilPerson(requestBody.personIdent, token())
 
                     val kelvinVedtak = dataSource.transaction { connection ->
                         val behandlingsRepository = BehandlingsRepository(connection)
@@ -491,7 +504,7 @@ fun NormalOpenAPIRoute.api(
                     ).increment()
                     val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
-                    sjekkTilgangTilPerson(listOf(requestBody.personIdent))
+                    sjekkTilgangTilPerson(requestBody.personIdent, token())
 
                     val meldekortListe = dataSource.transaction { connection ->
                         val meldekortService = MeldekortService(connection, pdlClient)
@@ -529,7 +542,7 @@ private fun PrometheusMeterRegistry.tellKelvinKall(request: ApplicationRequest) 
 private fun PrometheusMeterRegistry.tellKildesystem(
     kelvinData: List<*>?,
     arenaData: List<*>?,
-    path: String
+    path: String,
 ) {
     if (!kelvinData.isNullOrEmpty()) {
         this.kildesystemTeller("kelvin", path).increment()
@@ -545,30 +558,13 @@ private fun PrometheusMeterRegistry.tellKildesystem(
     }
 }
 
-private suspend inline fun <reified E : Any> OpenAPIPipelineResponseContext<E>.sjekkTilgangTilPerson(
-    identifikatorer: List<String>,
-) {
-    try {
-        if (!harTilgangTilPerson(identifikatorer.first(), token())) {
-            respondWithStatus(HttpStatusCode.Forbidden)
-        }
-    } catch (e: UhåndtertHttpResponsException) {
-        if(e.message?.contains("408")==true){
-            respondWithStatus(HttpStatusCode.RequestTimeout)
-            logger.error("Timeout mot tilgang: ${e.message}")
-        }
-    }
-}
-
-private fun harTilgangTilPerson(personIdent: String, token: OidcToken): Boolean {
+private fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
     if (!token.isClientCredentials()) {
         val tilgang = TilgangGateway.harTilgangTilPerson(personIdent, token)
         if (!tilgang) {
-            logger.warn("Tilgang avslått på kall med obo-token mot endepunkt")
-            return false
+            throw IngenTilgangException("Har ikke tilgang til person")
         }
     }
-    return true
 }
 
 private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus) =
@@ -602,7 +598,7 @@ private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.
 
 private fun hentAllePersonidenter(
     identerFraRequest: List<String>,
-    pdlClient: IPdlClient
+    pdlClient: IPdlClient,
 ): List<String> {
     // Arena har testbrukere som ikke ligger i PDL
     if (Miljø.erDev()) {
@@ -624,26 +620,11 @@ private fun OpenAPIPipelineResponseContext<*>.azpName(): String? =
         it.payload.claims["azp_name"]?.asString()
     }
 
-fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
-    route("/actuator") {
-        get("/metrics") {
-            call.respondText(prometheus.scrape())
-        }
-        get("/live") {
-            call.respond(HttpStatusCode.OK, "api")
-        }
-        get("/ready") {
-            call.respond(HttpStatusCode.OK, "api")
-        }
-    }
-}
-
-
 fun utledVedtakStatus(
     behandlingStatus: KelvinBehandlingStatus,
     sakStatus: KelvinSakStatus,
     periode: Periode,
-    nå: LocalDate = LocalDate.now()
+    nå: LocalDate = LocalDate.now(),
 ): String =
     if (
         behandlingStatus == KelvinBehandlingStatus.IVERKSETTES ||
@@ -665,3 +646,5 @@ fun InternVedtakRequestApiIntern.tilKontrakt(): InternVedtakRequest {
         tilOgMedDato = tilOgMedDato ?: LocalDate.of(9999, 12, 31)
     )
 }
+
+class IngenTilgangException(message: String) : RuntimeException(message)

@@ -1,5 +1,7 @@
 package no.nav.aap.api
 
+import java.net.URI
+import java.time.Duration
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -9,9 +11,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureOBOTokenProvider
 import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
-import java.net.URI
-import java.time.Duration
-import kotlin.io.resolve
 
 object TilgangGateway {
     private val baseUrl = URI.create(requiredConfigForKey("integrasjon.tilgang.url"))

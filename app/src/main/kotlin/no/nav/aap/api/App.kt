@@ -34,6 +34,8 @@ import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import javax.sql.DataSource
+import no.nav.aap.api.actuator.actuator
+import no.nav.aap.api.util.StatusPagesConfigHelper
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -72,46 +74,7 @@ fun Application.api(
 
     ProducerHolder.setProducer(modiaProducer)
 
-    install(StatusPages) {
-        exception<Throwable> { call, cause ->
-            when (cause) {
-                is DeserializationException -> {
-                    logger.warn(
-                        "Feil ved deserialisering av request til '{}'. Type: ${cause.javaClass}",
-                        call.request.local.uri,
-                        cause
-                    )
-                    call.respondText(
-                        text = "Feil i mottatte data: ${cause.message}",
-                        status = HttpStatusCode.BadRequest
-                    )
-                }
-
-                is IllegalArgumentException -> {
-                    logger.warn(
-                        "Valideringsfeil ved kall til '{}'. Type: ${cause.javaClass}",
-                        call.request.local.uri,
-                        cause
-                    )
-                    call.respondText(
-                        "Valideringsfeil. ${cause.message}", status = HttpStatusCode.BadRequest
-                    )
-                }
-
-                else -> {
-                    logger.error(
-                        "Uhåndtert feil ved kall til '{}'. Type: $cause",
-                        call.request.local.uri,
-                        cause
-                    )
-                    call.respondText(
-                        text = "Feil i tjeneste: ${cause.message}",
-                        status = HttpStatusCode.InternalServerError
-                    )
-                }
-            }
-        }
-    }
+    install(StatusPages, StatusPagesConfigHelper.setup())
 
     commonKtorModule(
         prometheus = prometheus, azureConfig = AzureConfig(), infoModel = InfoModel(
