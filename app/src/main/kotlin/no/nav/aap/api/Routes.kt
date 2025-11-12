@@ -40,7 +40,7 @@ import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest as ArenaSakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -239,7 +239,7 @@ fun NormalOpenAPIRoute.api(
                     }
                 }
             val arenaSaker: List<SakStatus> =
-                arena.hentSakerByFnr(callId, SakerRequest(personIdenter)).map {
+                arena.hentSakerByFnr(callId, ArenaSakerRequest(personIdenter)).map {
                     arenaSakStatusTilDomene(it)
                 }
 
@@ -270,7 +270,7 @@ fun NormalOpenAPIRoute.api(
                     PersonEksistererIAAPArena(
                         arena.hentPersonEksistererIAapContext(
                             callId,
-                            SakerRequest(requestBody.personidentifikatorer)
+                            ArenaSakerRequest(requestBody.personidentifikatorer)
                         ).eksisterer
                     )
                 )
