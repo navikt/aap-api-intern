@@ -157,7 +157,6 @@ fun NormalOpenAPIRoute.api(
                 )
             }
 
-            // FIXME bør ha et mer spesifikt navn enn meldekort, f.eks. meldekortperioder
             route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequestApiIntern>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { _, requestBody ->
