@@ -16,12 +16,7 @@ abstract class PostgresTestBase {
 
     }
 
-    fun countSaker(): Int? =
-        dataSource.transaction { con ->
-            con.queryFirstOrNull("SELECT count(*) as nr FROM SAKER"){
-                setRowMapper { row -> row.getInt("nr") }
-            }
-        }
+
 
     fun countMeldekortEntries(): Int? =
         dataSource.transaction { con ->
