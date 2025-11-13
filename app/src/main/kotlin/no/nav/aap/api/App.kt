@@ -6,10 +6,12 @@ import com.papsign.ktor.openapigen.route.apiRouting
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.request.path
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.core.instrument.Counter
@@ -30,6 +32,7 @@ import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.komponenter.server.AZURE
+import no.nav.aap.komponenter.server.auth.audience
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -45,12 +48,18 @@ fun main() {
     embeddedServer(Netty, port = 8080, module = Application::api).start(wait = true)
 }
 
-fun PrometheusMeterRegistry.httpCallCounter(
-    path: String, audience: String, azpName: String
-): Counter = this.counter(
-    "http_call",
-    listOf(Tag.of("path", path), Tag.of("audience", audience), Tag.of("azp_name", azpName))
-)
+fun PrometheusMeterRegistry.httpRequestTeller(pipeline: RoutingContext) {
+    val path = pipeline.call.request.path()
+    val audience = pipeline.call.audience()
+    val azpName = pipeline.call.principal<JWTPrincipal>()?.let {
+        it.payload.claims["azp_name"]?.asString()
+    } ?: ""
+    this.counter(
+        "http_call",
+        listOf(Tag.of("path", path), Tag.of("audience", audience), Tag.of("azp_name", azpName))
+        ).increment()
+}
+
 
 fun PrometheusMeterRegistry.kildesystemTeller(kildesystem: String, path: String): Counter =
     this.counter(

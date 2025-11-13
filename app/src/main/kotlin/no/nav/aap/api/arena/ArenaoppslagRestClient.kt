@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.benmanes.caffeine.cache.Caffeine
+import dev.hsbrysk.caffeine.buildCoroutine
 import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -65,6 +67,20 @@ class ArenaoppslagRestClient(
     ): PersonEksistererIAAPArena = gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
         "/intern/person/aap/eksisterer", callId, req
     ).getOrThrow()
+
+    private val personKanBehandlesIKelvinCache = Caffeine.newBuilder()
+        .expireAfterWrite(Duration.ofHours(1))
+        .maximumSize(100_000)
+        .buildCoroutine<SakerRequest, PersonKanBehandlesIKelvinResponse>()
+
+    override suspend fun personKanBehandlesIKelvin(
+        callId: String,
+        req: SakerRequest
+    ): PersonKanBehandlesIKelvinResponse = personKanBehandlesIKelvinCache.get(req, {
+        gjørArenaOppslag<PersonKanBehandlesIKelvinResponse, SakerRequest>(
+            "/person/aap/soknad/kan_behandles_i_kelvin", callId, req
+        ).getOrThrow()
+    })
 
     override suspend fun hentSakerByFnr(
         callId: String, req: SakerRequest

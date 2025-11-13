@@ -4,6 +4,7 @@ import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
+import no.nav.aap.arenaoppslag.kontrakt.intern.PersonKanBehandlesIKelvinResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 
@@ -18,6 +19,11 @@ interface IArenaoppslagRestClient {
         callId: String,
         req: SakerRequest
     ): PersonEksistererIAAPArena
+
+    suspend fun personKanBehandlesIKelvin(
+        callId: String,
+        req: SakerRequest
+    ): PersonKanBehandlesIKelvinResponse
 
     suspend fun hentSakerByFnr(
         callId: String,
