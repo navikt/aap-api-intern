@@ -14,17 +14,39 @@ import no.nav.aap.api.api
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.api.kelvin.SakStatusKelvin
-import no.nav.aap.api.util.*
+import no.nav.aap.api.util.AzureTokenGen
+import no.nav.aap.api.util.Fakes
+import no.nav.aap.api.util.MockedArenaClient
+import no.nav.aap.api.util.PdlClientEmpty
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
+import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import java.time.LocalDate
 
-class SakStatusKelvinTest : PostgresTestBase() {
+@Execution(ExecutionMode.SAME_THREAD)
+class SakStatusKelvinTest {
+
+    private lateinit var dataSource: TestDataSource
+
+    @BeforeEach
+    fun setup() {
+        dataSource = TestDataSource()
+    }
+
+    @AfterEach
+    fun tearDown() = dataSource.close()
+
+
     companion object {
         val kelvinSak = SakStatusKelvin(
             ident = "12345678910",
@@ -102,4 +124,11 @@ class SakStatusKelvinTest : PostgresTestBase() {
                     }
                 }
             }
+
+    fun countSaker(): Int? =
+        dataSource.transaction { con ->
+            con.queryFirstOrNull("SELECT count(*) as nr FROM SAKER") {
+                setRowMapper { row -> row.getInt("nr") }
+            }
+        }
 }
