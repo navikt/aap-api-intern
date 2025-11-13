@@ -20,8 +20,8 @@ object TestConfig {
         issuer = "test",
     )
 
-    fun default(fakes: Fakes): Config {
-        return Config(
+    fun default(fakes: Fakes): AppConfig {
+        return AppConfig(
             arenaoppslag = ArenaoppslagConfig(
                 proxyBaseUrl = "",
                 scope = "api://dev-fss.teamdokumenthandtering.dokarkiv/.default"

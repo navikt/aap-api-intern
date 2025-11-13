@@ -21,6 +21,7 @@ spec:
     requests:
       cpu: 500m
       memory: 4Gi
+  terminationGracePeriodSeconds: 30
   azure:
     application:
       enabled: true

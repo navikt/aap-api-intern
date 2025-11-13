@@ -19,7 +19,7 @@ private val postgresConfig = Properties().apply {
     put("assumeMinServerVersion", "16.0") // raskere oppstart av driver
 }
 
-fun initDatasource(dbConfig: DbConfig, prometheus: PrometheusMeterRegistry): DataSource =
+fun initDatasource(dbConfig: DbConfig, prometheus: PrometheusMeterRegistry): HikariDataSource =
     HikariDataSource(HikariConfig().apply {
         jdbcUrl = dbConfig.url
         username = dbConfig.username

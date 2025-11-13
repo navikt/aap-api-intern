@@ -3,6 +3,7 @@ package no.nav.aap.api
 import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
+import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -10,7 +11,6 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Tag
@@ -28,21 +28,33 @@ import no.nav.aap.api.postgres.initDatasource
 import no.nav.aap.api.util.registerCircuitBreakerMetrics
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import no.nav.aap.komponenter.json.DeserializationException
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
-import javax.sql.DataSource
 import no.nav.aap.api.actuator.actuator
 import no.nav.aap.api.util.StatusPagesConfigHelper
+import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
 fun main() {
-    Thread.currentThread()
-        .setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.javaClass}", e) }
-    embeddedServer(Netty, port = 8080, module = Application::api).start(wait = true)
+    Thread.currentThread().setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.javaClass}", e) }
+
+    embeddedServer(Netty, configure = {
+        // Vi følger ktor sin metodikk for å regne ut tuning parametre som funksjon av parallellitet
+        // https://github.com/ktorio/ktor/blob/3.3.2/ktor-server/ktor-server-core/common/src/io/ktor/server/engine/ApplicationEngine.kt#L30
+        connectionGroupSize = AppConfig.ktorParallellitet / 2 + 1
+        workerGroupSize = AppConfig.ktorParallellitet / 2 + 1
+        callGroupSize = AppConfig.ktorParallellitet
+
+        shutdownGracePeriod = AppConfig.shutdownGracePeriod.inWholeMilliseconds
+        shutdownTimeout = AppConfig.shutdownTimeout.inWholeMilliseconds
+
+        connector {
+            port = 8080
+        }
+    }, module = Application::api).start(wait = true)
 }
 
 fun PrometheusMeterRegistry.httpCallCounter(
@@ -59,7 +71,7 @@ fun PrometheusMeterRegistry.kildesystemTeller(kildesystem: String, path: String)
 
 fun Application.api(
     prometheus: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
-    config: Config = Config(),
+    config: AppConfig = AppConfig(),
     datasource: DataSource = initDatasource(config.dbConfig, prometheus),
     arenaRestClient: IArenaoppslagRestClient = ArenaoppslagRestClient(
         config.arenaoppslag, config.azure
@@ -100,5 +112,24 @@ fun Application.api(
             }
         }
         actuator(prometheus)
+    }
+
+    monitor.subscribe(ApplicationStarted) { environment ->
+        environment.log.info("ktor har startet opp.")
+    }
+    monitor.subscribe(ApplicationStopPreparing) { environment ->
+        environment.log.info("ktor forbereder seg på å stoppe.")
+    }
+    monitor.subscribe(ApplicationStopping) { environment ->
+        environment.log.info("ktor stopper nå å ta imot nye requester, og lar mottatte requester kjøre frem til timeout.")
+    }
+    monitor.subscribe(ApplicationStopped) { environment ->
+        environment.log.info("ktor har fullført nedstoppingen sin. Eventuelle requester og annet arbeid som ikke ble fullført innen timeout ble avbrutt.")
+        try {
+            modiaProducer.close()
+            (datasource as? HikariDataSource)?.close()
+        } catch (_: Exception) {
+            // Ignorert
+        }
     }
 }
