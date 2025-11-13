@@ -6,7 +6,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.komponenter.type.Periode
 
-fun DatadelingDTO.tilDomene(): no.nav.aap.api.postgres.DatadelingDTO {
+fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgres.DatadelingDTO {
     return no.nav.aap.api.postgres.DatadelingDTO(
         underveisperiode = this.underveisperiode.map { it.tilDomene() },
         rettighetsPeriodeFom = this.rettighetsPeriodeFom,
@@ -20,7 +20,8 @@ fun DatadelingDTO.tilDomene(): no.nav.aap.api.postgres.DatadelingDTO {
         behandlingsReferanse = this.behandlingsReferanse,
         samId = this.samId,
         vedtakId = this.vedtakId,
-        beregningsgrunnlag = this.beregningsgrunnlag
+        beregningsgrunnlag = this.beregningsgrunnlag,
+        nyttVedtak = nyttVedtak
     )
 }
 

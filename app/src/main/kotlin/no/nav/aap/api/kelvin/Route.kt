@@ -79,14 +79,14 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, modiaKafkaProducer:
         ) { _, body ->
             val nyttVedtak = dataSource.transaction { connection ->
                 val behandlingsRepository = BehandlingsRepository(connection)
-                val tidligereVedtak = behandlingsRepository.hentVedtaksData(
+                val nyttVedtak = behandlingsRepository.hentVedtaksData(
                     body.sak.fnr.first(),
                     no.nav.aap.komponenter.type.Periode(
                         LocalDate.now().minusYears(100),
                         LocalDate.now().plusYears(1000))
                 ).isEmpty()
-                behandlingsRepository.lagreBehandling(body.tilDomene())
-                tidligereVedtak
+                behandlingsRepository.lagreBehandling(body.tilDomene(nyttVedtak))
+                nyttVedtak
             }
 
             try {

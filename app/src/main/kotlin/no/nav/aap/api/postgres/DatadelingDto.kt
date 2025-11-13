@@ -18,7 +18,8 @@ data class DatadelingDTO(
     val behandlingsReferanse: String,
     val samId: String? = null,
     val vedtakId: Long,
-    val beregningsgrunnlag: BigDecimal
+    val beregningsgrunnlag: BigDecimal,
+    val nyttVedtak: Boolean
 )
 
 
