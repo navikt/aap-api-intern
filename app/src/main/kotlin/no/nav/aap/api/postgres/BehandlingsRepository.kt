@@ -202,7 +202,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     },
                     virkningsperiode = Periode(rettighetsTypePeriode.fom,rettighetsTypePeriode.tom),
                     utfall = "JA",
-                    aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi)
+                    aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi),
+                    vedtaksType = if (it.nyttVedtak) "O" else "E",
                 )
             }
         }
@@ -270,6 +271,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     vedtakId = behandling.vedtakId ?: 0L,
                     beregningsgrunnlag = hentBeregningsGrunnlag(behandling.id)
                         ?: BigDecimal.ZERO, // TODO!!!
+                    nyttVedtak = behandling.førstegangsbehandling
                 )
             }
         }
@@ -332,7 +334,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     opprettetTidspunkt = row.getLocalDate("OPPRETTET_TID"),
                     behandlingReferanse = row.getString("BEHANDLING_REFERANSE"),
                     samid = row.getStringOrNull("SAMID"),
-                    vedtakId = row.getLongOrNull("VEDTAKID")
+                    vedtakId = row.getLongOrNull("VEDTAKID"),
+                    førstegangsbehandling = row.getBoolean("NYTT_VEDTAK")
                 )
             }
         }
@@ -407,7 +410,8 @@ data class BehandlingDB(
     val opprettetTidspunkt: LocalDate,
     val behandlingReferanse: String,
     val samid: String? = null,
-    val vedtakId: Long? = null
+    val vedtakId: Long? = null,
+    val førstegangsbehandling: Boolean
 )
 
 /**
@@ -511,7 +515,8 @@ data class DsopVedtak(
     val virkningsperiode: Periode,
     val rettighetsType:String = "AAP",
     val utfall: String = "JA",
-    val aktivitetsfase: RettighetsType
+    val aktivitetsfase: RettighetsType,
+    val vedtaksType: String,
 )
 
 enum class DsopStatus {
