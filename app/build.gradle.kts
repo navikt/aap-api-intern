@@ -13,7 +13,7 @@ application {
 
 val komponenterVersjon = "1.0.435"
 val ktorVersion = "3.3.2"
-val tilgangVersjon = "1.0.155"
+val tilgangVersjon = "1.0.156"
 val behandlingsflytversjon = "0.0.484"
 val arenaOppslagVersjon = "0.0.38"
 val resilience4jVersion = "2.3.0"
