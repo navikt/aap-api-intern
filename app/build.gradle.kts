@@ -50,9 +50,9 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-    implementation("org.apache.kafka:kafka-clients:4.1.0")
-    implementation("org.flywaydb:flyway-core:11.16.0")
-    implementation("ch.qos.logback:logback-classic:1.5.20")
+    implementation("org.apache.kafka:kafka-clients:4.1.1")
+    implementation("org.flywaydb:flyway-core:11.17.0")
+    implementation("ch.qos.logback:logback-classic:1.5.21")
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
     implementation("com.nimbusds:nimbus-jose-jwt:10.6")
