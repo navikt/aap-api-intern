@@ -2,10 +2,10 @@ package no.nav.aap.api
 
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
+import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
-import com.papsign.ktor.openapigen.route.response.OpenAPIPipelineResponseContext
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
@@ -13,10 +13,9 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.withCharset
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.path
+import io.ktor.server.routing.RoutingContext
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import java.time.LocalDate
 import java.util.UUID
@@ -40,12 +39,12 @@ import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.PersonKanBehandlesIKelvinResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest as ArenaSakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.miljo.Miljø
-import no.nav.aap.komponenter.server.auth.audience
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory

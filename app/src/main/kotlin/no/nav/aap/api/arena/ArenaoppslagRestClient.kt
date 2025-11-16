@@ -62,25 +62,27 @@ class ArenaoppslagRestClient(
         "/intern/perioder/11-17", callId, req
     ).getOrThrow()
 
+    private val personEksistereriAAPArenaCache = Caffeine.newBuilder()
+        .expireAfterWrite(Duration.ofHours(1))
+        .maximumSize(10_000)
+        .buildCoroutine<SakerRequest, PersonEksistererIAAPArena>()
+
     override suspend fun hentPersonEksistererIAapContext(
         callId: String, req: SakerRequest,
-    ): PersonEksistererIAAPArena = gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
-        "/intern/person/aap/eksisterer", callId, req
-    ).getOrThrow()
-
-    private val personKanBehandlesIKelvinCache = Caffeine.newBuilder()
-        .expireAfterWrite(Duration.ofHours(1))
-        .maximumSize(100_000)
-        .buildCoroutine<SakerRequest, PersonKanBehandlesIKelvinResponse>()
+    ): PersonEksistererIAAPArena =
+        personEksistereriAAPArenaCache.get(req, {
+            gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
+                "/intern/person/aap/eksisterer", callId, req
+            ).getOrThrow()
+        })
 
     override suspend fun personKanBehandlesIKelvin(
         callId: String,
         req: SakerRequest
-    ): PersonKanBehandlesIKelvinResponse = personKanBehandlesIKelvinCache.get(req, {
+    ): PersonKanBehandlesIKelvinResponse =
         gjørArenaOppslag<PersonKanBehandlesIKelvinResponse, SakerRequest>(
             "/person/aap/soknad/kan_behandles_i_kelvin", callId, req
         ).getOrThrow()
-    })
 
     override suspend fun hentSakerByFnr(
         callId: String, req: SakerRequest

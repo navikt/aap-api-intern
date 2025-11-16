@@ -72,7 +72,6 @@ fun PrometheusMeterRegistry.httpRequestTeller(pipeline: RoutingContext) {
         ).increment()
 }
 
-
 fun PrometheusMeterRegistry.kildesystemTeller(kildesystem: String, path: String): Counter =
     this.counter(
         "api_intern_kildesystem", listOf(Tag.of("kildesystem", kildesystem), Tag.of("path", path))
