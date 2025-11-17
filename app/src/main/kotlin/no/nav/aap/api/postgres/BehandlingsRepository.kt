@@ -203,7 +203,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     virkningsperiode = Periode(rettighetsTypePeriode.fom,rettighetsTypePeriode.tom),
                     utfall = "JA",
                     aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi),
-                    vedtaksType = if (it.nyttVedtak) "O" else "E",
+                    vedtaksType = if (it.nyttVedtak) VedtaksType.O else VedtaksType.E,
                 )
             }
         }
@@ -516,8 +516,13 @@ data class DsopVedtak(
     val rettighetsType:String = "AAP",
     val utfall: String = "JA",
     val aktivitetsfase: RettighetsType,
-    val vedtaksType: String,
+    val vedtaksType: VedtaksType,
 )
+
+enum class VedtaksType(description: String) {
+    O("NY RETTIGHET"),
+    E("ENDRING I RETTIGHET")
+}
 
 enum class DsopStatus {
     LØPENDE,
