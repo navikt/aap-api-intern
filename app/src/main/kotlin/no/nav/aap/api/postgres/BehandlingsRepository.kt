@@ -516,7 +516,11 @@ data class DsopVedtak(
     val rettighetsType:String = "AAP",
     val utfall: String = "JA",
     val aktivitetsfase: RettighetsType,
+<<<<<<< HEAD
     val vedtaksType: VedtaksType,
+=======
+    val vedtaksType: String,
+>>>>>>> d47b3a2 (vedtaks type)
 )
 
 enum class VedtaksType(description: String) {
