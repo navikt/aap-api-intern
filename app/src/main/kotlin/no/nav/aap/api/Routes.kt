@@ -451,7 +451,10 @@ fun NormalOpenAPIRoute.api(
 
                     val kelvinVedtak = dataSource.transaction { connection ->
                         val behandlingsRepository = BehandlingsRepository(connection)
-                        behandlingsRepository.hentDsopVedtak(requestBody.personIdent, utrekksperiode)
+                        behandlingsRepository.hentDsopVedtak(
+                            requestBody.personIdent,
+                            utrekksperiode
+                        )
                     }
 
                     respond(
@@ -588,7 +591,7 @@ fun utledVedtakStatus(
     nå: LocalDate = LocalDate.now(),
 ): String =
     if (
-        behandlingStatus == KelvinBehandlingStatus.IVERKSETTES ||
+        (behandlingStatus.iverksatt() && sakStatus != KelvinSakStatus.AVSLUTTET) ||
         periode.tom.isAfter(nå) ||
         sakStatus != KelvinSakStatus.AVSLUTTET
     ) {

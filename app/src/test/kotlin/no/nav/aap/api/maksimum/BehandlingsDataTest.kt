@@ -1,9 +1,5 @@
 package no.nav.aap.api.maksimum
 
-import no.nav.aap.api.TestConfig
-import no.nav.aap.api.api
-import no.nav.aap.api.kelvin.tilDomene
-import no.nav.aap.api.util.*
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
@@ -14,10 +10,14 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
+import no.nav.aap.api.TestConfig
+import no.nav.aap.api.api
 import no.nav.aap.api.intern.InternVedtakRequestApiIntern
 import no.nav.aap.api.intern.Maksimum
 import no.nav.aap.api.intern.Medium
 import no.nav.aap.api.intern.PerioderResponse
+import no.nav.aap.api.kelvin.tilDomene
+import no.nav.aap.api.util.*
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
@@ -157,7 +157,7 @@ class BehandlingsDataTest : PostgresTestBase() {
 
             assertEquals(HttpStatusCode.OK, res.status)
             val perioder = countTilkjentPerioder()
-            assert(perioder > 0)
+            assertThat(perioder).isGreaterThan(0)
 
             val maksimumResponseM2m = jsonHttpClient.post("/maksimum") {
                 bearerAuth(azure.generate(isApp = true))
@@ -250,11 +250,11 @@ class BehandlingsDataTest : PostgresTestBase() {
                 )
             }
 
-            val res1 = settInnVedtak(
+            settInnVedtak(
                 azure, Periode(LocalDate.now().minusYears(2), LocalDate.now().minusYears(1)),
                 fnr
             )
-            val res2 = settInnVedtak(
+            settInnVedtak(
                 azure, Periode(LocalDate.now().minusYears(5), LocalDate.now().minusYears(1)),
                 fnr
             )
@@ -445,7 +445,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     )
                 )
             }
-            assertEquals(HttpStatusCode.OK, mediumResponseM2m.status)
+            assertThat(mediumResponseM2m.status).isEqualTo(HttpStatusCode.OK)
             val body = mediumResponseM2m.body<Medium>()
             assertThat(body.vedtak).hasSize(4)
 

@@ -75,4 +75,8 @@ enum class KelvinBehandlingStatus {
     UTREDES,
     IVERKSETTES,
     AVSLUTTET;
+
+    fun iverksatt() =
+        this == IVERKSETTES || this == AVSLUTTET
+
 }
