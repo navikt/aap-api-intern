@@ -11,11 +11,11 @@ import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
+import no.nav.aap.api.intern.ArenaStatusResponse
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.MockedArenaClient
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonKanBehandlesIKelvinResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
@@ -80,9 +80,9 @@ class ArenaOppslagTest {
             }
             assertThat(res).isNotNull()
             assertThat(res.status).isEqualTo(HttpStatusCode.OK)
-            val parsedBody = res.body<PersonKanBehandlesIKelvinResponse>()
+            val parsedBody = res.body<ArenaStatusResponse>()
             assertThat(parsedBody).isNotNull
-            assertThat(parsedBody.kanBehandles).isFalse // forventet respons fra MockedArenaClient
+            assertThat(parsedBody.kanBehandlesIKelvin).isFalse // forventet respons fra MockedArenaClient
         }
     }
 
