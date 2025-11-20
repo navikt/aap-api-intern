@@ -39,7 +39,6 @@ import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonKanBehandlesIKelvinResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest as ArenaSakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -267,15 +266,16 @@ fun NormalOpenAPIRoute.api(
             }
         }
         route("/arena/person/aap/soknad/kan_behandles_i_kelvin") {
-            post<CallIdHeader, PersonKanBehandlesIKelvinResponse, SakerRequest>(
+            post<CallIdHeader, ArenaStatusResponse, SakerRequest>(
                 info(description = "Sjekker om en person kan behandles i Kelvin mtp. Arena-historikken deres")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om personen kan behandles i Kelvin")
                 val callId = receiveCall(prometheus, "/arena/person/aap/soknad/kan_behandles_i_kelvin", callIdHeader, pipeline)
 
-                val kanBehandleSoknadIKelvin = arena.personKanBehandlesIKelvin(callId, ArenaSakerRequest(requestBody.personidentifikatorer))
+                val arenaResponse = arena.personKanBehandlesIKelvin(callId, ArenaSakerRequest(requestBody.personidentifikatorer))
+                val response = ArenaStatusResponse(arenaResponse.kanBehandles, arenaResponse.nyesteArenaSakId)
 
-                respond(kanBehandleSoknadIKelvin)
+                respond(response)
             }
         }
 
