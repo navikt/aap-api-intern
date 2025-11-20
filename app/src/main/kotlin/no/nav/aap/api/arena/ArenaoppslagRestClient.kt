@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.benmanes.caffeine.cache.Caffeine
-import dev.hsbrysk.caffeine.buildCoroutine
 import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -62,19 +60,12 @@ class ArenaoppslagRestClient(
         "/intern/perioder/11-17", callId, req
     ).getOrThrow()
 
-    private val personEksistereriAAPArenaCache = Caffeine.newBuilder()
-        .expireAfterWrite(Duration.ofHours(1))
-        .maximumSize(10_000)
-        .buildCoroutine<SakerRequest, PersonEksistererIAAPArena>()
-
     override suspend fun hentPersonEksistererIAapContext(
         callId: String, req: SakerRequest,
     ): PersonEksistererIAAPArena =
-        personEksistereriAAPArenaCache.get(req, {
-            gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
-                "/intern/person/aap/eksisterer", callId, req
-            ).getOrThrow()
-        })
+        gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
+            "/intern/person/aap/eksisterer", callId, req
+        ).getOrThrow()
 
     override suspend fun personKanBehandlesIKelvin(
         callId: String,
