@@ -39,7 +39,7 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
         #  Ha denne tidlig, så action kan skippe raskt om ingen endringer.
