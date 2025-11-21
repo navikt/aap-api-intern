@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("api-intern.conventions")
     id("io.ktor.plugin") version "3.3.2"
-    id("org.flywaydb.flyway") version "11.17.0"
+    id("org.flywaydb.flyway") version "11.17.1"
     application
 }
 
