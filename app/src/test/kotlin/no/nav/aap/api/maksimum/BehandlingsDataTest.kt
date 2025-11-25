@@ -516,7 +516,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                 contentType(ContentType.Application.Json)
                 setBody(
                     InternVedtakRequest(
-                        "01410038710",
+                        "01410026747",
                         LocalDate.now().minusYears(0),
                         LocalDate.now().plusMonths(1)
                     )
@@ -525,11 +525,15 @@ class BehandlingsDataTest : PostgresTestBase() {
             assertThat(maksimumRespons.status).isEqualTo(HttpStatusCode.OK)
 
             val uthentetFraApi = maksimumRespons.body<Maksimum>()
-            assertThat(uthentetFraApi.vedtak).hasSize(1)
+            println(DefaultJsonMapper.toJson(uthentetFraApi))
+            assertThat(uthentetFraApi.vedtak).hasSize(2)
 
             val forventetResultatFraResources =
                 javaClass.getResource("/forstegangsvedtak_fra_api.json")!!.readText()
             val forventet = DefaultJsonMapper.fromJson<Maksimum>(forventetResultatFraResources)
+
+            println(DefaultJsonMapper.toJson(uthentetFraApi))
+
 
             assertThat(uthentetFraApi).usingRecursiveComparison().isEqualTo(forventet)
         }
