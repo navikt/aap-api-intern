@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("api-intern.conventions")
     id("io.ktor.plugin") version "3.3.2"
-    id("org.flywaydb.flyway") version "11.17.1"
+    id("org.flywaydb.flyway") version "11.17.2"
     application
 }
 
@@ -12,7 +12,7 @@ application {
 }
 
 val komponenterVersjon = "1.0.447"
-val ktorVersion = "3.3.2"
+val ktorVersion = "3.3.3"
 val tilgangVersjon = "1.0.164"
 val behandlingsflytversjon = "0.0.492"
 val arenaOppslagVersjon = "0.0.40"
