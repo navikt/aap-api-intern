@@ -2,8 +2,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("api-intern.conventions")
-    id("io.ktor.plugin") version "3.3.2"
-    id("org.flywaydb.flyway") version "11.17.1"
+    id("io.ktor.plugin") version "3.3.3"
+    id("org.flywaydb.flyway") version "11.17.2"
     application
 }
 
@@ -51,7 +51,7 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     implementation("org.apache.kafka:kafka-clients:4.1.1")
-    implementation("org.flywaydb:flyway-core:11.17.1")
+    implementation("org.flywaydb:flyway-core:11.17.2")
     implementation("ch.qos.logback:logback-classic:1.5.21")
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
