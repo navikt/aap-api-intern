@@ -12,7 +12,7 @@ application {
 }
 
 val komponenterVersjon = "1.0.453"
-val ktorVersion = "3.3.2"
+val ktorVersion = "3.3.3"
 val tilgangVersjon = "1.0.167"
 val behandlingsflytversjon = "0.0.497"
 val arenaOppslagVersjon = "0.0.40"
@@ -51,7 +51,7 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     implementation("org.apache.kafka:kafka-clients:4.1.1")
-    implementation("org.flywaydb:flyway-core:11.17.2")
+    implementation("org.flywaydb:flyway-core:11.18.0")
     implementation("ch.qos.logback:logback-classic:1.5.21")
     implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
