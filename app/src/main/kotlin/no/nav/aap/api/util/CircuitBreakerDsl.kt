@@ -17,7 +17,7 @@ fun registerCircuitBreakerMetrics(meterRegistry: MeterRegistry) {
 
 class CircuitBreakerDsl {
     var failureRateThreshold: Float = 50f
-    var waitDurationInOpenState: Duration = Duration.ofSeconds(60)
+    var waitDurationInOpenState: Duration = Duration.ofSeconds(30)
     var slowCallDurationThreshold: Duration = Duration.ofMillis(200)
     var permittedNumberOfCallsInHalfOpenState: Int = 10
     var slidingWindowSize: Int = 100

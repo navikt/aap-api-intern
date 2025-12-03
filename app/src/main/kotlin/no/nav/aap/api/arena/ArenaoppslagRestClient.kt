@@ -45,7 +45,7 @@ class ArenaoppslagRestClient(
     private val tokenProvider = no.nav.aap.api.util.auth.AzureAdTokenProvider(azureConfig)
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
         // Mange kall til arenaoppslag tar gjerne 300-400ms har vi sett av prometheus-metrikker. Legger denne derfor litt over dette
-        slowCallDurationThreshold = Duration.ofMillis(600)
+        slowCallDurationThreshold = Duration.ofMillis(2000)
     }
 
     override suspend fun hentPerioder(
