@@ -25,7 +25,7 @@ fun initDatasource(dbConfig: DbConfig, prometheus: PrometheusMeterRegistry): Hik
         username = dbConfig.username
         password = dbConfig.password
         dataSourceProperties = postgresConfig
-        maximumPoolSize = 10
+        maximumPoolSize = 16
         // do not set minimumIdle, it defaults to maximumPoolSize, matching hikaricp performance recommendations
         driverClassName = "org.postgresql.Driver"
         connectionTestQuery = "SELECT 1"
