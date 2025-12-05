@@ -17,10 +17,10 @@ spec:
     pool: nav-dev
   resources:
     limits:
-      memory: 8Gi
+      memory: 2Gi
     requests:
       cpu: 500m
-      memory: 4Gi
+      memory: 1Gi
   terminationGracePeriodSeconds: 30
   azure:
     application:
@@ -49,9 +49,6 @@ spec:
     initialDelay: 1
     periodSeconds: 1
     failureThreshold: 60
-  prometheus:
-    enabled: true
-    path: /actuator/metrics
   observability:
     autoInstrumentation:
       enabled: true
@@ -60,6 +57,9 @@ spec:
       destinations:
         - id: elastic
         - id: loki
+  prometheus:
+    enabled: true
+    path: /actuator/metrics
   secureLogs:
     enabled: true
   accessPolicy:
