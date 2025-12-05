@@ -10,6 +10,8 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import io.ktor.server.response.*
+import io.micrometer.core.instrument.DistributionSummary
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -22,7 +24,15 @@ import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
-fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, modiaKafkaProducer: KafkaProducer) {
+fun NormalOpenAPIRoute.dataInsertion(
+    dataSource: DataSource,
+    modiaKafkaProducer: KafkaProducer,
+    prometheus: PrometheusMeterRegistry
+) {
+    val antallMeldekortMottattPerRequestHistogram = DistributionSummary.builder("aap_api_intern_insert_meldekort_detaljer_antall_mottatt")
+        .publishPercentileHistogram(true)
+        .register(prometheus)
+
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
             routeConfig = AuthorizationBodyPathConfig(
@@ -110,14 +120,16 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, modiaKafkaProducer:
                     "Legg inn meldekort-liste for en person. Endepunktet kan kun brukes av behandlingsflyt"
                 )
             ).toTypedArray()
-        ) { _, kortene: List<DetaljertMeldekortDTO> ->
+        ) { _, meldekortPåSammeSak: List<DetaljertMeldekortDTO> ->
             dataSource.transaction { connection ->
                 val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
-                kortene.asSequence()
+                meldekortPåSammeSak.asSequence()
                     .map { it.tilDomene() }
-                    .chunked(20) // Lagrer i batcher for å unngå stor minnebruk og busy db connections når det er mange meldekort
+                    .chunked(20) // Lagrer i batcher for å unngå stor minnebruk og langvarig opptatte db connections når det er mange meldekort
                     .forEach { batch -> meldekortPerioderRepository.lagre(batch) }
             }
+
+            antallMeldekortMottattPerRequestHistogram.record(meldekortPåSammeSak.size.toDouble())
 
             pipeline.call.respond(HttpStatusCode.OK)
         }
