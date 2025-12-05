@@ -113,10 +113,10 @@ fun NormalOpenAPIRoute.dataInsertion(dataSource: DataSource, modiaKafkaProducer:
         ) { _, kortene: List<DetaljertMeldekortDTO> ->
             dataSource.transaction { connection ->
                 val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
-                val domeneKort = kortene.map { it.tilDomene() }
-
-                meldekortPerioderRepository.lagre(domeneKort)
-
+                kortene.asSequence()
+                    .map { it.tilDomene() }
+                    .chunked(20) // Lagrer i batcher for å unngå stor minnebruk og busy db connections når det er mange meldekort
+                    .forEach { batch -> meldekortPerioderRepository.lagre(batch) }
             }
 
             pipeline.call.respond(HttpStatusCode.OK)
