@@ -1,5 +1,6 @@
 package no.nav.aap.api.pdl
 
+import no.nav.aap.api.util.graphql.GraphQLQueryException
 import no.nav.aap.api.util.graphql.GraphQLRequest
 import no.nav.aap.api.util.graphql.GraphQLResponse
 import no.nav.aap.api.util.graphql.GraphQLResponseHandler
@@ -10,6 +11,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import org.slf4j.LoggerFactory
 import java.net.URI
 
 interface IPdlClient {
@@ -23,6 +25,8 @@ class PdlClient : IPdlClient {
             scope = requiredConfigForKey("integrasjon.pdl.scope"),
             additionalHeaders = listOf(Header("Behandlingsnummer", "B287")),
         )
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     private val client =
         RestClient(
@@ -43,7 +47,19 @@ class PdlClient : IPdlClient {
 
     private fun query(request: GraphQLRequest<PdlRequestVariables>): GraphQLResponse<PdlIdenterData> {
         val httpRequest = PostRequest(body = request)
-        return requireNotNull(client.post(uri = graphqlUrl, request = httpRequest))
+        return try {
+            requireNotNull(client.post(uri = graphqlUrl, request = httpRequest))
+        } catch (e: GraphQLQueryException) {
+            log.info("Feil ved oppslag mot PDL. Melding: ${e.message}. Kode: ${e.code}")
+            // TODO: bruk kode fra respons i stedet for string mathching når vi vet hva slags koder
+            // som returneres av PDL
+            if (e.message?.contains("Fant ikke person") == true) {
+                GraphQLResponse(data = PdlIdenterData(PdlIdenter(emptyList())), errors = null)
+            } else {
+                throw e
+            }
+        }
+
     }
 }
 

@@ -28,6 +28,7 @@ class GraphQLResponseHandler : RestResponseHandler<InputStream> {
                         håndtertResponse.errors.joinToString(transform = GraphQLError::message),
                         request.uri(),
                     ),
+                    håndtertResponse.errors.first().extensions.code ?: "Ukjent"
                 )
             }
         }
@@ -40,4 +41,5 @@ class GraphQLResponseHandler : RestResponseHandler<InputStream> {
 
 class GraphQLQueryException(
     msg: String,
+    val code: String
 ) : RuntimeException(msg)
