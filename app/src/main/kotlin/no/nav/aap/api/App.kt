@@ -7,17 +7,18 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.path
+import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Tag
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.api.actuator.actuator
 import no.nav.aap.api.arena.ArenaoppslagRestClient
 import no.nav.aap.api.arena.IArenaoppslagRestClient
 import no.nav.aap.api.kafka.KafkaProducer
@@ -27,6 +28,7 @@ import no.nav.aap.api.kelvin.dataInsertion
 import no.nav.aap.api.pdl.IPdlClient
 import no.nav.aap.api.pdl.PdlClient
 import no.nav.aap.api.postgres.initDatasource
+import no.nav.aap.api.util.StatusPagesConfigHelper
 import no.nav.aap.api.util.registerCircuitBreakerMetrics
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
@@ -35,8 +37,6 @@ import no.nav.aap.komponenter.server.auth.audience
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
-import no.nav.aap.api.actuator.actuator
-import no.nav.aap.api.util.StatusPagesConfigHelper
 import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
@@ -69,7 +69,7 @@ fun PrometheusMeterRegistry.httpRequestTeller(pipeline: RoutingContext) {
     this.counter(
         "http_call",
         listOf(Tag.of("path", path), Tag.of("audience", audience), Tag.of("azp_name", azpName))
-        ).increment()
+    ).increment()
 }
 
 fun PrometheusMeterRegistry.kildesystemTeller(kildesystem: String, path: String): Counter =
@@ -86,7 +86,10 @@ fun Application.api(
     ),
     pdlClient: IPdlClient = PdlClient(),
     nå: LocalDate = LocalDate.now(),
-    modiaProducer: KafkaProducer = ModiaKafkaProducer(config.kafka, config.modia),
+    modiaProducer: KafkaProducer = ModiaKafkaProducer(
+        config.kafka, config.modia,
+        AppConfig.shutdownGracePeriod
+    ),
 ) {
 
     Migrering.migrate(datasource)

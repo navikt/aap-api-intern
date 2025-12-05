@@ -1,11 +1,14 @@
 package no.nav.aap.api.kafka
 
-import no.nav.aap.api.ModiaConfig
 import com.fasterxml.jackson.databind.ObjectMapper
+import no.nav.aap.api.ModiaConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration
+import kotlin.time.toJavaDuration
 
-class ModiaKafkaProducer(config: KafkaConfig, modiaConfig: ModiaConfig) : KafkaProducer, AutoCloseable {
+class ModiaKafkaProducer(config: KafkaConfig, modiaConfig: ModiaConfig, private val closeTimeout: Duration) :
+    KafkaProducer, AutoCloseable {
     private val producer = KafkaFactory.createProducer("aap-api", config)
     private val topic = modiaConfig.topic
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -24,13 +27,13 @@ class ModiaKafkaProducer(config: KafkaConfig, modiaConfig: ModiaConfig) : KafkaP
         }.get() // Blocking call to ensure the message is sent
     }
 
-    private fun createRecord(personident: String, type : ModiaRecord.Meldingstype): ProducerRecord<String, String> {
+    private fun createRecord(personident: String, type: ModiaRecord.Meldingstype): ProducerRecord<String, String> {
         val json = ObjectMapper().writeValueAsString(ModiaRecord(personident, type))
 
         return ProducerRecord(topic, personident, json)
     }
 
-    override fun close() = producer.close()
+    override fun close() = producer.close(closeTimeout.toJavaDuration())
 }
 
 data class ModiaRecord(
@@ -38,6 +41,6 @@ data class ModiaRecord(
     val meldingstype: Meldingstype = Meldingstype.OPPRETT,
     val ytelsestype: String = "AAP", // AAP;
     val kildesystem: String = "KELVIN", // KELVIN;
-){
+) {
     enum class Meldingstype { OPPRETT, OPPDATER }
 }
