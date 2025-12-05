@@ -31,7 +31,7 @@ data class AppConfig(
         // Vi endrer ktor sin default-verdi som er "antall CPUer" synlige for JVM-en, som normalt er antall tilgjengelige kjener på container-hosten.
         // Dette kan gi et for høyt antall tråder i forhold. På den andre siden har vi en del venting på IO (db, http-auth).
         // Sett den til en balansert verdi:
-        val ktorParallellitet: Int = 4 // defaulter ellers til 2 pga "-XX:ActiveProcessorCount=2" i Dockerfile
+        val ktorParallellitet: Int = 8 // defaulter ellers til 4 pga "-XX:ActiveProcessorCount=4" i Dockerfile
 
         // Matcher terminationGracePeriodSeconds for podden i Kubernetes-manifestet ("nais.yaml")
         private val kubernetesTimeout = 30.seconds
@@ -39,7 +39,7 @@ data class AppConfig(
         // Tid før ktor avslutter uansett. Må være litt mindre enn `kubernetesTimeout`.
         val shutdownTimeout = kubernetesTimeout - 2.seconds
 
-        // Tid appen får til å fullføre påbegynte requests, jobber etc. Må være mindre enn `endeligShutdownTimeout`.
+        // Tid appen får til å fullføre påbegynte requests, jobber etc. Må være mindre enn `shutdownTimeout`.
         val shutdownGracePeriod = shutdownTimeout - 3.seconds
     }
 }

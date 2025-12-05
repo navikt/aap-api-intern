@@ -11,7 +11,7 @@ metadata:
 spec:
   image: {{image}}
   ingresses:
-       - https://aap-api.intern.nav.no
+    - https://aap-api.intern.nav.no
   kafka:
     pool: nav-prod
   resources:
