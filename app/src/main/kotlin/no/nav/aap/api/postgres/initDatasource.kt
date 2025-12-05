@@ -10,8 +10,8 @@ import javax.sql.DataSource
 private val postgresConfig = Properties().apply {
     put("tcpKeepAlive", true) // kreves av Hikari
 
-    put("socketTimeout", 300) // sekunder, makstid for overføring av svaret fra db
-    put("statement_timeout", 300_000) // millisekunder, makstid for db til å utføre spørring
+    put("socketTimeout", 60) // sekunder, makstid for overføring av svaret fra db
+    put("statement_timeout", 60_000) // millisekunder, makstid for db til å utføre spørring
 
     put("logUnclosedConnections", true) // vår kode skal lukke alle connections
     put("logServerErrorDetail", false) // ikke lekk person-data fra queries etc til logger ved feil
@@ -26,7 +26,7 @@ fun initDatasource(dbConfig: DbConfig, prometheus: PrometheusMeterRegistry): Hik
         password = dbConfig.password
         dataSourceProperties = postgresConfig
         maximumPoolSize = 10
-        minimumIdle = 1
+        // do not set minimumIdle, it defaults to maximumPoolSize, matching hikaricp performance recommendations
         driverClassName = "org.postgresql.Driver"
         connectionTestQuery = "SELECT 1"
         metricRegistry = prometheus
