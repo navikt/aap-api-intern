@@ -179,17 +179,26 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setInt(10, it.samordningUføregradering)
             }
         }
-        connection.execute(
-            """INSERT INTO BEREGNINGSGRUNNLAG (BEHANDLING_ID, BELOP) VALUES (?, ?)""".trimIndent()
-        ) {
-            setParams {
-                setLong(1, nyBehandlingId)
-                setBigDecimal(2, behandling.beregningsgrunnlag)
+        if (behandling.beregningsgrunnlag != null) {
+            connection.execute(
+                """INSERT INTO BEREGNINGSGRUNNLAG (BEHANDLING_ID, BELOP) VALUES (?, ?)""".trimIndent()
+            ) {
+                setParams {
+                    setLong(1, nyBehandlingId)
+                    setBigDecimal(2, behandling.beregningsgrunnlag)
+                }
+            }
+        }
+        else{
+            connection.execute("""DELETE FROM BEREGNINGSGRUNNLAG WHERE behandling_id=?""".trimIndent()){
+                setParams {
+                    setLong(1, nyBehandlingId)
+                }
             }
         }
     }
 
-    fun hentDsopVedtak(fnr: String, uttrekksperiode: Periode): List<DsopVedtak>{
+    fun hentDsopVedtak(fnr: String, uttrekksperiode: Periode): List<DsopVedtak> {
         val vedtaksdata = hentVedtaksData(fnr, uttrekksperiode)
 
         return vedtaksdata.flatMap {
@@ -200,7 +209,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         true -> DsopStatus.LØPENDE
                         else -> DsopStatus.AVSLUTTET
                     },
-                    virkningsperiode = Periode(rettighetsTypePeriode.fom,rettighetsTypePeriode.tom),
+                    virkningsperiode = Periode(rettighetsTypePeriode.fom, rettighetsTypePeriode.tom),
                     utfall = "JA",
                     aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi),
                     vedtaksType = if (it.nyttVedtak) VedtaksType.O else VedtaksType.E,
@@ -513,7 +522,7 @@ data class DsopVedtak(
     val vedtakId: String,
     val vedtakStatus: DsopStatus,
     val virkningsperiode: Periode,
-    val rettighetsType:String = "AAP",
+    val rettighetsType: String = "AAP",
     val utfall: String = "JA",
     val aktivitetsfase: RettighetsType,
     val vedtaksType: VedtaksType
