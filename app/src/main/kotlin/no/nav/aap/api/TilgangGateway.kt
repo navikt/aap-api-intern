@@ -1,11 +1,12 @@
 package no.nav.aap.api
 
+import com.github.benmanes.caffeine.cache.Caffeine
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
 import java.net.URI
 import java.time.Duration
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
-import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.retryablePost
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -23,10 +24,19 @@ object TilgangGateway {
             tokenProvider = AzureOBOTokenProvider(),
         )
 
+    private val cache = Caffeine.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterWrite(Duration.ofMinutes(15))
+        .build<String, Boolean>()
+
+    init {
+        CaffeineCacheMetrics.monitor(Metrics.prometheus, cache, "tilgang_person_cache")
+    }
+
     fun harTilgangTilPerson(
         personIdent: String,
         token: OidcToken,
-    ): Boolean {
+    ): Boolean = cache.get("$personIdent:${token.token()}") {
         val personTilgangRequest =
             PersonTilgangRequest(
                 personIdent = personIdent,
@@ -45,6 +55,6 @@ object TilgangGateway {
                 )
             )
 
-            return respons.tilgang
+        respons.tilgang
     }
 }

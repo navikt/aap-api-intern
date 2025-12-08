@@ -78,7 +78,7 @@ fun PrometheusMeterRegistry.kildesystemTeller(kildesystem: String, path: String)
     )
 
 fun Application.api(
-    prometheus: PrometheusMeterRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
+    prometheus: PrometheusMeterRegistry = Metrics.prometheus,
     config: AppConfig = AppConfig(),
     datasource: DataSource = initDatasource(config.dbConfig, prometheus),
     arenaRestClient: IArenaoppslagRestClient = ArenaoppslagRestClient(

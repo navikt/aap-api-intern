@@ -1,5 +1,10 @@
 package no.nav.aap.api.pdl
 
+import com.github.benmanes.caffeine.cache.Caffeine
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
+import java.net.URI
+import java.time.Duration
+import no.nav.aap.api.Metrics
 import no.nav.aap.api.util.graphql.GraphQLQueryException
 import no.nav.aap.api.util.graphql.GraphQLRequest
 import no.nav.aap.api.util.graphql.GraphQLResponse
@@ -12,7 +17,6 @@ import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import org.slf4j.LoggerFactory
-import java.net.URI
 
 interface IPdlClient {
     fun hentAlleIdenterForPerson(personIdent: String): List<PdlIdent>
@@ -35,14 +39,15 @@ class PdlClient : IPdlClient {
             responseHandler = GraphQLResponseHandler(),
         )
 
-    override fun hentAlleIdenterForPerson(personIdent: String): List<PdlIdent> {
+    override fun hentAlleIdenterForPerson(personIdent: String): List<PdlIdent> = cache.get(personIdent){
         val request = GraphQLRequest(IDENT_QUERY, variables = PdlRequestVariables(personIdent))
         val response = query(request)
         val pdlIdenter =
             checkNotNull(response.data?.hentIdenter?.identer) {
                 "Fant ingen identer i PDL for person"
             }
-        return pdlIdenter.filter { ident -> ident.gruppe == "FOLKEREGISTERIDENT" }
+
+        pdlIdenter.filter { ident -> ident.gruppe == "FOLKEREGISTERIDENT" }
     }
 
     private fun query(request: GraphQLRequest<PdlRequestVariables>): GraphQLResponse<PdlIdenterData> {
@@ -58,6 +63,17 @@ class PdlClient : IPdlClient {
             }
         }
 
+    }
+
+    companion object {
+        private val cache = Caffeine.newBuilder()
+            .maximumSize(10_000)
+            .expireAfterWrite(Duration.ofMinutes(15))
+            .build<String, List<PdlIdent>>()
+
+        init {
+            CaffeineCacheMetrics.monitor(Metrics.prometheus, cache, "pdl_identer_cache")
+        }
     }
 }
 
