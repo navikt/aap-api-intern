@@ -1,5 +1,6 @@
 package no.nav.aap.api.util
 
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.response.respond
@@ -47,6 +48,14 @@ object StatusPagesConfigHelper {
                     logger.warn("Valideringsfeil ved kall til '$uri'. ", cause)
                     call.respondText(
                         "Valideringsfeil. ${cause.message}", status = HttpStatusCode.BadRequest
+                    )
+                }
+
+                is CallNotPermittedException -> {
+                    logger.error("Circuit-breaker åpen ved kall til '$uri'. ", cause)
+                    call.respondText(
+                        text = "Feil i upstream-tjeneste: ${cause.message}",
+                        status = HttpStatusCode.ServiceUnavailable
                     )
                 }
 
