@@ -60,7 +60,7 @@ object StatusPagesConfigHelper {
                 }
 
                 else -> {
-                    logger.error("Uhåndtert feil ved kall til '$uri'. ", cause)
+                    logger.error("Uhåndtert feil ved kall til '$uri' av type ${cause.javaClass}", cause)
                     call.respondText(
                         text = "Feil i tjeneste: ${cause.message}",
                         status = HttpStatusCode.InternalServerError
