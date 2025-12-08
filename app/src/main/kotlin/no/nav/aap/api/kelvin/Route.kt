@@ -123,10 +123,8 @@ fun NormalOpenAPIRoute.dataInsertion(
         ) { _, meldekortPåSammeSak: List<DetaljertMeldekortDTO> ->
             dataSource.transaction { connection ->
                 val meldekortPerioderRepository = MeldekortDetaljerRepository(connection)
-                meldekortPåSammeSak.asSequence()
-                    .map { it.tilDomene() }
-                    .chunked(20) // Lagrer i batcher for å unngå stor minnebruk og langvarig opptatte db connections når det er mange meldekort
-                    .forEach { batch -> meldekortPerioderRepository.lagre(batch) }
+                val domeneKort = meldekortPåSammeSak.map { it.tilDomene() }
+                meldekortPerioderRepository.lagre(domeneKort)
             }
 
             antallMeldekortMottattPerRequestHistogram.record(meldekortPåSammeSak.size.toDouble())
