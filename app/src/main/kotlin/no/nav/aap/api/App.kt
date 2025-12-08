@@ -4,20 +4,28 @@ import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.cors.routing.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
-import io.ktor.server.routing.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStarted
+import io.ktor.server.application.ApplicationStopPreparing
+import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.ApplicationStopping
+import io.ktor.server.application.install
+import io.ktor.server.application.log
+import io.ktor.server.auth.authenticate
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
+import io.ktor.server.engine.connector
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.request.path
+import io.ktor.server.routing.RoutingContext
+import io.ktor.server.routing.routing
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Tag
-import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import java.time.LocalDate
+import javax.sql.DataSource
 import no.nav.aap.api.actuator.actuator
 import no.nav.aap.api.arena.ArenaoppslagRestClient
 import no.nav.aap.api.arena.IArenaoppslagRestClient
@@ -36,8 +44,6 @@ import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.auth.audience
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
-import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -109,11 +115,6 @@ fun Application.api(
             )
         )
     )
-
-    install(CORS) {
-        anyHost()
-        allowHeader(HttpHeaders.ContentType)
-    }
 
     routing {
         authenticate(AZURE) {
