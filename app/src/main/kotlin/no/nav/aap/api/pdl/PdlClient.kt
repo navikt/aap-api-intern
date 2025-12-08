@@ -51,9 +51,7 @@ class PdlClient : IPdlClient {
             requireNotNull(client.post(uri = graphqlUrl, request = httpRequest))
         } catch (e: GraphQLQueryException) {
             log.info("Feil ved oppslag mot PDL. Melding: ${e.message}. Kode: ${e.code}")
-            // TODO: bruk kode fra respons i stedet for string mathching når vi vet hva slags koder
-            // som returneres av PDL
-            if (e.message?.contains("Fant ikke person") == true) {
+            if (e.code == "not_found") {
                 GraphQLResponse(data = PdlIdenterData(PdlIdenter(emptyList())), errors = null)
             } else {
                 throw e
