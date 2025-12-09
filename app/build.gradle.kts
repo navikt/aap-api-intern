@@ -52,12 +52,9 @@ dependencies {
     implementation("org.apache.kafka:kafka-clients:4.1.1")
     implementation("org.flywaydb:flyway-core:11.18.0")
     implementation("ch.qos.logback:logback-classic:1.5.21")
-    implementation("com.auth0:java-jwt:4.5.0")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
-    implementation("com.nimbusds:nimbus-jose-jwt:10.6")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
-    implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.4.3")
 
     implementation("com.zaxxer:HikariCP:7.0.2")
 
@@ -68,16 +65,15 @@ dependencies {
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 
     implementation("no.nav:ktor-openapi-generator:1.0.131")
-
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     constraints {
         implementation("commons-codec:commons-codec:1.20.0")
     }
     testImplementation("org.assertj:assertj-core:3.27.6")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.6")
     testImplementation("io.github.nchaugen:tabletest-junit:0.5.5")
     testImplementation(kotlin("test"))
-    testImplementation("org.slf4j:jul-to-slf4j:2.0.17")
 }
 
 tasks {
