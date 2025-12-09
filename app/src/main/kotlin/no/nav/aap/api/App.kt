@@ -4,17 +4,22 @@ import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
-import io.ktor.server.engine.*
-import io.ktor.server.netty.*
-import io.ktor.server.plugins.statuspages.*
-import io.ktor.server.request.*
-import io.ktor.server.routing.*
-import io.micrometer.core.instrument.Counter
-import io.micrometer.core.instrument.Tag
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStarted
+import io.ktor.server.application.ApplicationStopPreparing
+import io.ktor.server.application.ApplicationStopped
+import io.ktor.server.application.ApplicationStopping
+import io.ktor.server.application.install
+import io.ktor.server.application.log
+import io.ktor.server.auth.authenticate
+import io.ktor.server.engine.connector
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.routing.routing
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import java.time.Clock
+import javax.sql.DataSource
 import no.nav.aap.api.actuator.actuator
 import no.nav.aap.api.arena.ArenaoppslagRestClient
 import no.nav.aap.api.arena.IArenaoppslagRestClient
@@ -30,11 +35,8 @@ import no.nav.aap.api.util.registerCircuitBreakerMetrics
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.server.AZURE
-import no.nav.aap.komponenter.server.auth.audience
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
-import java.time.Clock
-import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -56,23 +58,6 @@ fun main() {
         }
     }, module = Application::api).start(wait = true)
 }
-
-fun PrometheusMeterRegistry.httpRequestTeller(pipeline: RoutingContext) {
-    val path = pipeline.call.request.path()
-    val audience = pipeline.call.audience()
-    val azpName = pipeline.call.principal<JWTPrincipal>()?.let {
-        it.payload.claims["azp_name"]?.asString()
-    } ?: ""
-    this.counter(
-        "http_call",
-        listOf(Tag.of("path", path), Tag.of("audience", audience), Tag.of("azp_name", azpName))
-    ).increment()
-}
-
-fun PrometheusMeterRegistry.kildesystemTeller(kildesystem: String, path: String): Counter =
-    this.counter(
-        "api_intern_kildesystem", listOf(Tag.of("kildesystem", kildesystem), Tag.of("path", path))
-    )
 
 fun Application.api(
     prometheus: PrometheusMeterRegistry = Metrics.prometheus,
@@ -110,8 +95,8 @@ fun Application.api(
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(datasource, arenaRestClient, prometheus, pdlClient, clock)
-                dataInsertion(datasource, modiaProducer, prometheus)
+                api(datasource, arenaRestClient, pdlClient, clock)
+                dataInsertion(datasource, modiaProducer)
             }
         }
         actuator(prometheus)
