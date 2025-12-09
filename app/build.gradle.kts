@@ -72,7 +72,6 @@ dependencies {
     }
     testImplementation("org.assertj:assertj-core:3.27.6")
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.6")
-    testImplementation("io.github.nchaugen:tabletest-junit:0.5.5")
     testImplementation(kotlin("test"))
 }
 
