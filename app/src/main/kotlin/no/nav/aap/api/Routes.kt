@@ -46,6 +46,7 @@ import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
+import java.time.Clock
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -90,7 +91,7 @@ fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arena: IArenaoppslagRestClient,
     pdlClient: IPdlClient,
-    nå: LocalDate = LocalDate.now(),
+    clock: Clock = Clock.systemDefaultZone(),
 ) {
     tag(Tag.Perioder) {
         route("/perioder") {
@@ -187,7 +188,7 @@ fun NormalOpenAPIRoute.api(
             sjekkTilgangTilPerson(personIdentifikator, token())
 
             val meldekortListe = dataSource.transaction { connection ->
-                val meldekortService = MeldekortService(connection, pdlClient)
+                val meldekortService = MeldekortService(connection, pdlClient, clock)
                 meldekortService.hentAlle(
                     personIdentifikator,
                     requestBody.fraOgMedDato,
@@ -318,7 +319,7 @@ fun NormalOpenAPIRoute.api(
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    VedtakService(behandlingsRepository, nå = nå).hentMediumFraKelvin(
+                    VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
                         requestBody.personidentifikator,
                         Periode(body.fraOgMedDato, body.tilOgMedDato)
                     ).vedtak
@@ -354,7 +355,7 @@ fun NormalOpenAPIRoute.api(
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    VedtakService(behandlingsRepository, nå = nå).hentMaksimum(
+                    VedtakService(behandlingsRepository, clock = clock).hentMaksimum(
                         requestBody.personidentifikator,
                         Periode(body.fraOgMedDato, body.tilOgMedDato),
                     ).vedtak
@@ -388,7 +389,7 @@ fun NormalOpenAPIRoute.api(
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
-                    VedtakService(behandlingsRepository, nå = nå).hentMediumFraKelvin(
+                    VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
                         requestBody.personidentifikator,
                         Periode(tilArenaKontrakt.fraOgMedDato, tilArenaKontrakt.tilOgMedDato),
                     ).vedtak
@@ -474,7 +475,7 @@ fun NormalOpenAPIRoute.api(
                     sjekkTilgangTilPerson(requestBody.personIdent, token())
 
                     val meldekortListe = dataSource.transaction { connection ->
-                        val meldekortService = MeldekortService(connection, pdlClient)
+                        val meldekortService = MeldekortService(connection, pdlClient, clock)
                         meldekortService.hentAlleMeldekort(
                             requestBody.personIdent,
                             requestBody.fomDato,

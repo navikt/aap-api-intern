@@ -18,7 +18,7 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.routing.routing
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import java.time.LocalDate
+import java.time.Clock
 import javax.sql.DataSource
 import no.nav.aap.api.actuator.actuator
 import no.nav.aap.api.arena.ArenaoppslagRestClient
@@ -67,7 +67,7 @@ fun Application.api(
         config.arenaoppslag, config.azure
     ),
     pdlClient: IPdlClient = PdlClient(),
-    nå: LocalDate = LocalDate.now(),
+    clock: Clock = Clock.systemDefaultZone(),
     modiaProducer: KafkaProducer = ModiaKafkaProducer(
         config.kafka, config.modia,
         AppConfig.shutdownGracePeriod
@@ -95,7 +95,7 @@ fun Application.api(
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(datasource, arenaRestClient, pdlClient, nå)
+                api(datasource, arenaRestClient, pdlClient, clock)
                 dataInsertion(datasource, modiaProducer)
             }
         }

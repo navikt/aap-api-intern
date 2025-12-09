@@ -1,17 +1,15 @@
 package no.nav.aap.api.postgres
 
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.kelvin.MeldekortDTO
 import no.nav.aap.api.pdl.IPdlClient
-import no.nav.aap.api.pdl.PdlClient
-import no.nav.aap.api.intern.Medium
-import no.nav.aap.api.intern.Vedtak
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import java.time.Clock
 import java.time.LocalDate
 
-class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient) {
+class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient, clock: Clock) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
-    val vedtakService = VedtakService(BehandlingsRepository(connection), LocalDate.now())
+    val vedtakService = VedtakService(BehandlingsRepository(connection), clock)
 
     fun hentAlleMeldekort(
         personIdentifikator: String,
