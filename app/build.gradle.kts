@@ -55,6 +55,7 @@ dependencies {
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.0")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
+    implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.4.3")
 
     implementation("com.zaxxer:HikariCP:7.0.2")
 
