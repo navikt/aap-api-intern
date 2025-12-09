@@ -29,8 +29,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.time.*
 import java.util.*
 import kotlin.test.assertEquals
 
@@ -499,7 +498,10 @@ class BehandlingsDataTest : PostgresTestBase() {
                     arenaRestClient = MockedArenaClient(),
                     modiaProducer = fakes.kafka,
                     // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
-                    nå = LocalDate.of(2025, 12, 13)
+                    clock = Clock.fixed(
+                        Instant.from(LocalDate.of(2025, 12, 13).atStartOfDay().toInstant(ZoneOffset.UTC)),
+                        ZoneId.of("UTC")
+                    )
                 )
             }
 

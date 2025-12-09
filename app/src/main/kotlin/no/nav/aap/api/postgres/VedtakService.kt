@@ -1,22 +1,18 @@
 package no.nav.aap.api.postgres
 
+import no.nav.aap.api.intern.*
 import no.nav.aap.api.utledVedtakStatus
-import no.nav.aap.api.intern.Kilde
-import no.nav.aap.api.intern.Maksimum
-import no.nav.aap.api.intern.Medium
-import no.nav.aap.api.intern.UtbetalingMedMer
-import no.nav.aap.api.intern.Vedtak
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
+import java.time.Clock
 import java.time.LocalDate
 
 class VedtakService(
     private val behandlingsRepository: BehandlingsRepository,
-    private val nå: LocalDate = LocalDate.now()
+    private val clock: Clock = Clock.systemDefaultZone()
 ) {
     fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
         val kelvinData = behandlingsRepository.hentVedtaksData(fnr, interval)
@@ -94,12 +90,15 @@ class VedtakService(
                             rettighetsType = left.verdi.rettighetsType,
                             beregningsgrunnlag = left.verdi.beregningsgrunnlag,
                             barnMedStonad = left.verdi.barnMedStonad,
-                            barnetillegg = left.verdi.barnMedStonad * (right?.verdi?.segmenter()?.first()?.verdi?.barnetilleggsats?.toInt()
+                            barnetillegg = left.verdi.barnMedStonad * (right?.verdi?.segmenter()
+                                ?.first()?.verdi?.barnetilleggsats?.toInt()
                                 ?: 0),
                             vedtaksTypeKode = null,
                             vedtaksTypeNavn = null,
                             utbetaling = right?.verdi?.filter {
-                                it.periode.tom.isBefore(nå) || it.periode.tom.isEqual(nå)
+                                it.periode.tom.isBefore(LocalDate.now(clock)) || it.periode.tom.isEqual(
+                                    LocalDate.now(clock)
+                                )
                             }?.segmenter()?.map { utbetaling ->
                                 UtbetalingMedMer(
                                     reduksjon = null,
