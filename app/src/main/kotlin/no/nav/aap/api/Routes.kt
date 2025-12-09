@@ -16,7 +16,6 @@ import io.ktor.http.withCharset
 import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.path
 import io.ktor.server.routing.RoutingContext
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
@@ -71,16 +70,15 @@ enum class Tag(override val description: String) : APITag {
 
 data class SakerRequest(
     @param:Description("Liste med personidentifikatorer. Må svare til samme person.")
-    val personidentifikatorer: List<String>
+    val personidentifikatorer: List<String>,
 )
 
 private fun receiveCall(
-    prometheus: PrometheusMeterRegistry,
     endpoint: String,
     callIdHeader: CallIdHeader,
     pipeline: RoutingContext,
 ): String {
-    prometheus.httpRequestTeller(pipeline)
+    Metrics.httpRequestTeller(pipeline.call)
 
     return callIdHeader.callId() ?: UUID.randomUUID().toString().also {
         logger.info("CallID ble ikke gitt på kall mot: $endpoint")
@@ -91,7 +89,6 @@ private fun receiveCall(
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arena: IArenaoppslagRestClient,
-    prometheus: PrometheusMeterRegistry,
     pdlClient: IPdlClient,
     nå: LocalDate = LocalDate.now(),
 ) {
@@ -100,7 +97,7 @@ fun NormalOpenAPIRoute.api(
             post<CallIdHeader, PerioderResponse, InternVedtakRequestApiIntern>(
                 info(description = "Henter perioder med vedtak for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
-                val callId = receiveCall(prometheus, "/perioder", callIdHeader, pipeline)
+                val callId = receiveCall("/perioder", callIdHeader, pipeline)
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
@@ -121,7 +118,7 @@ fun NormalOpenAPIRoute.api(
                     tilArenaKontrakt
                 ).perioder
 
-                prometheus.tellKildesystem(kelvinPerioder, arenaPerioder, "/perioder")
+                tellKildesystem(kelvinPerioder, arenaPerioder, "/perioder")
 
                 respond(
                     PerioderResponse(
@@ -133,13 +130,13 @@ fun NormalOpenAPIRoute.api(
             route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequestApiIntern>(
                 info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
-                val callId = receiveCall(prometheus, "/perioder/aktivitetfase", callIdHeader, pipeline)
+                val callId = receiveCall("/perioder/aktivitetfase", callIdHeader, pipeline)
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val tilArenaKontrakt = requestBody.tilKontrakt()
                 val arenaSvar = arena.hentPerioderInkludert11_17(callId, tilArenaKontrakt)
 
-                prometheus.tellKildesystem(
+                tellKildesystem(
                     null,
                     arenaSvar.perioder,
                     "/perioder/aktivitetfase"
@@ -166,7 +163,7 @@ fun NormalOpenAPIRoute.api(
             route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequestApiIntern>(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { _, requestBody ->
-                prometheus.httpRequestTeller(pipeline)
+                Metrics.httpRequestTeller(pipeline.call)
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val perioder = dataSource.transaction { connection ->
@@ -174,7 +171,7 @@ fun NormalOpenAPIRoute.api(
                     meldekortPerioderRepository.hentMeldekortPerioder(requestBody.personidentifikator)
                 }.filter { it.tom > requestBody.fraOgMedDato && it.fom < requestBody.tilOgMedDato }
 
-                prometheus.tellKildesystem(perioder, null, "/perioder/meldekort")
+                tellKildesystem(perioder, null, "/perioder/meldekort")
 
                 respond(perioder, HttpStatusCode.OK)
             }
@@ -185,7 +182,7 @@ fun NormalOpenAPIRoute.api(
         route("/kelvin/meldekort-detaljer").post<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
             info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode")
         ) { _, requestBody ->
-            prometheus.httpRequestTeller(pipeline)
+            Metrics.httpRequestTeller(pipeline.call)
             val personIdentifikator = requestBody.personidentifikator
             sjekkTilgangTilPerson(personIdentifikator, token())
 
@@ -201,7 +198,7 @@ fun NormalOpenAPIRoute.api(
                     }
             }
 
-            prometheus.tellKelvinKall(pipeline.call.request)
+            tellKelvinKall(pipeline.call.request)
 
             if (meldekortListe.isEmpty()) {
                 logger.info("Fant ingen meldekort for person $personIdentifikator i den angitte perioden")
@@ -218,7 +215,7 @@ fun NormalOpenAPIRoute.api(
         route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { callIdHeader, requestBody ->
-            val callId = receiveCall(prometheus, "/sakerByFnr", callIdHeader, pipeline)
+            val callId = receiveCall("/sakerByFnr", callIdHeader, pipeline)
 
             /*
             * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
@@ -239,7 +236,7 @@ fun NormalOpenAPIRoute.api(
                     arenaSakStatusTilDomene(it)
                 }
 
-            prometheus.tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
+            tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
 
             respond(arenaSaker + kelvinSaker)
         }
@@ -249,7 +246,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Sjekker om en person eksisterer i AAP-arena")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om person eksisterer i aap-arena")
-                val callId = receiveCall(prometheus, "/arena/person/aap/eksisterer", callIdHeader, pipeline)
+                val callId = receiveCall("/arena/person/aap/eksisterer", callIdHeader, pipeline)
 
                 pipeline.call.response.headers.append(
                     HttpHeaders.ContentType,
@@ -270,9 +267,10 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Sjekker om en person kan behandles i Kelvin mtp. Arena-historikken deres")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om personen kan behandles i Kelvin")
-                val callId = receiveCall(prometheus, "/arena/person/aap/soknad/kan_behandles_i_kelvin", callIdHeader, pipeline)
+                val callId = receiveCall("/arena/person/aap/soknad/kan_behandles_i_kelvin", callIdHeader, pipeline)
 
-                val arenaResponse = arena.personKanBehandlesIKelvin(callId, ArenaSakerRequest(requestBody.personidentifikatorer))
+                val arenaResponse =
+                    arena.personKanBehandlesIKelvin(callId, ArenaSakerRequest(requestBody.personidentifikatorer))
                 val response = ArenaStatusResponse(arenaResponse.kanBehandles, arenaResponse.nyesteArenaSakId)
 
                 respond(response)
@@ -283,7 +281,7 @@ fun NormalOpenAPIRoute.api(
             info(description = "Henter saker for en person")
         ) { _, requestBody ->
             logger.info("Henter saker for en person fra Kelvin.")
-            prometheus.httpRequestTeller(pipeline)
+            Metrics.httpRequestTeller(pipeline.call)
 
             /*
             * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
@@ -299,7 +297,7 @@ fun NormalOpenAPIRoute.api(
                         sakStatusRepository.hentSakStatus(it)
                     }
                 }
-            prometheus.tellKildesystem(kelvinSaker, null, "/kelvin/sakerByFnr")
+            tellKildesystem(kelvinSaker, null, "/kelvin/sakerByFnr")
             respond(kelvinSaker)
         }
     }
@@ -314,7 +312,7 @@ fun NormalOpenAPIRoute.api(
                     """.trimIndent()
                 )
             ) { callIdHeader, requestBody ->
-                val callId = receiveCall(prometheus, "/maksimumUtenUtbetaling", callIdHeader, pipeline)
+                val callId = receiveCall("/maksimumUtenUtbetaling", callIdHeader, pipeline)
                 val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
@@ -335,7 +333,7 @@ fun NormalOpenAPIRoute.api(
                     body
                 ).vedtak.map { it.fraKontraktUtenUtbetaling() }
 
-                prometheus.tellKildesystem(kelvinSaker, arenaRespons, "/maksimumUtenUtbetaling")
+                tellKildesystem(kelvinSaker, arenaRespons, "/maksimumUtenUtbetaling")
 
                 respond(Medium(arenaRespons + kelvinSaker))
             }
@@ -349,7 +347,7 @@ fun NormalOpenAPIRoute.api(
                 )
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
-                val callId = receiveCall(prometheus, "/maksimum", callIdHeader, pipeline)
+                val callId = receiveCall("/maksimum", callIdHeader, pipeline)
 
                 val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
@@ -363,7 +361,7 @@ fun NormalOpenAPIRoute.api(
                 }
                 val arenaVedtak = arena.hentMaksimum(callId, body).fraKontrakt().vedtak
 
-                prometheus.tellKildesystem(kelvinSaker, arenaVedtak, "/maksimum")
+                tellKildesystem(kelvinSaker, arenaVedtak, "/maksimum")
 
                 pipeline.call.response.headers.append(
                     HttpHeaders.ContentType,
@@ -382,7 +380,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Henter maksimumsløsning uten utbetalinger fra kelvin for en person innen gitte datointerval. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag.")
             ) { _, requestBody ->
                 logger.info("Henter maksimum uten utbetalinger fra kelvin")
-                prometheus.httpRequestTeller(pipeline)
+                Metrics.httpRequestTeller(pipeline.call)
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
@@ -400,7 +398,7 @@ fun NormalOpenAPIRoute.api(
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
 
-                prometheus.tellKildesystem(kelvinSaker, null, "/kelvin/maksimumUtenUtbetaling")
+                tellKildesystem(kelvinSaker, null, "/kelvin/maksimumUtenUtbetaling")
 
                 respond(Medium(kelvinSaker))
             }
@@ -411,7 +409,7 @@ fun NormalOpenAPIRoute.api(
                     deprecated = true
                 )
             ) { _, requestBody ->
-                prometheus.httpRequestTeller(pipeline)
+                Metrics.httpRequestTeller(pipeline.call)
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
@@ -425,7 +423,7 @@ fun NormalOpenAPIRoute.api(
                     )
                 }
 
-                prometheus.tellKildesystem(kelvinSaker, null, "/kelvin/behandling")
+                tellKildesystem(kelvinSaker, null, "/kelvin/behandling")
 
                 respond(kelvinSaker)
             }
@@ -444,7 +442,7 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) { _, requestBody ->
                     logger.info("Henter vedtak fra DSOP")
-                    prometheus.httpRequestTeller(pipeline)
+                    Metrics.httpRequestTeller(pipeline.call)
                     val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
                     sjekkTilgangTilPerson(requestBody.personIdent, token())
@@ -470,7 +468,7 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) { _, requestBody ->
                     logger.info("Henter meldekort til DSOP")
-                    prometheus.httpRequestTeller(pipeline)
+                    Metrics.httpRequestTeller(pipeline.call)
                     val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
                     sjekkTilgangTilPerson(requestBody.personIdent, token())
@@ -504,21 +502,21 @@ fun NormalOpenAPIRoute.api(
     }
 }
 
-private fun PrometheusMeterRegistry.tellKelvinKall(request: ApplicationRequest) {
-    this.kildesystemTeller("kelvin", request.path()).increment()
+private fun tellKelvinKall(request: ApplicationRequest) {
+    Metrics.kildesystemTeller("kelvin", request.path()).increment()
 }
 
-private fun PrometheusMeterRegistry.tellKildesystem(
+private fun tellKildesystem(
     kelvinData: List<*>?,
     arenaData: List<*>?,
     path: String,
 ) {
     if (!kelvinData.isNullOrEmpty()) {
-        this.kildesystemTeller("kelvin", path).increment()
+        Metrics.kildesystemTeller("kelvin", path).increment()
     }
 
     if (!arenaData.isNullOrEmpty()) {
-        this.kildesystemTeller("arena", path).increment()
+        Metrics.kildesystemTeller("arena", path).increment()
     }
 
     if (arenaData?.isNotEmpty() == true && kelvinData?.isNotEmpty() == true) {

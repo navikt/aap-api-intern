@@ -11,7 +11,6 @@ import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.micrometer.core.instrument.DistributionSummary
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -21,13 +20,13 @@ import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import javax.sql.DataSource
+import no.nav.aap.api.Metrics.prometheus
 
 private val logger = LoggerFactory.getLogger("App")
 
 fun NormalOpenAPIRoute.dataInsertion(
     dataSource: DataSource,
     modiaKafkaProducer: KafkaProducer,
-    prometheus: PrometheusMeterRegistry
 ) {
     val antallMeldekortMottattPerRequestHistogram = DistributionSummary.builder("aap_api_intern_insert_meldekort_detaljer_antall_mottatt")
         .publishPercentileHistogram(true)

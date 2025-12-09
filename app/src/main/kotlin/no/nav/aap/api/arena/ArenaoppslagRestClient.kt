@@ -6,23 +6,36 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import io.ktor.serialization.jackson.jackson
 import io.prometheus.metrics.core.metrics.Summary
+import java.time.Duration
 import no.nav.aap.api.ArenaoppslagConfig
 import no.nav.aap.api.intern.PerioderResponse
+import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
 import no.nav.aap.api.util.findRootCause
-import no.nav.aap.arenaoppslag.kontrakt.intern.*
+import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
+import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
+import no.nav.aap.arenaoppslag.kontrakt.intern.PersonKanBehandlesIKelvinResponse
+import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
+import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
-import java.time.Duration
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
 private val log = LoggerFactory.getLogger(ArenaoppslagRestClient::class.java)
@@ -42,7 +55,7 @@ class ArenaoppslagRestClient(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     azureConfig: no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig,
 ) : IArenaoppslagRestClient {
-    private val tokenProvider = no.nav.aap.api.util.auth.AzureAdTokenProvider(azureConfig)
+    private val tokenProvider = AzureAdTokenProvider(azureConfig)
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
         // Mange kall til arenaoppslag tar gjerne 300-400ms har vi sett av prometheus-metrikker. Legger denne derfor litt over dette
         slowCallDurationThreshold = Duration.ofMillis(2000)
