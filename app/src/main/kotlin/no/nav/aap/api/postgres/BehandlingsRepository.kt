@@ -188,9 +188,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     setBigDecimal(2, behandling.beregningsgrunnlag)
                 }
             }
-        }
-        else{
-            connection.execute("""DELETE FROM BEREGNINGSGRUNNLAG WHERE behandling_id=?""".trimIndent()){
+        } else {
+            connection.execute("""DELETE FROM BEREGNINGSGRUNNLAG WHERE behandling_id=?""".trimIndent()) {
                 setParams {
                     setLong(1, nyBehandlingId)
                 }
@@ -209,7 +208,10 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         true -> DsopStatus.LØPENDE
                         else -> DsopStatus.AVSLUTTET
                     },
-                    virkningsperiode = Periode(rettighetsTypePeriode.fom, rettighetsTypePeriode.tom),
+                    virkningsperiode = Periode(
+                        rettighetsTypePeriode.fom,
+                        rettighetsTypePeriode.tom
+                    ),
                     utfall = "JA",
                     aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi),
                     vedtaksType = if (it.nyttVedtak) VedtaksType.O else VedtaksType.E,

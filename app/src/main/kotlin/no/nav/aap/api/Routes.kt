@@ -9,36 +9,18 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.withCharset
-import io.ktor.server.request.ApplicationRequest
-import io.ktor.server.request.path
-import io.ktor.server.routing.RoutingContext
-import java.time.LocalDate
-import java.util.UUID
-import javax.sql.DataSource
+import io.ktor.http.*
+import io.ktor.server.request.*
+import io.ktor.server.routing.*
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.api.arena.IArenaoppslagRestClient
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.pdl.IPdlClient
-import no.nav.aap.api.postgres.BehandlingsRepository
-import no.nav.aap.api.postgres.DatadelingDTO
-import no.nav.aap.api.postgres.DsopMeldekortRespons
-import no.nav.aap.api.postgres.DsopRequest
-import no.nav.aap.api.postgres.DsopResponse
-import no.nav.aap.api.postgres.KelvinBehandlingStatus
-import no.nav.aap.api.postgres.KelvinSakStatus
-import no.nav.aap.api.postgres.Meldekort
-import no.nav.aap.api.postgres.MeldekortPerioderRepository
-import no.nav.aap.api.postgres.MeldekortService
-import no.nav.aap.api.postgres.SakStatusRepository
-import no.nav.aap.api.postgres.VedtakService
+import no.nav.aap.api.postgres.*
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest as ArenaSakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -47,6 +29,10 @@ import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
 import java.time.Clock
+import java.time.LocalDate
+import java.util.*
+import javax.sql.DataSource
+import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest as ArenaSakerRequest
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -402,31 +388,6 @@ fun NormalOpenAPIRoute.api(
                 tellKildesystem(kelvinSaker, null, "/kelvin/maksimumUtenUtbetaling")
 
                 respond(Medium(kelvinSaker))
-            }
-
-            route("behandling").post<CallIdHeader, List<DatadelingDTO>, InternVedtakRequestApiIntern>(
-                info(
-                    description = "Henter ut behandlingsdata for en person innen gitte datointerval uten behandling av datasett",
-                    deprecated = true
-                )
-            ) { _, requestBody ->
-                Metrics.httpRequestTeller(pipeline.call)
-
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
-
-                val tilArenaKontrakt = requestBody.tilKontrakt()
-
-                val kelvinSaker = dataSource.transaction { connection ->
-                    val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentVedtaksData(
-                        requestBody.personidentifikator,
-                        Periode(tilArenaKontrakt.fraOgMedDato, tilArenaKontrakt.tilOgMedDato)
-                    )
-                }
-
-                tellKildesystem(kelvinSaker, null, "/kelvin/behandling")
-
-                respond(kelvinSaker)
             }
 
         }
