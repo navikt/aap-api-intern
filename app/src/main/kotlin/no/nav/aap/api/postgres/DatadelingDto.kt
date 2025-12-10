@@ -7,7 +7,9 @@ import java.time.LocalDateTime
 
 data class DatadelingDTO(
     val underveisperiode: List<UnderveisDTO>,
+    @Deprecated("Ikke del disse utad.")
     val rettighetsPeriodeFom: LocalDate,
+    @Deprecated("Ikke del disse utad.")
     val rettighetsPeriodeTom: LocalDate,
     val behandlingStatus: KelvinBehandlingStatus,
     val behandlingsId: String,
@@ -18,7 +20,7 @@ data class DatadelingDTO(
     val behandlingsReferanse: String,
     val samId: String? = null,
     val vedtakId: Long,
-    val beregningsgrunnlag: BigDecimal,
+    val beregningsgrunnlag: BigDecimal?,
     val nyttVedtak: Boolean
 )
 
