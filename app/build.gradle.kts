@@ -11,10 +11,10 @@ application {
     mainClass.set("no.nav.aap.api.AppKt")
 }
 
-val komponenterVersjon = "1.0.457"
+val komponenterVersjon = "1.0.458"
 val ktorVersion = "3.3.3"
 val tilgangVersjon = "1.0.168"
-val behandlingsflytversjon = "0.0.502"
+val behandlingsflytversjon = "0.0.504"
 val arenaOppslagVersjon = "0.0.40"
 val resilience4jVersion = "2.3.0"
 
