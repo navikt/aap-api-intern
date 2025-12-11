@@ -12,7 +12,6 @@ import com.papsign.ktor.openapigen.route.tag
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.api.arena.IArenaoppslagRestClient
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.pdl.IPdlClient
@@ -254,11 +253,19 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Sjekker om en person kan behandles i Kelvin mtp. Arena-historikken deres")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om personen kan behandles i Kelvin")
-                val callId = receiveCall("/arena/person/aap/soknad/kan_behandles_i_kelvin", callIdHeader, pipeline)
+                val callId = receiveCall(
+                    "/arena/person/aap/soknad/kan_behandles_i_kelvin",
+                    callIdHeader,
+                    pipeline
+                )
 
                 val arenaResponse =
-                    arena.personKanBehandlesIKelvin(callId, ArenaSakerRequest(requestBody.personidentifikatorer))
-                val response = ArenaStatusResponse(arenaResponse.kanBehandles, arenaResponse.nyesteArenaSakId)
+                    arena.personKanBehandlesIKelvin(
+                        callId,
+                        ArenaSakerRequest(requestBody.personidentifikatorer)
+                    )
+                val response =
+                    ArenaStatusResponse(arenaResponse.kanBehandles, arenaResponse.nyesteArenaSakId)
 
                 respond(response)
             }
@@ -446,6 +453,12 @@ fun NormalOpenAPIRoute.api(
                                 Meldekort(
                                     Periode(meldekort.meldePeriode.fom, meldekort.meldePeriode.tom),
                                     meldekort.arbeidPerDag.sumOf { it.timerArbeidet },
+                                    meldekort.arbeidPerDag.map {
+                                        TimerArbeidetPerDag(
+                                            it.dag,
+                                            it.timerArbeidet.toDouble()
+                                        )
+                                    },
                                     meldekort.mottattTidspunkt
                                 )
                             }
