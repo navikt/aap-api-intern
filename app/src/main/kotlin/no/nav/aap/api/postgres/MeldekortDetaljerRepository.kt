@@ -106,7 +106,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
                 """.trimIndent(),
             timerArbeid
         ) {
-            setParams { it ->
+            setParams {
                 setLong(1, meldekortId)
                 setLocalDate(2, it.dag)
                 setBigDecimal(3, it.timerArbeidet)
@@ -183,6 +183,13 @@ data class DsopMeldekortRespons(
 
 data class Meldekort(
     val periode: Periode,
+    @Deprecated("Bruk timerArbeidetPerDag.")
     val antallTimerArbeidet: BigDecimal,
+    val timerArbeidetPerDag: List<TimerArbeidetPerDag>,
     val sistOppdatert: LocalDateTime,
+)
+
+data class TimerArbeidetPerDag(
+    val dag: LocalDate,
+    val timerArbeidet: Double,
 )
