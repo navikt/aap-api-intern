@@ -126,9 +126,12 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         }
         return connection.queryList(
             """SELECT * FROM MELDEKORT WHERE PERSON_IDENT = ANY(?)
-                AND MOTTATT_TIDSPUNKT >= COALESCE(CAST(? AS DATE), MOTTATT_TIDSPUNKT)
-                AND MOTTATT_TIDSPUNKT <= COALESCE(CAST(? AS DATE), MOTTATT_TIDSPUNKT);
-            """.trimIndent()
+                 AND periode && daterange(
+                COALESCE(CAST(? AS DATE), '-infinity'::date),
+                COALESCE(CAST(? AS DATE), 'infinity'::date),
+                '[]'
+            )
+                """.trimIndent()
         ) {
             setParams {
                 setArray(1, personIdentifikatorer)
