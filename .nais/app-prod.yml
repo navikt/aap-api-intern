@@ -82,6 +82,9 @@ spec:
         - application: salesforce
           namespace: teamcrm
           cluster: prod-external
+        - application: saas-proxy
+          namespace: platforce
+          cluster: prod-gcp
         - application: pensjon-pen
           namespace: pensjondeployer
           cluster: prod-fss
