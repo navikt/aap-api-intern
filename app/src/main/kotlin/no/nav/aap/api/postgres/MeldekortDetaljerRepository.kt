@@ -127,8 +127,8 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         return connection.queryList(
             """SELECT * FROM MELDEKORT WHERE PERSON_IDENT = ANY(?)
                  AND periode && daterange(
-                COALESCE(CAST(? AS DATE), '1900-01-01'::date),
-                COALESCE(CAST(? AS DATE), '2099-12-31'::date),
+                COALESCE(CAST(? AS DATE), '-infinity'::date),
+                COALESCE(CAST(? AS DATE), 'infinity'::date),
                 '[]'
             )
                 """.trimIndent()
