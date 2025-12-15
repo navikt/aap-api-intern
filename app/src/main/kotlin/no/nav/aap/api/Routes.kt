@@ -12,7 +12,7 @@ import com.papsign.ktor.openapigen.route.tag
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
-import no.nav.aap.api.aren.ArenaService
+import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.arena.IArenaoppslagRestClient
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.pdl.IPdlClient
@@ -243,7 +243,7 @@ fun NormalOpenAPIRoute.api(
                     HttpHeaders.ContentType,
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
-                val eksistererIAAPArena = arenaService.eksistererIAapArena(requestBody.personidentifikatorer, callId)
+                val eksistererIAAPArena = arenaService.eksistererIAapArena(callId, requestBody.personidentifikatorer)
                 respond(eksistererIAAPArena)
             }
         }
@@ -258,7 +258,7 @@ fun NormalOpenAPIRoute.api(
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
 
-                val kanBehandlesIKelvin = arenaService.kanBehandlesIKelvin(requestBody.personidentifikatorer, callId)
+                val kanBehandlesIKelvin = arenaService.kanBehandlesIKelvin(callId, requestBody.personidentifikatorer)
                 respond(kanBehandlesIKelvin)
             }
         }
