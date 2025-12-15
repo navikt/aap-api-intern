@@ -12,6 +12,7 @@ import com.papsign.ktor.openapigen.route.tag
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
+import no.nav.aap.api.aren.ArenaService
 import no.nav.aap.api.arena.IArenaoppslagRestClient
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.pdl.IPdlClient
@@ -52,6 +53,7 @@ enum class Tag(override val description: String) : APITag {
     Meldekort("For å hente AAP-meldekort"),
     Maksimum("For å hente maksimumsløsning"),
     DSOP("For DSOP-relaterte endepunkter"),
+    ArenaHistorikk("For å hente informasjon om AAP historikk fra Arena"), ;
 }
 
 data class SakerRequest(
@@ -227,50 +229,6 @@ fun NormalOpenAPIRoute.api(
             respond(arenaSaker + kelvinSaker)
         }
 
-        route("/arena/person/aap/eksisterer") {
-            post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
-                info(description = "Sjekker om en person eksisterer i AAP-arena")
-            ) { callIdHeader, requestBody ->
-                logger.info("Sjekker om person eksisterer i aap-arena")
-                val callId = receiveCall("/arena/person/aap/eksisterer", callIdHeader, pipeline)
-
-                pipeline.call.response.headers.append(
-                    HttpHeaders.ContentType,
-                    ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
-                )
-                respond(
-                    PersonEksistererIAAPArena(
-                        arena.hentPersonEksistererIAapContext(
-                            callId,
-                            ArenaSakerRequest(requestBody.personidentifikatorer)
-                        ).eksisterer
-                    )
-                )
-            }
-        }
-        route("/arena/person/aap/soknad/kan_behandles_i_kelvin") {
-            post<CallIdHeader, ArenaStatusResponse, SakerRequest>(
-                info(description = "Sjekker om en person kan behandles i Kelvin mtp. Arena-historikken deres")
-            ) { callIdHeader, requestBody ->
-                logger.info("Sjekker om personen kan behandles i Kelvin")
-                val callId = receiveCall(
-                    "/arena/person/aap/soknad/kan_behandles_i_kelvin",
-                    callIdHeader,
-                    pipeline
-                )
-
-                val arenaResponse =
-                    arena.personKanBehandlesIKelvin(
-                        callId,
-                        ArenaSakerRequest(requestBody.personidentifikatorer)
-                    )
-                val response =
-                    ArenaStatusResponse(arenaResponse.kanBehandles, arenaResponse.nyesteArenaSakId)
-
-                respond(response)
-            }
-        }
-
         route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { _, requestBody ->
@@ -293,6 +251,39 @@ fun NormalOpenAPIRoute.api(
                 }
             tellKildesystem(kelvinSaker, null, "/kelvin/sakerByFnr")
             respond(kelvinSaker)
+        }
+    }
+    tag(Tag.ArenaHistorikk) {
+        val arenaService = ArenaService(arena)
+        route("/arena/person/aap/eksisterer") {
+            post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
+                info(description = "Sjekker om en person eksisterer i AAP-arena")
+            ) { callIdHeader, requestBody ->
+                logger.info("Sjekker om person eksisterer i aap-arena")
+                val callId = receiveCall("/arena/person/aap/eksisterer", callIdHeader, pipeline)
+
+                pipeline.call.response.headers.append(
+                    HttpHeaders.ContentType,
+                    ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
+                )
+                val eksistererIAAPArena = arenaService.eksistererIAapArena(requestBody.personidentifikatorer, callId)
+                respond(eksistererIAAPArena)
+            }
+        }
+        route("/arena/person/aap/soknad/kan_behandles_i_kelvin") {
+            post<CallIdHeader, ArenaStatusResponse, SakerRequest>(
+                info(description = "Sjekker om en person kan behandles i Kelvin mtp. AAP-Arena-historikken deres")
+            ) { callIdHeader, requestBody ->
+                logger.info("Sjekker om personen kan behandles i Kelvin")
+                val callId = receiveCall("/arena/person/aap/soknad/kan_behandles_i_kelvin", callIdHeader, pipeline)
+                pipeline.call.response.headers.append(
+                    HttpHeaders.ContentType,
+                    ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
+                )
+
+                val kanBehandlesIKelvin = arenaService.kanBehandlesIKelvin(requestBody.personidentifikatorer, callId)
+                respond(kanBehandlesIKelvin)
+            }
         }
     }
 
