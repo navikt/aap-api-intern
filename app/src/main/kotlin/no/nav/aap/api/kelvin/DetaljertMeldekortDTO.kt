@@ -24,7 +24,7 @@ data class MeldekortDTO(
         return MeldekortDetalj(
             saksnummer = this.saksnummer,
             mottattTidspunkt = this.mottattTidspunkt,
-            meldePeriode = no.nav.aap.api.intern.Periode(this.meldePeriode.fom, this.meldePeriode.fom),
+            meldePeriode = no.nav.aap.api.intern.Periode(this.meldePeriode.fom, this.meldePeriode.tom),
             arbeidPerDag = this.arbeidPerDag.map {
                 TimerPaaDag(
                     dag = it.dag,

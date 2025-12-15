@@ -27,6 +27,7 @@ import no.nav.aap.api.intern.MeldekortDetaljerResponse
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArbeidIPeriodeDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -34,7 +35,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 
-class MeldekortDetaljerRepositoryTest : PostgresTestBase() {
+class MeldekortDetaljerTest : PostgresTestBase() {
     companion object {
         val testObject = DetaljertMeldekortDTO(
             personIdent = "12345678901",
@@ -60,7 +61,7 @@ class MeldekortDetaljerRepositoryTest : PostgresTestBase() {
     }
 
     @Test
-    fun `kan lagre og hente meldekort detaljer`() {
+    fun `kan lagre og hente meldekort-detaljer`() {
         val config = TestConfig.default(fakes)
         val azure = AzureTokenGen("test", "test")
 
@@ -85,7 +86,7 @@ class MeldekortDetaljerRepositoryTest : PostgresTestBase() {
 
             assertEquals(HttpStatusCode.OK, res.status)
             val meldekort = countMeldekort()
-            assert(meldekort > 0)
+            assertThat(meldekort > 0).isTrue
 
             val meldekortResponse = jsonHttpClient.post("/kelvin/meldekort-detaljer"){
                 bearerAuth(azure.generate(isApp = true))
@@ -97,9 +98,11 @@ class MeldekortDetaljerRepositoryTest : PostgresTestBase() {
                     ))
             }
 
-            assert(meldekortResponse.status == HttpStatusCode.OK)
+            assertThat(meldekortResponse.status).isEqualTo(HttpStatusCode.OK)
             val meldekortListe = meldekortResponse.body<MeldekortDetaljerResponse>()
-            assert(meldekortListe.meldekort.isNotEmpty())
+            assertThat(meldekortListe.meldekort).isNotEmpty()
+            assertThat(meldekortListe.meldekort.first().meldePeriode.fraOgMedDato).isEqualTo(testObject.meldeperiodeFom)
+            assertThat(meldekortListe.meldekort.first().meldePeriode.tilOgMedDato).isEqualTo(testObject.meldeperiodeTom)
         }
 
     }
