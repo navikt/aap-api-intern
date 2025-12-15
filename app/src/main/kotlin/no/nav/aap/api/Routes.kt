@@ -17,8 +17,6 @@ import no.nav.aap.api.arena.IArenaoppslagRestClient
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.pdl.IPdlClient
 import no.nav.aap.api.postgres.*
-import no.nav.aap.api.util.fraKontrakt
-import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
@@ -32,7 +30,6 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.*
 import javax.sql.DataSource
-import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest as ArenaSakerRequest
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -79,6 +76,8 @@ fun NormalOpenAPIRoute.api(
     pdlClient: IPdlClient,
     clock: Clock = Clock.systemDefaultZone(),
 ) {
+    val arenaService = ArenaService(arena)
+
     tag(Tag.Perioder) {
         route("/perioder") {
             post<CallIdHeader, PerioderResponse, InternVedtakRequestApiIntern>(
@@ -88,22 +87,19 @@ fun NormalOpenAPIRoute.api(
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
-                val tilArenaKontrakt = requestBody.tilKontrakt()
+                val vedtakRequest = requestBody.tilKontrakt()
 
                 val kelvinPerioder = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     val vedtaksdata =
                         behandlingsRepository.hentVedtaksData(
                             requestBody.personidentifikator,
-                            Periode(tilArenaKontrakt.fraOgMedDato, tilArenaKontrakt.tilOgMedDato)
+                            Periode(vedtakRequest.fraOgMedDato, vedtakRequest.tilOgMedDato)
                         )
                     perioderMedAAp(vedtaksdata)
                 }
 
-                val arenaPerioder = arena.hentPerioder(
-                    callId,
-                    tilArenaKontrakt
-                ).perioder
+                val arenaPerioder = arenaService.hentPerioder(callId, vedtakRequest)
 
                 tellKildesystem(kelvinPerioder, arenaPerioder, "/perioder")
 
@@ -120,31 +116,16 @@ fun NormalOpenAPIRoute.api(
                 val callId = receiveCall(callIdHeader, pipeline)
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
-                val tilArenaKontrakt = requestBody.tilKontrakt()
-                val arenaSvar = arena.hentPerioderInkludert11_17(callId, tilArenaKontrakt)
+                val vedtakRequest = requestBody.tilKontrakt()
+                val aktivitetfase = arenaService.aktivitetfase(callId, vedtakRequest)
 
                 tellKildesystem(
                     null,
-                    arenaSvar.perioder,
+                    aktivitetfase.perioder,
                     "/perioder/aktivitetfase"
                 )
 
-                respond(
-                    PerioderInkludert11_17Response(
-                        perioder = arenaSvar.perioder.map {
-                            PeriodeInkludert11_17(
-                                periode = it.periode.let {
-                                    Periode(
-                                        it.fraOgMedDato,
-                                        it.tilOgMedDato
-                                    )
-                                },
-                                aktivitetsfaseKode = it.aktivitetsfaseKode,
-                                aktivitetsfaseNavn = it.aktivitetsfaseNavn,
-                            )
-                        }
-                    )
-                )
+                respond(aktivitetfase)
             }
 
             route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequestApiIntern>(
@@ -218,10 +199,8 @@ fun NormalOpenAPIRoute.api(
                         sakStatusRepository.hentSakStatus(it)
                     }
                 }
-            val arenaSaker: List<SakStatus> =
-                arena.hentSakerByFnr(callId, ArenaSakerRequest(personIdenter)).map {
-                    arenaSakStatusTilDomene(it)
-                }
+            val arenaSaker: List<SakStatus> = arenaService.hentSaker(callId, requestBody.personidentifikatorer)
+
 
             tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
 
@@ -253,7 +232,6 @@ fun NormalOpenAPIRoute.api(
         }
     }
     tag(Tag.ArenaHistorikk) {
-        val arenaService = ArenaService(arena)
         route("/arena/person/aap/eksisterer") {
             post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
                 info(description = "Sjekker om en person eksisterer i AAP-arena")
@@ -312,14 +290,11 @@ fun NormalOpenAPIRoute.api(
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
 
-                val arenaRespons = arena.hentMaksimum(
-                    callId,
-                    body
-                ).vedtak.map { it.fraKontraktUtenUtbetaling() }
+                val arenaSaker = arenaService.hentVedtakUtenUtbetaling(callId, body)
 
-                tellKildesystem(kelvinSaker, arenaRespons, "/maksimumUtenUtbetaling")
+                tellKildesystem(kelvinSaker, arenaSaker, "/maksimumUtenUtbetaling")
 
-                respond(Medium(arenaRespons + kelvinSaker))
+                respond(Medium(arenaSaker + kelvinSaker))
             }
         }
         route("/maksimum") {
@@ -343,7 +318,7 @@ fun NormalOpenAPIRoute.api(
                         Periode(body.fraOgMedDato, body.tilOgMedDato),
                     ).vedtak
                 }
-                val arenaVedtak = arena.hentMaksimum(callId, body).fraKontrakt().vedtak
+                val arenaVedtak = arenaService.hentVedtak(callId, body)
 
                 tellKildesystem(kelvinSaker, arenaVedtak, "/maksimum")
 
@@ -499,34 +474,6 @@ private fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
     }
 }
 
-private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus) =
-    SakStatus(
-        sakId = it.sakId,
-        statusKode = when (it.statusKode) {
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.AVSLU -> no.nav.aap.api.intern.Status.AVSLU
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.FORDE -> no.nav.aap.api.intern.Status.FORDE
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.GODKJ -> no.nav.aap.api.intern.Status.GODKJ
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.INNST -> no.nav.aap.api.intern.Status.INNST
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.IVERK -> no.nav.aap.api.intern.Status.IVERK
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.KONT -> no.nav.aap.api.intern.Status.KONT
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.MOTAT -> no.nav.aap.api.intern.Status.MOTAT
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.OPPRE -> no.nav.aap.api.intern.Status.OPPRE
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.REGIS -> no.nav.aap.api.intern.Status.REGIS
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.UKJENT -> no.nav.aap.api.intern.Status.UKJENT
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.OPPRETTET -> no.nav.aap.api.intern.Status.OPPRETTET
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.UTREDES -> no.nav.aap.api.intern.Status.UTREDES
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.LØPENDE -> no.nav.aap.api.intern.Status.LØPENDE
-            no.nav.aap.arenaoppslag.kontrakt.intern.Status.AVSLUTTET -> no.nav.aap.api.intern.Status.AVSLUTTET
-        },
-        periode = Periode(
-            it.periode.fraOgMedDato,
-            it.periode.tilOgMedDato
-        ),
-        kilde = when (it.kilde) {
-            no.nav.aap.arenaoppslag.kontrakt.intern.Kilde.ARENA -> Kilde.ARENA
-            no.nav.aap.arenaoppslag.kontrakt.intern.Kilde.KELVIN -> Kilde.KELVIN
-        }
-    )
 
 private fun hentAllePersonidenter(
     identerFraRequest: List<String>,
