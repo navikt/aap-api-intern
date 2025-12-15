@@ -62,14 +62,13 @@ data class SakerRequest(
 )
 
 private fun receiveCall(
-    endpoint: String,
     callIdHeader: CallIdHeader,
     pipeline: RoutingContext,
 ): String {
     Metrics.httpRequestTeller(pipeline.call)
 
     return callIdHeader.callId() ?: UUID.randomUUID().toString().also {
-        logger.info("CallID ble ikke gitt på kall mot: $endpoint")
+        logger.info("CallID ble ikke gitt på kall mot: ${pipeline.call.request.path()}")
     }
 }
 
@@ -85,7 +84,7 @@ fun NormalOpenAPIRoute.api(
             post<CallIdHeader, PerioderResponse, InternVedtakRequestApiIntern>(
                 info(description = "Henter perioder med vedtak for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
-                val callId = receiveCall("/perioder", callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader, pipeline)
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
@@ -118,7 +117,7 @@ fun NormalOpenAPIRoute.api(
             route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequestApiIntern>(
                 info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
-                val callId = receiveCall("/perioder/aktivitetfase", callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader, pipeline)
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val tilArenaKontrakt = requestBody.tilKontrakt()
@@ -203,7 +202,7 @@ fun NormalOpenAPIRoute.api(
         route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person")
         ) { callIdHeader, requestBody ->
-            val callId = receiveCall("/sakerByFnr", callIdHeader, pipeline)
+            val callId = receiveCall(callIdHeader, pipeline)
 
             /*
             * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
@@ -260,7 +259,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Sjekker om en person eksisterer i AAP-arena")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om person eksisterer i aap-arena")
-                val callId = receiveCall("/arena/person/aap/eksisterer", callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader, pipeline)
 
                 pipeline.call.response.headers.append(
                     HttpHeaders.ContentType,
@@ -275,7 +274,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Sjekker om en person kan behandles i Kelvin mtp. AAP-Arena-historikken deres")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om personen kan behandles i Kelvin")
-                val callId = receiveCall("/arena/person/aap/soknad/kan_behandles_i_kelvin", callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader, pipeline)
                 pipeline.call.response.headers.append(
                     HttpHeaders.ContentType,
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
@@ -297,7 +296,7 @@ fun NormalOpenAPIRoute.api(
                     """.trimIndent()
                 )
             ) { callIdHeader, requestBody ->
-                val callId = receiveCall("/maksimumUtenUtbetaling", callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader, pipeline)
                 val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
@@ -332,7 +331,7 @@ fun NormalOpenAPIRoute.api(
                 )
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
-                val callId = receiveCall("/maksimum", callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader, pipeline)
 
                 val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
