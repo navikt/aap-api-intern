@@ -22,11 +22,11 @@ class MockedArenaClient : IArenaoppslagRestClient {
         return PersonEksistererIAAPArena(false)
     }
 
-    override suspend fun personKanBehandlesIKelvin(
+    override suspend fun personHarSignifikantAAPArenaHistorikk(
         callId: String,
         req: SakerRequest
-    ): PersonKanBehandlesIKelvinResponse {
-        return PersonKanBehandlesIKelvinResponse(false, null)
+    ): PersonHarSignifikantAAPArenaHistorikk {
+        return PersonHarSignifikantAAPArenaHistorikk(false, emptyList())
     }
 
     override suspend fun hentSakerByFnr(

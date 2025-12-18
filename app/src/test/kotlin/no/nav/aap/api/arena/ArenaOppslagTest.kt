@@ -73,7 +73,7 @@ class ArenaOppslagTest {
     @Test
     fun `kan kalle på kan behandles i Kelvin`() {
         testWithKtorApp { token ->
-            val res = jsonHttpClient.post("/arena/person/aap/soknad/kan_behandles_i_kelvin") {
+            val res = jsonHttpClient.post("/arena/person/aap/signifikant-historikk") {
                 bearerAuth(token.generate(isApp = true))
                 contentType(ContentType.Application.Json)
                 setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
@@ -82,7 +82,7 @@ class ArenaOppslagTest {
             assertThat(res.status).isEqualTo(HttpStatusCode.OK)
             val parsedBody = res.body<ArenaStatusResponse>()
             assertThat(parsedBody).isNotNull
-            assertThat(parsedBody.kanBehandlesIKelvin).isFalse // forventet respons fra MockedArenaClient
+            assertThat(parsedBody.harSignifikantHistorikk).isFalse // forventet respons fra MockedArenaClient
         }
     }
 

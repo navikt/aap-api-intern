@@ -22,9 +22,9 @@ class ArenaService(private val arena: IArenaoppslagRestClient) {
         return PersonEksistererIAAPArena(aapHistorikkForPerson.eksisterer)
     }
 
-    suspend fun kanBehandlesIKelvin(callId: String, personIdenter: List<String>): ArenaStatusResponse {
-        val kanBehandlesIKelvin =  arena.personKanBehandlesIKelvin(callId, SakerRequest(personIdenter))
-        return ArenaStatusResponse(kanBehandlesIKelvin.kanBehandles, kanBehandlesIKelvin.nyesteArenaSakId)
+    suspend fun harSignifikantAAPArenaHistorikk(callId: String, personIdenter: List<String>): ArenaStatusResponse {
+        val harSignifikantAAPArenaHistorikk =  arena.personHarSignifikantAAPArenaHistorikk(callId, SakerRequest(personIdenter))
+        return ArenaStatusResponse(harSignifikantAAPArenaHistorikk.harSignifikantHistorikk, harSignifikantAAPArenaHistorikk.signifikanteSaker)
     }
 
     suspend fun aktivitetfase(callId: String, vedtakRequest: InternVedtakRequest): PerioderInkludert11_17Response {
