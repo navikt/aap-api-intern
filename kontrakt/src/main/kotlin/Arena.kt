@@ -1,6 +1,6 @@
 package no.nav.aap.api.intern
 
 public data class ArenaStatusResponse(
-    val kanBehandlesIKelvin: Boolean,
-    val nyesteArenaSakId: String? // nyeste Arena-sak for personen, dersom noen relevante finnes
+    val harSignifikantHistorikk: Boolean,
+    val signifikanteSaker: List<String> // signifikante Arena-saker, sortert på dato, nyeste først
 )

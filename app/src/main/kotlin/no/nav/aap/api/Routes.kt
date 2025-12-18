@@ -247,7 +247,7 @@ fun NormalOpenAPIRoute.api(
                 respond(eksistererIAAPArena)
             }
         }
-        route("/arena/person/aap/soknad/kan_behandles_i_kelvin") {
+        route("/arena/person/aap/signifikant-historikk") {
             post<CallIdHeader, ArenaStatusResponse, SakerRequest>(
                 info(description = "Sjekker om en person kan behandles i Kelvin mtp. AAP-Arena-historikken deres")
             ) { callIdHeader, requestBody ->
@@ -258,8 +258,8 @@ fun NormalOpenAPIRoute.api(
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
 
-                val kanBehandlesIKelvin = arenaService.kanBehandlesIKelvin(callId, requestBody.personidentifikatorer)
-                respond(kanBehandlesIKelvin)
+                val harSignifikantAAPArenaHistorikk = arenaService.harSignifikantAAPArenaHistorikk(callId, requestBody.personidentifikatorer)
+                respond(harSignifikantAAPArenaHistorikk)
             }
         }
     }

@@ -31,7 +31,7 @@ import no.nav.aap.api.util.findRootCause
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonKanBehandlesIKelvinResponse
+import no.nav.aap.arenaoppslag.kontrakt.intern.PersonHarSignifikantAAPArenaHistorikk
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
@@ -80,12 +80,12 @@ class ArenaoppslagRestClient(
             "/intern/person/aap/eksisterer", callId, req
         ).getOrThrow()
 
-    override suspend fun personKanBehandlesIKelvin(
+    override suspend fun personHarSignifikantAAPArenaHistorikk(
         callId: String,
         req: SakerRequest
-    ): PersonKanBehandlesIKelvinResponse =
-        gjørArenaOppslag<PersonKanBehandlesIKelvinResponse, SakerRequest>(
-            "/person/aap/soknad/kan_behandles_i_kelvin", callId, req
+    ): PersonHarSignifikantAAPArenaHistorikk =
+        gjørArenaOppslag<PersonHarSignifikantAAPArenaHistorikk, SakerRequest>(
+            "/intern/person/aap/signifikant-historikk", callId, req
         ).getOrThrow()
 
     override suspend fun hentSakerByFnr(
