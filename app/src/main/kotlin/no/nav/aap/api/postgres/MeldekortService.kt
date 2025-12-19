@@ -47,5 +47,5 @@ class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient, cloc
         val vedtak = medium.filter { it.status == "LØPENDE" }
         return vedtak.firstOrNull()
     }
-
 }
+

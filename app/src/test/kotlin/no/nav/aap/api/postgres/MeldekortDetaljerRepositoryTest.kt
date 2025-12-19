@@ -72,4 +72,70 @@ class MeldekortDetaljerRepositoryTest {
             .isEqualTo(listOf(meldekortDTO))
     }
 
+    @Test
+    fun `slå sammen meldekort til ett`() {
+        val periode = Periode(LocalDate.of(2025, 4, 14), LocalDate.of(2025, 4, 16))
+        val meldekort = listOf(
+            Meldekort(
+                periode = periode,
+                antallTimerArbeidet = BigDecimal.valueOf(10),
+                timerArbeidetPerDag = listOf(
+                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 14), 5.0),
+                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 15), 5.0)
+                ),
+                sistOppdatert = LocalDateTime.of(2025, 4, 17, 10, 0)
+            ),
+            Meldekort(
+                periode = periode,
+                antallTimerArbeidet = BigDecimal.valueOf(5),
+                timerArbeidetPerDag = listOf(
+                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 15), 2.0),
+                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 16), 3.0)
+                ),
+                sistOppdatert = LocalDateTime.of(2025, 4, 18, 10, 0)
+            )
+        )
+
+        val res = meldekort.slåSammenMeldeperioder()
+
+        assertThat(res).hasSize(1)
+        val sammenslått = res.first()
+        assertThat(sammenslått.periode).isEqualTo(periode)
+
+        // Meldekort nr 2 er korrigert. Så den 15de er det 2 timer arbeidet. 5+2+3=10
+        assertThat(sammenslått.antallTimerArbeidet).isEqualByComparingTo(BigDecimal.valueOf(10))
+        assertThat(sammenslått.timerArbeidetPerDag).containsExactlyInAnyOrder(
+            TimerArbeidetPerDag(LocalDate.of(2025, 4, 14), 5.0),
+            TimerArbeidetPerDag(LocalDate.of(2025, 4, 15), 2.0),
+            TimerArbeidetPerDag(LocalDate.of(2025, 4, 16), 3.0)
+        )
+        assertThat(sammenslått.sistOppdatert).isEqualTo(LocalDateTime.of(2025, 4, 18, 10, 0))
+    }
+
+    @Test
+    fun `slå sammen meldekort med ulike perioder`() {
+        val periode1 = Periode(LocalDate.of(2025, 4, 1), LocalDate.of(2025, 4, 5))
+        val periode2 = Periode(LocalDate.of(2025, 4, 6), LocalDate.of(2025, 4, 10))
+
+        val meldekort = listOf(
+            Meldekort(
+                periode = periode1,
+                antallTimerArbeidet = BigDecimal.valueOf(5),
+                timerArbeidetPerDag = listOf(TimerArbeidetPerDag(LocalDate.of(2025, 4, 1), 5.0)),
+                sistOppdatert = LocalDateTime.now()
+            ),
+            Meldekort(
+                periode = periode2,
+                antallTimerArbeidet = BigDecimal.valueOf(10),
+                timerArbeidetPerDag = listOf(TimerArbeidetPerDag(LocalDate.of(2025, 4, 6), 10.0)),
+                sistOppdatert = LocalDateTime.now()
+            )
+        )
+
+        val res = meldekort.slåSammenMeldeperioder()
+
+        assertThat(res).hasSize(2)
+        assertThat(res.map { it.periode }).containsExactlyInAnyOrder(periode1, periode2)
+    }
+
 }

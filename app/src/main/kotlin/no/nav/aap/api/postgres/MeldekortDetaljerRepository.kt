@@ -59,20 +59,21 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun hentNyesteBehandlingIdLagretForSaken(saksnummer: String): Long? = connection.queryFirstOrNull(
-        """
+    private fun hentNyesteBehandlingIdLagretForSaken(saksnummer: String): Long? =
+        connection.queryFirstOrNull(
+            """
                     SELECT max(BEHANDLING_ID) as nyeste FROM MELDEKORT
                     WHERE SAKSNUMMER = ?
                 """.trimIndent()
-    ) {
-        setParams {
-            setString(1, saksnummer)
-        }
+        ) {
+            setParams {
+                setString(1, saksnummer)
+            }
 
-        setRowMapper { row ->
-            row.getLongOrNull("nyeste")
+            setRowMapper { row ->
+                row.getLongOrNull("nyeste")
+            }
         }
-    }
 
     private fun insertMeldekort(connection: DBConnection, meldekort: MeldekortDTO): Long {
         return connection.executeReturnKey(
@@ -191,6 +192,27 @@ data class Meldekort(
     val timerArbeidetPerDag: List<TimerArbeidetPerDag>,
     val sistOppdatert: LocalDateTime,
 )
+
+fun List<Meldekort>.slåSammenMeldeperioder(): List<Meldekort> {
+    return this
+        .groupBy { it.periode }
+        .values.map { meldekort ->
+            Meldekort(
+                periode = meldekort.first().periode,
+                antallTimerArbeidet = BigDecimal.ZERO,
+                timerArbeidetPerDag = meldekort.sortedBy { it.sistOppdatert }
+                    .flatMap { it.timerArbeidetPerDag }
+                    .groupingBy { it.dag }.reduce { _, accumulator, element ->
+                        accumulator.copy(timerArbeidet = element.timerArbeidet)
+                    }.values.toList(),
+                sistOppdatert = meldekort.maxByOrNull { it.sistOppdatert }?.sistOppdatert
+                    ?: LocalDateTime.MIN,
+            ).let {
+                it.copy(antallTimerArbeidet = it.timerArbeidetPerDag.sumOf { it.timerArbeidet }
+                    .toBigDecimal())
+            }
+        }
+}
 
 data class TimerArbeidetPerDag(
     val dag: LocalDate,

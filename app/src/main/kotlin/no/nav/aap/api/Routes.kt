@@ -199,7 +199,8 @@ fun NormalOpenAPIRoute.api(
                         sakStatusRepository.hentSakStatus(it)
                     }
                 }
-            val arenaSaker: List<SakStatus> = arenaService.hentSaker(callId, requestBody.personidentifikatorer)
+            val arenaSaker: List<SakStatus> =
+                arenaService.hentSaker(callId, requestBody.personidentifikatorer)
 
 
             tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
@@ -243,7 +244,8 @@ fun NormalOpenAPIRoute.api(
                     HttpHeaders.ContentType,
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
-                val eksistererIAAPArena = arenaService.eksistererIAapArena(callId, requestBody.personidentifikatorer)
+                val eksistererIAAPArena =
+                    arenaService.eksistererIAapArena(callId, requestBody.personidentifikatorer)
                 respond(eksistererIAAPArena)
             }
         }
@@ -258,7 +260,10 @@ fun NormalOpenAPIRoute.api(
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
 
-                val harSignifikantAAPArenaHistorikk = arenaService.harSignifikantAAPArenaHistorikk(callId, requestBody.personidentifikatorer)
+                val harSignifikantAAPArenaHistorikk = arenaService.harSignifikantAAPArenaHistorikk(
+                    callId,
+                    requestBody.personidentifikatorer
+                )
                 respond(harSignifikantAAPArenaHistorikk)
             }
         }
@@ -426,7 +431,7 @@ fun NormalOpenAPIRoute.api(
                                     },
                                     meldekort.mottattTidspunkt
                                 )
-                            }
+                            }.slåSammenMeldeperioder()
                     }
 
                     respond(
