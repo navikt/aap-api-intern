@@ -5,6 +5,7 @@ import no.nav.aap.api.intern.Status
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
@@ -201,22 +202,32 @@ class BehandlingsRepository(private val connection: DBConnection) {
         val vedtaksdata = hentVedtaksData(fnr, uttrekksperiode)
 
         return vedtaksdata.flatMap {
-            it.rettighetsTypeTidsLinje.map { rettighetsTypePeriode ->
-                DsopVedtak(
-                    vedtakId = it.behandlingsId,
-                    vedtakStatus = when (rettighetsTypePeriode.tom >= LocalDate.now()) {
-                        true -> DsopStatus.LØPENDE
-                        else -> DsopStatus.AVSLUTTET
-                    },
-                    virkningsperiode = Periode(
+            it.rettighetsTypeTidsLinje
+                .somTidslinje({ rettighetsTypePeriode ->
+                    Periode(
                         rettighetsTypePeriode.fom,
                         rettighetsTypePeriode.tom
-                    ),
-                    utfall = "JA",
-                    aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi),
-                    vedtaksType = if (it.nyttVedtak) VedtaksType.O else VedtaksType.E,
-                )
-            }
+                    )
+                }, { rettighetstype -> rettighetstype.verdi })
+                .komprimer()
+                .segmenter()
+                .map { (periode, verdi) -> RettighetsTypePeriode(periode.fom, periode.tom, verdi) }
+                .map { rettighetsTypePeriode ->
+                    DsopVedtak(
+                        vedtakId = it.behandlingsId,
+                        vedtakStatus = when (rettighetsTypePeriode.tom >= LocalDate.now()) {
+                            true -> DsopStatus.LØPENDE
+                            else -> DsopStatus.AVSLUTTET
+                        },
+                        virkningsperiode = Periode(
+                            rettighetsTypePeriode.fom,
+                            rettighetsTypePeriode.tom
+                        ),
+                        utfall = "JA",
+                        aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi),
+                        vedtaksType = if (it.nyttVedtak) VedtaksType.O else VedtaksType.E,
+                    )
+                }
         }
     }
 
