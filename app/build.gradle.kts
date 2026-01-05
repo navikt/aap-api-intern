@@ -65,7 +65,7 @@ dependencies {
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.133")
+    implementation("no.nav:ktor-openapi-generator:1.0.134")
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     constraints {
