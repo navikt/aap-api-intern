@@ -37,7 +37,7 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
 
-private val secureLog = LoggerFactory.getLogger("secureLog")
+private val secureLog = LoggerFactory.getLogger("team-logs")
 private val log = LoggerFactory.getLogger(ArenaoppslagRestClient::class.java)
 
 private const val ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME = "arenaoppslag_client_seconds"

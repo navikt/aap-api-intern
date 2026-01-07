@@ -60,8 +60,6 @@ spec:
   prometheus:
     enabled: true
     path: /actuator/metrics
-  secureLogs:
-    enabled: true
   accessPolicy:
     inbound:
       rules:
@@ -130,6 +128,8 @@ spec:
       rules:
         - application: behandlingsflyt
         - application: tilgang
+        - application: logging
+          namespace: nais-system
   env:
     - name: ARENAOPPSLAG_PROXY_BASE_URL
       value: https://arenaoppslag.dev-fss-pub.nais.io

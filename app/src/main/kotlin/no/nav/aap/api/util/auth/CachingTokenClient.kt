@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory
 
 internal class CachingTokenClient(private val client: HttpClient) {
     private val cache = TokenCache()
-    private val secureLog = LoggerFactory.getLogger("secureLog")
+    private val secureLog = LoggerFactory.getLogger("team-logs")
 
     /**
      * @throws Exception hvis kall til token-endepunkt feiler
