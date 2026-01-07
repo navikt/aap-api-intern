@@ -65,11 +65,11 @@ spec:
   accessPolicy:
     inbound:
       rules:
-        - application: postmottak-backend
-        - application: meldekort-backend
         - application: tilleggsstonader-integrasjoner
           namespace: tilleggsstonader
           cluster: dev-gcp
+        - application: postmottak-backend
+          namespace: aap
         - application: azure-token-generator
           namespace: nais
           cluster: dev-gcp
@@ -79,8 +79,6 @@ spec:
         - application: azure-token-generator # Ikke i prod :)
           namespace: nais
           cluster: dev-gcp
-        - application: api
-          namespace: aap
         - application: fpabakus
           namespace: teamforeldrepenger
           cluster: dev-fss
@@ -123,6 +121,8 @@ spec:
           permissions:
             roles:
               - "add-data"
+        - application: meldekort-backend
+          namespace: aap
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io

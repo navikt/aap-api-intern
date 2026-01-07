@@ -68,11 +68,10 @@ spec:
           namespace: tilleggsstonader
           cluster: prod-gcp
         - application: postmottak-backend
+          namespace: aap
         - application: arena
           namespace: teamarenanais
           cluster: prod-fss
-        - application: api
-          namespace: aap
         - application: fpabakus
           namespace: teamforeldrepenger
           cluster: prod-fss
@@ -107,6 +106,7 @@ spec:
             roles:
               - "add-data"
         - application: meldekort-backend
+          namespace: aap
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
