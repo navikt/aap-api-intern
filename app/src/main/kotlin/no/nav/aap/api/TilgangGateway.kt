@@ -27,6 +27,7 @@ object TilgangGateway {
     private val cache = Caffeine.newBuilder()
         .maximumSize(10_000)
         .expireAfterWrite(Duration.ofMinutes(15))
+        .recordStats()
         .build<String, Boolean>()
 
     init {
