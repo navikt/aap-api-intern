@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("api-intern.conventions")
     id("io.ktor.plugin") version "3.3.3"
-    id("org.flywaydb.flyway") version "11.20.0"
+    id("org.flywaydb.flyway") version "11.20.1"
     application
 }
 
@@ -50,8 +50,8 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
     implementation("org.apache.kafka:kafka-clients:4.1.1")
-    implementation("org.flywaydb:flyway-core:11.20.0")
-    implementation("ch.qos.logback:logback-classic:1.5.23")
+    implementation("org.flywaydb:flyway-core:11.20.1")
+    implementation("ch.qos.logback:logback-classic:1.5.24")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.1")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
@@ -65,14 +65,14 @@ dependencies {
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.134")
+    implementation("no.nav:ktor-openapi-generator:1.0.136")
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     constraints {
         implementation("commons-codec:commons-codec:1.20.0")
     }
     testImplementation("org.assertj:assertj-core:3.27.6")
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.6")
+    testImplementation("com.nimbusds:nimbus-jose-jwt:10.7")
     testImplementation(kotlin("test"))
 }
 
