@@ -115,6 +115,9 @@ spec:
         - application: modiapersonoversikt-api
           namespace: personoversikt
           cluster: dev-gcp
+        - application: sparkel-aap
+          namespace: tbd
+          cluster: dev-gcp
         - application: behandlingsflyt
           namespace: aap
           cluster: dev-gcp
