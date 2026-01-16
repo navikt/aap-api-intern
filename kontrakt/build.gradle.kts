@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 
 plugins {
-    id("api-intern.conventions")
+    id("aap.conventions")
     `maven-publish`
     `java-library`
 }
