@@ -1,29 +1,25 @@
 package no.nav.aap.api.meldekort
 
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import io.ktor.server.testing.*
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
-import no.nav.aap.api.util.MockedArenaClient
+import no.nav.aap.api.intern.MeldekortDetaljerRequest
+import no.nav.aap.api.intern.MeldekortDetaljerResponse
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
+import no.nav.aap.api.util.MockedArenaClient
 import no.nav.aap.api.util.PdlClientEmpty
 import no.nav.aap.api.util.PostgresTestBase
 import no.nav.aap.api.util.localDate
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import io.ktor.serialization.jackson.jackson
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
-import no.nav.aap.api.intern.MeldekortDetaljerRequest
-import no.nav.aap.api.intern.MeldekortDetaljerResponse
+import no.nav.aap.api.util.localDateTime
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArbeidIPeriodeDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
@@ -32,20 +28,27 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.time.LocalDateTime
-
 
 class MeldekortDetaljerTest : PostgresTestBase() {
     companion object {
+        val testMottatTidspunkt = localDateTime("2024-01-01 12:34:00")!!
+        val testFom = localDate("2023-01-01")
+        val testTom = localDate("2023-01-15")
         val testObject = DetaljertMeldekortDTO(
             personIdent = "12345678901",
             saksnummer = Saksnummer("asd123"),
-            mottattTidspunkt = LocalDateTime.now(),
+            mottattTidspunkt = testMottatTidspunkt,
             journalpostId = "1234",
-            meldeperiodeFom = localDate("2023-01-01"),
-            meldeperiodeTom = localDate("2023-01-15"),
+            meldeperiodeFom = testFom,
+            meldeperiodeTom = testTom,
             behandlingId = 1234,
-            timerArbeidPerPeriode = listOf(ArbeidIPeriodeDTO(localDate("2023-01-01"), localDate("2023-01-01"), 2.5.toBigDecimal())),
+            timerArbeidPerPeriode = listOf(
+                ArbeidIPeriodeDTO(
+                    testFom,
+                    testFom,
+                    2.5.toBigDecimal()
+                )
+            ),
             meldepliktStatusKode = null,
             rettighetsTypeKode = null,
             avslagsårsakKode = null,
@@ -88,14 +91,16 @@ class MeldekortDetaljerTest : PostgresTestBase() {
             val meldekort = countMeldekort()
             assertThat(meldekort > 0).isTrue
 
-            val meldekortResponse = jsonHttpClient.post("/kelvin/meldekort-detaljer"){
+            val meldekortResponse = jsonHttpClient.post("/kelvin/meldekort-detaljer") {
                 bearerAuth(azure.generate(isApp = true))
                 contentType(ContentType.Application.Json)
-                setBody(MeldekortDetaljerRequest(
-                    "12345678901",
-                    fraOgMedDato = LocalDate.now().minusYears(3),
-                    tilOgMedDato = LocalDate.now().plusDays(1)
-                    ))
+                setBody(
+                    MeldekortDetaljerRequest(
+                        "12345678901",
+                        fraOgMedDato = testFom.minusWeeks(1),
+                        tilOgMedDato = LocalDate.now().plusDays(1)
+                    )
+                )
             }
 
             assertThat(meldekortResponse.status).isEqualTo(HttpStatusCode.OK)

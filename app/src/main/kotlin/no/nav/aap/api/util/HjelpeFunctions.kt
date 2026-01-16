@@ -3,6 +3,7 @@ package no.nav.aap.api.util
 import no.nav.aap.api.intern.*
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.DateTimeParseException
@@ -65,6 +66,20 @@ fun localDate(s: String): LocalDate {
 
     return try {
         LocalDate.parse(s, formatter)
+    } catch (e: DateTimeParseException) {
+        logger.error("Failed to parse date string: $s", e)
+        throw e
+    }
+}
+
+fun localDateTime(s: String): LocalDateTime? {
+    val formatter = DateTimeFormatterBuilder()
+        .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss"))
+        .toFormatter()
+
+    return try {
+        LocalDateTime.parse(s, formatter)
     } catch (e: DateTimeParseException) {
         logger.error("Failed to parse date string: $s", e)
         throw e

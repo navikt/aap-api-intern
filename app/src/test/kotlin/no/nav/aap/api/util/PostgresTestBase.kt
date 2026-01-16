@@ -13,32 +13,24 @@ abstract class PostgresTestBase {
             con.execute("TRUNCATE TABLE MELDEKORT_PERIODER_MED_FNR")
             con.execute("TRUNCATE TABLE SAKER")
         }
-
     }
 
-
-
-    fun countMeldekortEntries(): Int? =
-        dataSource.transaction { con ->
-            con.queryFirstOrNull("SELECT count(*) as nr FROM MELDEKORT_PERIODER_MED_FNR"){
-                setRowMapper { row -> row.getInt("nr") }
-
-            }
+    fun countMeldekortEntries(): Int? = dataSource.transaction { con ->
+        con.queryFirstOrNull("SELECT count(*) as nr FROM MELDEKORT_PERIODER_MED_FNR") {
+            setRowMapper { row -> row.getInt("nr") }
         }
+    }
 
-    fun countTilkjentPerioder(): Int =
-        dataSource.transaction { con ->
-            con.queryFirst("SELECT count(*) as nr FROM TILKJENT_PERIODE"){
-                setRowMapper { row -> row.getInt("nr") }
-            }
+    fun countTilkjentPerioder(): Int = dataSource.transaction { con ->
+        con.queryFirst("SELECT count(*) as nr FROM TILKJENT_PERIODE") {
+            setRowMapper { row -> row.getInt("nr") }
         }
+    }
 
-    fun countMeldekort(): Int =
-        dataSource.transaction { con ->
-            con.queryFirst("SELECT count(*) as nr FROM MELDEKORT"){
-                setRowMapper { row -> row.getInt("nr") }
-            }
+    fun countMeldekort(): Int = dataSource.transaction { con ->
+        con.queryFirst("SELECT count(*) as nr FROM MELDEKORT") {
+            setRowMapper { row -> row.getInt("nr") }
         }
-
+    }
 
 }
