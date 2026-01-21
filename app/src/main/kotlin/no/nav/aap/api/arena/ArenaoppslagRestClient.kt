@@ -29,10 +29,10 @@ import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
 import no.nav.aap.api.util.findRootCause
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.KanBehandleSoknadIKelvin
+import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonHarSignifikantAAPArenaHistorikk
+import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
@@ -81,11 +81,11 @@ class ArenaoppslagRestClient(
             "/intern/person/aap/eksisterer", callId, req
         ).getOrThrow()
 
-    override suspend fun personHarSignifikantAAPArenaHistorikk(
+    override suspend fun hentPersonHarSignifikantHistorikk(
         callId: String,
-        req: KanBehandleSoknadIKelvin
-    ): PersonHarSignifikantAAPArenaHistorikk =
-        gjørArenaOppslag<PersonHarSignifikantAAPArenaHistorikk, KanBehandleSoknadIKelvin>(
+        req: SignifikanteSakerRequest
+    ): SignifikanteSakerResponse =
+        gjørArenaOppslag<SignifikanteSakerResponse, SignifikanteSakerRequest>(
             "/intern/person/aap/signifikant-historikk", callId, req
         ).getOrThrow()
 

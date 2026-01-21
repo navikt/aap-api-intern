@@ -12,11 +12,11 @@ import io.ktor.server.testing.*
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
-import no.nav.aap.api.intern.PersonHarSignifikantAAPArenaHistorikk
+import no.nav.aap.api.intern.SignifikanteSakerResponse
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.MockedArenaClient
-import no.nav.aap.arenaoppslag.kontrakt.intern.KanBehandleSoknadIKelvin
+import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
@@ -78,11 +78,11 @@ class ArenaOppslagTest {
             val res = jsonHttpClient.post("/arena/person/aap/signifikant-historikk") {
                 bearerAuth(token.generate(isApp = true))
                 contentType(ContentType.Application.Json)
-                setBody(KanBehandleSoknadIKelvin(listOf("12345678910"), LocalDate.now()))
+                setBody(SignifikanteSakerRequest(listOf("12345678910"), LocalDate.now()))
             }
             assertThat(res).isNotNull()
             assertThat(res.status).isEqualTo(HttpStatusCode.OK)
-            val parsedBody = res.body<PersonHarSignifikantAAPArenaHistorikk>()
+            val parsedBody = res.body<SignifikanteSakerResponse>()
             assertThat(parsedBody).isNotNull
             assertThat(parsedBody.harSignifikantHistorikk).isFalse // forventet respons fra MockedArenaClient
         }

@@ -4,14 +4,14 @@ import no.nav.aap.api.intern.Periode
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.PerioderInkludert11_17Response
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
-import no.nav.aap.api.intern.PersonHarSignifikantAAPArenaHistorikk
+import no.nav.aap.api.intern.SignifikanteSakerResponse
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.KanBehandleSoknadIKelvin
+import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Kilde
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
@@ -28,13 +28,13 @@ class ArenaService(private val arena: IArenaoppslagRestClient) {
         callId: String,
         personIdenter: List<String>,
         virkningstidspunkt: LocalDate
-    ): PersonHarSignifikantAAPArenaHistorikk {
+    ): SignifikanteSakerResponse {
         val harSignifikantAAPArenaHistorikk =
-            arena.personHarSignifikantAAPArenaHistorikk(
+            arena.hentPersonHarSignifikantHistorikk(
                 callId,
-                KanBehandleSoknadIKelvin(personIdenter, virkningstidspunkt)
+                SignifikanteSakerRequest(personIdenter, virkningstidspunkt)
             )
-        return PersonHarSignifikantAAPArenaHistorikk(
+        return SignifikanteSakerResponse(
             harSignifikantAAPArenaHistorikk.harSignifikantHistorikk,
             harSignifikantAAPArenaHistorikk.signifikanteSaker
         )

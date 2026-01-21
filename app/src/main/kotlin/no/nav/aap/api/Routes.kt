@@ -19,7 +19,7 @@ import no.nav.aap.api.pdl.IPdlClient
 import no.nav.aap.api.postgres.*
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.KanBehandleSoknadIKelvin
+import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -251,7 +251,7 @@ fun NormalOpenAPIRoute.api(
             }
         }
         route("/arena/person/aap/signifikant-historikk") {
-            post<CallIdHeader, PersonHarSignifikantAAPArenaHistorikk, KanBehandleSoknadIKelvin>(
+            post<CallIdHeader, SignifikanteSakerResponse, SignifikanteSakerRequest>(
                 info(description = "Sjekker om en person kan behandles i Kelvin mtp. AAP-Arena-historikken deres")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om personen kan behandles i Kelvin")
