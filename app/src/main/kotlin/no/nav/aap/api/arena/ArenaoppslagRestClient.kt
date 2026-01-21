@@ -29,6 +29,7 @@ import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
 import no.nav.aap.api.util.findRootCause
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.KanBehandleSoknadIKelvin
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonHarSignifikantAAPArenaHistorikk
@@ -82,9 +83,9 @@ class ArenaoppslagRestClient(
 
     override suspend fun personHarSignifikantAAPArenaHistorikk(
         callId: String,
-        req: SakerRequest
+        req: KanBehandleSoknadIKelvin
     ): PersonHarSignifikantAAPArenaHistorikk =
-        gjørArenaOppslag<PersonHarSignifikantAAPArenaHistorikk, SakerRequest>(
+        gjørArenaOppslag<PersonHarSignifikantAAPArenaHistorikk, KanBehandleSoknadIKelvin>(
             "/intern/person/aap/signifikant-historikk", callId, req
         ).getOrThrow()
 

@@ -24,7 +24,7 @@ class MockedArenaClient : IArenaoppslagRestClient {
 
     override suspend fun personHarSignifikantAAPArenaHistorikk(
         callId: String,
-        req: SakerRequest
+        req: KanBehandleSoknadIKelvin
     ): PersonHarSignifikantAAPArenaHistorikk {
         return PersonHarSignifikantAAPArenaHistorikk(false, emptyList())
     }

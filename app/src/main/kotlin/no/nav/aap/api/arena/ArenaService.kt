@@ -1,19 +1,21 @@
 package no.nav.aap.api.arena
 
-import no.nav.aap.api.intern.ArenaStatusResponse
 import no.nav.aap.api.intern.Periode
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.PerioderInkludert11_17Response
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
+import no.nav.aap.api.intern.PersonHarSignifikantAAPArenaHistorikk
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.KanBehandleSoknadIKelvin
 import no.nav.aap.arenaoppslag.kontrakt.intern.Kilde
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
+import java.time.LocalDate
 
 class ArenaService(private val arena: IArenaoppslagRestClient) {
 
@@ -22,9 +24,20 @@ class ArenaService(private val arena: IArenaoppslagRestClient) {
         return PersonEksistererIAAPArena(aapHistorikkForPerson.eksisterer)
     }
 
-    suspend fun harSignifikantAAPArenaHistorikk(callId: String, personIdenter: List<String>): ArenaStatusResponse {
-        val harSignifikantAAPArenaHistorikk =  arena.personHarSignifikantAAPArenaHistorikk(callId, SakerRequest(personIdenter))
-        return ArenaStatusResponse(harSignifikantAAPArenaHistorikk.harSignifikantHistorikk, harSignifikantAAPArenaHistorikk.signifikanteSaker)
+    suspend fun harSignifikantAAPArenaHistorikk(
+        callId: String,
+        personIdenter: List<String>,
+        virkningstidspunkt: LocalDate
+    ): PersonHarSignifikantAAPArenaHistorikk {
+        val harSignifikantAAPArenaHistorikk =
+            arena.personHarSignifikantAAPArenaHistorikk(
+                callId,
+                KanBehandleSoknadIKelvin(personIdenter, virkningstidspunkt)
+            )
+        return PersonHarSignifikantAAPArenaHistorikk(
+            harSignifikantAAPArenaHistorikk.harSignifikantHistorikk,
+            harSignifikantAAPArenaHistorikk.signifikanteSaker
+        )
     }
 
     suspend fun aktivitetfase(callId: String, vedtakRequest: InternVedtakRequest): PerioderInkludert11_17Response {
@@ -86,7 +99,10 @@ class ArenaService(private val arena: IArenaoppslagRestClient) {
         return arena.hentPerioder(callId, vedtakRequest).perioder
     }
 
-    suspend fun hentVedtakUtenUtbetaling(callId: String, vedtakRequest: InternVedtakRequest): List<VedtakUtenUtbetaling> {
+    suspend fun hentVedtakUtenUtbetaling(
+        callId: String,
+        vedtakRequest: InternVedtakRequest
+    ): List<VedtakUtenUtbetaling> {
         return arena.hentMaksimum(callId, vedtakRequest).vedtak.map { it.fraKontraktUtenUtbetaling() }
     }
 
