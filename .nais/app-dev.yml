@@ -118,6 +118,9 @@ spec:
         - application: sparkel-aap
           namespace: tbd
           cluster: dev-gcp
+        - application: nav-persondata-api
+          namespace: holmes
+          cluster: dev-gcp
         - application: behandlingsflyt
           namespace: aap
           cluster: dev-gcp
