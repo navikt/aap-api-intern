@@ -52,7 +52,7 @@ dependencies {
     implementation("org.apache.kafka:kafka-clients:4.1.1")
     implementation("org.flywaydb:flyway-core:11.20.2")
     implementation("ch.qos.logback:logback-classic:1.5.25")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.20.1")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.2")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
     implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.4.3")
@@ -65,7 +65,7 @@ dependencies {
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.136")
+    implementation("no.nav:ktor-openapi-generator:1.0.137")
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     constraints {
