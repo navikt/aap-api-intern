@@ -37,6 +37,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureC
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration.Companion.minutes
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -65,6 +66,11 @@ fun Application.api(
     datasource: DataSource = initDatasource(config.dbConfig, prometheus),
     arenaRestClient: IArenaoppslagRestClient = ArenaoppslagRestClient(
         config.arenaoppslag, config.azure
+    ),
+    arenaHistorikkClient: IArenaoppslagRestClient = ArenaoppslagRestClient(
+        config.arenaoppslag, config.azure,
+        timeoutMillis = 2.minutes.inWholeMilliseconds,
+        slowRequestMillis = 1.minutes.inWholeMilliseconds
     ),
     pdlClient: IPdlClient = PdlClient(),
     clock: Clock = Clock.systemDefaultZone(),
@@ -95,7 +101,7 @@ fun Application.api(
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(datasource, arenaRestClient, pdlClient, clock)
+                api(datasource, arenaRestClient, arenaHistorikkClient, pdlClient, clock)
                 dataInsertion(datasource, modiaProducer)
             }
         }
