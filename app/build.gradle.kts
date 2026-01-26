@@ -71,7 +71,7 @@ dependencies {
     constraints {
         implementation("commons-codec:commons-codec:1.20.0")
     }
-    testImplementation("org.assertj:assertj-core:3.27.6")
+    testImplementation("org.assertj:assertj-core:3.27.7")
     testImplementation("com.nimbusds:nimbus-jose-jwt:10.7")
     testImplementation(kotlin("test"))
 }
