@@ -57,6 +57,7 @@ fun Application.api(
     prometheus: PrometheusMeterRegistry = Metrics.prometheus,
     config: AppConfig = AppConfig(),
     datasource: DataSource = initDatasource(config.dbConfig, prometheus),
+    arenaService: ArenaService = opprettArenaService(config),
     pdlClient: IPdlClient = PdlClient(),
     clock: Clock = Clock.systemDefaultZone(),
     modiaProducer: KafkaProducer = ModiaKafkaProducer(
@@ -83,13 +84,10 @@ fun Application.api(
         )
     )
 
-    val arenaService = opprettArenaService(config)
-    val arenaHistorikkService = opprettArenaHistorikkService(config)
-
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(datasource, arenaService, arenaHistorikkService, pdlClient, clock)
+                api(datasource, arenaService, pdlClient, clock)
                 dataInsertion(datasource, modiaProducer)
             }
         }
@@ -120,16 +118,13 @@ private fun opprettArenaService(config: AppConfig): ArenaService {
     val arenaRestClient = ArenaoppslagRestClient(
         config.arenaoppslag, config.azure
     )
-    return ArenaService(arenaRestClient)
-}
-
-private fun opprettArenaHistorikkService(config: AppConfig): ArenaService {
     val arenaHistorikkRestClient = ArenaoppslagRestClient(
         config.arenaoppslag, config.azure,
         // Vi øker timeouts fordi disse db-queries er tunge
         timeoutMillis = 2.minutes.inWholeMilliseconds,
         slowRequestMillis = 1.minutes.inWholeMilliseconds
     )
-    return ArenaService(arenaHistorikkRestClient)
+
+    return ArenaService(arenaRestClient, arenaHistorikkRestClient)
 }
 

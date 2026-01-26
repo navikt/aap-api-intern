@@ -3,7 +3,7 @@ package no.nav.aap.api.meldekortperioder
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
 import no.nav.aap.api.kelvin.MeldekortPerioderDTO
-import no.nav.aap.api.util.MockedArenaClient
+import no.nav.aap.api.util.FakeArenaClient
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.PdlClientEmpty
@@ -17,6 +17,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
+import no.nav.aap.api.maksimum.BehandlingsDataTest
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -38,7 +39,7 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                     api(
                         config = config,
                         datasource = dataSource,
-                        arenaRestClient = MockedArenaClient(),
+                        arenaService = fakes.arenaService,
                         pdlClient = PdlClientEmpty(),
                         modiaProducer = fakes.kafka
                     )
@@ -93,7 +94,7 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                     api(
                         config = config,
                         datasource = dataSource,
-                        arenaRestClient = MockedArenaClient(),
+                        arenaService = fakes.arenaService,
                         pdlClient = PdlClientEmpty(),
                         modiaProducer = fakes.kafka
                     )

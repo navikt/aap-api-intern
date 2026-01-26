@@ -16,7 +16,7 @@ import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.api.kelvin.SakStatusKelvin
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
-import no.nav.aap.api.util.MockedArenaClient
+import no.nav.aap.api.util.FakeArenaClient
 import no.nav.aap.api.util.PdlClientEmpty
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
@@ -29,8 +29,6 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.parallel.Execution
-import org.junit.jupiter.api.parallel.ExecutionMode
 import java.time.LocalDate
 
 class SakStatusKelvinTest {
@@ -74,7 +72,7 @@ class SakStatusKelvinTest {
                     api(
                         config = config,
                         datasource = dataSource,
-                        arenaRestClient = MockedArenaClient(),
+                        arenaService = fakes.arenaService,
                         pdlClient = PdlClientEmpty(),
                         modiaProducer = fakes.kafka
                     )

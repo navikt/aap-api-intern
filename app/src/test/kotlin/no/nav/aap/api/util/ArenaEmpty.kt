@@ -1,11 +1,14 @@
 package no.nav.aap.api.util
 
+import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.arena.IArenaoppslagRestClient
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 
-class MockedArenaClient : IArenaoppslagRestClient {
+val FakeArenaService = ArenaService(FakeArenaClient(), FakeArenaClient())
+
+class FakeArenaClient : IArenaoppslagRestClient {
     override suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse {
         return PerioderResponse(emptyList())
     }

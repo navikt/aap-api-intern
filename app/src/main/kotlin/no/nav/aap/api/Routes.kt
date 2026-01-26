@@ -73,7 +73,6 @@ private fun receiveCall(
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arenaService: ArenaService,
-    arenaHistorikkService: ArenaService,
     pdlClient: IPdlClient,
     clock: Clock = Clock.systemDefaultZone(),
 ) {
@@ -245,7 +244,7 @@ fun NormalOpenAPIRoute.api(
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
                 val eksistererIAAPArena =
-                    arenaHistorikkService.eksistererIAapArena(callId, requestBody.personidentifikatorer)
+                    arenaService.eksistererIAapArena(callId, requestBody.personidentifikatorer)
                 respond(eksistererIAAPArena)
             }
         }
@@ -260,7 +259,7 @@ fun NormalOpenAPIRoute.api(
                     ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
                 )
 
-                val harSignifikantAAPArenaHistorikk = arenaHistorikkService.harSignifikantAAPArenaHistorikk(
+                val harSignifikantAAPArenaHistorikk = arenaService.harSignifikantAAPArenaHistorikk(
                     callId,
                     requestBody.personidentifikatorer,
                     requestBody.virkningstidspunkt

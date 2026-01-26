@@ -12,6 +12,7 @@ import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
+import no.nav.aap.api.arena.ArenaOppslagTest
 import no.nav.aap.api.intern.InternVedtakRequestApiIntern
 import no.nav.aap.api.intern.Maksimum
 import no.nav.aap.api.intern.Medium
@@ -141,7 +142,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient(),
+                    arenaService = fakes.arenaService,
                     modiaProducer = fakes.kafka
                 )
             }
@@ -198,7 +199,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient(),
+                    arenaService = fakes.arenaService,
                     modiaProducer = fakes.kafka
                 )
             }
@@ -244,7 +245,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient(),
+                    arenaService = fakes.arenaService,
                     modiaProducer = fakes.kafka
                 )
             }
@@ -364,7 +365,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient(),
+                    arenaService = fakes.arenaService,
                     modiaProducer = fakes.kafka
                 )
             }
@@ -420,7 +421,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient(),
+                    arenaService = fakes.arenaService,
                     modiaProducer = fakes.kafka
                 )
             }
@@ -495,7 +496,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient(),
+                    arenaService = fakes.arenaService,
                     modiaProducer = fakes.kafka,
                     // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
                     clock = Clock.fixed(
