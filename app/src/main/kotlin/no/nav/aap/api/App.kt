@@ -121,8 +121,8 @@ private fun opprettArenaService(config: AppConfig): ArenaService {
     val arenaHistorikkRestClient = ArenaoppslagRestClient(
         config.arenaoppslag, config.azure,
         // Vi øker timeouts fordi disse db-queries er tunge
-        timeoutMillis = 2.minutes.inWholeMilliseconds,
-        slowRequestMillis = 1.minutes.inWholeMilliseconds
+        timeoutMillis = 12.minutes.inWholeMilliseconds,
+        slowRequestMillis = 10.minutes.inWholeMilliseconds
     )
 
     return ArenaService(arenaRestClient, arenaHistorikkRestClient)
