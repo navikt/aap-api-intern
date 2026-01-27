@@ -4,25 +4,16 @@ import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopPreparing
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.ApplicationStopping
-import io.ktor.server.application.install
-import io.ktor.server.application.log
-import io.ktor.server.auth.authenticate
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.routing.routing
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import java.time.Clock
-import javax.sql.DataSource
 import no.nav.aap.api.actuator.actuator
+import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.arena.ArenaoppslagRestClient
-import no.nav.aap.api.arena.IArenaoppslagRestClient
 import no.nav.aap.api.kafka.KafkaProducer
 import no.nav.aap.api.kafka.ModiaKafkaProducer
 import no.nav.aap.api.kafka.ProducerHolder
@@ -37,6 +28,9 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureC
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
+import java.time.Clock
+import javax.sql.DataSource
+import kotlin.time.Duration.Companion.minutes
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -63,9 +57,7 @@ fun Application.api(
     prometheus: PrometheusMeterRegistry = Metrics.prometheus,
     config: AppConfig = AppConfig(),
     datasource: DataSource = initDatasource(config.dbConfig, prometheus),
-    arenaRestClient: IArenaoppslagRestClient = ArenaoppslagRestClient(
-        config.arenaoppslag, config.azure
-    ),
+    arenaService: ArenaService = opprettArenaService(config),
     pdlClient: IPdlClient = PdlClient(),
     clock: Clock = Clock.systemDefaultZone(),
     modiaProducer: KafkaProducer = ModiaKafkaProducer(
@@ -95,7 +87,7 @@ fun Application.api(
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(datasource, arenaRestClient, pdlClient, clock)
+                api(datasource, arenaService, pdlClient, clock)
                 dataInsertion(datasource, modiaProducer)
             }
         }
@@ -121,3 +113,18 @@ fun Application.api(
         }
     }
 }
+
+private fun opprettArenaService(config: AppConfig): ArenaService {
+    val arenaRestClient = ArenaoppslagRestClient(
+        config.arenaoppslag, config.azure
+    )
+    val arenaHistorikkRestClient = ArenaoppslagRestClient(
+        config.arenaoppslag, config.azure,
+        // Vi øker timeouts fordi disse db-queries er tunge
+        timeoutMillis = 12.minutes.inWholeMilliseconds,
+        slowRequestMillis = 10.minutes.inWholeMilliseconds
+    )
+
+    return ArenaService(arenaRestClient, arenaHistorikkRestClient)
+}
+

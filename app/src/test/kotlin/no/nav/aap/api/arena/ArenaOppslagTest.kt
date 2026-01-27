@@ -15,9 +15,8 @@ import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.intern.SignifikanteSakerResponse
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
-import no.nav.aap.api.util.MockedArenaClient
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -48,7 +47,7 @@ class ArenaOppslagTest {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaRestClient = MockedArenaClient(),
+                    arenaService = fakes.arenaService,
                     modiaProducer = fakes.kafka
                 )
             }

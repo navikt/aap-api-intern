@@ -13,7 +13,6 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import no.nav.aap.api.arena.ArenaService
-import no.nav.aap.api.arena.IArenaoppslagRestClient
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.pdl.IPdlClient
 import no.nav.aap.api.postgres.*
@@ -73,11 +72,10 @@ private fun receiveCall(
 
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
-    arena: IArenaoppslagRestClient,
+    arenaService: ArenaService,
     pdlClient: IPdlClient,
     clock: Clock = Clock.systemDefaultZone(),
 ) {
-    val arenaService = ArenaService(arena)
 
     tag(Tag.Perioder) {
         route("/perioder") {

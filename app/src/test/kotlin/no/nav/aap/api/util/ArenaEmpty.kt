@@ -5,7 +5,7 @@ import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 
-class MockedArenaClient : IArenaoppslagRestClient {
+class FakeArenaClient : IArenaoppslagRestClient {
     override suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse {
         return PerioderResponse(emptyList())
     }

@@ -6,37 +6,32 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.http.isSuccess
-import io.ktor.serialization.jackson.jackson
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import io.prometheus.metrics.core.metrics.Summary
-import java.time.Duration
 import no.nav.aap.api.ArenaoppslagConfig
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
 import no.nav.aap.api.util.findRootCause
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import org.slf4j.LoggerFactory
+import java.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 private val secureLog = LoggerFactory.getLogger("team-logs")
 private val log = LoggerFactory.getLogger(ArenaoppslagRestClient::class.java)
@@ -54,12 +49,15 @@ private val objectMapper =
 
 class ArenaoppslagRestClient(
     private val arenaoppslagConfig: ArenaoppslagConfig,
-    azureConfig: no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig,
+    azureConfig: AzureConfig,
+    private val slowRequestMillis: Long = 2000,
+    private val timeoutMillis: Long = 20_000,
 ) : IArenaoppslagRestClient {
     private val tokenProvider = AzureAdTokenProvider(azureConfig)
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
-        // Mange kall til arenaoppslag tar gjerne 300-400ms har vi sett av prometheus-metrikker. Legger denne derfor litt over dette
-        slowCallDurationThreshold = Duration.ofMillis(2000)
+        // Mange kall til arenaoppslag tar gjerne 300-400ms har vi sett av prometheus-metrikker.
+        // Legger denne derfor litt over dette
+        slowCallDurationThreshold = Duration.ofMillis(slowRequestMillis)
     }
 
     override suspend fun hentPerioder(
@@ -147,12 +145,12 @@ class ArenaoppslagRestClient(
         expectSuccess = true // Kaster exception for 4xx og 5xx svar
 
         install(HttpTimeout) {
-            requestTimeoutMillis = 20_000
-            connectTimeoutMillis = 20_000
-            socketTimeoutMillis = 20_000
+            requestTimeoutMillis = timeoutMillis
+            connectTimeoutMillis = 20.seconds.inWholeMilliseconds
+            socketTimeoutMillis = 20.seconds.inWholeMilliseconds
         }
 
-        install(HttpRequestRetry){
+        install(HttpRequestRetry) {
             retryOnException(maxRetries = 3) // retry on exception during network send, other than timeout exceptions
             exponentialDelay()
         }
@@ -165,4 +163,5 @@ class ArenaoppslagRestClient(
             }
         }
     }
+
 }

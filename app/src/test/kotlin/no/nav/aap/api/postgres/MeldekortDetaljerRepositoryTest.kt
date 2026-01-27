@@ -103,7 +103,7 @@ class MeldekortDetaljerRepositoryTest {
         assertThat(sammenslått.periode).isEqualTo(periode)
 
         // Meldekort nr 2 er korrigert. Så den 15de er det 2 timer arbeidet. 5+2+3=10
-        assertThat(sammenslått.antallTimerArbeidet).isEqualByComparingTo(BigDecimal.valueOf(10))
+        assertThat(sammenslått.timerArbeidetPerDag.sumOf { it.timerArbeidet }).isEqualByComparingTo(10.0)
         assertThat(sammenslått.timerArbeidetPerDag).containsExactlyInAnyOrder(
             TimerArbeidetPerDag(LocalDate.of(2025, 4, 14), 5.0),
             TimerArbeidetPerDag(LocalDate.of(2025, 4, 15), 2.0),
