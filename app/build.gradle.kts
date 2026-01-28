@@ -2,7 +2,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("aap.conventions")
-    id("io.ktor.plugin") version "3.3.3"
+    id("io.ktor.plugin") version "3.4.0"
     id("org.flywaydb.flyway") version "11.20.2"
     application
 }
@@ -12,7 +12,7 @@ application {
 }
 
 val komponenterVersjon = "1.0.934"
-val ktorVersion = "3.3.3"
+val ktorVersion = "3.4.0"
 val tilgangVersjon = "1.0.178"
 val behandlingsflytversjon = "0.0.535"
 val arenaOppslagVersjon = "0.0.45"
