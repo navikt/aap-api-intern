@@ -11,9 +11,9 @@ application {
     mainClass.set("no.nav.aap.api.AppKt")
 }
 
-val komponenterVersjon = "1.0.488"
+val komponenterVersjon = "1.0.934"
 val ktorVersion = "3.3.3"
-val tilgangVersjon = "1.0.177"
+val tilgangVersjon = "1.0.178"
 val behandlingsflytversjon = "0.0.535"
 val arenaOppslagVersjon = "0.0.45"
 val resilience4jVersion = "2.3.0"
@@ -65,7 +65,7 @@ dependencies {
 
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
 
-    implementation("no.nav:ktor-openapi-generator:1.0.137")
+    implementation("no.nav.aap.kelvin:ktor-openapi-generator:$komponenterVersjon")
     testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
     constraints {

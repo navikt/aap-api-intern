@@ -35,12 +35,12 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling(): VedtakUtenUtbetaling {
     return VedtakUtenUtbetaling(
-        this.dagsats,
-        null,
-        this.vedtaksId,
-        this.status,
-        this.saksnummer,
-        localDate(this.vedtaksdato),
+        dagsats = this.dagsats,
+        dagsatsEtterUføreReduksjon = null,
+        vedtakId = this.vedtaksId,
+        status = this.status,
+        saksnummer = this.saksnummer,
+        vedtaksdato = localDate(this.vedtaksdato),
         periode = this.periode.fraKontrakt(),
         rettighetsType = this.rettighetsType,
         beregningsgrunnlag = this.beregningsgrunnlag,
