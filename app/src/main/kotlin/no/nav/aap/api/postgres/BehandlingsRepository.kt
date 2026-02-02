@@ -1,6 +1,7 @@
 package no.nav.aap.api.postgres
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
+import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.Status
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
@@ -228,6 +229,23 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         vedtaksType = if (it.nyttVedtak) VedtaksType.O else VedtaksType.E,
                     )
                 }
+        }
+    }
+
+    fun hentPerioderMedAktivitetsfase(fnr: String, periode: Periode): List<PeriodeInkludert11_17> {
+        val vedtaksdata = hentVedtaksData(fnr, periode)
+
+        return vedtaksdata.flatMap {
+            it.rettighetsTypeTidsLinje
+                .somTidslinje({ rettighetsTypePeriode ->
+                    Periode(
+                        rettighetsTypePeriode.fom,
+                        rettighetsTypePeriode.tom
+                    )
+                }, { rettighetstype -> rettighetstype.verdi })
+                .komprimer()
+                .segmenter()
+                .map { (periode, verdi) -> PeriodeInkludert11_17(no.nav.aap.api.intern.Periode(periode.fom, periode.tom), aktivitetsfaseNavn = verdi, aktivitetsfaseKode = verdi) }
         }
     }
 

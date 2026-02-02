@@ -116,6 +116,10 @@ fun NormalOpenAPIRoute.api(
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val vedtakRequest = requestBody.tilKontrakt()
+                val aktfaseKelvin = dataSource.transaction { connection ->
+                    val behandlingsRepository = BehandlingsRepository(connection)
+                    behandlingsRepository.hentPerioderMedAktivitetsfase(vedtakRequest.personidentifikator,
+                        Periode(vedtakRequest.fraOgMedDato, vedtakRequest.tilOgMedDato)) }
                 val aktivitetfase = arenaService.aktivitetfase(callId, vedtakRequest)
 
                 tellKildesystem(
@@ -124,7 +128,7 @@ fun NormalOpenAPIRoute.api(
                     "/perioder/aktivitetfase"
                 )
 
-                respond(aktivitetfase)
+                respond(PerioderInkludert11_17Response(aktivitetfase.perioder+aktfaseKelvin))
             }
 
             route("/meldekort").post<CallIdHeader, List<Periode>, InternVedtakRequestApiIntern>(
