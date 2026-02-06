@@ -102,11 +102,15 @@ fun Application.api(
     }
     monitor.subscribe(ApplicationStopping) { environment ->
         environment.log.info("ktor stopper nå å ta imot nye requester, og lar mottatte requester kjøre frem til timeout.")
+        try {
+            modiaProducer.close()
+        } catch (_: Exception) {
+            // Ignorert
+        }
     }
     monitor.subscribe(ApplicationStopped) { environment ->
         environment.log.info("ktor har fullført nedstoppingen sin. Eventuelle requester og annet arbeid som ikke ble fullført innen timeout ble avbrutt.")
         try {
-            modiaProducer.close()
             (datasource as? HikariDataSource)?.close()
         } catch (_: Exception) {
             // Ignorert
