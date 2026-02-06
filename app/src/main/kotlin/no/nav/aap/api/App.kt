@@ -11,6 +11,8 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import no.nav.aap.api.actuator.actuator
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.arena.ArenaoppslagRestClient
@@ -97,19 +99,22 @@ fun Application.api(
     monitor.subscribe(ApplicationStarted) { environment ->
         environment.log.info("ktor har startet opp.")
     }
-    monitor.subscribe(ApplicationStopPreparing) { environment ->
-        environment.log.info("ktor forbereder seg på å stoppe.")
+    monitor.subscribe(ApplicationStopPreparing) { env ->
+        env.log.info("ktor forbereder seg på å stoppe.")
     }
-    monitor.subscribe(ApplicationStopping) { environment ->
-        environment.log.info("ktor stopper nå å ta imot nye requester, og lar mottatte requester kjøre frem til timeout.")
+    monitor.subscribe(ApplicationStopping) { env ->
+        env.log.info("ktor stopper nå å ta imot nye requester, og lar mottatte requester kjøre frem til timeout.")
         try {
-            modiaProducer.close()
+            // ktor sine eventer kjøres synkront, så vi må kjøre dette asynkront for ikke å blokkere nedstengings-sekvensen
+            env.launch(Dispatchers.IO) {
+                modiaProducer.close()
+            }
         } catch (_: Exception) {
             // Ignorert
         }
     }
-    monitor.subscribe(ApplicationStopped) { environment ->
-        environment.log.info("ktor har fullført nedstoppingen sin. Eventuelle requester og annet arbeid som ikke ble fullført innen timeout ble avbrutt.")
+    monitor.subscribe(ApplicationStopped) { env ->
+        env.log.info("ktor har fullført nedstoppingen sin. Eventuelle requester og annet arbeid som ikke ble fullført innen timeout ble avbrutt.")
         try {
             (datasource as? HikariDataSource)?.close()
         } catch (_: Exception) {
