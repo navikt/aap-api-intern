@@ -72,21 +72,6 @@ class ArenaoppslagRestClient(
         "/intern/perioder/11-17", callId, req
     ).getOrThrow()
 
-    override suspend fun hentPersonEksistererIAapContext(
-        callId: String, req: SakerRequest,
-    ): PersonEksistererIAAPArena =
-        gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
-            "/intern/person/aap/eksisterer", callId, req
-        ).getOrThrow()
-
-    override suspend fun hentPersonHarSignifikantHistorikk(
-        callId: String,
-        req: SignifikanteSakerRequest
-    ): SignifikanteSakerResponse =
-        gjørArenaOppslag<SignifikanteSakerResponse, SignifikanteSakerRequest>(
-            "/intern/person/aap/signifikant-historikk", callId, req
-        ).getOrThrow()
-
     override suspend fun hentSakerByFnr(
         callId: String, req: SakerRequest
     ): List<SakStatus> = gjørArenaOppslag<List<SakStatus>, SakerRequest>(
@@ -98,6 +83,21 @@ class ArenaoppslagRestClient(
     ): Maksimum = gjørArenaOppslag<Maksimum, InternVedtakRequest>(
         "/intern/maksimum", callId, req
     ).getOrThrow()
+
+    override suspend fun hentPersonEksistererIAapContext(
+        callId: String, req: SakerRequest,
+    ): PersonEksistererIAAPArena =
+        gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
+            "/api/v1/person/eksisterer", callId, req
+        ).getOrThrow()
+
+    override suspend fun hentPersonHarSignifikantHistorikk(
+        callId: String,
+        req: SignifikanteSakerRequest
+    ): SignifikanteSakerResponse =
+        gjørArenaOppslag<SignifikanteSakerResponse, SignifikanteSakerRequest>(
+            "/api/v1/person/signifikant-historikk", callId, req
+        ).getOrThrow()
 
     private suspend inline fun <reified T, reified V> gjørArenaOppslag(
         endepunkt: String, callId: String, req: V
