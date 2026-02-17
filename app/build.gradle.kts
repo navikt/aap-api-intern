@@ -51,7 +51,7 @@ dependencies {
 
     implementation("org.apache.kafka:kafka-clients:4.1.1")
     implementation("org.flywaydb:flyway-core:11.20.2")
-    implementation("ch.qos.logback:logback-classic:1.5.30")
+    implementation("ch.qos.logback:logback-classic:1.5.32")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.0")
     implementation("io.micrometer:micrometer-registry-prometheus:1.16.3")
     implementation("net.logstash.logback:logstash-logback-encoder:9.0")
