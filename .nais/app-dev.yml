@@ -82,6 +82,9 @@ spec:
         - application: fpabakus
           namespace: teamforeldrepenger
           cluster: dev-fss
+        - application: fpsak
+          namespace: teamforeldrepenger
+          cluster: dev-fss
         - application: saas-proxy
           namespace: teamcrm
           cluster: dev-gcp
