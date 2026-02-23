@@ -49,7 +49,7 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson:$ktorVersion")
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
-    implementation("org.apache.kafka:kafka-clients:4.1.1")
+    implementation("org.apache.kafka:kafka-clients:4.2.0")
     implementation("org.flywaydb:flyway-core:11.20.2")
     implementation("ch.qos.logback:logback-classic:1.5.32")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.0")
