@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("aap.conventions")
     id("io.ktor.plugin") version "3.4.0"
-    id("org.flywaydb.flyway") version "11.20.2"
+    id("org.flywaydb.flyway") version "12.0.2"
     application
 }
 
