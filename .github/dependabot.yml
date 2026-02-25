@@ -32,6 +32,7 @@ updates:
         aap:
           patterns:
             - "no.nav.aap*"
+            - "org.flywaydb.*"
 
       registries:
           - maven-github
