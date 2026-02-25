@@ -29,7 +29,7 @@ public data class Vedtak(
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
     val barnetillegg: Int,
-    val kildesystem: Kilde = Kilde.ARENA,
+    val kildesystem: Kilde,
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
     val vedtaksTypeKode: String?,
@@ -54,7 +54,7 @@ public data class VedtakUtenUtbetaling(
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
     val barnetillegg: Int,
-    val kildesystem: String,
+    val kildesystem: Kilde,
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
 )

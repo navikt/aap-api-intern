@@ -64,7 +64,7 @@ class VedtakService(
                             rettighetsType = left.verdi,
                             beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
-                            kildesystem = Kilde.KELVIN.toString(),
+                            kildesystem = Kilde.KELVIN,
                             samordningsId = behandling.samId,
                             opphorsAarsak = null,
                         )
@@ -119,7 +119,7 @@ class VedtakService(
                                         .toInt()
                                 )
                             }.orEmpty(),
-                            kildesystem = Kilde.valueOf(left.verdi.kildesystem),
+                            kildesystem = left.verdi.kildesystem,
                             samordningsId = left.verdi.samordningsId,
                             opphorsAarsak = left.verdi.opphorsAarsak
                         )
@@ -188,7 +188,7 @@ class VedtakService(
                             rettighetsType = left.verdi,
                             beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
-                            kildesystem = Kilde.KELVIN.toString(),
+                            kildesystem = Kilde.KELVIN,
                             samordningsId = behandling.samId,
                             opphorsAarsak = null,
                             barnetilleggSats = right?.verdi?.gradertBarnetillegg(),

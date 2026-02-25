@@ -2,6 +2,7 @@ package no.nav.aap.api.kafka
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import no.nav.aap.api.ModiaConfig
+import no.nav.aap.api.intern.Kilde
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.slf4j.LoggerFactory
 import kotlin.time.Duration
@@ -40,7 +41,7 @@ data class ModiaRecord(
     val personId: String,
     val meldingstype: Meldingstype = Meldingstype.OPPRETT,
     val ytelsestype: String = "AAP", // AAP;
-    val kildesystem: String = "KELVIN", // KELVIN;
+    val kildesystem: Kilde = Kilde.KELVIN, // KELVIN;
 ) {
     enum class Meldingstype { OPPRETT, OPPDATER }
 }
