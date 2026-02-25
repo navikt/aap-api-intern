@@ -29,6 +29,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
         utbetaling = this.utbetaling.map { it.fraKontrakt() },
+        kildesystem = Kilde.ARENA,
         barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0
     )
 }
@@ -48,7 +49,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling()
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
         barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0,
-        kildesystem = "ARENA"
+        kildesystem = Kilde.ARENA,
     )
 }
 

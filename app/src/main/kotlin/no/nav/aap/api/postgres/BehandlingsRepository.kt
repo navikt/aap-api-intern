@@ -1,6 +1,7 @@
 package no.nav.aap.api.postgres
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
+import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.Status
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
@@ -511,7 +512,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
     @param:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
-    val kildesystem: String = "ARENA",
+    val kildesystem: Kilde,
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
     val barnetilleggSats: BigDecimal? = null
