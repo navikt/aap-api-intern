@@ -107,6 +107,9 @@ spec:
         - application: nav-persondata-api
           namespace: holmes
           cluster: prod-gcp
+        - application: su-se-bakover
+          namespace: supstonad
+          cluster: prod-gcp
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp

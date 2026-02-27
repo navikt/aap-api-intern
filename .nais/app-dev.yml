@@ -124,6 +124,9 @@ spec:
         - application: nav-persondata-api
           namespace: holmes
           cluster: dev-gcp
+        - application: su-se-bakover
+          namespace: supstonad
+          cluster: dev-gcp
         - application: behandlingsflyt
           namespace: aap
           cluster: dev-gcp
