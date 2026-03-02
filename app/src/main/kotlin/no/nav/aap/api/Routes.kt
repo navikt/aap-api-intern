@@ -14,7 +14,7 @@ import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.intern.*
-import no.nav.aap.api.pdl.IPdlClient
+import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.*
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
@@ -73,7 +73,7 @@ private fun receiveCall(
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arenaService: ArenaService,
-    pdlClient: IPdlClient,
+    pdlClient: IPdlGateway,
     clock: Clock = Clock.systemDefaultZone(),
 ) {
 
@@ -486,7 +486,7 @@ private fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
 
 private fun hentAllePersonidenter(
     identerFraRequest: List<String>,
-    pdlClient: IPdlClient,
+    pdlClient: IPdlGateway,
 ): List<String> {
     // Arena har testbrukere som ikke ligger i PDL
     if (Miljø.erDev()) {

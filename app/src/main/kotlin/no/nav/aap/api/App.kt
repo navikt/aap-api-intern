@@ -15,13 +15,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.aap.api.actuator.actuator
 import no.nav.aap.api.arena.ArenaService
-import no.nav.aap.api.arena.ArenaoppslagRestClient
+import no.nav.aap.api.arena.ArenaoppslagGateway
 import no.nav.aap.api.kafka.KafkaProducer
 import no.nav.aap.api.kafka.ModiaKafkaProducer
 import no.nav.aap.api.kafka.ProducerHolder
 import no.nav.aap.api.kelvin.dataInsertion
-import no.nav.aap.api.pdl.IPdlClient
-import no.nav.aap.api.pdl.PdlClient
+import no.nav.aap.api.pdl.IPdlGateway
+import no.nav.aap.api.pdl.PdlGateway
 import no.nav.aap.api.postgres.initDatasource
 import no.nav.aap.api.util.StatusPagesConfigHelper
 import no.nav.aap.api.util.registerCircuitBreakerMetrics
@@ -60,7 +60,7 @@ fun Application.api(
     config: AppConfig = AppConfig(),
     datasource: DataSource = initDatasource(config.dbConfig, prometheus),
     arenaService: ArenaService = opprettArenaService(config),
-    pdlClient: IPdlClient = PdlClient(),
+    pdlClient: IPdlGateway = PdlGateway(),
     clock: Clock = Clock.systemDefaultZone(),
     modiaProducer: KafkaProducer = ModiaKafkaProducer(
         config.kafka, config.modia,
@@ -124,10 +124,10 @@ fun Application.api(
 }
 
 private fun opprettArenaService(config: AppConfig): ArenaService {
-    val arenaRestClient = ArenaoppslagRestClient(
+    val arenaRestClient = ArenaoppslagGateway(
         config.arenaoppslag, config.azure
     )
-    val arenaHistorikkRestClient = ArenaoppslagRestClient(
+    val arenaHistorikkRestClient = ArenaoppslagGateway(
         config.arenaoppslag, config.azure,
         // Vi øker timeouts fordi disse db-queries er tunge
         timeoutMillis = 2.minutes.inWholeMilliseconds,

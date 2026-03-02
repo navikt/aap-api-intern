@@ -34,7 +34,7 @@ import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 private val secureLog = LoggerFactory.getLogger("team-logs")
-private val log = LoggerFactory.getLogger(ArenaoppslagRestClient::class.java)
+private val log = LoggerFactory.getLogger(ArenaoppslagGateway::class.java)
 
 private const val ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME = "arenaoppslag_client_seconds"
 private val clientLatencyStats: Summary = Summary.builder().name(ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME)
@@ -47,12 +47,12 @@ private val objectMapper =
     jacksonObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(JavaTimeModule())
 
 
-class ArenaoppslagRestClient(
+class ArenaoppslagGateway(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     azureConfig: AzureConfig,
     private val slowRequestMillis: Long = 2000,
     private val timeoutMillis: Long = 20_000,
-) : IArenaoppslagRestClient {
+) : IArenaoppslagGateway {
     private val tokenProvider = AzureAdTokenProvider(azureConfig)
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
         // Mange kall til arenaoppslag tar gjerne 300-400ms har vi sett av prometheus-metrikker.

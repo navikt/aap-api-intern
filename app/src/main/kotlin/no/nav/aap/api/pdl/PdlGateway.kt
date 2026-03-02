@@ -18,11 +18,11 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
 import org.slf4j.LoggerFactory
 
-interface IPdlClient {
+interface IPdlGateway {
     fun hentAlleIdenterForPerson(personIdent: String): List<PdlIdent>
 }
 
-class PdlClient : IPdlClient {
+class PdlGateway : IPdlGateway {
     private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.pdl.url"))
     private val config =
         ClientConfig(

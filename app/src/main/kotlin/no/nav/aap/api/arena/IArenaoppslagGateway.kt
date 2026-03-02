@@ -9,7 +9,7 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 
-interface IArenaoppslagRestClient {
+interface IArenaoppslagGateway {
     suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse
     suspend fun hentPerioderInkludert11_17(
         callId: String,

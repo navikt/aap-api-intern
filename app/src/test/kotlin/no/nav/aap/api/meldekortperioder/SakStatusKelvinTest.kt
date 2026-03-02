@@ -16,8 +16,7 @@ import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.api.kelvin.SakStatusKelvin
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
-import no.nav.aap.api.util.FakeArenaClient
-import no.nav.aap.api.util.PdlClientEmpty
+import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -73,7 +72,7 @@ class SakStatusKelvinTest {
                         config = config,
                         datasource = dataSource,
                         arenaService = fakes.arenaService,
-                        pdlClient = PdlClientEmpty(),
+                        pdlClient = PdlGatewayEmpty(),
                         modiaProducer = fakes.kafka
                     )
                 }

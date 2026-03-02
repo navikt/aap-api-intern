@@ -2,12 +2,12 @@ package no.nav.aap.api.postgres
 
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.kelvin.MeldekortDTO
-import no.nav.aap.api.pdl.IPdlClient
+import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import java.time.Clock
 import java.time.LocalDate
 
-class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient, clock: Clock) {
+class MeldekortService(connection: DBConnection, val pdlClient: IPdlGateway, clock: Clock) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), clock)
 
