@@ -9,13 +9,44 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
-import io.ktor.http.*
-import io.ktor.server.request.*
-import io.ktor.server.routing.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.withCharset
+import io.ktor.server.request.ApplicationRequest
+import io.ktor.server.request.path
+import io.ktor.server.routing.RoutingContext
+import java.time.Clock
+import java.time.LocalDate
+import java.util.UUID
+import javax.sql.DataSource
 import no.nav.aap.api.arena.ArenaService
-import no.nav.aap.api.intern.*
+import no.nav.aap.api.intern.InternVedtakRequestApiIntern
+import no.nav.aap.api.intern.Maksimum
+import no.nav.aap.api.intern.Medium
+import no.nav.aap.api.intern.MeldekortDetaljerRequest
+import no.nav.aap.api.intern.MeldekortDetaljerResponse
+import no.nav.aap.api.intern.PerioderInkludert11_17Response
+import no.nav.aap.api.intern.PerioderResponse
+import no.nav.aap.api.intern.PersonEksistererIAAPArena
+import no.nav.aap.api.intern.SakStatus
+import no.nav.aap.api.intern.SignifikanteSakerResponse
+import no.nav.aap.api.intern.Vedtak
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.pdl.IPdlGateway
-import no.nav.aap.api.postgres.*
+import no.nav.aap.api.postgres.BehandlingsRepository
+import no.nav.aap.api.postgres.DsopMeldekortRespons
+import no.nav.aap.api.postgres.DsopRequest
+import no.nav.aap.api.postgres.DsopResponse
+import no.nav.aap.api.postgres.KelvinBehandlingStatus
+import no.nav.aap.api.postgres.KelvinSakStatus
+import no.nav.aap.api.postgres.Meldekort
+import no.nav.aap.api.postgres.MeldekortPerioderRepository
+import no.nav.aap.api.postgres.MeldekortService
+import no.nav.aap.api.postgres.SakStatusRepository
+import no.nav.aap.api.postgres.TimerArbeidetPerDag
+import no.nav.aap.api.postgres.VedtakService
+import no.nav.aap.api.postgres.slåSammenMeldeperioder
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
@@ -26,10 +57,6 @@ import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
-import java.time.Clock
-import java.time.LocalDate
-import java.util.*
-import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -73,7 +100,7 @@ private fun receiveCall(
 fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arenaService: ArenaService,
-    pdlClient: IPdlGateway,
+    pdlGateway: IPdlGateway,
     clock: Clock = Clock.systemDefaultZone(),
 ) {
 
@@ -158,7 +185,7 @@ fun NormalOpenAPIRoute.api(
             sjekkTilgangTilPerson(personIdentifikator, token())
 
             val meldekortListe = dataSource.transaction { connection ->
-                val meldekortService = MeldekortService(connection, pdlClient, clock)
+                val meldekortService = MeldekortService(connection, pdlGateway, clock)
                 meldekortService.hentAlle(
                     personIdentifikator,
                     requestBody.fraOgMedDato,
@@ -194,7 +221,7 @@ fun NormalOpenAPIRoute.api(
             */
             sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
 
-            val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
+            val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
             val kelvinSaker: List<SakStatus> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
@@ -223,7 +250,7 @@ fun NormalOpenAPIRoute.api(
             */
             sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
 
-            val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlClient)
+            val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
             val kelvinSaker: List<SakStatus> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
@@ -417,7 +444,7 @@ fun NormalOpenAPIRoute.api(
                     sjekkTilgangTilPerson(requestBody.personIdent, token())
 
                     val meldekortListe = dataSource.transaction { connection ->
-                        val meldekortService = MeldekortService(connection, pdlClient, clock)
+                        val meldekortService = MeldekortService(connection, pdlGateway, clock)
                         meldekortService.hentAlleMeldekort(
                             requestBody.personIdent,
                             requestBody.fomDato,

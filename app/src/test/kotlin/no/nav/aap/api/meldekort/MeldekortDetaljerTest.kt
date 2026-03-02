@@ -73,7 +73,7 @@ class MeldekortDetaljerTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
-                    pdlClient = PdlGatewayEmpty(),
+                    pdlGateway = PdlGatewayEmpty(),
                     modiaProducer = fakes.kafka
                 )
             }
