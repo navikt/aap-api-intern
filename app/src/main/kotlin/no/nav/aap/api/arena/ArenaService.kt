@@ -18,8 +18,8 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import java.time.LocalDate
 
 class ArenaService(
-    private val arena: IArenaoppslagRestClient,
-    private val arenaHistorikk: IArenaoppslagRestClient
+    private val arena: IArenaoppslagGateway,
+    private val arenaHistorikk: IArenaoppslagGateway
 ) {
 
     suspend fun eksistererIAapArena(callId: String, personIdenter: List<String>): PersonEksistererIAAPArena {

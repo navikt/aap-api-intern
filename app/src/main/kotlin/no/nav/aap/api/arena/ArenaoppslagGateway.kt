@@ -6,15 +6,24 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.accept
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.header
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import io.ktor.serialization.jackson.jackson
 import io.prometheus.metrics.core.metrics.Summary
+import java.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import no.nav.aap.api.ArenaoppslagConfig
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.util.auth.AzureAdTokenProvider
@@ -30,11 +39,9 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import org.slf4j.LoggerFactory
-import java.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 private val secureLog = LoggerFactory.getLogger("team-logs")
-private val log = LoggerFactory.getLogger(ArenaoppslagRestClient::class.java)
+private val log = LoggerFactory.getLogger(ArenaoppslagGateway::class.java)
 
 private const val ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME = "arenaoppslag_client_seconds"
 private val clientLatencyStats: Summary = Summary.builder().name(ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME)
@@ -47,12 +54,12 @@ private val objectMapper =
     jacksonObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(JavaTimeModule())
 
 
-class ArenaoppslagRestClient(
+class ArenaoppslagGateway(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     azureConfig: AzureConfig,
     private val slowRequestMillis: Long = 2000,
     private val timeoutMillis: Long = 20_000,
-) : IArenaoppslagRestClient {
+) : IArenaoppslagGateway {
     private val tokenProvider = AzureAdTokenProvider(azureConfig)
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
         // Mange kall til arenaoppslag tar gjerne 300-400ms har vi sett av prometheus-metrikker.

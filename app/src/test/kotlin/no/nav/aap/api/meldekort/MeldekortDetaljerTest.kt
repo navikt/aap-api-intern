@@ -13,11 +13,9 @@ import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
 import no.nav.aap.api.intern.MeldekortDetaljerRequest
 import no.nav.aap.api.intern.MeldekortDetaljerResponse
-import no.nav.aap.api.maksimum.BehandlingsDataTest
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
-import no.nav.aap.api.util.FakeArenaClient
-import no.nav.aap.api.util.PdlClientEmpty
+import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.api.util.PostgresTestBase
 import no.nav.aap.api.util.localDate
 import no.nav.aap.api.util.localDateTime
@@ -75,7 +73,7 @@ class MeldekortDetaljerTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
-                    pdlClient = PdlClientEmpty(),
+                    pdlGateway = PdlGatewayEmpty(),
                     modiaProducer = fakes.kafka
                 )
             }

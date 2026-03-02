@@ -1,13 +1,13 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.api.kelvin.MeldekortDTO
-import no.nav.aap.api.pdl.IPdlClient
-import no.nav.aap.komponenter.dbconnect.DBConnection
 import java.time.Clock
 import java.time.LocalDate
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.api.kelvin.MeldekortDTO
+import no.nav.aap.api.pdl.IPdlGateway
+import no.nav.aap.komponenter.dbconnect.DBConnection
 
-class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient, clock: Clock) {
+class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, clock: Clock) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), clock)
 
@@ -17,7 +17,7 @@ class MeldekortService(connection: DBConnection, val pdlClient: IPdlClient, cloc
         tilDato: LocalDate? = null
     ): List<MeldekortDTO> {
         val personIdenter =
-            pdlClient.hentAlleIdenterForPerson(personIdentifikator).map { personIdentifikator }
+            pdlGateway.hentAlleIdenterForPerson(personIdentifikator).map { personIdentifikator }
 
         if (personIdenter.isEmpty()) return emptyList()
 
