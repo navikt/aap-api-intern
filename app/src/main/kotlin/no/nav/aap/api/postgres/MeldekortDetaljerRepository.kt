@@ -113,7 +113,6 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
                 setBigDecimal(3, it.timerArbeidet)
             }
         }
-        println("done")
     }
 
     fun hentAlle(
@@ -122,8 +121,8 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         tom: LocalDate? = null
     ): List<MeldekortDTO> {
         val iMorgen = LocalDate.now().plusDays(1)
-        require(fom == null || fom.isBefore(iMorgen)) {
-            "Kan ikke hente meldekort fra og med en fremtidig dato"
+        if (fom != null && !fom.isBefore(iMorgen)) {
+            return emptyList()
         }
         return connection.queryList(
             """SELECT * FROM MELDEKORT WHERE PERSON_IDENT = ANY(?)
