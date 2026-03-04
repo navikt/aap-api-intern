@@ -113,7 +113,6 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
                 setBigDecimal(3, it.timerArbeidet)
             }
         }
-        println("done")
     }
 
     fun hentAlle(
@@ -122,7 +121,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         tom: LocalDate? = null
     ): List<MeldekortDTO> {
         val iMorgen = LocalDate.now().plusDays(1)
-        if (fom == null || fom.isBefore(iMorgen)) {
+        if (fom != null && !fom.isBefore(iMorgen)) {
             return emptyList()
         }
         return connection.queryList(
