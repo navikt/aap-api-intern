@@ -25,7 +25,9 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
             // Vi har meldekort fra før for samme sak, og vil bare beholde de nyeste.
 
             if (behandlingId < nyesteBehandlingId) {
-                log.warn(
+                // Forventet oppførsel: dette vil f.eks skje om bruker sender meldekort mens det er en åpen
+                // revurdering.
+                log.info(
                     "Avviser oppdatering av meldekort for sak $saksnummer med behandlingId $behandlingId, " +
                             "har allerede mottatt behandlingId $nyesteBehandlingId"
                 )
