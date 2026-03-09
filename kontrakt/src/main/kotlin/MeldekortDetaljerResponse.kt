@@ -14,9 +14,9 @@ public data class MeldekortDetalj(
     val mottattTidspunkt: LocalDateTime,
     val meldePeriode: Periode,
     val arbeidPerDag: List<TimerPaaDag>,
-    var dagsats: Int?,
-    var ukesats: Int?,
-    var vedtaksdato: LocalDate?,
+    val dagsats: Int?,
+    val ukesats: Int?,
+    val vedtaksdato: LocalDate?,
 )
 
 public data class TimerPaaDag(

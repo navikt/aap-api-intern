@@ -33,6 +33,7 @@ updates:
           patterns:
             - "no.nav.aap*"
             - "org.flywaydb.*"
+            - "io.ktor.*"
 
       registries:
           - maven-github
