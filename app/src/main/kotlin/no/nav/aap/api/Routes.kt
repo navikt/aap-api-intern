@@ -231,7 +231,7 @@ fun NormalOpenAPIRoute.api(
                 )
             ),
             null,
-            info(description = "Henter saker for en person.")
+            info(description = "Henter saker for en person. Kan kun kalles fra meldekort-backend.")
         ) { callIdHeader, requestBody ->
             val callId = receiveCall(callIdHeader, pipeline)
 

@@ -16,6 +16,7 @@ import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.tilgang.TilgangResponse
+import java.util.UUID
 
 
 class Fakes():AutoCloseable {
@@ -57,8 +58,12 @@ class Fakes():AutoCloseable {
         System.setProperty("INTEGRASJON_TILGANG_URL", "http://localhost:${tilgang.port()}")
         System.setProperty("INTEGRASJON_TILGANG_SCOPE", "scope")
         System.setProperty("nais.token.exchange.endpoint", "http://localhost:${azure.port()}")
+
+        // Meldekortbackend
+        System.setProperty("AZP_MELDEKORT_BACKEND", UUID.randomUUID().toString())
     }
 }
+@Suppress("PropertyName")
 data class TestToken(
     val access_token: String,
     val refresh_token: String = "very.secure.token",
