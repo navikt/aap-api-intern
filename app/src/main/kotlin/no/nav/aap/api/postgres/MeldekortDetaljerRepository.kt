@@ -208,8 +208,8 @@ fun List<Meldekort>.slåSammenMeldeperioder(): List<Meldekort> {
                     }.values.toList(),
                 sistOppdatert = meldekort.maxByOrNull { it.sistOppdatert }?.sistOppdatert
                     ?: LocalDateTime.MIN,
-            ).let {
-                it.copy(antallTimerArbeidet = it.timerArbeidetPerDag.sumOf { it.timerArbeidet }
+            ).let { meldekort ->
+                meldekort.copy(antallTimerArbeidet = meldekort.timerArbeidetPerDag.sumOf { it.timerArbeidet }
                     .toBigDecimal())
             }
         }

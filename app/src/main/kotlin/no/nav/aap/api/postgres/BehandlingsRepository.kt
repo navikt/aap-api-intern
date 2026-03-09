@@ -3,7 +3,6 @@ package no.nav.aap.api.postgres
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.PeriodeInkludert11_17
-import no.nav.aap.api.intern.Status
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.DBConnection
