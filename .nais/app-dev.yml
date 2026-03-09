@@ -164,3 +164,5 @@ spec:
       value: obo.ytelser-v1
     - name: AZP_MELDEKORT_BACKEND
       value: 796867fa-951f-4441-9a68-b2ee4409f3c7
+    - name: AZP_TOKEN_GEN
+      value: a11e4cc6-1383-42c7-a714-30be1309cd6f
