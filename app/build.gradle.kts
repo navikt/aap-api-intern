@@ -15,6 +15,7 @@ val komponenterVersjon = "2.0.17"
 val ktorVersion = "3.4.1"
 val tilgangVersjon = "1.0.182"
 val behandlingsflytversjon = "0.0.569"
+val oppgaveversjon = "0.0.152"
 val arenaOppslagVersjon = "0.0.49"
 val resilience4jVersion = "2.3.0"
 
@@ -28,6 +29,7 @@ dependencies {
     implementation("no.nav.aap.kelvin:tidslinje:$komponenterVersjon")
     implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
+    implementation("no.nav.aap.oppgave:api-kontrakt:$oppgaveversjon")
     implementation("no.nav.aap.arenaoppslag:kontrakt:$arenaOppslagVersjon")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
@@ -81,4 +83,9 @@ tasks {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         mergeServiceFiles()
     }
+}
+
+tasks.register<JavaExec>("runTestApp") {
+    mainClass.set("no.nav.aap.api.TestAppKt")
+    classpath = sourceSets["test"].runtimeClasspath
 }

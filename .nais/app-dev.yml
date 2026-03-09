@@ -140,6 +140,7 @@ spec:
       rules:
         - application: behandlingsflyt
         - application: tilgang
+        - application: oppgave
         - application: logging
           namespace: nais-system
   env:
@@ -161,3 +162,5 @@ spec:
       value: api://dev-gcp.aap.tilgang/.default
     - name: MODIA_TOPIC
       value: obo.ytelser-v1
+    - name: AZP_MELDEKORT_BACKEND
+      value: 796867fa-951f-4441-9a68-b2ee4409f3c7

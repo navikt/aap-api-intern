@@ -10,11 +10,33 @@ public data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalD
     }
 }
 
+/**
+ * @param enhet Kan være null enten om kilde er ARENA, eller om det ikke finnes noen åpne oppgaver for personen.
+ */
 public data class SakStatus(
     val sakId: String,
     val statusKode: Status,
     val periode: Periode,
-    val kilde: Kilde = Kilde.ARENA
+    val kilde: Kilde,
+    val enhet: NåværendeEnhet? = null
+)
+
+public enum class OppgaveKategori {
+    MEDLEMSKAP,
+    LOKALKONTOR,
+    KVALITETSSIKRING,
+    NAY,
+    BESLUTTER
+}
+
+public data class NåværendeEnhet(
+    val oversendtDato: LocalDate,
+    val oppgaveKategori: OppgaveKategori,
+    val enhet: String,
+    )
+
+public data class EnhetOgOversendelse(
+    val tilstand: NåværendeEnhet?
 )
 
 public enum class Kilde {

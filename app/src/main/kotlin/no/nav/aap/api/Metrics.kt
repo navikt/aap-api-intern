@@ -27,6 +27,12 @@ object Metrics {
 
     fun kildesystemTeller(kildesystem: String, path: String): Counter =
         prometheus.counter(
-            "api_intern_kildesystem", listOf(Tag.of("kildesystem", kildesystem), Tag.of("path", path))
+            "api_intern_kildesystem",
+            listOf(Tag.of("kildesystem", kildesystem), Tag.of("path", path))
         )
+
+    fun antallIdenter(path: String, antall: Int) = prometheus.counter(
+        "api_intern_antall_identer_i_request",
+        listOf(Tag.of("path", path), Tag.of("antall", antall.toString()))
+    ).increment(antall.toDouble())
 }
