@@ -6,13 +6,6 @@ plugins {
     id("org.flywaydb.flyway") version "12.0.3"
     application
 }
-ktor {
-    openApi {
-        enabled = true
-        codeInferenceEnabled = true
-        onlyCommented = false
-    }
-}
 
 application {
     mainClass.set("no.nav.aap.api.AppKt")
@@ -38,7 +31,6 @@ dependencies {
     implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
     implementation("no.nav.aap.oppgave:api-kontrakt:$oppgaveversjon")
     implementation("no.nav.aap.arenaoppslag:kontrakt:$arenaOppslagVersjon")
-    implementation("io.ktor:ktor-server-openapi:$ktorVersion")
 
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
 

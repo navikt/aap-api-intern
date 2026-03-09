@@ -193,8 +193,6 @@ fun NormalOpenAPIRoute.api(
     }
 
     tag(Tag.Saker) {
-        // TODO: Flytt logikk til en egen service
-        // TODO: Begrense kun til NKS - brukes visst også av meldekort-backend
         route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
             info(description = "Henter saker for en person.")
         ) { callIdHeader, requestBody ->

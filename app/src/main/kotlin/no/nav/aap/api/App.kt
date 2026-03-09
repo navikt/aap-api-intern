@@ -15,8 +15,11 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.server.plugins.openapi.openAPI
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.routing.openapi.OpenApiDocSource
 import io.ktor.server.routing.routing
+import io.ktor.server.routing.routingRoot
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import java.time.Clock
 import javax.sql.DataSource
@@ -93,11 +96,18 @@ fun Application.api(
         )
     )
 
+
     routing {
-        authenticate(AZURE) {
-            apiRouting {
-                api(datasource, arenaService, pdlGateway, clock)
-                dataInsertion(datasource, modiaProducer)
+        openAPI(path="testopenapi") {
+            info = io.ktor.openapi.OpenApiInfo("dd", "1.0")
+            source = OpenApiDocSource.Routing {
+                routingRoot.descendants()
+            }
+            authenticate(AZURE) {
+                apiRouting {
+                    api(datasource, arenaService, pdlGateway, clock)
+                    dataInsertion(datasource, modiaProducer)
+                }
             }
         }
         actuator(prometheus)

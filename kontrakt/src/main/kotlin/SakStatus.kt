@@ -14,17 +14,11 @@ public data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalD
  * @param enhet Kan være null enten om kilde er ARENA, eller om det ikke finnes noen åpne oppgaver for personen.
  */
 public data class SakStatus(
-    // Burde renames
     val sakId: String,
     val statusKode: Status,
-    /**
-     * Dette betyr kanskje ikke hva de tror den skal bety.
-     */
-    val periode: Periode, /// NKS bruker denne
+    val periode: Periode,
     val kilde: Kilde,
     val enhet: NåværendeEnhet? = null
-    // la denne være ikke-null også når det ikke er åpne oppgaver
-    // defaulte til lokalkontoret som behandlet søknaden
 )
 
 public enum class OppgaveKategori {
