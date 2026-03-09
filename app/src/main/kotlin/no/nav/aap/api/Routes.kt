@@ -21,6 +21,7 @@ import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
+import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.miljo.Miljø
@@ -222,7 +223,13 @@ fun NormalOpenAPIRoute.api(
         }
 
         route("/meldekort-backend/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatus>, SakerRequestMeldekortbackend>(
-            AuthorizationMachineToMachineConfig(),
+            AuthorizationMachineToMachineConfig(
+                authorizedAzps = listOf(
+                    UUID.fromString(
+                        requiredConfigForKey("AZP_MELDEKORT_BACKEND")
+                    )
+                )
+            ),
             null,
             info(description = "Henter saker for en person.")
         ) { callIdHeader, requestBody ->
