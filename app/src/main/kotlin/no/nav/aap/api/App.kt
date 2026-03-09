@@ -4,26 +4,13 @@ import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopPreparing
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.ApplicationStopping
-import io.ktor.server.application.install
-import io.ktor.server.application.log
-import io.ktor.server.auth.authenticate
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.openapi.openAPI
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.routing.openapi.OpenApiDocSource
-import io.ktor.server.routing.routing
-import io.ktor.server.routing.routingRoot
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import java.time.Clock
-import javax.sql.DataSource
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.aap.api.actuator.actuator
@@ -43,11 +30,19 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureC
 import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
+import java.time.Clock
+import javax.sql.DataSource
+import kotlin.time.Duration.Companion.minutes
 
 private val logger = LoggerFactory.getLogger("App")
 
 fun main() {
-    Thread.currentThread().setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.javaClass}", e) }
+    Thread.currentThread().setUncaughtExceptionHandler { _, e ->
+        logger.error(
+            "Uhåndtert feil. Type: ${e.javaClass}",
+            e
+        )
+    }
 
     embeddedServer(Netty, configure = {
         // Vi følger ktor sin metodikk for å regne ut tuning parametre som funksjon av parallellitet
@@ -98,16 +93,10 @@ fun Application.api(
 
 
     routing {
-        openAPI(path="testopenapi") {
-            info = io.ktor.openapi.OpenApiInfo("dd", "1.0")
-            source = OpenApiDocSource.Routing {
-                routingRoot.descendants()
-            }
-            authenticate(AZURE) {
-                apiRouting {
-                    api(datasource, arenaService, pdlGateway, clock)
-                    dataInsertion(datasource, modiaProducer)
-                }
+        authenticate(AZURE) {
+            apiRouting {
+                api(datasource, arenaService, pdlGateway, clock)
+                dataInsertion(datasource, modiaProducer)
             }
         }
         actuator(prometheus)
