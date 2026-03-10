@@ -223,7 +223,7 @@ fun NormalOpenAPIRoute.api(
             respond(arenaSaker + kelvinSaker)
         }
 
-        route("/meldekort-backend/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatus>, SakerRequestMeldekortbackend>(
+        route("/meldekort-backend/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatusMeldekortbackend>, SakerRequestMeldekortbackend>(
             AuthorizationMachineToMachineConfig(
                 authorizedAzps = listOf(
                     UUID.fromString(
@@ -238,14 +238,15 @@ fun NormalOpenAPIRoute.api(
 
             val personIdent = requestBody.personidentifikator
 
-            val kelvinSaker: List<SakStatus> =
+            val kelvinSaker: List<SakStatusMeldekortbackend> =
                 dataSource.transaction { connection ->
                     val kelvinSakService = KelvinSakService(SakStatusRepository(connection))
 
                     kelvinSakService.hentSakStatus(personIdent)
                 }
-            val arenaSaker: List<SakStatus> =
+            val arenaSaker: List<SakStatusMeldekortbackend> =
                 arenaService.hentSaker(callId, listOf(requestBody.personidentifikator))
+                    .map { SakStatusMeldekortbackend(it.kilde, it.periode, it.sakId) }
 
             tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
 

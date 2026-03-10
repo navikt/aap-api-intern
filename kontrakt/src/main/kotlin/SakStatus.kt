@@ -21,6 +21,12 @@ public data class SakStatus(
     val enhet: NåværendeEnhet? = null
 )
 
+public data class SakStatusMeldekortbackend(
+    val kilde: Kilde,
+    val periode: Periode,
+    val sakId: String,
+)
+
 public enum class OppgaveKategori {
     MEDLEMSKAP,
     LOKALKONTOR,
