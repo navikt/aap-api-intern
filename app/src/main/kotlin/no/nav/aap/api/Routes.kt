@@ -15,6 +15,7 @@ import io.ktor.server.routing.*
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.kelvin.KelvinSakService
+import no.nav.aap.api.kelvin.OppgaveGatewayConfig
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.*
 import no.nav.aap.api.util.perioderMedAAp
@@ -84,6 +85,7 @@ fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arenaService: ArenaService,
     pdlGateway: IPdlGateway,
+    oppgaveGatewayConfig: OppgaveGatewayConfig,
     clock: Clock = Clock.systemDefaultZone(),
 ) {
 
@@ -205,12 +207,12 @@ fun NormalOpenAPIRoute.api(
             * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
             */
             sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
-            Metrics.antallIdenter("/kelvin/sakerByFnr", requestBody.personidentifikatorer.size)
+            Metrics.antallIdenter("/sakerByFnr", requestBody.personidentifikatorer.size)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
             val kelvinSaker: List<SakStatus> =
                 dataSource.transaction { connection ->
-                    val kelvinSakService = KelvinSakService(SakStatusRepository(connection))
+                    val kelvinSakService = KelvinSakService(SakStatusRepository(connection), oppgaveGatewayConfig)
 
                     kelvinSakService.hentSakStatus(personIdenter)
                 }
@@ -240,7 +242,7 @@ fun NormalOpenAPIRoute.api(
 
             val kelvinSaker: List<SakStatus> =
                 dataSource.transaction { connection ->
-                    val kelvinSakService = KelvinSakService(SakStatusRepository(connection))
+                    val kelvinSakService = KelvinSakService(SakStatusRepository(connection), oppgaveGatewayConfig)
 
                     kelvinSakService.hentSakStatus(personIdent)
                 }
@@ -269,7 +271,7 @@ fun NormalOpenAPIRoute.api(
             val kelvinSaker: List<SakStatus> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
-                    val kelvinSakService = KelvinSakService(sakStatusRepository)
+                    val kelvinSakService = KelvinSakService(sakStatusRepository, oppgaveGatewayConfig)
 
                     kelvinSakService.hentSakStatus(personIdenter)
                 }

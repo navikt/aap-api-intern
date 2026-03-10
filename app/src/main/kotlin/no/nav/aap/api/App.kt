@@ -29,6 +29,7 @@ import no.nav.aap.api.arena.ArenaoppslagGateway
 import no.nav.aap.api.kafka.KafkaProducer
 import no.nav.aap.api.kafka.ModiaKafkaProducer
 import no.nav.aap.api.kafka.ProducerHolder
+import no.nav.aap.api.kelvin.OppgaveGatewayConfig
 import no.nav.aap.api.kelvin.dataInsertion
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.pdl.PdlGateway
@@ -68,6 +69,7 @@ fun Application.api(
     datasource: DataSource = initDatasource(config.dbConfig, prometheus),
     arenaService: ArenaService = opprettArenaService(config),
     pdlGateway: IPdlGateway = PdlGateway(),
+    oppgaveGatewayConfig: OppgaveGatewayConfig = OppgaveGatewayConfig(),
     clock: Clock = Clock.systemDefaultZone(),
     modiaProducer: KafkaProducer = ModiaKafkaProducer(
         config.kafka, config.modia,
@@ -96,7 +98,7 @@ fun Application.api(
     routing {
         authenticate(AZURE) {
             apiRouting {
-                api(datasource, arenaService, pdlGateway, clock)
+                api(datasource, arenaService, pdlGateway, oppgaveGatewayConfig, clock)
                 dataInsertion(datasource, modiaProducer)
             }
         }
