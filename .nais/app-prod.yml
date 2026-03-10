@@ -144,6 +144,10 @@ spec:
       value: http://tilgang
     - name: INTEGRASJON_TILGANG_SCOPE
       value: api://prod-gcp.aap.tilgang/.default
+    - name: INTEGRASJON_OPPGAVE_URL
+      value: http://oppgave
+    - name: INTEGRASJON_OPPGAVE_SCOPE
+      value: api://prod-gcp.aap.oppgave/.default
     - name: MODIA_TOPIC
       value: obo.ytelser-v1
     - name: AZP_MELDEKORT_BACKEND
