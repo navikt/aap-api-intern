@@ -85,6 +85,7 @@ fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arenaService: ArenaService,
     pdlGateway: IPdlGateway,
+    tilgangGateway: TilgangGateway,
     oppgaveGatewayConfig: OppgaveGatewayConfig,
     clock: Clock = Clock.systemDefaultZone(),
 ) {
@@ -96,7 +97,7 @@ fun NormalOpenAPIRoute.api(
             ) { callIdHeader, requestBody ->
                 val callId = receiveCall(callIdHeader, pipeline)
 
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val vedtakRequest = requestBody.tilKontrakt()
 
@@ -126,7 +127,7 @@ fun NormalOpenAPIRoute.api(
             ) { callIdHeader, requestBody ->
                 val callId = receiveCall(callIdHeader, pipeline)
 
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val vedtakRequest = requestBody.tilKontrakt()
                 val aktfaseKelvin = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -150,7 +151,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { _, requestBody ->
                 Metrics.httpRequestTeller(pipeline.call)
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val perioder = dataSource.transaction { connection ->
                     val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
@@ -170,7 +171,7 @@ fun NormalOpenAPIRoute.api(
         ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
             val personIdentifikator = requestBody.personidentifikator
-            sjekkTilgangTilPerson(personIdentifikator, token())
+            tilgangGateway.sjekkTilgangTilPerson(personIdentifikator, token())
 
             val meldekortListe = dataSource.transaction { connection ->
                 val meldekortService = MeldekortService(connection, pdlGateway, clock)
@@ -206,7 +207,7 @@ fun NormalOpenAPIRoute.api(
             * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
             * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
             */
-            sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
+            tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
             Metrics.antallIdenter("/sakerByFnr", requestBody.personidentifikatorer.size)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
@@ -264,7 +265,7 @@ fun NormalOpenAPIRoute.api(
             * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
             * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
             */
-            sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
+            tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
             Metrics.antallIdenter("/kelvin/sakerByFnr", requestBody.personidentifikatorer.size)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
@@ -329,7 +330,7 @@ fun NormalOpenAPIRoute.api(
             ) { callIdHeader, requestBody ->
                 val callId = receiveCall(callIdHeader, pipeline)
                 val body = requestBody.tilKontrakt()
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -362,7 +363,7 @@ fun NormalOpenAPIRoute.api(
                 val callId = receiveCall(callIdHeader, pipeline)
 
                 val body = requestBody.tilKontrakt()
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -394,7 +395,7 @@ fun NormalOpenAPIRoute.api(
                 logger.info("Henter maksimum uten utbetalinger fra kelvin")
                 Metrics.httpRequestTeller(pipeline.call)
 
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val tilArenaKontrakt = requestBody.tilKontrakt()
 
@@ -432,7 +433,7 @@ fun NormalOpenAPIRoute.api(
                     Metrics.httpRequestTeller(pipeline.call)
                     val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
-                    sjekkTilgangTilPerson(requestBody.personIdent, token())
+                    tilgangGateway.sjekkTilgangTilPerson(requestBody.personIdent, token())
 
                     val kelvinVedtak = dataSource.transaction { connection ->
                         val behandlingsRepository = BehandlingsRepository(connection)
@@ -458,7 +459,7 @@ fun NormalOpenAPIRoute.api(
                     Metrics.httpRequestTeller(pipeline.call)
                     val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
-                    sjekkTilgangTilPerson(requestBody.personIdent, token())
+                    tilgangGateway.sjekkTilgangTilPerson(requestBody.personIdent, token())
 
                     val meldekortListe = dataSource.transaction { connection ->
                         val meldekortService = MeldekortService(connection, pdlGateway, clock)
@@ -521,9 +522,9 @@ private fun tellKildesystem(
     }
 }
 
-private fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
+private fun TilgangGateway.sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
     if (!token.isClientCredentials()) {
-        val tilgang = TilgangGateway.harTilgangTilPerson(personIdent, token)
+        val tilgang = this.harTilgangTilPerson(personIdent, token)
         if (!tilgang) {
             throw IngenTilgangException("Har ikke tilgang til person")
         }
