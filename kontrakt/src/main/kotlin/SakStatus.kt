@@ -33,10 +33,6 @@ public data class NåværendeEnhet(
     val oversendtDato: LocalDate,
     val oppgaveKategori: OppgaveKategori,
     val enhet: String,
-    )
-
-public data class EnhetOgOversendelse(
-    val tilstand: NåværendeEnhet?
 )
 
 public enum class Kilde {

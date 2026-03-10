@@ -37,6 +37,7 @@ import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
+@Suppress("PropertyName")
 data class CallIdHeader(
     @param:HeaderParam("callId") val `Nav-CallId`: String? = null,
     @param:HeaderParam("correlation id") val `X-Correlation-Id`: String? = null,
@@ -228,7 +229,7 @@ fun NormalOpenAPIRoute.api(
                     UUID.fromString(
                         requiredConfigForKey("AZP_MELDEKORT_BACKEND")
                     )
-                )
+                ) + (azpForTokenGenHvisIkkeProd())
             ),
             null,
             info(description = "Henter saker for en person. Kan kun kalles fra meldekort-backend.")
@@ -491,6 +492,9 @@ fun NormalOpenAPIRoute.api(
         }
     }
 }
+
+private fun azpForTokenGenHvisIkkeProd(): List<UUID> =
+    if (!Miljø.erProd()) listOf(UUID.fromString(requiredConfigForKey("AZP_TOKEN_GEN"))) else emptyList()
 
 private fun tellKelvinKall(request: ApplicationRequest) {
     Metrics.kildesystemTeller("kelvin", request.path()).increment()

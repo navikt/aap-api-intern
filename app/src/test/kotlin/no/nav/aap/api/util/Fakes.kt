@@ -1,35 +1,40 @@
 package no.nav.aap.api.util
 
-import no.nav.aap.api.pdl.PdlIdenter
-import no.nav.aap.api.pdl.PdlIdenterData
-import no.nav.aap.api.util.graphql.GraphQLResponse
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.runBlocking
 import no.nav.aap.api.arena.ArenaService
+import no.nav.aap.api.pdl.PdlIdenter
+import no.nav.aap.api.pdl.PdlIdenterData
+import no.nav.aap.api.util.graphql.GraphQLResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
+import no.nav.aap.oppgave.enhet.EnhetOgOversendelse
+import no.nav.aap.oppgave.enhet.PersonRequest
 import no.nav.aap.tilgang.TilgangResponse
-import java.util.UUID
+import java.util.*
 
 
-class Fakes():AutoCloseable {
+class Fakes : AutoCloseable {
     val azure = embeddedServer(Netty, port = 0, module = Application::azure).start()
     val arena = embeddedServer(Netty, port = 0, module = Application::arena).start()
     val pdl = embeddedServer(Netty, port = 0, module = Application::pdlFake).start()
     val tilgang = embeddedServer(Netty, port = 0, module = Application::tilgangFake).start()
+    val oppgave = embeddedServer(Netty, port = 0, module = Application::oppgaveFake).start()
     val kafka = KafkaFake()
     val arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway())
 
     override fun close() {
         azure.stop(0L, 0L)
         arena.stop(0L, 0L)
+        oppgave.stop(0L, 0L)
         pdl.stop(0L, 0L)
         tilgang.stop(0L, 0L)
         kafka.close()
@@ -59,10 +64,16 @@ class Fakes():AutoCloseable {
         System.setProperty("INTEGRASJON_TILGANG_SCOPE", "scope")
         System.setProperty("nais.token.exchange.endpoint", "http://localhost:${azure.port()}")
 
+        // Opppgave
+        System.setProperty("INTEGRASJON_OPPGAVE_URL", "http://localhost:${oppgave.port()}")
+        System.setProperty("INTEGRASJON_OPPGAVE_SCOPE", "scope")
+
         // Meldekortbackend
         System.setProperty("AZP_MELDEKORT_BACKEND", UUID.randomUUID().toString())
+        System.setProperty("AZP_TOKEN_GEN", UUID.randomUUID().toString())
     }
 }
+
 @Suppress("PropertyName")
 data class TestToken(
     val access_token: String,
@@ -87,22 +98,39 @@ fun Application.azure() {
             call.respond(HttpStatusCode.OK, Token(3600, "test"))
         }
         post {
-            val token = OidcToken(AzureTokenGen(
-                issuer = "test",
-                audience = "test"
-            ).generate(isApp = false)).token()
-            call.respond(TestToken(access_token = token))}
+            val token = OidcToken(
+                AzureTokenGen(
+                    issuer = "test",
+                    audience = "test"
+                ).generate(isApp = false)
+            ).token()
+            call.respond(TestToken(access_token = token))
+        }
 
     }
 }
 
-fun Application.arena(){
+fun Application.arena() {
     install(ContentNegotiation) { jackson() }
     routing {
         post("/intern/maksimum") {
             call.respond(
                 Maksimum(
                     vedtak = emptyList()
+                )
+            )
+        }
+    }
+}
+
+fun Application.oppgaveFake() {
+    install(ContentNegotiation) { jackson() }
+    routing {
+        post("/enhet/status/person") {
+            call.receive<PersonRequest>()
+            call.respond(
+                EnhetOgOversendelse(
+                    tilstand = null
                 )
             )
         }
