@@ -47,16 +47,16 @@ class ArenaService(
         val arenaSvar = arena.hentPerioderInkludert11_17(callId, vedtakRequest)
 
         return PerioderInkludert11_17Response(
-            perioder = arenaSvar.perioder.map {
+            perioder = arenaSvar.perioder.map { periode ->
                 PeriodeInkludert11_17(
-                    periode = it.periode.let {
+                    periode = periode.periode.let {
                         Periode(
                             it.fraOgMedDato,
                             it.tilOgMedDato
                         )
                     },
-                    aktivitetsfaseKode = it.aktivitetsfaseKode,
-                    aktivitetsfaseNavn = it.aktivitetsfaseNavn,
+                    aktivitetsfaseKode = periode.aktivitetsfaseKode,
+                    aktivitetsfaseNavn = periode.aktivitetsfaseNavn,
                 )
             }
         )
@@ -83,10 +83,6 @@ class ArenaService(
                 Status.OPPRE -> no.nav.aap.api.intern.Status.OPPRE
                 Status.REGIS -> no.nav.aap.api.intern.Status.REGIS
                 Status.UKJENT -> no.nav.aap.api.intern.Status.UKJENT
-                Status.OPPRETTET -> no.nav.aap.api.intern.Status.OPPRETTET
-                Status.UTREDES -> no.nav.aap.api.intern.Status.UTREDES
-                Status.LØPENDE -> no.nav.aap.api.intern.Status.LØPENDE
-                Status.AVSLUTTET -> no.nav.aap.api.intern.Status.AVSLUTTET
             },
             periode = Periode(
                 it.periode.fraOgMedDato,
@@ -94,7 +90,6 @@ class ArenaService(
             ),
             kilde = when (it.kilde) {
                 Kilde.ARENA -> no.nav.aap.api.intern.Kilde.ARENA
-                Kilde.KELVIN -> no.nav.aap.api.intern.Kilde.KELVIN
             }
         )
 
