@@ -1,5 +1,6 @@
 package no.nav.aap.api.kelvin
 
+import no.nav.aap.api.Metrics
 import no.nav.aap.api.intern.NåværendeEnhet
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -38,6 +39,11 @@ object OppgaveGateway {
                 uri = baseUrl.resolve("/enhet/status/person"),
                 request = httpRequest,
             )
+        )
+
+        Metrics.enhetInformasjon(
+            respons.tilstand != null,
+            respons.tilstand?.oppgaveKategori?.name ?: "null"
         )
 
         val tilstand = respons.tilstand ?: return null

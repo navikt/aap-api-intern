@@ -35,4 +35,10 @@ object Metrics {
         "api_intern_antall_identer_i_request",
         listOf(Tag.of("path", path), Tag.of("antall", antall.toString()))
     ).increment(antall.toDouble())
+
+
+    fun enhetInformasjon(fikkRespons: Boolean, type: String) = prometheus.counter(
+        "api_intern_enhetsinformasjon",
+        listOf(Tag.of("fikk_respons", fikkRespons.toString()), Tag.of("type", type))
+    ).increment()
 }
