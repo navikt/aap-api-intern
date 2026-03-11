@@ -4,8 +4,7 @@ komponenter = "2.0.17"
 tilgang = "1.0.182"
 behandlingsflyt = "0.0.573"
 oppgave = "0.0.155"
-arenaOppslag = "0.0.49"
-flyway = "12.0.3"
+arenaoppslag = "0.0.49"
 resilience4j = "2.3.0"
 kafka = "4.2.0"
 logback = "1.5.32"
@@ -27,7 +26,6 @@ kelvinDbmigrering = { module = "no.nav.aap.kelvin:dbmigrering", version.ref = "k
 kelvinTidslinje = { module = "no.nav.aap.kelvin:tidslinje", version.ref = "komponenter" }
 kelvinKtorOpenapiGenerator = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
 kelvinDbtest = { module = "no.nav.aap.kelvin:dbtest", version.ref = "komponenter" }
-kelvinVerdityper = { module = "no.nav.aap.kelvin:verdityper", version.ref = "komponenter" }
 
 tilgangPlugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
 
@@ -35,7 +33,7 @@ behandlingsflytKontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", vers
 
 oppgaveApiKontrakt = { module = "no.nav.aap.oppgave:api-kontrakt", version.ref = "oppgave" }
 
-arenaOppslagKontrakt = { module = "no.nav.aap.arenaoppslag:kontrakt", version.ref = "arenaOppslag" }
+arenaoppslagKontrakt = { module = "no.nav.aap.arenaoppslag:kontrakt", version.ref = "arenaoppslag" }
 
 ktorSerializationJackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
 ktorServerAuth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
@@ -66,7 +64,6 @@ micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-pro
 prometheusMetricsTracerInitializer = { module = "io.prometheus:prometheus-metrics-tracer-initializer", version.ref = "prometheus" }
 
 hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
-flyway = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 
 resilience4jCircuitbreaker = { module = "io.github.resilience4j:resilience4j-circuitbreaker", version.ref = "resilience4j" }
 resilience4jKotlin = { module = "io.github.resilience4j:resilience4j-kotlin", version.ref = "resilience4j" }
@@ -81,4 +78,3 @@ commonsCodec = { module = "commons-codec:commons-codec", version.ref = "commonsC
 
 [plugins]
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
-flyway = { id = "org.flywaydb.flyway", version.ref = "flyway" }

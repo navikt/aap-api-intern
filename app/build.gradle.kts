@@ -3,7 +3,6 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     id("aap.conventions")
     alias(libs.plugins.ktor)
-    alias(libs.plugins.flyway)
     application
 }
 
@@ -22,7 +21,7 @@ dependencies {
     implementation(libs.tilgangPlugin)
     implementation(libs.behandlingsflytKontrakt)
     implementation(libs.oppgaveApiKontrakt)
-    implementation(libs.arenaOppslagKontrakt)
+    implementation(libs.arenaoppslagKontrakt)
 
     implementation(libs.ktorSerializationJackson)
 
