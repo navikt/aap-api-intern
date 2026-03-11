@@ -2,8 +2,8 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
 plugins {
     id("aap.conventions")
-    id("io.ktor.plugin") version "3.4.1"
-    id("org.flywaydb.flyway") version "12.0.3"
+    alias(libs.plugins.ktor)
+    alias(libs.plugins.flyway)
     application
 }
 
@@ -11,70 +11,62 @@ application {
     mainClass.set("no.nav.aap.api.AppKt")
 }
 
-val komponenterVersjon = "2.0.17"
-val ktorVersion = "3.4.1"
-val tilgangVersjon = "1.0.182"
-val behandlingsflytversjon = "0.0.573"
-val oppgaveversjon = "0.0.155"
-val arenaOppslagVersjon = "0.0.49"
-val resilience4jVersion = "2.3.0"
-
 dependencies {
     implementation(project(":kontrakt"))
 
-    implementation("no.nav.aap.kelvin:server:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:infrastructure:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:dbconnect:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:dbmigrering:$komponenterVersjon")
-    implementation("no.nav.aap.kelvin:tidslinje:$komponenterVersjon")
-    implementation("no.nav.aap.tilgang:plugin:$tilgangVersjon")
-    implementation("no.nav.aap.behandlingsflyt:kontrakt:$behandlingsflytversjon")
-    implementation("no.nav.aap.oppgave:api-kontrakt:$oppgaveversjon")
-    implementation("no.nav.aap.arenaoppslag:kontrakt:$arenaOppslagVersjon")
+    implementation(libs.kelvinServer)
+    implementation(libs.kelvinInfrastructure)
+    implementation(libs.kelvinDbconnect)
+    implementation(libs.kelvinDbmigrering)
+    implementation(libs.kelvinTidslinje)
+    implementation(libs.tilgangPlugin)
+    implementation(libs.behandlingsflytKontrakt)
+    implementation(libs.oppgaveApiKontrakt)
+    implementation(libs.arenaOppslagKontrakt)
 
-    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+    implementation(libs.ktorSerializationJackson)
 
-    implementation("io.ktor:ktor-server-auth:$ktorVersion")
-    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
-    implementation("io.ktor:ktor-server-call-logging:$ktorVersion")
-    implementation("io.ktor:ktor-server-call-logging-jvm:$ktorVersion")
-    implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-server-core:$ktorVersion")
-    implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
-    implementation("io.ktor:ktor-server-call-id:$ktorVersion")
+    implementation(libs.ktorServerAuth)
+    implementation(libs.ktorServerAuthJwt)
+    implementation(libs.ktorServerCallLogging)
+    implementation(libs.ktorServerCallLoggingJvm)
+    implementation(libs.ktorServerContentNegotiation)
+    implementation(libs.ktorServerCore)
+    implementation(libs.ktorServerMetricsMicrometer)
+    implementation(libs.ktorServerNetty)
+    implementation(libs.ktorServerStatusPages)
+    implementation(libs.ktorServerCallId)
 
-    implementation("io.ktor:ktor-client-auth:$ktorVersion")
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-client-jackson:$ktorVersion")
-    implementation("io.ktor:ktor-client-logging:$ktorVersion")
+    implementation(libs.ktorClientAuth)
+    implementation(libs.ktorClientCio)
+    implementation(libs.ktorClientContentNegotiation)
+    implementation(libs.ktorClientJackson)
+    implementation(libs.ktorClientLogging)
 
-    implementation("org.apache.kafka:kafka-clients:4.2.0")
-    implementation("ch.qos.logback:logback-classic:1.5.32")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.21.1")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.16.3")
-    implementation("net.logstash.logback:logstash-logback-encoder:9.0")
-    implementation("io.prometheus:prometheus-metrics-tracer-initializer:1.5.0")
+    implementation(libs.kafkaClients)
+    implementation(libs.logback)
+    implementation(libs.jacksonDatatypeJsr310)
+    implementation(libs.micrometerRegistryPrometheus)
+    implementation(libs.logstashLogbackEncoder)
+    implementation(libs.prometheusMetricsTracerInitializer)
 
-    implementation("com.zaxxer:HikariCP:7.0.2")
+    implementation(libs.hikaricp)
 
-    implementation("io.github.resilience4j:resilience4j-circuitbreaker:${resilience4jVersion}")
-    implementation("io.github.resilience4j:resilience4j-kotlin:${resilience4jVersion}")
-    implementation("io.github.resilience4j:resilience4j-micrometer:${resilience4jVersion}")
+    implementation(libs.resilience4jCircuitbreaker)
+    implementation(libs.resilience4jKotlin)
+    implementation(libs.resilience4jMicrometer)
 
-    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
+    implementation(libs.caffeine)
 
-    implementation("no.nav.aap.kelvin:ktor-openapi-generator:$komponenterVersjon")
-    testImplementation("no.nav.aap.kelvin:dbtest:$komponenterVersjon")
-    testImplementation("io.ktor:ktor-server-test-host:$ktorVersion")
+    implementation(libs.kelvinKtorOpenapiGenerator)
+    testImplementation(libs.kelvinDbtest)
+    testImplementation(libs.ktorServerTestHost)
     constraints {
-        implementation("commons-codec:commons-codec:1.21.0")
+        implementation(libs.commonsCodec)
     }
-    testImplementation("org.junit.jupiter:junit-jupiter-params")
-    testImplementation("org.assertj:assertj-core:3.27.7")
-    testImplementation("com.nimbusds:nimbus-jose-jwt:10.8")
+    testImplementation(libs.junitJupiterParams)
+    testImplementation(libs.assertj)
+    testImplementation(libs.nimbusJoseJwt)
     testImplementation(kotlin("test"))
 }
 

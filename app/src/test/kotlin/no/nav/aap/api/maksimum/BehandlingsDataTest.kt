@@ -12,13 +12,15 @@ import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
-import no.nav.aap.api.arena.ArenaOppslagTest
 import no.nav.aap.api.intern.InternVedtakRequestApiIntern
 import no.nav.aap.api.intern.Maksimum
 import no.nav.aap.api.intern.Medium
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.kelvin.tilDomene
-import no.nav.aap.api.util.*
+import no.nav.aap.api.util.AzureTokenGen
+import no.nav.aap.api.util.Fakes
+import no.nav.aap.api.util.PostgresTestBase
+import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*

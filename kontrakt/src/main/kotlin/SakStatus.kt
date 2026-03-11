@@ -57,8 +57,13 @@ public enum class Status {
     OPPRE,
     REGIS,
     UKJENT,
+    // Disse skal bort fra Kelvin
     OPPRETTET,
     UTREDES,
     LØPENDE,
-    AVSLUTTET
+    AVSLUTTET,
+    // Disse kommer fra Kelvin
+    SOKNAD_UNDER_BEHANDLING,
+    REVURDERING_UNDER_BEHANDLING,
+    FERDIGBEHANDLET,
 }
