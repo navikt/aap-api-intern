@@ -1,11 +1,11 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.api.kelvin.SakStatus
+import no.nav.aap.api.intern.behandlingsflyt.SakStatus
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 
 class SakStatusRepository(private val connection: DBConnection) {
-    fun lagreSakStatus(fnr: String, sakStatus: SakStatus) {
+    fun lagreSakStatusFraKelvin(fnr: String, sakStatus: SakStatus) {
         connection.execute(
             """
                 DELETE FROM SAKER
@@ -28,7 +28,7 @@ class SakStatusRepository(private val connection: DBConnection) {
                 setString(1, fnr)
                 setString(2, sakStatus.sakId)
                 setString(3, sakStatus.statusKode.toString())
-                setPeriode(4, sakStatus.periode)
+                setPeriode(4, sakStatus.periode.tilKelvinPeriode())
             }
         }
     }
@@ -57,5 +57,9 @@ class SakStatusRepository(private val connection: DBConnection) {
 
     private fun Periode.toKontraktPeriode(): no.nav.aap.api.intern.Periode {
         return no.nav.aap.api.intern.Periode(this.fom, this.tom)
+    }
+
+    private fun no.nav.aap.api.intern.behandlingsflyt.Periode.tilKelvinPeriode(): Periode {
+        return Periode(this.fom, this.tom)
     }
 }

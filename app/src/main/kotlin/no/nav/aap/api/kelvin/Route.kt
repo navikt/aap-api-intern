@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import javax.sql.DataSource
 import no.nav.aap.api.Metrics.prometheus
+import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -69,7 +70,7 @@ fun NormalOpenAPIRoute.dataInsertion(
         ) { _, body ->
             dataSource.transaction { connection ->
                 val sakStatusRepository = SakStatusRepository(connection)
-                sakStatusRepository.lagreSakStatus(body.ident, body.status)
+                sakStatusRepository.lagreSakStatusFraKelvin(body.ident, body.status)
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
