@@ -133,6 +133,9 @@ spec:
           permissions:
             roles:
               - "add-data"
+        - application: k9-abakus
+          namespace: k9saksbehandling
+          cluster: dev-gcp
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io

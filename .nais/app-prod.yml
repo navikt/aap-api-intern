@@ -110,6 +110,9 @@ spec:
         - application: su-se-bakover
           namespace: supstonad
           cluster: prod-gcp
+        - application: k9-abakus
+          namespace: k9saksbehandling
+          cluster: prod-fss
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp
