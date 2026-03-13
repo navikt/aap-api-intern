@@ -135,7 +135,7 @@ spec:
               - "add-data"
         - application: k9-abakus
           namespace: k9saksbehandling
-          cluster: dev-gcp
+          cluster: dev-fss
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io
