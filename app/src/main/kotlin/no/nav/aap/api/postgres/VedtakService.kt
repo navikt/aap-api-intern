@@ -64,6 +64,7 @@ class VedtakService(
                             rettighetsType = left.verdi,
                             beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
+                            barnetilleggSats = right?.verdi?.barnetilleggsats,
                             kildesystem = Kilde.KELVIN,
                             samordningsId = behandling.samId,
                             opphorsAarsak = null,
