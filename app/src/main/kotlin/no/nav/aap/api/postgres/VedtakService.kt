@@ -64,6 +64,7 @@ class VedtakService(
                             rettighetsType = left.verdi,
                             beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
+                            barnetilleggSats = right?.verdi?.barnetilleggsats,
                             kildesystem = Kilde.KELVIN,
                             samordningsId = behandling.samId,
                             opphorsAarsak = null,
@@ -89,10 +90,12 @@ class VedtakService(
                             periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
                             rettighetsType = left.verdi.rettighetsType,
                             beregningsgrunnlag = left.verdi.beregningsgrunnlag,
+
                             barnMedStonad = left.verdi.barnMedStonad,
                             barnetillegg = left.verdi.barnMedStonad * (right?.verdi?.segmenter()
                                 ?.first()?.verdi?.barnetilleggsats?.toInt()
                                 ?: 0),
+                            barnetilleggSats = left.verdi.barnetilleggSats?.toInt()?:0,
                             vedtaksTypeKode = null,
                             vedtaksTypeNavn = null,
                             utbetaling = right?.verdi?.filter {

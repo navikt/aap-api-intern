@@ -29,6 +29,7 @@ public data class Vedtak(
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
     val barnetillegg: Int,
+    val barnetilleggSats: Int = 0,
     val kildesystem: Kilde,
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
