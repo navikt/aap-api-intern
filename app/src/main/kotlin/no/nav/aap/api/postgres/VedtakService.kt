@@ -90,10 +90,12 @@ class VedtakService(
                             periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
                             rettighetsType = left.verdi.rettighetsType,
                             beregningsgrunnlag = left.verdi.beregningsgrunnlag,
+
                             barnMedStonad = left.verdi.barnMedStonad,
                             barnetillegg = left.verdi.barnMedStonad * (right?.verdi?.segmenter()
                                 ?.first()?.verdi?.barnetilleggsats?.toInt()
                                 ?: 0),
+                            barnetilleggSats = left.verdi.barnetilleggSats?.toInt()?:0,
                             vedtaksTypeKode = null,
                             vedtaksTypeNavn = null,
                             utbetaling = right?.verdi?.filter {
