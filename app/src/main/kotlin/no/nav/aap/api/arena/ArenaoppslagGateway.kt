@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.benmanes.caffeine.cache.Caffeine
 import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -21,10 +22,12 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import io.ktor.serialization.jackson.jackson
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
 import io.prometheus.metrics.core.metrics.Summary
 import java.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import no.nav.aap.api.ArenaoppslagConfig
+import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
@@ -67,6 +70,15 @@ class ArenaoppslagGateway(
         slowCallDurationThreshold = Duration.ofMillis(slowRequestMillis)
     }
 
+    private val maksimumCache = Caffeine.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterWrite(Duration.ofMinutes(15))
+        .build<String, Maksimum>()
+
+    init {
+        CaffeineCacheMetrics.monitor(prometheus, maksimumCache, "arenaoppslag_maksimum")
+    }
+
     override suspend fun hentPerioder(
         callId: String, vedtakRequest: InternVedtakRequest
     ): PerioderResponse = gjørArenaOppslag<PerioderResponse, InternVedtakRequest>(
@@ -86,10 +98,14 @@ class ArenaoppslagGateway(
     ).getOrThrow()
 
     override suspend fun hentMaksimum(
-        callId: String, req: InternVedtakRequest
-    ): Maksimum = gjørArenaOppslag<Maksimum, InternVedtakRequest>(
-        "/intern/maksimum", callId, req
-    ).getOrThrow()
+        callId: String, req: InternVedtakRequest,
+    ): Maksimum {
+        val key = req.toString()
+        return maksimumCache.getIfPresent(key)
+            ?: gjørArenaOppslag<Maksimum, InternVedtakRequest>("/intern/maksimum", callId, req)
+                .getOrThrow()
+                .also { maksimumCache.put(key, it) }
+    }
 
     override suspend fun hentPersonEksistererIAapContext(
         callId: String, req: SakerRequest,
