@@ -75,12 +75,17 @@ class ArenaoppslagGateway(
         .expireAfterWrite(Duration.ofMinutes(15))
         .build<String, Maksimum>()
 
+    private val personEksistererCache = Caffeine.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterWrite(Duration.ofMinutes(15))
+        .build<String, PersonEksistererIAAPArena>()
+
     init {
-        CaffeineCacheMetrics.monitor(prometheus, maksimumCache, "arenaoppslag_maksimum")
+        CaffeineCacheMetrics.monitor(prometheus, maksimumCache, "arenaoppslag_maksimum_cache")
     }
 
     override suspend fun hentPerioder(
-        callId: String, vedtakRequest: InternVedtakRequest
+        callId: String, vedtakRequest: InternVedtakRequest,
     ): PerioderResponse = gjørArenaOppslag<PerioderResponse, InternVedtakRequest>(
         "/intern/perioder", callId, vedtakRequest
     ).getOrThrow()
@@ -92,7 +97,7 @@ class ArenaoppslagGateway(
     ).getOrThrow()
 
     override suspend fun hentSakerByFnr(
-        callId: String, req: SakerRequest
+        callId: String, req: SakerRequest,
     ): List<SakStatus> = gjørArenaOppslag<List<SakStatus>, SakerRequest>(
         "/intern/saker", callId, req
     ).getOrThrow()
@@ -109,21 +114,25 @@ class ArenaoppslagGateway(
 
     override suspend fun hentPersonEksistererIAapContext(
         callId: String, req: SakerRequest,
-    ): PersonEksistererIAAPArena =
-        gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
-            "/api/v1/person/eksisterer", callId, req
-        ).getOrThrow()
+    ): PersonEksistererIAAPArena {
+        val key = req.toString()
+        return personEksistererCache.getIfPresent(key)
+            ?: gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
+                "/api/v1/person/eksisterer", callId, req
+            ).getOrThrow()
+                .also { personEksistererCache.put(key, it) }
+    }
 
     override suspend fun hentPersonHarSignifikantHistorikk(
         callId: String,
-        req: SignifikanteSakerRequest
+        req: SignifikanteSakerRequest,
     ): SignifikanteSakerResponse =
         gjørArenaOppslag<SignifikanteSakerResponse, SignifikanteSakerRequest>(
             "/api/v1/person/signifikant-historikk", callId, req
         ).getOrThrow()
 
     private suspend inline fun <reified T, reified V> gjørArenaOppslag(
-        endepunkt: String, callId: String, req: V
+        endepunkt: String, callId: String, req: V,
     ): Result<T> = clientLatencyStats.startTimer().use {
         circuitBreaker.executeSuspendFunction {
             // Vi starter en kjede av kall og prosessering, hvor hvert steg kan feile.
