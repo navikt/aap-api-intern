@@ -1,6 +1,12 @@
 package no.nav.aap.api.postgres
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.LocalDateTime
+import kotlin.math.roundToInt
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
@@ -9,12 +15,6 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
-import java.math.BigDecimal
-import java.math.RoundingMode
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.LocalDateTime
-import kotlin.math.roundToInt
 
 class BehandlingsRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -434,6 +434,32 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
     }
+
+    fun lagreOppdaterteIdenter(saksnummer: String, identer: List<String>) {
+        val saker = connection.queryList("SELECT * FROM SAK WHERE saksnummer = ?") {
+            setParams { setString(1, saksnummer) }
+            setRowMapper { it.getLong("id") }
+        }
+
+        require(saker.isNotEmpty()) { "Fant ingen saker med saksnummer $saksnummer, kan ikke oppdatere identer" }
+        require(saker.size == 1) { "Fant flere saker med saksnummer $saksnummer, kan ikke oppdatere identer" }
+
+        val sakId = saker.single()
+
+        connection.executeBatch(
+            """
+                INSERT INTO SAK_PERSON (SAK_ID, PERSON_IDENT)
+                VALUES (?, ?)
+                ON CONFLICT (SAK_ID, PERSON_IDENT) DO NOTHING 
+            """.trimIndent(),
+            identer
+        ) {
+            setParams {
+                setLong(1, sakId)
+                setString(2, it)
+            }
+        }
+    }
 }
 
 data class SakDB(
@@ -514,7 +540,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val kildesystem: Kilde,
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
-    val barnetilleggSats: BigDecimal? = null
+    val barnetilleggSats: BigDecimal? = null,
 ) {
     fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode): VedtakUtenUtbetaling {
         return VedtakUtenUtbetaling(
@@ -546,7 +572,7 @@ data class DsopRequest(
 
 data class DsopResponse(
     val uttrekksperiode: Periode,
-    val vedtak: List<DsopVedtak>
+    val vedtak: List<DsopVedtak>,
 )
 
 data class DsopVedtak(
@@ -556,7 +582,7 @@ data class DsopVedtak(
     val rettighetsType: String = "AAP",
     val utfall: String = "JA",
     val aktivitetsfase: RettighetsType,
-    val vedtaksType: VedtaksType
+    val vedtaksType: VedtaksType,
 )
 
 enum class VedtaksType(description: String) {
