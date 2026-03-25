@@ -1,16 +1,22 @@
 package no.nav.aap.api.kelvin
 
+import com.papsign.ktor.openapigen.route.info
+import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.response.respondWithStatus
+import com.papsign.ktor.openapigen.route.route
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
+import io.micrometer.core.instrument.DistributionSummary
+import java.time.LocalDate
+import javax.sql.DataSource
+import no.nav.aap.api.Metrics.prometheus
+import no.nav.aap.api.intern.behandlingsflyt.OppdaterIdenterDto
+import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
 import no.nav.aap.api.kafka.KafkaProducer
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortDetaljerRepository
 import no.nav.aap.api.postgres.MeldekortPerioderRepository
 import no.nav.aap.api.postgres.SakStatusRepository
-import com.papsign.ktor.openapigen.route.info
-import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
-import com.papsign.ktor.openapigen.route.route
-import io.ktor.http.*
-import io.ktor.server.response.*
-import io.micrometer.core.instrument.DistributionSummary
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -18,10 +24,6 @@ import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
-import javax.sql.DataSource
-import no.nav.aap.api.Metrics.prometheus
-import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -132,5 +134,25 @@ fun NormalOpenAPIRoute.dataInsertion(
             pipeline.call.respond(HttpStatusCode.OK)
         }
 
+        route("/oppdater-identer").authorizedPost<Unit, Unit, OppdaterIdenterDto>(
+            routeConfig = AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
+                applicationsOnly = true,
+                applicationRole = "add-data",
+            ),
+            modules = listOf(
+                info("Oppdaterer identer for en sak. Endepunktet kan kun brukes av behandlingsflyt")
+            ).toTypedArray()
+        ) { _, req ->
+            dataSource.transaction { connection ->
+                val behandlingsRepository = BehandlingsRepository(connection)
+                behandlingsRepository.lagreOppdaterteIdenter(
+                    saksnummer = req.saksnummer,
+                    identer = req.identer
+                )
+            }
+
+            respondWithStatus(HttpStatusCode.OK)
+        }
     }
 }
