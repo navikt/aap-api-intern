@@ -10,6 +10,7 @@ import io.micrometer.core.instrument.DistributionSummary
 import java.time.LocalDate
 import javax.sql.DataSource
 import no.nav.aap.api.Metrics.prometheus
+import no.nav.aap.api.intern.behandlingsflyt.OppdaterIdenterDto
 import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
 import no.nav.aap.api.kafka.KafkaProducer
 import no.nav.aap.api.postgres.BehandlingsRepository

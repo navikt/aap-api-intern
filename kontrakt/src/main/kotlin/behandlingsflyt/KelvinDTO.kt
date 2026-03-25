@@ -11,6 +11,11 @@ public data class SakStatusKelvin(
     val status: SakStatus,
 )
 
+public data class OppdaterIdenterDto(
+    val saksnummer: String,
+    val identer: List<String>,
+)
+
 /**
  * Payload fra behandlingsflyt. Ikke del denne ut.
  */
