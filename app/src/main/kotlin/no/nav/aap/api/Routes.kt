@@ -236,7 +236,10 @@ fun NormalOpenAPIRoute.api(
         ) { callIdHeader, requestBody ->
             val callId = receiveCall(callIdHeader, pipeline)
 
-            val personIdenter = hentAllePersonidenter(listOf(requestBody.personidentifikator), pdlGateway)
+            val personIdenter =
+                pdlGateway.hentAlleIdenterForPerson(requestBody.personidentifikator)
+                    .map { pdlIdent -> pdlIdent.ident }
+
             val kelvinSaker: List<SakStatusMeldekortbackend> =
                 dataSource.transaction { connection ->
                     val kelvinSakService = KelvinSakService(SakStatusRepository(connection))
