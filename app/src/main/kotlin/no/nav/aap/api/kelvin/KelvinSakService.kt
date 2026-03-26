@@ -28,8 +28,10 @@ class KelvinSakService(private val sakStatusRepository: SakStatusRepository) {
         }
     }
 
-    fun hentSakStatus(ident: String): List<SakStatusMeldekortbackend> {
-        return sakStatusRepository.hentSakStatus(ident)
-            .map { SakStatusMeldekortbackend(it.kilde, it.periode, it.sakId) }
+    fun hentSakStatusUtenEnhet(identer: List<String>): List<SakStatusMeldekortbackend> {
+        return identer.flatMap { ident ->
+            sakStatusRepository.hentSakStatus(ident)
+                .map { SakStatusMeldekortbackend(it.kilde, it.periode, it.sakId) }
+        }
     }
 }
