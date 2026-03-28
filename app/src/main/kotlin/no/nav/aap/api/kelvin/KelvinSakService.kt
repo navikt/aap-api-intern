@@ -5,7 +5,10 @@ import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.api.intern.SakStatusMeldekortbackend
 import no.nav.aap.api.postgres.SakStatusRepository
 
-class KelvinSakService(private val sakStatusRepository: SakStatusRepository) {
+class KelvinSakService(
+    private val sakStatusRepository: SakStatusRepository,
+    private val oppgaveGatewayConfig: OppgaveGatewayConfig
+) {
 
     /**
      * TODO: lag person-tabell, slik at vi slipper å spørre på hver ident
@@ -13,7 +16,9 @@ class KelvinSakService(private val sakStatusRepository: SakStatusRepository) {
     fun hentSakStatus(identer: List<String>): List<SakStatus> {
 
         return identer.flatMap { ident ->
-            val (enhetinfo, saksnummer) = OppgaveGateway.hentEnhetForPerson(ident) ?: Pair(null, null)
+            val (enhetinfo, saksnummer) = OppgaveGateway(oppgaveGatewayConfig).hentEnhetForPerson(
+                ident
+            ) ?: Pair(null, null)
 
             sakStatusRepository.hentSakStatus(ident)
                 .map {
