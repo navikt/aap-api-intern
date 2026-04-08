@@ -441,7 +441,10 @@ class BehandlingsRepository(private val connection: DBConnection) {
             setRowMapper { it.getLong("id") }
         }
 
-        require(saker.isNotEmpty()) { "Fant ingen saker med saksnummer $saksnummer, kan ikke oppdatere identer" }
+        if (saker.isEmpty()) {
+            log.warn("Fant ingen saker med saksnummer $saksnummer, kan ikke oppdatere identer. Dette er forventet om det ikke finnes vedtak på sak.")
+            return
+        }
         require(saker.size == 1) { "Fant flere saker med saksnummer $saksnummer, kan ikke oppdatere identer" }
 
         val sakId = saker.single()
