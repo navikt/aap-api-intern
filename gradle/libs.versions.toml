@@ -15,7 +15,7 @@ prometheus = "1.5.1"
 hikaricp = "7.0.2"
 caffeine = "3.2.3"
 assertj = "3.27.7"
-nimbusJoseJwt = "10.8"
+nimbusJoseJwt = "10.9"
 commonsCodec = "1.21.0"
 
 [libraries]
