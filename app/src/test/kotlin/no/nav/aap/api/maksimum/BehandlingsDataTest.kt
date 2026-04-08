@@ -122,7 +122,8 @@ class BehandlingsDataTest : PostgresTestBase() {
             ),
             samId = "1234asd",
             vedtakId = 123456789L,
-            beregningsgrunnlag = BigDecimal.valueOf(500_000)
+            beregningsgrunnlag = BigDecimal.valueOf(500_000),
+            stansOpphørVurdering = null
         )
 
         private val fakes = Fakes()
@@ -350,7 +351,8 @@ class BehandlingsDataTest : PostgresTestBase() {
                     ),
                     samId = "1234asd",
                     vedtakId = Random().nextLong(),
-                    beregningsgrunnlag = 600_000.toBigDecimal()
+                    beregningsgrunnlag = 600_000.toBigDecimal(),
+                    stansOpphørVurdering = null
                 )
             )
         }
