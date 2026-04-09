@@ -61,7 +61,8 @@ class BehandlingsRepositoryTest {
         samId = null,
         vedtakId = 1234L,
         beregningsgrunnlag = BigDecimal.ZERO,
-        nyttVedtak = false
+        nyttVedtak = false,
+        emptySet()
     )
 
     @Test

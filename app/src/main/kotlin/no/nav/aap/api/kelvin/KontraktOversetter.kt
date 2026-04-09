@@ -1,7 +1,9 @@
 package no.nav.aap.api.kelvin
 
+import no.nav.aap.api.postgres.GjeldendeStansEllerOpphørDTO
 import no.nav.aap.api.postgres.KelvinBehandlingStatus
 import no.nav.aap.api.postgres.KelvinSakStatus
+import no.nav.aap.api.postgres.StansEllerOpphørEnumDTODomene
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.komponenter.type.Periode
@@ -21,7 +23,17 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgre
         samId = this.samId,
         vedtakId = this.vedtakId,
         beregningsgrunnlag = this.beregningsgrunnlag,
-        nyttVedtak = nyttVedtak
+        nyttVedtak = nyttVedtak,
+        stansOpphørVurdering = this.stansOpphørVurdering?.map {
+            GjeldendeStansEllerOpphørDTO(
+                fom = it.fom,
+                opprettet = it.opprettet,
+                vurdering = when(it.vurdering){
+                    StansEllerOpphørEnumDTO.STANS -> StansEllerOpphørEnumDTODomene.STANS
+                    StansEllerOpphørEnumDTO.OPPHØR -> StansEllerOpphørEnumDTODomene.OPPHØR
+                }
+            )
+        }?.toSet()?:emptySet()
     )
 }
 
