@@ -33,7 +33,7 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgre
                     StansEllerOpphørEnumDTO.OPPHØR -> StansEllerOpphørEnumDTODomene.OPPHØR
                 }
             )
-        }?.toSet()?:emptySet()
+        }?.toSet().orEmpty()
     )
 }
 
