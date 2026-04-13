@@ -448,7 +448,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             setRowMapper {
                 GjeldendeStansEllerOpphørDTO(
                     fom = it.getLocalDate("fom"),
-                    opprettet = it.getLocalDateTime("opprettet").toInstant(java.time.ZoneOffset.UTC),
+                    opprettet = it.getLocalDateTime("opprettet_tid").toInstant(java.time.ZoneOffset.UTC),
                     vurdering = StansEllerOpphørEnumDTODomene.valueOf(it.getString("vedtakstype"))
                 )
             }
