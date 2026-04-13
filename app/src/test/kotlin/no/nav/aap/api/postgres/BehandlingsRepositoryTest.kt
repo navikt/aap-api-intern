@@ -62,7 +62,7 @@ class BehandlingsRepositoryTest {
         vedtakId = 1234L,
         beregningsgrunnlag = BigDecimal.ZERO,
         nyttVedtak = false,
-        emptySet()
+        stansOpphørVurdering = emptySet()
     )
 
     @Test
