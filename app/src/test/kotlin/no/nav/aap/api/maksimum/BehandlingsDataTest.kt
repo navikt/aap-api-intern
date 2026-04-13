@@ -402,8 +402,6 @@ class BehandlingsDataTest : PostgresTestBase() {
 
             val perioderResponseM2m = jsonHttpClient.post("/perioder") {
                 bearerAuth(azure.generate(isApp = true))
-                //header
-
                 contentType(ContentType.Application.Json)
                 setBody(
                     InternVedtakRequest(
