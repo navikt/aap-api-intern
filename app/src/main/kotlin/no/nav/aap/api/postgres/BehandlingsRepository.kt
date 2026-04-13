@@ -10,6 +10,7 @@ import kotlin.math.roundToInt
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.StansEllerOpphørEnumDTO
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.somTidslinje
@@ -105,6 +106,37 @@ class BehandlingsRepository(private val connection: DBConnection) {
         ) {
             setParams {
                 setLong(1, nyBehandlingId)
+            }
+        }
+
+        connection.execute(
+            """
+                DELETE FROM stans_opphor_grunnlag WHERE behandling_id = ?
+            """.trimIndent(),
+        ) {
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+
+        val stansGrunnlagId = connection.executeReturnKey(
+            """INSERT INTO stans_opphor_grunnlag (behandling_id, opprettet_tid)
+       VALUES (?, now())""".trimIndent()
+        ) {
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+
+        connection.executeBatch(
+            """INSERT INTO stans_opphor_vurdering (stans_opphor_grunnlag_id, fom, vedtakstype, opprettet_tid) VALUES (?, ?, ?, ?)""".trimIndent(),
+            behandling.stansOpphørVurdering?.toList()?:emptyList()
+        ) {
+            setParams { it ->
+                setLong(1, stansGrunnlagId)
+                setLocalDate(2, it.fom)
+                setString(3, it.vurdering.name)
+                setInstant(4,it.opprettet)
             }
         }
 
@@ -245,7 +277,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 }, { rettighetstype -> rettighetstype.verdi })
                 .komprimer()
                 .segmenter()
-                .map { (periode, verdi) -> PeriodeInkludert11_17(no.nav.aap.api.intern.Periode(periode.fom, periode.tom), aktivitetsfaseNavn = verdi, aktivitetsfaseKode = verdi) }
+                .map { (periode, verdi) ->
+                    PeriodeInkludert11_17(
+                        no.nav.aap.api.intern.Periode(
+                            periode.fom,
+                            periode.tom
+                        ), aktivitetsfaseNavn = verdi, aktivitetsfaseKode = verdi
+                    )
+                }
         }
     }
 
@@ -288,6 +327,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
+
+
         return saker.flatMap { sak ->
             val behandlinger = hentBehandlinger(sak.id)
             behandlinger.map { behandling ->
@@ -311,7 +352,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     vedtakId = behandling.vedtakId ?: 0L,
                     beregningsgrunnlag = hentBeregningsGrunnlag(behandling.id)
                         ?: BigDecimal.ZERO, // TODO!!!
-                    nyttVedtak = behandling.førstegangsbehandling
+                    nyttVedtak = behandling.førstegangsbehandling,
+                    stansOpphørVurdering = hentStansOpphør(behandling.id)
                 )
             }
         }
@@ -405,6 +447,22 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 )
             }
         }
+    }
+
+    fun hentStansOpphør(behandlingId: Long):Set<GjeldendeStansEllerOpphørDTO>{
+        return connection.queryList("""SELECT * FROM stans_opphor_vurdering WHERE stans_opphor_grunnlag_id IN (SELECT id FROM stans_opphor_grunnlag WHERE behandling_id = ?)""".trimIndent()
+        ){
+            setParams {
+                setLong(1, behandlingId)
+            }
+            setRowMapper {
+                GjeldendeStansEllerOpphørDTO(
+                    fom = it.getLocalDate("fom"),
+                    opprettet = it.getLocalDateTime("opprettet_tid").toInstant(java.time.ZoneOffset.UTC),
+                    vurdering = StansEllerOpphørEnumDTODomene.valueOf(it.getString("vedtakstype"))
+                )
+            }
+        }.toSet()
     }
 
     fun hentTilkjentYtelse(behandlingId: Long): List<TilkjentDTO> {

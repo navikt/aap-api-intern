@@ -396,8 +396,8 @@ class BehandlingsDataTest : PostgresTestBase() {
 
             assertEquals(HttpStatusCode.OK, perioderResponseObo.status)
             assertEquals(
-                perioderResponseObo.body<PerioderResponse>().perioder,
-                perioderMedAAp(listOf(testObject.tilDomene()))
+                perioderMedAAp(listOf(testObject.tilDomene())),
+                perioderResponseObo.body<PerioderResponse>().perioder
             )
 
             val perioderResponseM2m = jsonHttpClient.post("/perioder") {

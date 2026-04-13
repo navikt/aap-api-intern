@@ -1,6 +1,7 @@
 package no.nav.aap.api.postgres
 
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -21,9 +22,20 @@ data class DatadelingDTO(
     val samId: String? = null,
     val vedtakId: Long,
     val beregningsgrunnlag: BigDecimal?,
-    val nyttVedtak: Boolean
+    val nyttVedtak: Boolean,
+    val stansOpphørVurdering: Set<GjeldendeStansEllerOpphørDTO>?
 )
 
+data class GjeldendeStansEllerOpphørDTO(
+    val fom: LocalDate,
+    val opprettet: Instant,
+    val vurdering: StansEllerOpphørEnumDTODomene,
+)
+
+enum class StansEllerOpphørEnumDTODomene {
+    STANS,
+    OPPHØR
+}
 
 data class RettighetsTypePeriode(
     val fom: LocalDate,

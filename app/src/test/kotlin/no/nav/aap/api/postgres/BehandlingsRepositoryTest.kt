@@ -1,6 +1,7 @@
 package no.nav.aap.api.postgres
 
 import java.math.BigDecimal
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
@@ -61,7 +62,8 @@ class BehandlingsRepositoryTest {
         samId = null,
         vedtakId = 1234L,
         beregningsgrunnlag = BigDecimal.ZERO,
-        nyttVedtak = false
+        nyttVedtak = false,
+        stansOpphørVurdering = emptySet()
     )
 
     @Test
@@ -170,5 +172,83 @@ class BehandlingsRepositoryTest {
             assertThat(oppdatertVedtak.size).isEqualTo(1)
             assertThat(oppdatertVedtak.single().behandlingsReferanse).isEqualTo(behandling.behandlingsReferanse)
         }
+    }
+
+    private val søkePeriode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1))
+
+    @Test
+    fun `lagre og hente ut stansOpphørVurdering`() {
+        val vurderinger = setOf(
+            GjeldendeStansEllerOpphørDTO(
+                fom = LocalDate.of(2021, 6, 1),
+                opprettet = Instant.now(),
+                vurdering = StansEllerOpphørEnumDTODomene.STANS,
+            ),
+            GjeldendeStansEllerOpphørDTO(
+                fom = LocalDate.of(2021, 9, 1),
+                opprettet = Instant.now(),
+                vurdering = StansEllerOpphørEnumDTODomene.OPPHØR,
+            ),
+        )
+
+        dataSource.transaction {
+            BehandlingsRepository(it).lagreBehandling(
+                testVedtak.copy(stansOpphørVurdering = vurderinger)
+            )
+        }
+
+        val hentet = dataSource.transaction {
+            BehandlingsRepository(it).hentVedtaksData("123445", søkePeriode)
+        }
+
+        assertThat(hentet).hasSize(1)
+        assertThat(hentet.single().stansOpphørVurdering)
+            .usingRecursiveComparison()
+            .ignoringFields("opprettet")
+            .isEqualTo(vurderinger)
+    }
+
+    @Test
+    fun `re-lagring av behandling erstatter eksisterende stansOpphørVurdering`() {
+        val opprinnelige = setOf(
+            GjeldendeStansEllerOpphørDTO(
+                fom = LocalDate.of(2021, 6, 1),
+                opprettet = Instant.now(),
+                vurdering = StansEllerOpphørEnumDTODomene.STANS,
+            ),
+            GjeldendeStansEllerOpphørDTO(
+                fom = LocalDate.of(2021, 9, 1),
+                opprettet = Instant.now(),
+                vurdering = StansEllerOpphørEnumDTODomene.OPPHØR,
+            ),
+        )
+        val oppdaterte = setOf(
+            GjeldendeStansEllerOpphørDTO(
+                fom = LocalDate.of(2021, 11, 1),
+                opprettet = Instant.now(),
+                vurdering = StansEllerOpphørEnumDTODomene.STANS,
+            ),
+        )
+
+        dataSource.transaction {
+            BehandlingsRepository(it).lagreBehandling(
+                testVedtak.copy(stansOpphørVurdering = opprinnelige)
+            )
+        }
+        dataSource.transaction {
+            BehandlingsRepository(it).lagreBehandling(
+                testVedtak.copy(stansOpphørVurdering = oppdaterte)
+            )
+        }
+
+        val hentet = dataSource.transaction {
+            BehandlingsRepository(it).hentVedtaksData("123445", søkePeriode)
+        }
+
+        assertThat(hentet).hasSize(1)
+        val stansVurderinger = hentet.single().stansOpphørVurdering
+        assertThat(stansVurderinger).hasSize(1)
+        assertThat(stansVurderinger!!.single().fom).isEqualTo(LocalDate.of(2021, 11, 1))
+        assertThat(stansVurderinger.single().vurdering).isEqualTo(StansEllerOpphørEnumDTODomene.STANS)
     }
 }
