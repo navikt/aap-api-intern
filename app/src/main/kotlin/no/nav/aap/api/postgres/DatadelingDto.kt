@@ -1,6 +1,5 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.StansEllerOpphørEnumDTO
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
