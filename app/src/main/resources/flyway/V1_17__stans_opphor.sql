@@ -13,6 +13,8 @@ create table stans_opphor_vurdering
 
     fom                      date         not null,
 
-    -- Kun for 'GJELDENDE'
-    vedtakstype              text         null check (vedtakstype in ('STANS', 'OPPHØR'))
+    vedtakstype              text         not null check (vedtakstype in ('STANS', 'OPPHØR'))
 );
+
+CREATE INDEX IDX_STANS_OPPHOR_GRUNNLAG_BEHANDLING_ID ON stans_opphor_grunnlag (behandling_id);
+CREATE INDEX IDX_STANS_OPPHOR_VURDERING_GRUNNLAG_ID ON stans_opphor_vurdering (stans_opphor_grunnlag_id);

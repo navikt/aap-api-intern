@@ -11,6 +11,7 @@ import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.StansEllerOpphørEnumDTO
+import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
@@ -101,6 +102,16 @@ class BehandlingsRepository(private val connection: DBConnection) {
         connection.execute(
             """
                 DELETE FROM RETTIGHETSTYPE WHERE BEHANDLING_ID = ?
+            """.trimIndent(),
+        ) {
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+
+        connection.execute(
+            """
+                DELETE FROM stans_opphor_grunnlag WHERE behandling_id = ?
             """.trimIndent(),
         ) {
             setParams {
