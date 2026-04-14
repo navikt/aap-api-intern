@@ -4,6 +4,7 @@ import com.papsign.ktor.openapigen.annotations.properties.description.Descriptio
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.StansEllerOpphørEnumDTO
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.somTidslinje
@@ -127,16 +128,27 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
-        connection.executeBatch(
-            """INSERT INTO stans_opphor_vurdering (stans_opphor_grunnlag_id, fom, vedtakstype, opprettet_tid) VALUES (?, ?, ?, ?)""".trimIndent(),
-            behandling.stansOpphørVurdering?.toList() ?: emptyList()
-        ) {
-            setParams { it ->
-                setLong(1, stansGrunnlagId)
-                setLocalDate(2, it.fom)
-                setString(3, it.vurdering.name)
-                setInstant(4, it.opprettet)
+        behandling.stansOpphørVurdering?.forEach { vurdering ->
+            val vurderingId = connection.executeReturnKey(
+                """INSERT INTO stans_opphor_vurdering (stans_opphor_grunnlag_id, fom, vedtakstype, opprettet_tid) VALUES (?, ?, ?, ?)""".trimIndent()
+            ) {
+                setParams {
+                    setLong(1, stansGrunnlagId)
+                    setLocalDate(2, vurdering.fom)
+                    setString(3, vurdering.vurdering.name)
+                    setInstant(4, vurdering.opprettet)
+                }
             }
+            connection.executeBatch(
+                """INSERT INTO avslagsarsak (stans_opphor_vurdering_id, avslagsarsak) VALUES (?, ?)""".trimIndent(),
+                vurdering.avslagsårsaker
+            ){
+                setParams {
+                    setLong(1, vurderingId)
+                    setEnumName(2, it)
+                }
+            }
+
         }
 
         connection.executeBatch(
@@ -451,12 +463,27 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setLong(1, behandlingId)
             }
             setRowMapper {
+
                 GjeldendeStansEllerOpphørDTO(
                     fom = it.getLocalDate("fom"),
                     opprettet = it.getLocalDateTime("opprettet_tid")
                         .toInstant(java.time.ZoneOffset.UTC),
-                    vurdering = StansEllerOpphørEnumDTODomene.valueOf(it.getString("vedtakstype"))
+                    vurdering = StansEllerOpphørEnumDTODomene.valueOf(it.getString("vedtakstype")),
+                    avslagsårsaker = hentAvslagsårsaker(it.getLong("id"))
                 )
+            }
+        }.toSet()
+    }
+
+    private fun hentAvslagsårsaker(stansOpphørVurderingId: Long): Set<AvslagsårsakDTO>{
+        return connection.queryList(
+            """SELECT * FROM avslagsarsak WHERE stans_opphor_vurdering_id = ?""".trimIndent()
+        ){
+            setParams {
+                setLong(1, stansOpphørVurderingId)
+            }
+            setRowMapper { row ->
+                row.getEnum<AvslagsårsakDTO>("avslagsarsak")
             }
         }.toSet()
     }
