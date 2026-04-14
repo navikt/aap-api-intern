@@ -85,6 +85,9 @@ spec:
         - application: fpsak
           namespace: teamforeldrepenger
           cluster: dev-fss
+        - application: salesforce
+          namespace: teamcrm
+          cluster: dev-external
         - application: saas-proxy
           namespace: platforce
           cluster: dev-gcp
