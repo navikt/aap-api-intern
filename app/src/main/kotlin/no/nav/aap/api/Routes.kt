@@ -206,6 +206,9 @@ fun NormalOpenAPIRoute.api(
             */
             sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
             Metrics.antallIdenter("/kelvin/sakerByFnr", requestBody.personidentifikatorer.size)
+            if (!token().isClientCredentials()) {
+                logger.info("Token er client credentials, sjekker ikke tilgang.")
+            }
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
             val kelvinSaker: List<SakStatus> =
@@ -530,7 +533,6 @@ private fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
             throw IngenTilgangException("Har ikke tilgang til person")
         }
     } else {
-        logger.info("Token er client credentials, sjekker ikke tilgang.")
         Metrics.tokentype("obo")
     }
 }
