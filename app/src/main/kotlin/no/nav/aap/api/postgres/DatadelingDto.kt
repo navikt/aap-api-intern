@@ -5,6 +5,42 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+data class BehandlingData(
+    val behandlingsId: String,
+    val behandlingsReferanse: String,
+    val underveisperiode: List<UnderveisDTO>,
+    val behandlingStatus: KelvinBehandlingStatus,
+    val vedtaksDato: LocalDate,
+    val sak: SakInfo,
+    val tilkjent: List<TilkjentDTO>,
+    val rettighetsTypeTidsLinje: List<RettighetsTypePeriode>,
+    val samId: String?,
+    val vedtakId: Long,
+    val beregningsgrunnlag: BigDecimal?,
+    val nyttVedtak: Boolean,
+    val stansOpphørVurdering: Set<GjeldendeStansEllerOpphørDTO>?,
+)
+
+data class SakInfo(
+    val saksnummer: String,
+    val status: KelvinSakStatus,
+)
+
+fun DatadelingDTO.tilBehandlingData(): BehandlingData = BehandlingData(
+    behandlingsId = this.behandlingsId,
+    behandlingsReferanse = this.behandlingsReferanse,
+    underveisperiode = this.underveisperiode,
+    behandlingStatus = this.behandlingStatus,
+    vedtaksDato = this.vedtaksDato,
+    sak = SakInfo(saksnummer = this.sak.saksnummer, status = this.sak.status),
+    tilkjent = this.tilkjent,
+    rettighetsTypeTidsLinje = this.rettighetsTypeTidsLinje,
+    samId = this.samId,
+    vedtakId = this.vedtakId,
+    beregningsgrunnlag = this.beregningsgrunnlag,
+    nyttVedtak = this.nyttVedtak,
+    stansOpphørVurdering = this.stansOpphørVurdering,
+)
 
 data class DatadelingDTO(
     val underveisperiode: List<UnderveisDTO>,
