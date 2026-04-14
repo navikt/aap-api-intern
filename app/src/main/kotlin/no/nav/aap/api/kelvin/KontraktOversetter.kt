@@ -1,5 +1,6 @@
 package no.nav.aap.api.kelvin
 
+import no.nav.aap.api.postgres.AvslagsårsakDTO
 import no.nav.aap.api.postgres.GjeldendeStansEllerOpphørDTO
 import no.nav.aap.api.postgres.KelvinBehandlingStatus
 import no.nav.aap.api.postgres.KelvinSakStatus
@@ -31,7 +32,8 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgre
                 vurdering = when(it.vurdering){
                     StansEllerOpphørEnumDTO.STANS -> StansEllerOpphørEnumDTODomene.STANS
                     StansEllerOpphørEnumDTO.OPPHØR -> StansEllerOpphørEnumDTODomene.OPPHØR
-                }
+                },
+                avslagsårsaker = it.avslagsårsaker.map { AvslagsårsakDTO.valueOf(it.name) }.toSet()
             )
         }?.toSet().orEmpty()
     )

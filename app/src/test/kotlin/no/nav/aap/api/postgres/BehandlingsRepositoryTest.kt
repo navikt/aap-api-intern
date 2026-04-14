@@ -183,11 +183,13 @@ class BehandlingsRepositoryTest {
                 fom = LocalDate.of(2021, 6, 1),
                 opprettet = Instant.now(),
                 vurdering = StansEllerOpphørEnumDTODomene.STANS,
+                avslagsårsaker = emptySet()
             ),
             GjeldendeStansEllerOpphørDTO(
                 fom = LocalDate.of(2021, 9, 1),
                 opprettet = Instant.now(),
                 vurdering = StansEllerOpphørEnumDTODomene.OPPHØR,
+                avslagsårsaker = emptySet()
             ),
         )
 
@@ -215,11 +217,13 @@ class BehandlingsRepositoryTest {
                 fom = LocalDate.of(2021, 6, 1),
                 opprettet = Instant.now(),
                 vurdering = StansEllerOpphørEnumDTODomene.STANS,
+                avslagsårsaker = emptySet()
             ),
             GjeldendeStansEllerOpphørDTO(
                 fom = LocalDate.of(2021, 9, 1),
                 opprettet = Instant.now(),
                 vurdering = StansEllerOpphørEnumDTODomene.OPPHØR,
+                avslagsårsaker = emptySet()
             ),
         )
         val oppdaterte = setOf(
@@ -227,6 +231,7 @@ class BehandlingsRepositoryTest {
                 fom = LocalDate.of(2021, 11, 1),
                 opprettet = Instant.now(),
                 vurdering = StansEllerOpphørEnumDTODomene.STANS,
+                avslagsårsaker = emptySet()
             ),
         )
 
