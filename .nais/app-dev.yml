@@ -86,14 +86,11 @@ spec:
           namespace: teamforeldrepenger
           cluster: dev-fss
         - application: saas-proxy
-          namespace: teamcrm
-          cluster: dev-gcp
-        - application: saas-proxy
           namespace: platforce
           cluster: dev-gcp
-        - application: salesforce
-          namespace: teamcrm
-          cluster: dev-external
+          permissions:
+            roles:
+              - "saker-by-fnr"
         - application: pensjon-pen-q2
           namespace: pensjon-q2
           cluster: dev-fss
@@ -173,3 +170,5 @@ spec:
       value: 796867fa-951f-4441-9a68-b2ee4409f3c7
     - name: AZP_TOKEN_GEN
       value: a11e4cc6-1383-42c7-a714-30be1309cd6f
+    - name: AZP_SAAS_PROXY
+      value: d4b4792b-3321-45ad-aa24-848a029f8450

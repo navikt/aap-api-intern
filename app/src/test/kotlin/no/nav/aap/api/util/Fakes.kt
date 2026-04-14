@@ -70,6 +70,7 @@ class Fakes : AutoCloseable {
 
         // Meldekortbackend
         System.setProperty("AZP_MELDEKORT_BACKEND", UUID.randomUUID().toString())
+        System.setProperty("AZP_SAAS_PROXY", UUID.randomUUID().toString())
         System.setProperty("AZP_TOKEN_GEN", UUID.randomUUID().toString())
     }
 }
@@ -84,6 +85,7 @@ data class TestToken(
     val expires_in: Int = 3599,
 )
 
+@Suppress("PropertyName")
 data class Token(val expires_in: Long, val access_token: String)
 
 fun Application.azure() {

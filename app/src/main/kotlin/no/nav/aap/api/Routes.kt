@@ -195,8 +195,16 @@ fun NormalOpenAPIRoute.api(
     }
 
     tag(Tag.Saker) {
-        route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
-            info(description = "Henter saker for en person.")
+        // Begrenset til kun for NKS. Dupliser hvis nye konsumenter trenger samme data.
+        route("/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatus>, SakerRequest>(
+            AuthorizationMachineToMachineConfig(
+                authorizedAzps = listOf(
+                    UUID.fromString(
+                        requiredConfigForKey("AZP_SAAS_PROXY")
+                    )
+                ) + azpForTokenGenHvisIkkeProd()
+            ),
+            null, info(description = "Endepunkt ment kun for NKS. Henter saker for en person.")
         ) { callIdHeader, requestBody ->
             val callId = receiveCall(callIdHeader, pipeline)
 
@@ -229,7 +237,7 @@ fun NormalOpenAPIRoute.api(
                     UUID.fromString(
                         requiredConfigForKey("AZP_MELDEKORT_BACKEND")
                     )
-                ) + (azpForTokenGenHvisIkkeProd())
+                ) + azpForTokenGenHvisIkkeProd()
             ),
             null,
             info(description = "Henter saker for en person. Kan kun kalles fra meldekort-backend.")

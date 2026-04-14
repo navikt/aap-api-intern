@@ -78,14 +78,11 @@ spec:
           namespace: teamforeldrepenger
           cluster: prod-fss
         - application: saas-proxy
-          namespace: teamcrm
-          cluster: prod-gcp
-        - application: salesforce
-          namespace: teamcrm
-          cluster: prod-external
-        - application: saas-proxy
           namespace: platforce
           cluster: prod-gcp
+          permissions:
+            roles:
+              - "saker-by-fnr"
         - application: pensjon-pen
           namespace: pensjondeployer
           cluster: prod-fss
@@ -155,3 +152,5 @@ spec:
       value: obo.ytelser-v1
     - name: AZP_MELDEKORT_BACKEND
       value: 1546a011-c525-4022-a7dc-4b7b41c82ef9
+    - name: AZP_SAAS_PROXY
+      value: 2a6c103b-75a6-4691-bd74-b62530d8d516
