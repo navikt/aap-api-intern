@@ -36,6 +36,10 @@ object Metrics {
         listOf(Tag.of("path", path), Tag.of("antall", antall.toString()))
     ).increment(antall.toDouble())
 
+    fun tokentype(type: String) = prometheus.counter(
+        "api_intern_tokentype",
+        listOf(Tag.of("type", type))
+    ).increment()
 
     fun enhetInformasjon(fikkRespons: Boolean, type: String) = prometheus.counter(
         "api_intern_enhetsinformasjon",

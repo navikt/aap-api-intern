@@ -524,12 +524,14 @@ private fun tellKildesystem(
 
 private fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
     if (!token.isClientCredentials()) {
+        Metrics.tokentype("m2m")
         val tilgang = TilgangGateway.harTilgangTilPerson(personIdent, token)
         if (!tilgang) {
             throw IngenTilgangException("Har ikke tilgang til person")
         }
     } else {
         logger.info("Token er client credentials, sjekker ikke tilgang.")
+        Metrics.tokentype("obo")
     }
 }
 
