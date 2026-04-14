@@ -7,7 +7,6 @@ import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.micrometer.core.instrument.DistributionSummary
-import java.time.LocalDate
 import javax.sql.DataSource
 import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.intern.behandlingsflyt.OppdaterIdenterDto
@@ -91,12 +90,7 @@ fun NormalOpenAPIRoute.dataInsertion(
         ) { _, body ->
             val nyttVedtak = dataSource.transaction { connection ->
                 val behandlingsRepository = BehandlingsRepository(connection)
-                val nyttVedtak = behandlingsRepository.hentVedtaksData(
-                    body.sak.fnr.first(),
-                    no.nav.aap.komponenter.type.Periode(
-                        LocalDate.now().minusYears(100),
-                        LocalDate.now().plusYears(1000))
-                ).isEmpty()
+                val nyttVedtak = behandlingsRepository.erNyttVedtak(body.sak.fnr.first())
                 behandlingsRepository.lagreBehandling(body.tilDomene(nyttVedtak))
                 nyttVedtak
             }
