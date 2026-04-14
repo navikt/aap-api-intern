@@ -89,7 +89,7 @@ class SakStatusKelvinTest {
 
                 val oboResponse =
                     jsonHttpClient.post("/sakerByFnr") {
-                        bearerAuth(OidcToken(azure.generate(isApp = true)).token())
+                        bearerAuth(OidcToken(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY"))).token())
                         contentType(ContentType.Application.Json)
                         setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
                     }
@@ -110,7 +110,7 @@ class SakStatusKelvinTest {
 
                 val m2mResponse =
                     jsonHttpClient.post("/sakerByFnr") {
-                        bearerAuth(azure.generate(isApp = true))
+                        bearerAuth(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY")))
                         contentType(ContentType.Application.Json)
                         setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
                     }
