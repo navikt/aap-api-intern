@@ -287,9 +287,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    // TODO: ikke returner DTO fra behandlingsflyt her, heller dupliser i kode her
-    // Kommer til å bli kronglete ved modellendringer
-    fun hentVedtaksData(fnr: String, periode: Periode): List<DatadelingDTO> {
+    fun hentVedtaksData(fnr: String, periode: Periode): List<BehandlingData> {
         val sakerIder = connection.queryList(
             """
                 SELECT SAK_ID FROM SAK_PERSON
@@ -332,18 +330,15 @@ class BehandlingsRepository(private val connection: DBConnection) {
             val behandlinger = hentBehandlinger(sak.id)
             behandlinger.map { behandling ->
 
-                DatadelingDTO(
+                BehandlingData(
                     behandlingsId = behandling.id.toString(),
                     behandlingsReferanse = behandling.behandlingReferanse,
                     underveisperiode = hentUnderveis(behandling.id),
-                    rettighetsPeriodeFom = sak.rettighetsPeriode.fom,
-                    rettighetsPeriodeTom = sak.rettighetsPeriode.tom,
                     behandlingStatus = behandling.behandlingStatus,
                     vedtaksDato = behandling.vedtaksDato,
-                    sak = SakDTO(
+                    sak = SakInfo(
                         saksnummer = sak.saksnummer,
                         status = sak.status,
-                        fnr = emptyList()
                     ),
                     tilkjent = hentTilkjentYtelse(behandling.id),
                     rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id),
