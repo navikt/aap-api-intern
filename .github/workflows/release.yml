@@ -67,7 +67,7 @@ jobs:
           echo 'CHANGELOG<<$randomDelimiter' >> $GITHUB_OUTPUT
           echo $text >> $GITHUB_OUTPUT
           echo '$randomDelimiter' >> $GITHUB_OUTPUT
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         if: ${{ steps.tag.outputs.changed == 'true' }}
         id: create_release
         env:
