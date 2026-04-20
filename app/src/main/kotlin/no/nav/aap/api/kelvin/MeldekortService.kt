@@ -7,14 +7,12 @@ import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortDetaljerRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.type.Periode
 
 class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, clock: Clock) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), clock)
-    val dsopService = DsopService(connection)
 
-    private fun hentAlleMeldekort(
+    fun hentAlleMeldekort(
         personIdentifikator: String,
         fraDato: LocalDate? = null,
         tilDato: LocalDate? = null
@@ -42,33 +40,6 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
             val vedtak = finnNyesteRelaterteVedtak(meldekort, personIdentifikator)
             Pair(meldekort, vedtak)
         }
-    }
-
-    fun hentAlleMeldekortMedRett(
-        personIdentifikator: String,
-        fom: LocalDate,
-        tom: LocalDate
-    ): List<Meldekort> {
-        val kelvinVedtak = dsopService.hentDsopVedtak(
-            personIdentifikator,
-            Periode(fom, tom)
-        )
-
-        val meldekortListe = hentAlleMeldekort(personIdentifikator, fom, tom)
-
-        val filtrerteMeldekort = meldekortListe.filter { meldekort ->
-            kelvinVedtak.any {
-                val periode = Periode(it.virkningsperiode.fom, it.virkningsperiode.tom)
-                periode.overlapper(
-                    Periode(
-                        meldekort.meldePeriode.fom,
-                        meldekort.meldePeriode.tom
-                    )
-                )
-            }
-        }
-
-        return filtrerteMeldekort
     }
 
 
