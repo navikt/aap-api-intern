@@ -19,7 +19,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         tilDato: LocalDate? = null
     ): List<MeldekortDTO> {
         val personIdenter =
-            pdlGateway.hentAlleIdenterForPerson(personIdentifikator).map { personIdentifikator }
+            pdlGateway.hentAlleIdenterForPerson(personIdentifikator).map { it.ident }
 
         if (personIdenter.isEmpty()) return emptyList()
 

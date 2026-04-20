@@ -85,7 +85,7 @@ fun Application.api(
     commonKtorModule(
         prometheus = prometheus, azureConfig = AzureConfig(), infoModel = InfoModel(
             title = "aap-api-intern",
-            description = "aap-intern-api tilbyr et internt API for henting av aap-data\nBruker Azure til autentisering",
+            description = "aap-intern-api tilbyr et internt API for henting av aap-data.\nBruker Azure til autentisering.",
             contact = ContactModel(
                 name = "Team AAP",
                 url = "https://github.com/navikt/aap-api-intern",

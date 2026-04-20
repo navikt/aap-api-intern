@@ -51,7 +51,7 @@ fun SakDTO.tilDomene(): no.nav.aap.api.postgres.SakDTO {
 fun UnderveisDTO.tilDomene(): no.nav.aap.api.postgres.UnderveisDTO {
     return no.nav.aap.api.postgres.UnderveisDTO(
         underveisFom = this.underveisFom,
-        underveisTom = this.underveisFom,
+        underveisTom = this.underveisTom,
         meldeperiodeFom = this.meldeperiodeFom,
         meldeperiodeTom = this.meldeperiodeTom,
         utfall = this.utfall,

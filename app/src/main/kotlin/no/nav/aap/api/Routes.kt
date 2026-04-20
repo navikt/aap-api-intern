@@ -185,7 +185,7 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) + azpForTokenGenHvisIkkeProd()
             ), null,
-            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode")
+            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS.")
         ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
             val personIdentifikator = requestBody.personidentifikator
