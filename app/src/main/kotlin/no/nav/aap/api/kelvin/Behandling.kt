@@ -4,6 +4,8 @@ import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
 
 data class Behandling(
@@ -16,13 +18,17 @@ data class Behandling(
     val vedtaksDato: LocalDate,
     val sak: Sak,
     val tilkjent: List<TilkjentPeriode>,
-    val rettighetsTypeTidsLinje: List<RettighetsTypePeriode>,
+    val rettighetsTypePerioder: List<RettighetsTypePeriode>,
     val samId: String?,
     val vedtakId: Long,
     val beregningsgrunnlag: BigDecimal?,
     val nyttVedtak: Boolean,
     val stansOpphørVurdering: Set<GjeldendeStansEllerOpphør>?,
-)
+) {
+    val rettighetsTypeTidslinje: Tidslinje<String>
+        get() = rettighetsTypePerioder.somTidslinje({ it.periode }, { it.verdi })
+            .komprimer()
+}
 
 data class GjeldendeStansEllerOpphør(
     val fom: LocalDate,
@@ -68,7 +74,10 @@ data class RettighetsTypePeriode(
     val fom: LocalDate,
     val tom: LocalDate,
     val verdi: String
-)
+) {
+    val periode: Periode
+        get() = Periode(fom, tom)
+}
 
 data class Sak(
     val saksnummer: String,

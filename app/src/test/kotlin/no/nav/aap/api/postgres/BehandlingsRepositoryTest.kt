@@ -47,7 +47,7 @@ class BehandlingsRepositoryTest {
             opprettetTidspunkt = LocalDateTime.now()
         ),
         tilkjent = listOf(),
-        rettighetsTypeTidsLinje = listOf(
+        rettighetsTypePerioder = listOf(
             RettighetsTypePeriode(
                 LocalDate.of(2021, 1, 1),
                 LocalDate.of(2021, 2, 1),

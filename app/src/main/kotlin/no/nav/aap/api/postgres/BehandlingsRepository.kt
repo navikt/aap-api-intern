@@ -159,11 +159,11 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 INSERT INTO RETTIGHETSTYPE (BEHANDLING_ID, PERIODE, RETTIGHETSTYPE)
                 VALUES (?, ?::daterange, ?)
             """.trimIndent(),
-            behandling.rettighetsTypeTidsLinje
+            behandling.rettighetsTypePerioder
         ) {
             setParams {
                 setLong(1, nyBehandlingId)
-                setPeriode(2, Periode(it.fom, it.tom))
+                setPeriode(2, it.periode)
                 setString(3, it.verdi)
             }
         }
@@ -297,7 +297,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         opprettetTidspunkt = behandling.opprettetTidspunkt,
                     ),
                     tilkjent = hentTilkjentYtelse(behandling.id),
-                    rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id),
+                    rettighetsTypePerioder = hentRettighetsTypePerioder(behandling.id),
                     samId = behandling.samid,
                     vedtakId = behandling.vedtakId ?: 0L,
                     beregningsgrunnlag = hentBeregningsGrunnlag(behandling.id)
@@ -326,7 +326,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun hentRettighetsTypeTidslinje(behandlingId: Long): List<RettighetsTypePeriode> {
+    private fun hentRettighetsTypePerioder(behandlingId: Long): List<RettighetsTypePeriode> {
         return connection.queryList(
             """
                 SELECT * FROM RETTIGHETSTYPE

@@ -17,7 +17,6 @@ import no.nav.aap.api.kelvin.RettighetsTypePeriode
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
 
 class DsopService(
@@ -34,17 +33,10 @@ class DsopService(
     )
 
     fun hentDsopVedtak(fnr: String, uttrekksperiode: Periode): List<DsopVedtakDTO> {
-        val vedtaksdata = behandlingsRepository.hentVedtaksData(fnr, uttrekksperiode)
+        val behandlinger = behandlingsRepository.hentVedtaksData(fnr, uttrekksperiode)
 
-        return vedtaksdata.flatMap {
-            it.rettighetsTypeTidsLinje
-                .somTidslinje({ rettighetsTypePeriode ->
-                    Periode(
-                        rettighetsTypePeriode.fom,
-                        rettighetsTypePeriode.tom
-                    )
-                }, { rettighetstype -> rettighetstype.verdi })
-                .komprimer()
+        return behandlinger.flatMap {
+            it.rettighetsTypeTidslinje
                 .segmenter()
                 .map { (periode, verdi) -> RettighetsTypePeriode(periode.fom, periode.tom, verdi) }
                 .map { rettighetsTypePeriode ->
