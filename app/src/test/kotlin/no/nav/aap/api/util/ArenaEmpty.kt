@@ -2,6 +2,8 @@ package no.nav.aap.api.util
 
 import no.nav.aap.api.arena.IArenaoppslagGateway
 import no.nav.aap.api.intern.PerioderResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 import no.nav.aap.arenaoppslag.kontrakt.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 
@@ -33,6 +35,12 @@ class FakeArenaGateway : IArenaoppslagGateway {
         callId: String, req: SakerRequest
     ): List<SakStatus> {
         return emptyList()
+    }
+
+    override suspend fun hentSakerForPerson(
+        callId: String, req: SakerRequestV1
+    ): SakerResponse {
+        return SakerResponse(emptyList())
     }
 
     override suspend fun hentMaksimum(

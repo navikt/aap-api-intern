@@ -14,6 +14,8 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Kilde
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import java.time.LocalDate
 
@@ -95,6 +97,10 @@ class ArenaService(
 
     suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): List<Periode> {
         return arena.hentPerioder(callId, vedtakRequest).perioder
+    }
+
+    suspend fun hentSakerForPerson(callId: String, personidentifikator: String): SakerResponse {
+        return arena.hentSakerForPerson(callId, SakerRequestV1(personidentifikator))
     }
 
     suspend fun hentVedtakUtenUtbetaling(

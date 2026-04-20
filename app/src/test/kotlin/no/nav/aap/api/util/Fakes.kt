@@ -14,6 +14,7 @@ import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.pdl.PdlIdenter
 import no.nav.aap.api.pdl.PdlIdenterData
 import no.nav.aap.api.util.graphql.GraphQLResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.oppgave.enhet.EnhetOgOversendelse
@@ -117,11 +118,10 @@ fun Application.arena() {
     install(ContentNegotiation) { jackson() }
     routing {
         post("/intern/maksimum") {
-            call.respond(
-                Maksimum(
-                    vedtak = emptyList()
-                )
-            )
+            call.respond(Maksimum(vedtak = emptyList()))
+        }
+        post("/intern/person/saker") {
+            call.respond(SakerResponse(emptyList()))
         }
     }
 }

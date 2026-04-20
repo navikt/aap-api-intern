@@ -22,6 +22,8 @@ import no.nav.aap.api.postgres.*
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as ArenaoppslagSakerRequestV1
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse as ArenaoppslagSakerResponse
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -346,6 +348,16 @@ fun NormalOpenAPIRoute.api(
                     requestBody.virkningstidspunkt
                 )
                 respond(harSignifikantAAPArenaHistorikk)
+            }
+        }
+        route("/arena/person/saker") {
+            post<CallIdHeader, ArenaoppslagSakerResponse, ArenaoppslagSakerRequestV1>(
+                info(description = "Henter saker for en person fra Arena via ny v1-kontrakt.")
+            ) { callIdHeader, requestBody ->
+                logger.info("Henter saker for person fra Arena (v1)")
+                val callId = receiveCall(callIdHeader, pipeline)
+                val saker = arenaService.hentSakerForPerson(callId, requestBody.personidentifikator)
+                respond(saker)
             }
         }
     }
