@@ -42,6 +42,7 @@ import no.nav.aap.api.kelvin.KelvinBehandlingStatus
 import no.nav.aap.api.kelvin.KelvinSakStatus
 import no.nav.aap.api.kelvin.MeldekortService
 import no.nav.aap.api.kelvin.VedtakService
+import no.nav.aap.api.kelvin.slåSammenMeldeperioder
 
 private val logger = LoggerFactory.getLogger("App")
 

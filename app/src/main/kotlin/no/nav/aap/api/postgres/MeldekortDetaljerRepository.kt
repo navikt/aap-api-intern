@@ -1,13 +1,10 @@
 package no.nav.aap.api.postgres
 
+import java.time.LocalDate
 import no.nav.aap.api.kelvin.Meldekort
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
 import org.slf4j.LoggerFactory
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalDateTime
-import no.nav.aap.api.intern.DsopMeldekortDTO
 
 class MeldekortDetaljerRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -181,23 +178,3 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
 
 }
 
-fun List<DsopMeldekortDTO>.slåSammenMeldeperioder(): List<DsopMeldekortDTO> {
-    return this
-        .groupBy { it.periode }
-        .values.map { meldekort ->
-            DsopMeldekortDTO(
-                periode = meldekort.first().periode,
-                antallTimerArbeidet = BigDecimal.ZERO,
-                timerArbeidetPerDag = meldekort.sortedBy { it.sistOppdatert }
-                    .flatMap { it.timerArbeidetPerDag }
-                    .groupingBy { it.dag }.reduce { _, accumulator, element ->
-                        accumulator.copy(timerArbeidet = element.timerArbeidet)
-                    }.values.toList(),
-                sistOppdatert = meldekort.maxByOrNull { it.sistOppdatert }?.sistOppdatert
-                    ?: LocalDateTime.MIN,
-            ).let { meldekort ->
-                meldekort.copy(antallTimerArbeidet = meldekort.timerArbeidetPerDag.sumOf { it.timerArbeidet }
-                    .toBigDecimal())
-            }
-        }
-}

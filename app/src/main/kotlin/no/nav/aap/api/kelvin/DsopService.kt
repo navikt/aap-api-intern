@@ -1,6 +1,9 @@
 package no.nav.aap.api.kelvin
 
+import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
+import no.nav.aap.api.intern.DsopMeldekortDTO
 import no.nav.aap.api.intern.DsopRettighetsTypeDTO
 import no.nav.aap.api.intern.DsopStatusDTO
 import no.nav.aap.api.intern.DsopVedtakDTO
@@ -50,4 +53,25 @@ class DsopService(
                 }
         }
     }
+}
+
+fun List<DsopMeldekortDTO>.slåSammenMeldeperioder(): List<DsopMeldekortDTO> {
+    return this
+        .groupBy { it.periode }
+        .values.map { meldekort ->
+            DsopMeldekortDTO(
+                periode = meldekort.first().periode,
+                antallTimerArbeidet = BigDecimal.ZERO,
+                timerArbeidetPerDag = meldekort.sortedBy { it.sistOppdatert }
+                    .flatMap { it.timerArbeidetPerDag }
+                    .groupingBy { it.dag }.reduce { _, accumulator, element ->
+                        accumulator.copy(timerArbeidet = element.timerArbeidet)
+                    }.values.toList(),
+                sistOppdatert = meldekort.maxByOrNull { it.sistOppdatert }?.sistOppdatert
+                    ?: LocalDateTime.MIN,
+            ).let { meldekort ->
+                meldekort.copy(antallTimerArbeidet = meldekort.timerArbeidetPerDag.sumOf { it.timerArbeidet }
+                    .toBigDecimal())
+            }
+        }
 }
