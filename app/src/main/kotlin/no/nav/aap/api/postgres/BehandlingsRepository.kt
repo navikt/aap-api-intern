@@ -2,6 +2,8 @@ package no.nav.aap.api.postgres
 
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import no.nav.aap.api.kelvin.Arenavedtak
 import no.nav.aap.api.kelvin.Avslagsårsak
 import no.nav.aap.api.kelvin.Behandling
 import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
@@ -139,13 +141,12 @@ class BehandlingsRepository(private val connection: DBConnection) {
             connection.executeBatch(
                 """INSERT INTO avslagsarsak (stans_opphor_vurdering_id, avslagsarsak) VALUES (?, ?)""".trimIndent(),
                 vurdering.avslagsårsaker
-            ){
+            ) {
                 setParams {
                     setLong(1, vurderingId)
                     setEnumName(2, it)
                 }
             }
-
         }
 
         connection.executeBatch(
@@ -237,6 +238,26 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 }
             }
         }
+
+        connection.execute("DELETE FROM ARENAVEDTAK WHERE behandling_id = ?") {
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+        connection.executeBatch(
+            """
+            INSERT INTO ARENAVEDTAK(behandling_id, vedtak_id, vedtaksvariant, fom, tom) VALUES (?, ?, ?, ?, ?)
+        """,
+           behandling.arenakompatibleVedtak,
+        ) {
+            setParams {
+                setLong(1, nyBehandlingId)
+                setLong(2, it.vedtakId)
+                setEnumName(3, it.vedtaksvariant)
+                setLocalDate(4, it.fom)
+                setLocalDate(5, it.tom)
+            }
+        }
     }
 
     fun hentVedtaksData(fnr: String, periode: Periode): List<Behandling> {
@@ -281,6 +302,23 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
+    private fun hentArenavedtak(behandlingId: Long): List<Arenavedtak> {
+        return connection.queryList("""
+            SELECT * FROM ARENAVEDTAK WHERE behandling_id = ?
+        """.trimIndent()) {
+            setParams {
+                setLong(1, behandlingId)
+            }
+            setRowMapper {
+                Arenavedtak(
+                    vedtakId = it.getLong("vedtak_id"),
+                    fom = it.getLocalDate("fom"),
+                    tom = it.getLocalDate("tom"),
+                    vedtaksvariant = it.getEnum("vedtaksvariant"),
+                )
+            }
+        }.sortedBy { it.fom }
+    }
     private fun hentBeregningsGrunnlag(behandlingId: Long): BigDecimal? {
         return connection.queryFirstOrNull(
             """
@@ -349,6 +387,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         ?: BigDecimal.ZERO, // TODO!!!
                     stansOpphørVurdering = hentStansOpphør(behandlingId),
                     rettighetsperiode = sak.rettighetsPeriode,
+                    arenakompatibleVedtak = hentArenavedtak(behandlingId),
                 )
             }
         }
@@ -392,7 +431,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 GjeldendeStansEllerOpphør(
                     fom = it.getLocalDate("fom"),
                     opprettet = it.getLocalDateTime("opprettet_tid")
-                        .toInstant(java.time.ZoneOffset.UTC),
+                        .toInstant(ZoneOffset.UTC),
                     vurdering = StansEllerOpphør.valueOf(it.getString("vedtakstype")),
                     avslagsårsaker = hentAvslagsårsaker(it.getLong("id"))
                 )
@@ -403,7 +442,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
     private fun hentAvslagsårsaker(stansOpphørVurderingId: Long): Set<Avslagsårsak> {
         return connection.queryList(
             """SELECT * FROM avslagsarsak WHERE stans_opphor_vurdering_id = ?""".trimIndent()
-        ){
+        ) {
             setParams {
                 setLong(1, stansOpphørVurderingId)
             }

@@ -78,6 +78,7 @@ class DsopServiceTest {
         beregningsgrunnlag = BigDecimal.ZERO,
         nyttVedtak = false,
         stansOpphørVurdering = emptySet(),
+        arenakompatibleVedtak = emptyList(),
     )
 
     @Test
