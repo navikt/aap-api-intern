@@ -477,7 +477,7 @@ fun NormalOpenAPIRoute.api(
 
                     respond(
                         DsopResponse(
-                            utrekksperiode,
+                            PeriodeDTO(utrekksperiode.fom, utrekksperiode.tom),
                             kelvinVedtak
                         )
                     )
@@ -500,11 +500,11 @@ fun NormalOpenAPIRoute.api(
                             requestBody.tomDato
                         )
                             .map { meldekort ->
-                                Meldekort(
-                                    Periode(meldekort.meldePeriode.fom, meldekort.meldePeriode.tom),
+                                DsopMeldekortDTO(
+                                    PeriodeDTO(meldekort.meldePeriode.fom, meldekort.meldePeriode.tom),
                                     meldekort.arbeidPerDag.sumOf { it.timerArbeidet },
                                     meldekort.arbeidPerDag.map {
-                                        TimerArbeidetPerDag(
+                                        DsopTimerArbeidetPerDagDTO(
                                             it.dag,
                                             it.timerArbeidet.toDouble()
                                         )
@@ -516,7 +516,7 @@ fun NormalOpenAPIRoute.api(
 
                     respond(
                         DsopMeldekortRespons(
-                            utrekksperiode,
+                            PeriodeDTO(utrekksperiode.fom, utrekksperiode.tom),
                             meldekortListe
                         )
                     )

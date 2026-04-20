@@ -4,8 +4,6 @@ import com.papsign.ktor.openapigen.annotations.properties.description.Descriptio
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.StansEllerOpphørEnumDTO
-import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
@@ -16,6 +14,11 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.math.roundToInt
+import no.nav.aap.api.intern.DsopRettighetsTypeDTO
+import no.nav.aap.api.intern.DsopStatusDTO
+import no.nav.aap.api.intern.DsopVedtakDTO
+import no.nav.aap.api.intern.DsopVedtaksTypeDTO
+import no.nav.aap.api.intern.PeriodeDTO
 
 class BehandlingsRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -242,7 +245,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentDsopVedtak(fnr: String, uttrekksperiode: Periode): List<DsopVedtak> {
+    fun hentDsopVedtak(fnr: String, uttrekksperiode: Periode): List<DsopVedtakDTO> {
         val vedtaksdata = hentVedtaksData(fnr, uttrekksperiode)
 
         return vedtaksdata.flatMap {
@@ -257,19 +260,19 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 .segmenter()
                 .map { (periode, verdi) -> RettighetsTypePeriode(periode.fom, periode.tom, verdi) }
                 .map { rettighetsTypePeriode ->
-                    DsopVedtak(
+                    DsopVedtakDTO(
                         vedtakId = it.behandlingsId,
                         vedtakStatus = when (rettighetsTypePeriode.tom >= LocalDate.now()) {
-                            true -> DsopStatus.LØPENDE
-                            else -> DsopStatus.AVSLUTTET
+                            true -> DsopStatusDTO.LØPENDE
+                            else -> DsopStatusDTO.AVSLUTTET
                         },
-                        virkningsperiode = Periode(
+                        virkningsperiode = PeriodeDTO(
                             rettighetsTypePeriode.fom,
                             rettighetsTypePeriode.tom
                         ),
                         utfall = "JA",
-                        aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi),
-                        vedtaksType = if (it.nyttVedtak) VedtaksType.O else VedtaksType.E,
+                        aktivitetsfase = DsopRettighetsTypeDTO.valueOf(rettighetsTypePeriode.verdi),
+                        vedtaksType = if (it.nyttVedtak) DsopVedtaksTypeDTO.O else DsopVedtaksTypeDTO.E,
                     )
                 }
         }
@@ -659,35 +662,3 @@ data class VedtakUtenUtbetalingUtenPeriode(
         )
     }
 }
-
-data class DsopRequest(
-    val personIdent: String,
-    val fomDato: LocalDate,
-    val tomDato: LocalDate,
-)
-
-data class DsopResponse(
-    val uttrekksperiode: Periode,
-    val vedtak: List<DsopVedtak>,
-)
-
-data class DsopVedtak(
-    val vedtakId: String,
-    val vedtakStatus: DsopStatus,
-    val virkningsperiode: Periode,
-    val rettighetsType: String = "AAP",
-    val utfall: String = "JA",
-    val aktivitetsfase: RettighetsType,
-    val vedtaksType: VedtaksType,
-)
-
-enum class VedtaksType(description: String) {
-    O("NY RETTIGHET"),
-    E("ENDRING I RETTIGHET")
-}
-
-enum class DsopStatus {
-    LØPENDE,
-    AVSLUTTET
-}
-

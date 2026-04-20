@@ -57,7 +57,8 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
 
         val filtrerteMeldekort = meldekortListe.filter { meldekort ->
             kelvinVedtak.any {
-                it.virkningsperiode.overlapper(
+                val periode = Periode(it.virkningsperiode.fom, it.virkningsperiode.tom)
+                periode.overlapper(
                     Periode(
                         meldekort.meldePeriode.fom,
                         meldekort.meldePeriode.tom
