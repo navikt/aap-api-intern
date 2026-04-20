@@ -101,15 +101,15 @@ fun no.nav.aap.behandlingsflyt.kontrakt.sak.Status.tilDomene(): KelvinSakStatus 
     }
 }
 
-fun ArbeidIPeriodeDTO.tilDomene(): MeldekortDTO.MeldeDag {
-    return MeldekortDTO.MeldeDag(
+fun ArbeidIPeriodeDTO.tilDomene(): Meldekort.MeldeDag {
+    return Meldekort.MeldeDag(
         timerArbeidet = this.timerArbeidet,
         dag = this.periodeFom // antar at periodeFom og periodeTom er samme
     )
 }
 
-fun DetaljertMeldekortDTO.tilDomene(): MeldekortDTO {
-    return MeldekortDTO(
+fun DetaljertMeldekortDTO.tilDomene(): Meldekort {
+    return Meldekort(
         personIdent = this.personIdent,
         saksnummer = this.saksnummer.toString(),
         behandlingId = this.behandlingId,
