@@ -9,7 +9,6 @@ import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
 
 data class Behandling(
-    val behandlingsId: String,
     val behandlingsReferanse: String,
     @Deprecated("Ikke del denne utad.")
     val rettighetsperiode: Periode,

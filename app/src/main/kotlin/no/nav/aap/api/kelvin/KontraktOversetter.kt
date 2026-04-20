@@ -9,7 +9,6 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
         underveisperiode = this.underveisperiode.map { it.tilDomene() },
         rettighetsperiode = Periode(this.rettighetsPeriodeFom, this.rettighetsPeriodeTom),
         behandlingStatus = this.behandlingStatus.tilDomene(),
-        behandlingsId = this.behandlingsId,
         vedtaksDato = this.vedtaksDato,
         sak = this.sak.tilDomene(),
         tilkjent = this.tilkjent.map { it.tilDomene() },

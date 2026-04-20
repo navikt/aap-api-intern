@@ -286,7 +286,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
             val behandlinger = hentBehandlinger(sak.id)
             behandlinger.map { behandling ->
                 Behandling(
-                    behandlingsId = behandling.id.toString(),
                     behandlingsReferanse = behandling.behandlingReferanse,
                     underveisperiode = hentUnderveis(behandling.id),
                     behandlingStatus = behandling.behandlingStatus,
