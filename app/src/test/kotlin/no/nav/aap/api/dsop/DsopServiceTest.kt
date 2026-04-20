@@ -47,7 +47,6 @@ class DsopServiceTest {
         underveisperiode = listOf(),
         rettighetsperiode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 4, 1)),
         behandlingStatus = KelvinBehandlingStatus.UTREDES,
-        behandlingsId = "123",
         vedtaksDato = LocalDate.now(),
         sak = Sak(
             saksnummer = "ABCDE",
@@ -98,7 +97,7 @@ class DsopServiceTest {
             .isEqualTo(
                 listOf(
                     DsopVedtakDTO(
-                        vedtakId = "1",
+                        vedtakId = "1234",
                         vedtakStatus = DsopStatusDTO.AVSLUTTET,
                         virkningsperiode = PeriodeDTO(
                             LocalDate.of(2021, 1, 1),
@@ -110,7 +109,7 @@ class DsopServiceTest {
                         vedtaksType = DsopVedtaksTypeDTO.E,
                     ),
                     DsopVedtakDTO(
-                        vedtakId = "1",
+                        vedtakId = "1234",
                         vedtakStatus = DsopStatusDTO.AVSLUTTET,
                         virkningsperiode = PeriodeDTO(
                             LocalDate.of(2021, 2, 2),

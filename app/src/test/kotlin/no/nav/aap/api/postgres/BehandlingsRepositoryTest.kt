@@ -39,7 +39,6 @@ class BehandlingsRepositoryTest {
         underveisperiode = listOf(),
         rettighetsperiode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 4, 1)),
         behandlingStatus = KelvinBehandlingStatus.UTREDES,
-        behandlingsId = "123",
         vedtaksDato = LocalDate.now(),
         sak = Sak(
             saksnummer = "ABCDE",

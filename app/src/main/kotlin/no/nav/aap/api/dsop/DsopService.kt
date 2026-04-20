@@ -41,7 +41,7 @@ class DsopService(
                 .map { (periode, verdi) -> RettighetsTypePeriode(periode.fom, periode.tom, verdi) }
                 .map { rettighetsTypePeriode ->
                     DsopVedtakDTO(
-                        vedtakId = it.behandlingsId,
+                        vedtakId = it.vedtakId.toString(),
                         vedtakStatus = when (rettighetsTypePeriode.tom >= LocalDate.now()) {
                             true -> DsopStatusDTO.LØPENDE
                             else -> DsopStatusDTO.AVSLUTTET
