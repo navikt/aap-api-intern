@@ -10,13 +10,12 @@ import kotlin.math.roundToInt
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.kelvin.Avslagsårsak
-import no.nav.aap.api.kelvin.BehandlingData
-import no.nav.aap.api.kelvin.DatadelingIntern
+import no.nav.aap.api.kelvin.Behandling
 import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
 import no.nav.aap.api.kelvin.KelvinBehandlingStatus
 import no.nav.aap.api.kelvin.KelvinSakStatus
 import no.nav.aap.api.kelvin.RettighetsTypePeriode
-import no.nav.aap.api.kelvin.SakInfo
+import no.nav.aap.api.kelvin.Sak
 import no.nav.aap.api.kelvin.StansEllerOpphør
 import no.nav.aap.api.kelvin.TilkjentPeriode
 import no.nav.aap.api.kelvin.UnderveisIntern
@@ -27,7 +26,7 @@ import org.slf4j.LoggerFactory
 class BehandlingsRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun lagreBehandling(behandling: DatadelingIntern) {
+    fun lagreBehandling(fnr: List<String>, behandling: Behandling) {
         val gammelSak = connection.queryFirstOrNull(
             """SELECT ID FROM SAK WHERE SAKSNUMMER = ?""".trimIndent()
         ) {
@@ -49,17 +48,14 @@ class BehandlingsRepository(private val connection: DBConnection) {
         ) {
             setParams {
                 setString(1, behandling.sak.status.toString())
-                setPeriode(
-                    2,
-                    Periode(behandling.rettighetsPeriodeFom, behandling.rettighetsPeriodeTom)
-                )
+                setPeriode(2, behandling.rettighetsperiode)
                 setString(3, behandling.sak.saksnummer)
             }
         }
 
         connection.executeBatch(
             """DELETE FROM SAK_PERSON WHERE SAK_ID = ? AND PERSON_IDENT = ?""".trimIndent(),
-            behandling.sak.fnr
+            fnr
         ) {
             setParams {
                 setLong(1, sakId)
@@ -72,7 +68,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 INSERT INTO SAK_PERSON (SAK_ID, PERSON_IDENT)
                 VALUES (?, ?)
             """.trimIndent(),
-            behandling.sak.fnr
+            fnr
         ) {
             setParams { fnr ->
                 setLong(1, sakId)
@@ -249,7 +245,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentVedtaksData(fnr: String, periode: Periode): List<BehandlingData> {
+    fun hentVedtaksData(fnr: String, periode: Periode): List<Behandling> {
         val sakerIder = connection.queryList(
             """
                 SELECT SAK_ID FROM SAK_PERSON
@@ -289,15 +285,16 @@ class BehandlingsRepository(private val connection: DBConnection) {
         return saker.flatMap { sak ->
             val behandlinger = hentBehandlinger(sak.id)
             behandlinger.map { behandling ->
-                BehandlingData(
+                Behandling(
                     behandlingsId = behandling.id.toString(),
                     behandlingsReferanse = behandling.behandlingReferanse,
                     underveisperiode = hentUnderveis(behandling.id),
                     behandlingStatus = behandling.behandlingStatus,
                     vedtaksDato = behandling.vedtaksDato,
-                    sak = SakInfo(
+                    sak = Sak(
                         saksnummer = sak.saksnummer,
                         status = sak.status,
+                        opprettetTidspunkt = behandling.opprettetTidspunkt,
                     ),
                     tilkjent = hentTilkjentYtelse(behandling.id),
                     rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id),
@@ -306,7 +303,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     beregningsgrunnlag = hentBeregningsGrunnlag(behandling.id)
                         ?: BigDecimal.ZERO, // TODO!!!
                     nyttVedtak = behandling.førstegangsbehandling,
-                    stansOpphørVurdering = hentStansOpphør(behandling.id)
+                    stansOpphørVurdering = hentStansOpphør(behandling.id),
+                    rettighetsperiode = sak.rettighetsPeriode,
                 )
             }
         }
@@ -364,7 +362,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     id = row.getLong("ID"),
                     behandlingStatus = row.getEnum("STATUS"),
                     vedtaksDato = row.getLocalDate("VEDTAKS_DATO"),
-                    opprettetTidspunkt = row.getLocalDate("OPPRETTET_TID"),
+                    opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
                     behandlingReferanse = row.getString("BEHANDLING_REFERANSE"),
                     samid = row.getStringOrNull("SAMID"),
                     vedtakId = row.getLongOrNull("VEDTAKID"),
@@ -514,7 +512,7 @@ data class BehandlingDB(
     val id: Long,
     val behandlingStatus: KelvinBehandlingStatus,
     val vedtaksDato: LocalDate,
-    val opprettetTidspunkt: LocalDate,
+    val opprettetTidspunkt: LocalDateTime,
     val behandlingReferanse: String,
     val samid: String? = null,
     val vedtakId: Long? = null,

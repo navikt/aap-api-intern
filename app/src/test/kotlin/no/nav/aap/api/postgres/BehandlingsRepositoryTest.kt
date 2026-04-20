@@ -10,7 +10,7 @@ import no.nav.aap.api.intern.DsopStatusDTO
 import no.nav.aap.api.intern.DsopVedtakDTO
 import no.nav.aap.api.intern.DsopVedtaksTypeDTO
 import no.nav.aap.api.intern.PeriodeDTO
-import no.nav.aap.api.kelvin.DatadelingIntern
+import no.nav.aap.api.kelvin.Behandling
 import no.nav.aap.api.kelvin.DsopService
 import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
 import no.nav.aap.api.kelvin.KelvinBehandlingStatus
@@ -40,17 +40,16 @@ class BehandlingsRepositoryTest {
         dataSource.close()
     }
 
-    private val testVedtak = DatadelingIntern(
+    private val fnr = listOf("123445")
+    private val testVedtak = Behandling(
         underveisperiode = listOf(),
-        rettighetsPeriodeFom = LocalDate.of(2021, 1, 1),
-        rettighetsPeriodeTom = LocalDate.of(2022, 4, 1),
+        rettighetsperiode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 4, 1)),
         behandlingStatus = KelvinBehandlingStatus.UTREDES,
         behandlingsId = "123",
         vedtaksDato = LocalDate.now(),
         sak = Sak(
             saksnummer = "ABCDE",
             status = KelvinSakStatus.OPPRETTET,
-            fnr = listOf("123445"),
             opprettetTidspunkt = LocalDateTime.now()
         ),
         tilkjent = listOf(),
@@ -82,9 +81,7 @@ class BehandlingsRepositoryTest {
     @Test
     fun `lagre og hente ut`() {
         dataSource.transaction {
-            BehandlingsRepository(it).lagreBehandling(
-                testVedtak
-            )
+            BehandlingsRepository(it).lagreBehandling(fnr, testVedtak)
         }
 
         val uthentetVedtak = dataSource.transaction {
@@ -100,9 +97,7 @@ class BehandlingsRepositoryTest {
     @Test
     fun `lagre ned og hente ut dsop-vedtak, komprimerer like rettighetstypeperioder`() {
         dataSource.transaction {
-            BehandlingsRepository(it).lagreBehandling(
-                testVedtak
-            )
+            BehandlingsRepository(it).lagreBehandling(fnr, testVedtak)
         }
 
         val res = dataSource.transaction {
@@ -150,13 +145,13 @@ class BehandlingsRepositoryTest {
         val originalIdent = "55555555555"
 
         val behandling = testVedtak.copy(
-            sak = Sak(saksnummer, KelvinSakStatus.LØPENDE, listOf(originalIdent))
+            sak = Sak(saksnummer, KelvinSakStatus.LØPENDE, testVedtak.sak.opprettetTidspunkt)
         )
 
         dataSource.transaction {
             val repo = BehandlingsRepository(it)
 
-            repo.lagreBehandling(behandling)
+            repo.lagreBehandling(listOf(originalIdent), behandling)
 
             val vedtak =
                 repo.hentVedtaksData(originalIdent, Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)))
@@ -170,7 +165,7 @@ class BehandlingsRepositoryTest {
         dataSource.transaction {
             val repo = BehandlingsRepository(it)
 
-            repo.lagreBehandling(behandling)
+            repo.lagreBehandling(listOf(originalIdent), behandling)
 
             val vedtakFinnesIkke =
                 repo.hentVedtaksData(nyIdent, Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1)))
@@ -208,6 +203,7 @@ class BehandlingsRepositoryTest {
 
         dataSource.transaction {
             BehandlingsRepository(it).lagreBehandling(
+                fnr,
                 testVedtak.copy(stansOpphørVurdering = vurderinger)
             )
         }
@@ -250,11 +246,13 @@ class BehandlingsRepositoryTest {
 
         dataSource.transaction {
             BehandlingsRepository(it).lagreBehandling(
+                fnr,
                 testVedtak.copy(stansOpphørVurdering = opprinnelige)
             )
         }
         dataSource.transaction {
             BehandlingsRepository(it).lagreBehandling(
+                fnr,
                 testVedtak.copy(stansOpphørVurdering = oppdaterte)
             )
         }
