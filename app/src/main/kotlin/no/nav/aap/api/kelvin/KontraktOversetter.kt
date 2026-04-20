@@ -1,7 +1,14 @@
 package no.nav.aap.api.kelvin
 
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArbeidIPeriodeDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.StansEllerOpphørEnumDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.UnderveisDTO
+import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
 
 fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
@@ -11,7 +18,7 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
         behandlingStatus = this.behandlingStatus.tilDomene(),
         vedtaksDato = this.vedtaksDato,
         sak = this.sak.tilDomene(),
-        tilkjent = this.tilkjent.map { it.tilDomene() },
+        tilkjent = this.tilkjent.somTidslinje({ Periode(it.tilkjentFom, it.tilkjentTom) }, { it.tilDomene() }),
         rettighetsTypePerioder = this.rettighetsTypeTidsLinje.map { it.tilDomene() },
         behandlingsReferanse = this.behandlingsReferanse,
         samId = this.samId,
@@ -61,10 +68,8 @@ fun Status.tilDomene(): KelvinBehandlingStatus {
     }
 }
 
-fun TilkjentDTO.tilDomene(): TilkjentPeriode {
-    return TilkjentPeriode(
-        tilkjentFom = this.tilkjentFom,
-        tilkjentTom = this.tilkjentTom,
+fun TilkjentDTO.tilDomene(): TilkjentYtelse {
+    return TilkjentYtelse(
         dagsats = this.dagsats,
         gradering = this.gradering,
         samordningUføregradering = this.samordningUføregradering,

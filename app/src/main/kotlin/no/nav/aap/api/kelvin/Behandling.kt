@@ -1,9 +1,11 @@
 package no.nav.aap.api.kelvin
 
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.math.roundToInt
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
@@ -16,7 +18,7 @@ data class Behandling(
     val behandlingStatus: KelvinBehandlingStatus,
     val vedtaksDato: LocalDate,
     val sak: Sak,
-    val tilkjent: List<TilkjentPeriode>,
+    val tilkjent: Tidslinje<TilkjentYtelse>,
     val rettighetsTypePerioder: List<RettighetsTypePeriode>,
     val samId: String?,
     val vedtakId: Long,
@@ -85,21 +87,29 @@ data class Sak(
 )
 
 /**
- * @param samordningUføregradering Svarer til prosent uføre. 100% bør medføre 0% gradering.
+ * @param samordningUføregradering Svarer til prosent uføre.
  */
-data class TilkjentPeriode(
-    val tilkjentFom: LocalDate,
-    val tilkjentTom: LocalDate,
+data class TilkjentYtelse(
     val dagsats: Int,
     val gradering: Int,
-    val samordningUføregradering: Int? = null,
+    val samordningUføregradering: Int?,
     val grunnlagsfaktor: BigDecimal,
     val grunnbeløp: BigDecimal,
     val antallBarn: Int,
     val barnetilleggsats: BigDecimal,
-    val barnetillegg: BigDecimal
-)
+    val barnetillegg: BigDecimal,
+) {
+    fun gradertBarnetillegg(): BigDecimal =
+        this.barnetillegg.multiply(
+            this.gradering.toBigDecimal()
+                .divide(100.toBigDecimal())
+        ).setScale(0, RoundingMode.HALF_UP)
 
+    fun regnUtDagsatsEtterUføreReduksjon(): Int =
+        this.dagsats.times(
+            (100 - (this.samordningUføregradering ?: 0)) / 100.0
+        ).roundToInt()
+}
 data class UnderveisIntern(
     val underveisFom: LocalDate,
     val underveisTom: LocalDate,
@@ -126,5 +136,4 @@ enum class KelvinBehandlingStatus {
 
     fun iverksatt() =
         this == IVERKSETTES || this == AVSLUTTET
-
 }
