@@ -1,12 +1,10 @@
 package no.nav.aap.api.postgres
 
 import java.math.BigDecimal
-import java.time.LocalDate
 import java.time.LocalDateTime
 import no.nav.aap.api.kelvin.Avslagsårsak
 import no.nav.aap.api.kelvin.Behandling
 import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
-import no.nav.aap.api.kelvin.KelvinBehandlingStatus
 import no.nav.aap.api.kelvin.KelvinSakStatus
 import no.nav.aap.api.kelvin.RettighetsTypePeriode
 import no.nav.aap.api.kelvin.Sak
@@ -279,29 +277,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
 
         return saker.flatMap { sak ->
-            val behandlinger = hentBehandlinger(sak.id)
-            behandlinger.map { behandling ->
-                Behandling(
-                    behandlingsReferanse = behandling.behandlingReferanse,
-                    underveisperiode = hentUnderveis(behandling.id),
-                    behandlingStatus = behandling.behandlingStatus,
-                    vedtaksDato = behandling.vedtaksDato,
-                    sak = Sak(
-                        saksnummer = sak.saksnummer,
-                        status = sak.status,
-                        opprettetTidspunkt = behandling.opprettetTidspunkt,
-                    ),
-                    tilkjent = hentTilkjentYtelse(behandling.id),
-                    rettighetsTypePerioder = hentRettighetsTypePerioder(behandling.id),
-                    samId = behandling.samid,
-                    vedtakId = behandling.vedtakId ?: 0L,
-                    beregningsgrunnlag = hentBeregningsGrunnlag(behandling.id)
-                        ?: BigDecimal.ZERO, // TODO!!!
-                    nyttVedtak = behandling.førstegangsbehandling,
-                    stansOpphørVurdering = hentStansOpphør(behandling.id),
-                    rettighetsperiode = sak.rettighetsPeriode,
-                )
-            }
+            hentBehandlinger(sak)
         }
     }
 
@@ -342,7 +318,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun hentBehandlinger(sakId: Long): List<BehandlingDB> {
+    private fun hentBehandlinger(sak: SakDB): List<Behandling> {
         return connection.queryList(
             """
                 SELECT * FROM BEHANDLING
@@ -350,18 +326,29 @@ class BehandlingsRepository(private val connection: DBConnection) {
             """.trimIndent()
         ) {
             setParams {
-                setLong(1, sakId)
+                setLong(1, sak.id)
             }
             setRowMapper { row ->
-                BehandlingDB(
-                    id = row.getLong("ID"),
+                val behandlingId = row.getLong("ID")
+                Behandling(
                     behandlingStatus = row.getEnum("STATUS"),
                     vedtaksDato = row.getLocalDate("VEDTAKS_DATO"),
-                    opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
-                    behandlingReferanse = row.getString("BEHANDLING_REFERANSE"),
-                    samid = row.getStringOrNull("SAMID"),
-                    vedtakId = row.getLongOrNull("VEDTAKID"),
-                    førstegangsbehandling = row.getBoolean("NYTT_VEDTAK")
+                    sak = Sak(
+                        saksnummer = sak.saksnummer,
+                        status = sak.status,
+                        opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
+                    ),
+                    behandlingsReferanse = row.getString("BEHANDLING_REFERANSE"),
+                    samId = row.getStringOrNull("SAMID"),
+                    vedtakId = row.getLongOrNull("VEDTAKID") ?: 0L,
+                    nyttVedtak = row.getBoolean("NYTT_VEDTAK"),
+                    underveisperiode = hentUnderveis(behandlingId),
+                    tilkjent = hentTilkjentYtelse(behandlingId),
+                    rettighetsTypePerioder = hentRettighetsTypePerioder(behandlingId),
+                    beregningsgrunnlag = hentBeregningsGrunnlag(behandlingId)
+                        ?: BigDecimal.ZERO, // TODO!!!
+                    stansOpphørVurdering = hentStansOpphør(behandlingId),
+                    rettighetsperiode = sak.rettighetsPeriode,
                 )
             }
         }
@@ -502,15 +489,4 @@ data class SakDB(
     val status: KelvinSakStatus,
     val rettighetsPeriode: Periode,
     val saksnummer: String,
-)
-
-data class BehandlingDB(
-    val id: Long,
-    val behandlingStatus: KelvinBehandlingStatus,
-    val vedtaksDato: LocalDate,
-    val opprettetTidspunkt: LocalDateTime,
-    val behandlingReferanse: String,
-    val samid: String? = null,
-    val vedtakId: Long? = null,
-    val førstegangsbehandling: Boolean
 )
