@@ -6,3 +6,8 @@ public data class PeriodeDTO(
     val fom: LocalDate,
     val tom: LocalDate,
 )
+
+public data class PeriodeNullableTomDTO(
+    val fom: LocalDate,
+    val tom: LocalDate?,
+)

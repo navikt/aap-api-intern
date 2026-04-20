@@ -6,6 +6,8 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.math.roundToInt
+import no.nav.aap.api.intern.DsopVedtaksTypeDTO
+import no.nav.aap.api.intern.DsopVedtaksvariantDTO
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
@@ -30,6 +32,9 @@ data class Behandling(
     val rettighetsTypeTidslinje: Tidslinje<String>
         get() = rettighetsTypePerioder.somTidslinje({ it.periode }, { it.verdi })
             .komprimer()
+
+    val arenakompatibleVedtakTidslinje: Tidslinje<Arenavedtak>
+        get() = arenakompatibleVedtak.somTidslinje { it.periode }
 }
 
 data class GjeldendeStansEllerOpphør(
@@ -146,18 +151,23 @@ data class Arenavedtak(
     val tom: LocalDate,
     val vedtaksvariant: Vedtaksvariant,
 ) {
-    enum class Vedtaksvariant {
-        O_AVSLAG,
-        O_INNV_NAV,
-        O_INNV_SOKNAD,
-        E_FORLENGE,
-        E_VERDI,
-        G_AVSLAG,
-        G_INNV_NAV,
-        G_INNV_SOKNAD,
-        S_DOD,
-        S_OPPHOR,
-        S_STANS,
+    val periode = Periode(fom, tom)
+
+    enum class Vedtaksvariant(
+        val type:  DsopVedtaksTypeDTO,
+        val somDTO: DsopVedtaksvariantDTO,
+    ) {
+        O_AVSLAG(DsopVedtaksTypeDTO.O, DsopVedtaksvariantDTO.O_AVSLAG),
+        O_INNV_NAV(DsopVedtaksTypeDTO.O, DsopVedtaksvariantDTO.O_INNV_NAV),
+        O_INNV_SOKNAD(DsopVedtaksTypeDTO.O, DsopVedtaksvariantDTO.O_INNV_SOKNAD),
+        E_FORLENGE(DsopVedtaksTypeDTO.E, DsopVedtaksvariantDTO.E_FORLENGE),
+        E_VERDI(DsopVedtaksTypeDTO.E, DsopVedtaksvariantDTO.E_VERDI),
+        G_AVSLAG(DsopVedtaksTypeDTO.G, DsopVedtaksvariantDTO.G_AVSLAG),
+        G_INNV_NAV(DsopVedtaksTypeDTO.G, DsopVedtaksvariantDTO.G_INNV_NAV),
+        G_INNV_SOKNAD(DsopVedtaksTypeDTO.G, DsopVedtaksvariantDTO.G_INNV_SOKNAD),
+        S_DOD(DsopVedtaksTypeDTO.S, DsopVedtaksvariantDTO.S_DOD),
+        S_OPPHOR(DsopVedtaksTypeDTO.S, DsopVedtaksvariantDTO.S_OPPHOR),
+        S_STANS(DsopVedtaksTypeDTO.S, DsopVedtaksvariantDTO.S_STANS),
         ;
     }
 }
