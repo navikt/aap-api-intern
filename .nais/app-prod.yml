@@ -154,3 +154,5 @@ spec:
       value: 1546a011-c525-4022-a7dc-4b7b41c82ef9
     - name: AZP_SAAS_PROXY
       value: 2a6c103b-75a6-4691-bd74-b62530d8d516
+    - name: AZP_TILLEGGSSTONADER_INTEGRASJONER
+      value: 1626e9aa-354f-49aa-ba99-50e33f6bd908

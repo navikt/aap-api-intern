@@ -10,6 +10,8 @@ import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
 import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import no.nav.aap.api.arena.ArenaService
@@ -119,8 +121,15 @@ fun NormalOpenAPIRoute.api(
                 )
             }
 
-            route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequestApiIntern>(
-                info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall.")
+            route("/aktivitetfase").authorizedPost<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequestApiIntern>(
+                AuthorizationMachineToMachineConfig(
+                    authorizedAzps = listOf(
+                        UUID.fromString(
+                            requiredConfigForKey("AZP_TILLEGGSSTONADER_INTEGRASJONER")
+                        )
+                    ) + azpForTokenGenHvisIkkeProd()
+                ), null,
+                info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall. Er ment for Team Tilleggstønader.")
             ) { callIdHeader, requestBody ->
                 val callId = receiveCall(callIdHeader, pipeline)
 
@@ -149,7 +158,10 @@ fun NormalOpenAPIRoute.api(
             ) { _, requestBody ->
                 Metrics.httpRequestTeller(pipeline.call)
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
-
+                val konsument = pipeline.call.principal<JWTPrincipal>()?.let {
+                    it.payload.claims["azp_name"]?.asString()
+                } ?: ""
+                logger.info("Kaller /perioder/meldekort. Konsument: $konsument")
                 val perioder = dataSource.transaction { connection ->
                     val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
                     meldekortPerioderRepository.hentMeldekortPerioder(requestBody.personidentifikator)
@@ -163,7 +175,16 @@ fun NormalOpenAPIRoute.api(
     }
 
     tag(Tag.Meldekort) {
-        route("/kelvin/meldekort-detaljer").post<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
+        // Begrenset til kun for NKS. Dupliser hvis nye konsumenter trenger samme data.
+        // Muligens ikke i bruk.
+        route("/kelvin/meldekort-detaljer").authorizedPost<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
+            AuthorizationMachineToMachineConfig(
+                authorizedAzps = listOf(
+                    UUID.fromString(
+                        requiredConfigForKey("AZP_SAAS_PROXY")
+                    )
+                ) + azpForTokenGenHvisIkkeProd()
+            ), null,
             info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode")
         ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
@@ -435,8 +456,8 @@ fun NormalOpenAPIRoute.api(
             route("/dsop") {
                 route("/vedtak").post<CallIdHeader, DsopResponse, DsopRequest>(
                     info(
-                        description = """Henter ut vedtaks data for en person for dsop.
-                        Verdier som mangler er ikke tilgjengelige fra kelvin.
+                        description = """Henter ut vedtaksdata for en person for DSOP.
+                        Verdier som mangler er ikke tilgjengelige fra Kelvin.
                     """.trimMargin(),
                     )
                 ) { _, requestBody ->
@@ -463,10 +484,9 @@ fun NormalOpenAPIRoute.api(
                 }
                 route("/meldekort").post<CallIdHeader, DsopMeldekortRespons, DsopRequest>(
                     info(
-                        description = """Henter ut meldekort for bruker for DSOP api"""
+                        description = """Henter ut meldekort for bruker for DSOP API."""
                     )
                 ) { _, requestBody ->
-                    logger.info("Henter meldekort til DSOP")
                     Metrics.httpRequestTeller(pipeline.call)
                     val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
@@ -474,7 +494,7 @@ fun NormalOpenAPIRoute.api(
 
                     val meldekortListe = dataSource.transaction { connection ->
                         val meldekortService = MeldekortService(connection, pdlGateway, clock)
-                        meldekortService.hentAlleMeldekort(
+                        meldekortService.hentAlleMeldekortMedRett(
                             requestBody.personIdent,
                             requestBody.fomDato,
                             requestBody.tomDato
@@ -500,7 +520,6 @@ fun NormalOpenAPIRoute.api(
                             meldekortListe
                         )
                     )
-
                 }
             }
         }

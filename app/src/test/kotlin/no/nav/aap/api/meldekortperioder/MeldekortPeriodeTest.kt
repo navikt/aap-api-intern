@@ -1,12 +1,5 @@
 package no.nav.aap.api.meldekortperioder
 
-import no.nav.aap.api.TestConfig
-import no.nav.aap.api.api
-import no.nav.aap.api.kelvin.MeldekortPerioderDTO
-import no.nav.aap.api.util.AzureTokenGen
-import no.nav.aap.api.util.Fakes
-import no.nav.aap.api.util.PdlGatewayEmpty
-import no.nav.aap.api.util.PostgresTestBase
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import io.ktor.client.*
@@ -16,7 +9,15 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
+import no.nav.aap.api.TestConfig
+import no.nav.aap.api.api
+import no.nav.aap.api.kelvin.MeldekortPerioderDTO
+import no.nav.aap.api.util.AzureTokenGen
+import no.nav.aap.api.util.Fakes
+import no.nav.aap.api.util.PdlGatewayEmpty
+import no.nav.aap.api.util.PostgresTestBase
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.PeriodeMed11_17
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.type.Periode
@@ -65,7 +66,13 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                 val meldekortPerioderResM2m = jsonHttpClient.post("/perioder/meldekort") {
                     bearerAuth(azure.generate(isApp = true))
                     contentType(ContentType.Application.Json)
-                    setBody(InternVedtakRequest("12345678910", LocalDate.ofYearDay(2021, 1), LocalDate.ofYearDay(2021, 31)))
+                    setBody(
+                        InternVedtakRequest(
+                            "12345678910",
+                            LocalDate.ofYearDay(2021, 1),
+                            LocalDate.ofYearDay(2021, 31)
+                        )
+                    )
                 }
                 assert(meldekortPerioderResM2m.status.isSuccess())
                 assertEquals(meldekortPerioderResM2m.body<List<Periode>>(), perioder)
@@ -73,7 +80,13 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                 val meldekortPerioderResObo = jsonHttpClient.post("/perioder/meldekort") {
                     bearerAuth(OidcToken(azure.generate(isApp = false)).token())
                     contentType(ContentType.Application.Json)
-                    setBody(InternVedtakRequest("12345678910", LocalDate.ofYearDay(2021, 1), LocalDate.ofYearDay(2021, 31)))
+                    setBody(
+                        InternVedtakRequest(
+                            "12345678910",
+                            LocalDate.ofYearDay(2021, 1),
+                            LocalDate.ofYearDay(2021, 31)
+                        )
+                    )
                 }
                 assert(meldekortPerioderResObo.status.isSuccess())
             }
@@ -99,17 +112,44 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                 }
                 //Disabled OBO TEST, SJEKK VED LEDIG KAPASITET
                 val aktivitetsfaseResObo = jsonHttpClient.post("/perioder/aktivitetfase") {
-                    bearerAuth(OidcToken(azure.generate(isApp = true)).token())
+                    bearerAuth(
+                        OidcToken(
+                            azure.generate(
+                                isApp = true,
+                                azp = System.getProperty("AZP_TILLEGGSSTONADER_INTEGRASJONER")
+                            )
+                        ).token()
+                    )
                     contentType(ContentType.Application.Json)
-                    setBody(InternVedtakRequest("12345678910", LocalDate.ofYearDay(2021, 1), LocalDate.ofYearDay(2021, 31)))
+                    setBody(
+                        InternVedtakRequest(
+                            "12345678910",
+                            LocalDate.ofYearDay(2021, 1),
+                            LocalDate.ofYearDay(2021, 31)
+                        )
+                    )
                 }
                 assert(aktivitetsfaseResObo.status.isSuccess())
-                assertEquals(aktivitetsfaseResObo.body<PerioderMed11_17Response>().perioder, listOf<Periode>())
+                assertEquals(
+                    aktivitetsfaseResObo.body<PerioderMed11_17Response>().perioder,
+                    listOf<PeriodeMed11_17>()
+                )
 
                 val aktivitetsfaseResM2m = jsonHttpClient.post("/perioder/aktivitetfase") {
-                    bearerAuth(azure.generate(isApp = true))
+                    bearerAuth(
+                        azure.generate(
+                            isApp = true,
+                            azp = System.getProperty("AZP_TILLEGGSSTONADER_INTEGRASJONER")
+                        )
+                    )
                     contentType(ContentType.Application.Json)
-                    setBody(InternVedtakRequest("12345678910", LocalDate.ofYearDay(2021, 1), LocalDate.ofYearDay(2021, 31)))
+                    setBody(
+                        InternVedtakRequest(
+                            "12345678910",
+                            LocalDate.ofYearDay(2021, 1),
+                            LocalDate.ofYearDay(2021, 31)
+                        )
+                    )
                 }
                 assert(aktivitetsfaseResM2m.status.isSuccess())
             }

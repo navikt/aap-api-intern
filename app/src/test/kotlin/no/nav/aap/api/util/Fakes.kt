@@ -72,6 +72,7 @@ class Fakes : AutoCloseable {
         System.setProperty("AZP_MELDEKORT_BACKEND", UUID.randomUUID().toString())
         System.setProperty("AZP_SAAS_PROXY", UUID.randomUUID().toString())
         System.setProperty("AZP_TOKEN_GEN", UUID.randomUUID().toString())
+        System.setProperty("AZP_TILLEGGSSTONADER_INTEGRASJONER", UUID.randomUUID().toString())
     }
 }
 
