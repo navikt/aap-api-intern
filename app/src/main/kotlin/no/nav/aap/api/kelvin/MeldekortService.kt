@@ -1,13 +1,13 @@
-package no.nav.aap.api.postgres
+package no.nav.aap.api.kelvin
 
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.api.kelvin.Meldekort
-import no.nav.aap.api.pdl.IPdlGateway
-import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.type.Periode
 import java.time.Clock
 import java.time.LocalDate
-import no.nav.aap.api.kelvin.DsopService
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.api.pdl.IPdlGateway
+import no.nav.aap.api.postgres.BehandlingsRepository
+import no.nav.aap.api.postgres.MeldekortDetaljerRepository
+import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.type.Periode
 
 class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, clock: Clock) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
@@ -82,4 +82,3 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         return vedtak.firstOrNull()
     }
 }
-

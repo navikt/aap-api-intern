@@ -1,16 +1,11 @@
 package no.nav.aap.api.kelvin
 
-import no.nav.aap.api.postgres.Avslagsårsak
-import no.nav.aap.api.postgres.GjeldendeStansEllerOpphør
-import no.nav.aap.api.postgres.KelvinBehandlingStatus
-import no.nav.aap.api.postgres.KelvinSakStatus
-import no.nav.aap.api.postgres.StansEllerOpphør
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.komponenter.type.Periode
 
-fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgres.DatadelingIntern {
-    return no.nav.aap.api.postgres.DatadelingIntern(
+fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): DatadelingIntern {
+    return DatadelingIntern(
         underveisperiode = this.underveisperiode.map { it.tilDomene() },
         rettighetsPeriodeFom = this.rettighetsPeriodeFom,
         rettighetsPeriodeTom = this.rettighetsPeriodeTom,
@@ -29,7 +24,7 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgre
             GjeldendeStansEllerOpphør(
                 fom = it.fom,
                 opprettet = it.opprettet,
-                vurdering = when(it.vurdering){
+                vurdering = when (it.vurdering) {
                     StansEllerOpphørEnumDTO.STANS -> StansEllerOpphør.STANS
                     StansEllerOpphørEnumDTO.OPPHØR -> StansEllerOpphør.OPPHØR
                 },
@@ -39,8 +34,8 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgre
     )
 }
 
-fun SakDTO.tilDomene(): no.nav.aap.api.postgres.Sak {
-    return no.nav.aap.api.postgres.Sak(
+fun SakDTO.tilDomene(): Sak {
+    return Sak(
         saksnummer = this.saksnummer,
         status = this.status.tilDomene(),
         fnr = this.fnr,
@@ -48,8 +43,8 @@ fun SakDTO.tilDomene(): no.nav.aap.api.postgres.Sak {
     )
 }
 
-fun UnderveisDTO.tilDomene(): no.nav.aap.api.postgres.UnderveisIntern {
-    return no.nav.aap.api.postgres.UnderveisIntern(
+fun UnderveisDTO.tilDomene(): UnderveisIntern {
+    return UnderveisIntern(
         underveisFom = this.underveisFom,
         underveisTom = this.underveisTom,
         meldeperiodeFom = this.meldeperiodeFom,
@@ -69,8 +64,8 @@ fun Status.tilDomene(): KelvinBehandlingStatus {
     }
 }
 
-fun TilkjentDTO.tilDomene(): no.nav.aap.api.postgres.TilkjentPeriode {
-    return no.nav.aap.api.postgres.TilkjentPeriode(
+fun TilkjentDTO.tilDomene(): TilkjentPeriode {
+    return TilkjentPeriode(
         tilkjentFom = this.tilkjentFom,
         tilkjentTom = this.tilkjentTom,
         dagsats = this.dagsats,
@@ -84,8 +79,8 @@ fun TilkjentDTO.tilDomene(): no.nav.aap.api.postgres.TilkjentPeriode {
     )
 }
 
-fun RettighetsTypePeriode.tilDomene(): no.nav.aap.api.postgres.RettighetsTypePeriode {
-    return no.nav.aap.api.postgres.RettighetsTypePeriode(
+fun no.nav.aap.behandlingsflyt.kontrakt.datadeling.RettighetsTypePeriode.tilDomene(): RettighetsTypePeriode {
+    return RettighetsTypePeriode(
         fom = this.fom,
         tom = this.tom,
         verdi = this.verdi

@@ -7,7 +7,6 @@ import no.nav.aap.api.intern.DsopVedtakDTO
 import no.nav.aap.api.intern.DsopVedtaksTypeDTO
 import no.nav.aap.api.intern.PeriodeDTO
 import no.nav.aap.api.postgres.BehandlingsRepository
-import no.nav.aap.api.postgres.RettighetsTypePeriode
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode

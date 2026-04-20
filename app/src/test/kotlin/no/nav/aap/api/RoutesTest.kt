@@ -1,8 +1,8 @@
 package no.nav.aap.api
 
 import java.time.LocalDate
-import no.nav.aap.api.postgres.KelvinBehandlingStatus
-import no.nav.aap.api.postgres.KelvinSakStatus
+import no.nav.aap.api.kelvin.KelvinBehandlingStatus
+import no.nav.aap.api.kelvin.KelvinSakStatus
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest

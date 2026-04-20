@@ -17,7 +17,7 @@ import no.nav.aap.api.intern.Maksimum
 import no.nav.aap.api.intern.Medium
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.kelvin.tilDomene
-import no.nav.aap.api.postgres.tilBehandlingData
+import no.nav.aap.api.kelvin.tilBehandlingData
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.PostgresTestBase
