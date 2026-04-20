@@ -13,7 +13,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
     val vedtakService = VedtakService(BehandlingsRepository(connection), clock)
     val behandlingsRepository = BehandlingsRepository(connection)
 
-    fun hentAlleMeldekort(
+    private fun hentAlleMeldekort(
         personIdentifikator: String,
         fraDato: LocalDate? = null,
         tilDato: LocalDate? = null
@@ -26,6 +26,10 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         return meldekortDetaljerRepository.hentAlle(personIdenter, fraDato, tilDato)
     }
 
+    /**
+     * Henter alle meldekort for en person. Merk at denne også returnerer meldekort
+     * for perioder uten rett (ennå). F.eks mens førstegangsbehandlingen er under behandling.
+     */
     fun hentAlle(
         personIdentifikator: String,
         fom: LocalDate? = null,
