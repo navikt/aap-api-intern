@@ -3,7 +3,6 @@ package no.nav.aap.api.kelvin
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
 
 class AktivitetsfaseService(
@@ -17,14 +16,7 @@ class AktivitetsfaseService(
         val vedtaksdata = behandlingsRepository.hentVedtaksData(fnr, periode)
 
         return vedtaksdata.flatMap {
-            it.rettighetsTypeTidsLinje
-                .somTidslinje({ rettighetsTypePeriode ->
-                    Periode(
-                        rettighetsTypePeriode.fom,
-                        rettighetsTypePeriode.tom
-                    )
-                }, { rettighetstype -> rettighetstype.verdi })
-                .komprimer()
+            it.rettighetsTypeTidslinje
                 .segmenter()
                 .map { (periode, verdi) ->
                     PeriodeInkludert11_17(

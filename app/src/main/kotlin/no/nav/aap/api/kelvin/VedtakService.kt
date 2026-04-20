@@ -26,15 +26,6 @@ class VedtakService(
     fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
         val kelvinData = behandlingsRepository.hentVedtaksData(fnr, interval)
         val vedtak = kelvinData.flatMap { behandling ->
-            val rettighetsTypeTidslinje = Tidslinje(
-                behandling.rettighetsTypeTidsLinje.map {
-                    Segment(
-                        Periode(it.fom, it.tom),
-                        it.verdi
-                    )
-                }
-            )
-
             val tilkjent = Tidslinje(
                 behandling.tilkjent.map {
                     Segment(
@@ -53,7 +44,7 @@ class VedtakService(
                 }
             )
 
-            val perioderTidslinje = rettighetsTypeTidslinje.kombiner(
+            val perioderTidslinje = behandling.rettighetsTypeTidslinje.kombiner(
                 tilkjent,
                 JoinStyle.LEFT_JOIN { periode, left, right ->
                     Segment(
@@ -153,15 +144,6 @@ class VedtakService(
     ): Medium {
         val kelvinData = behandlingsRepository.hentVedtaksData(fnr, periode)
         val vedtak: List<VedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
-            val rettighetsTypeTidslinje = Tidslinje(
-                behandling.rettighetsTypeTidsLinje.map {
-                    Segment(
-                        Periode(it.fom, it.tom),
-                        it.verdi
-                    )
-                }
-            )
-
             val tilkjent = Tidslinje(
                 behandling.tilkjent.map {
                     Segment(
@@ -180,7 +162,7 @@ class VedtakService(
                 }
             )
 
-            rettighetsTypeTidslinje.kombiner(
+            behandling.rettighetsTypeTidslinje.kombiner(
                 tilkjent,
                 JoinStyle.LEFT_JOIN { periode, left, right ->
                     Segment(
