@@ -22,6 +22,7 @@ import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import no.nav.aap.komponenter.tidslinje.tidslinjeOf
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -53,7 +54,7 @@ class DsopServiceTest {
             status = KelvinSakStatus.OPPRETTET,
             opprettetTidspunkt = LocalDateTime.now()
         ),
-        tilkjent = listOf(),
+        tilkjent = tidslinjeOf(),
         rettighetsTypePerioder = listOf(
             RettighetsTypePeriode(
                 LocalDate.of(2021, 1, 1),
