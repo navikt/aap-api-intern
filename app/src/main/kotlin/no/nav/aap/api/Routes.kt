@@ -36,6 +36,8 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.*
 import javax.sql.DataSource
+import no.nav.aap.api.kelvin.AktivitetsfaseService
+import no.nav.aap.api.kelvin.DsopService
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -136,8 +138,8 @@ fun NormalOpenAPIRoute.api(
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val vedtakRequest = requestBody.tilKontrakt()
                 val aktfaseKelvin = dataSource.transaction { connection ->
-                    val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentPerioderMedAktivitetsfase(
+                    val aktivitetsfaseService = AktivitetsfaseService(connection)
+                    aktivitetsfaseService.hentPerioderMedAktivitetsfase(
                         vedtakRequest.personidentifikator,
                         Periode(vedtakRequest.fraOgMedDato, vedtakRequest.tilOgMedDato)
                     )
@@ -468,8 +470,8 @@ fun NormalOpenAPIRoute.api(
                     sjekkTilgangTilPerson(requestBody.personIdent, token())
 
                     val kelvinVedtak = dataSource.transaction { connection ->
-                        val behandlingsRepository = BehandlingsRepository(connection)
-                        behandlingsRepository.hentDsopVedtak(
+                        val dsopService = DsopService(connection)
+                        dsopService.hentDsopVedtak(
                             requestBody.personIdent,
                             utrekksperiode
                         )

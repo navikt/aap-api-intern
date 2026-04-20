@@ -7,11 +7,12 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 import java.time.Clock
 import java.time.LocalDate
+import no.nav.aap.api.kelvin.DsopService
 
 class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, clock: Clock) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), clock)
-    val behandlingsRepository = BehandlingsRepository(connection)
+    val dsopService = DsopService(connection)
 
     private fun hentAlleMeldekort(
         personIdentifikator: String,
@@ -48,7 +49,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         fom: LocalDate,
         tom: LocalDate
     ): List<Meldekort> {
-        val kelvinVedtak = behandlingsRepository.hentDsopVedtak(
+        val kelvinVedtak = dsopService.hentDsopVedtak(
             personIdentifikator,
             Periode(fom, tom)
         )

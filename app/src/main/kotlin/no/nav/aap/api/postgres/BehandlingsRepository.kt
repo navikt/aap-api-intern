@@ -1,24 +1,17 @@
 package no.nav.aap.api.postgres
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
-import no.nav.aap.api.intern.Kilde
-import no.nav.aap.api.intern.PeriodeInkludert11_17
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.tidslinje.somTidslinje
-import no.nav.aap.komponenter.type.Periode
-import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.math.roundToInt
-import no.nav.aap.api.intern.DsopRettighetsTypeDTO
-import no.nav.aap.api.intern.DsopStatusDTO
-import no.nav.aap.api.intern.DsopVedtakDTO
-import no.nav.aap.api.intern.DsopVedtaksTypeDTO
-import no.nav.aap.api.intern.PeriodeDTO
+import no.nav.aap.api.intern.Kilde
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.type.Periode
+import org.slf4j.LoggerFactory
 
 class BehandlingsRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -245,63 +238,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentDsopVedtak(fnr: String, uttrekksperiode: Periode): List<DsopVedtakDTO> {
-        val vedtaksdata = hentVedtaksData(fnr, uttrekksperiode)
-
-        return vedtaksdata.flatMap {
-            it.rettighetsTypeTidsLinje
-                .somTidslinje({ rettighetsTypePeriode ->
-                    Periode(
-                        rettighetsTypePeriode.fom,
-                        rettighetsTypePeriode.tom
-                    )
-                }, { rettighetstype -> rettighetstype.verdi })
-                .komprimer()
-                .segmenter()
-                .map { (periode, verdi) -> RettighetsTypePeriode(periode.fom, periode.tom, verdi) }
-                .map { rettighetsTypePeriode ->
-                    DsopVedtakDTO(
-                        vedtakId = it.behandlingsId,
-                        vedtakStatus = when (rettighetsTypePeriode.tom >= LocalDate.now()) {
-                            true -> DsopStatusDTO.LØPENDE
-                            else -> DsopStatusDTO.AVSLUTTET
-                        },
-                        virkningsperiode = PeriodeDTO(
-                            rettighetsTypePeriode.fom,
-                            rettighetsTypePeriode.tom
-                        ),
-                        utfall = "JA",
-                        aktivitetsfase = DsopRettighetsTypeDTO.valueOf(rettighetsTypePeriode.verdi),
-                        vedtaksType = if (it.nyttVedtak) DsopVedtaksTypeDTO.O else DsopVedtaksTypeDTO.E,
-                    )
-                }
-        }
-    }
-
-    fun hentPerioderMedAktivitetsfase(fnr: String, periode: Periode): List<PeriodeInkludert11_17> {
-        val vedtaksdata = hentVedtaksData(fnr, periode)
-
-        return vedtaksdata.flatMap {
-            it.rettighetsTypeTidsLinje
-                .somTidslinje({ rettighetsTypePeriode ->
-                    Periode(
-                        rettighetsTypePeriode.fom,
-                        rettighetsTypePeriode.tom
-                    )
-                }, { rettighetstype -> rettighetstype.verdi })
-                .komprimer()
-                .segmenter()
-                .map { (periode, verdi) ->
-                    PeriodeInkludert11_17(
-                        no.nav.aap.api.intern.Periode(
-                            periode.fom,
-                            periode.tom
-                        ), aktivitetsfaseNavn = verdi, aktivitetsfaseKode = verdi
-                    )
-                }
-        }
-    }
-
     fun hentVedtaksData(fnr: String, periode: Periode): List<BehandlingData> {
         val sakerIder = connection.queryList(
             """
@@ -339,12 +275,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
-
-
         return saker.flatMap { sak ->
             val behandlinger = hentBehandlinger(sak.id)
             behandlinger.map { behandling ->
-
                 BehandlingData(
                     behandlingsId = behandling.id.toString(),
                     behandlingsReferanse = behandling.behandlingReferanse,
@@ -366,8 +299,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 )
             }
         }
-
-
     }
 
     private fun hentBeregningsGrunnlag(behandlingId: Long): BigDecimal? {
