@@ -24,6 +24,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.util.*
 
 
 class ArenaOppslagTest {
@@ -93,7 +94,7 @@ class ArenaOppslagTest {
     fun `kan hente saker for person`() {
         testWithKtorApp { token ->
             val res = jsonHttpClient.post("/arena/person/saker") {
-                bearerAuth(token.generate(isApp = true))
+                bearerAuth(token.generate(isApp = true, azp = System.getProperty("AZP_KELVIN_SAKSBEHANDLING_INTEGRASJONER")))
                 contentType(ContentType.Application.Json)
                 setBody(SakerRequestV1(personidentifikator = "12345678910"))
             }
@@ -102,6 +103,18 @@ class ArenaOppslagTest {
             val parsedBody = res.body<SakerResponse>()
             assertThat(parsedBody).isNotNull
             assertThat(parsedBody.saker).isEmpty() // forventet respons fra FakeArenaGateway
+        }
+    }
+
+    @Test
+    fun `hentSakerForPerson returnerer 403 ved ugyldig azp`() {
+        testWithKtorApp { token ->
+            val res = jsonHttpClient.post("/arena/person/saker") {
+                bearerAuth(token.generate(isApp = true, azp = UUID.randomUUID().toString()))
+                contentType(ContentType.Application.Json)
+                setBody(SakerRequestV1(personidentifikator = "12345678910"))
+            }
+            assertThat(res.status).isEqualTo(HttpStatusCode.Forbidden)
         }
     }
 

@@ -51,6 +51,8 @@ class Fakes : AutoCloseable {
 
         // Kelvin
         System.setProperty("KELVIN_PROXY_BASE_URL", "http://localhost:${azure.port()}")
+        System.setProperty("AZP_KELVIN_SAKSBEHANDLING_INTEGRASJONER", UUID.randomUUID().toString())
+
 
         // Arena
         System.setProperty("ARENAOPPSLAG_PROXY_BASE_URL", "http://localhost:${arena.port()}")

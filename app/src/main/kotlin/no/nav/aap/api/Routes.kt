@@ -350,15 +350,22 @@ fun NormalOpenAPIRoute.api(
                 respond(harSignifikantAAPArenaHistorikk)
             }
         }
-        route("/arena/person/saker") {
-            post<CallIdHeader, ArenaoppslagSakerResponse, ArenaoppslagSakerRequestV1>(
-                info(description = "Henter saker for en person fra Arena via ny v1-kontrakt.")
-            ) { callIdHeader, requestBody ->
-                logger.info("Henter saker for person fra Arena (v1)")
-                val callId = receiveCall(callIdHeader, pipeline)
-                val saker = arenaService.hentSakerForPerson(callId, requestBody.personidentifikator)
-                respond(saker)
-            }
+        route("/arena/person/saker").authorizedPost<CallIdHeader, ArenaoppslagSakerResponse, ArenaoppslagSakerRequestV1>(
+            AuthorizationMachineToMachineConfig(
+                authorizedAzps = listOf(
+                    UUID.fromString(
+                        requiredConfigForKey("AZP_KELVIN_SAKSBEHANDLING_INTEGRASJONER")
+                    )
+                ) + azpForTokenGenHvisIkkeProd()
+            ),
+            null,
+            info(description = "Henter saker for en person fra Arena via ny v1-kontrakt.")
+        ) { callIdHeader, requestBody ->
+            logger.info("Henter saker for person fra Arena (v1)")
+            val callId = receiveCall(callIdHeader, pipeline)
+            sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+            val saker = arenaService.hentSakerForPerson(callId, requestBody.personidentifikator)
+            respond(saker)
         }
     }
 
