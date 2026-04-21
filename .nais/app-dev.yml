@@ -174,5 +174,3 @@ spec:
       value: d4b4792b-3321-45ad-aa24-848a029f8450
     - name: AZP_TILLEGGSSTONADER_INTEGRASJONER
       value: d476981c-d129-4402-a74d-ea35a03cac5c
-    - name: AZP_KELVIN_SAKSBEHANDLING
-      value: 4920ff1d-0f6b-407f-8630-695e3360d3d3

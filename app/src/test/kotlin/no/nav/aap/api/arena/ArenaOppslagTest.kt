@@ -24,7 +24,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import java.util.*
 
 
 class ArenaOppslagTest {
@@ -94,7 +93,7 @@ class ArenaOppslagTest {
     fun `kan hente saker for person`() {
         testWithKtorApp { token ->
             val res = jsonHttpClient.post("/arena/person/saker") {
-                bearerAuth(token.generate(isApp = true, azp = System.getProperty("AZP_KELVIN_SAKSBEHANDLING")))
+                bearerAuth(token.generate(isApp = true))
                 contentType(ContentType.Application.Json)
                 setBody(SakerRequestV1(personidentifikator = "12345678910"))
             }
@@ -106,17 +105,6 @@ class ArenaOppslagTest {
         }
     }
 
-    @Test
-    fun `hentSakerForPerson returnerer 403 ved ugyldig azp`() {
-        testWithKtorApp { token ->
-            val res = jsonHttpClient.post("/arena/person/saker") {
-                bearerAuth(token.generate(isApp = true, azp = UUID.randomUUID().toString()))
-                contentType(ContentType.Application.Json)
-                setBody(SakerRequestV1(personidentifikator = "12345678910"))
-            }
-            assertThat(res.status).isEqualTo(HttpStatusCode.Forbidden)
-        }
-    }
 
     @Test
     fun `hentSakerForPerson returnerer 400 når body mangler`() {
