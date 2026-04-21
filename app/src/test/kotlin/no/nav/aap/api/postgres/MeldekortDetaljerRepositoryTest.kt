@@ -1,6 +1,6 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.api.kelvin.MeldekortDTO
+import no.nav.aap.api.kelvin.Meldekort
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.type.Periode
@@ -30,7 +30,7 @@ class MeldekortDetaljerRepositoryTest {
 
     @Test
     fun `lagre og hente ut`() {
-        val meldekortDTO = MeldekortDTO(
+        val meldekort = Meldekort(
             personIdent = "12345678901",
             saksnummer = "asd123",
             mottattTidspunkt = LocalDateTime.now(),
@@ -42,11 +42,11 @@ class MeldekortDetaljerRepositoryTest {
                 LocalDate.of(2025, 4, 23)
             ),
             arbeidPerDag = listOf(
-                MeldekortDTO.MeldeDag(
+                Meldekort.MeldeDag(
                     dag = LocalDate.of(2025, 4, 15),
                     timerArbeidet = 7.toBigDecimal()
                 ),
-                MeldekortDTO.MeldeDag(
+                Meldekort.MeldeDag(
                     dag = LocalDate.of(2025, 4, 23),
                     timerArbeidet = 3.toBigDecimal()
                 )
@@ -55,7 +55,7 @@ class MeldekortDetaljerRepositoryTest {
         )
         dataSource.transaction {
             MeldekortDetaljerRepository(it).lagre(
-                listOf(meldekortDTO)
+                listOf(meldekort)
             )
         }
 
@@ -72,7 +72,7 @@ class MeldekortDetaljerRepositoryTest {
             .ignoringFields("mottattTidspunkt")
             .withComparatorForType({ a, b -> a.toDouble().compareTo(b.toDouble()) },
                 BigDecimal::class.java)
-            .isEqualTo(listOf(meldekortDTO))
+            .isEqualTo(listOf(meldekort))
     }
 
     @Test

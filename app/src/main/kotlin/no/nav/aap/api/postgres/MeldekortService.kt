@@ -1,7 +1,7 @@
 package no.nav.aap.api.postgres
 
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.api.kelvin.MeldekortDTO
+import no.nav.aap.api.kelvin.Meldekort
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
@@ -17,7 +17,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         personIdentifikator: String,
         fraDato: LocalDate? = null,
         tilDato: LocalDate? = null
-    ): List<MeldekortDTO> {
+    ): List<Meldekort> {
         val personIdenter =
             pdlGateway.hentAlleIdenterForPerson(personIdentifikator).map { it.ident }
 
@@ -34,7 +34,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         personIdentifikator: String,
         fom: LocalDate? = null,
         tom: LocalDate? = null
-    ): List<Pair<MeldekortDTO, VedtakUtenUtbetaling?>> {
+    ): List<Pair<Meldekort, VedtakUtenUtbetaling?>> {
         val meldekortDetaljListe = hentAlleMeldekort(personIdentifikator, fom, tom)
 
         return meldekortDetaljListe.map { meldekort ->
@@ -47,7 +47,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         personIdentifikator: String,
         fom: LocalDate,
         tom: LocalDate
-    ): List<MeldekortDTO> {
+    ): List<Meldekort> {
         val kelvinVedtak = behandlingsRepository.hentDsopVedtak(
             personIdentifikator,
             Periode(fom, tom)
@@ -72,7 +72,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
 
 
     private fun finnNyesteRelaterteVedtak(
-        meldekort: MeldekortDTO, personIdentifikator: String
+        meldekort: Meldekort, personIdentifikator: String
     ): VedtakUtenUtbetaling? {
         val meldePeriode = meldekort.meldePeriode
         // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info:
