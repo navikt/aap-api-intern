@@ -23,7 +23,7 @@ import no.nav.aap.api.intern.PeriodeDTO
 class BehandlingsRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun lagreBehandling(behandling: DatadelingDTO) {
+    fun lagreBehandling(behandling: DatadelingIntern) {
         val gammelSak = connection.queryFirstOrNull(
             """SELECT ID FROM SAK WHERE SAKSNUMMER = ?""".trimIndent()
         ) {
@@ -432,7 +432,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun hentUnderveis(behandlingId: Long): List<UnderveisDTO> {
+    private fun hentUnderveis(behandlingId: Long): List<UnderveisIntern> {
         return connection.queryList(
             """
                 SELECT * FROM UNDERVEIS
@@ -445,7 +445,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
             setRowMapper { row ->
                 val periode = row.getPeriode("PERIODE")
                 val meldePeriode = row.getPeriode("MELDEPERIODE")
-                UnderveisDTO(
+                UnderveisIntern(
                     underveisFom = periode.fom,
                     underveisTom = periode.tom,
                     meldeperiodeFom = meldePeriode.fom,
@@ -458,7 +458,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun hentStansOpphør(behandlingId: Long): Set<GjeldendeStansEllerOpphørDTO> {
+    private fun hentStansOpphør(behandlingId: Long): Set<GjeldendeStansEllerOpphør> {
         return connection.queryList(
             """SELECT * FROM stans_opphor_vurdering WHERE stans_opphor_grunnlag_id IN (SELECT id FROM stans_opphor_grunnlag WHERE behandling_id = ?)""".trimIndent()
         ) {
@@ -467,18 +467,18 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
             setRowMapper {
 
-                GjeldendeStansEllerOpphørDTO(
+                GjeldendeStansEllerOpphør(
                     fom = it.getLocalDate("fom"),
                     opprettet = it.getLocalDateTime("opprettet_tid")
                         .toInstant(java.time.ZoneOffset.UTC),
-                    vurdering = StansEllerOpphørEnumDTODomene.valueOf(it.getString("vedtakstype")),
+                    vurdering = StansEllerOpphør.valueOf(it.getString("vedtakstype")),
                     avslagsårsaker = hentAvslagsårsaker(it.getLong("id"))
                 )
             }
         }.toSet()
     }
 
-    private fun hentAvslagsårsaker(stansOpphørVurderingId: Long): Set<AvslagsårsakDTO>{
+    private fun hentAvslagsårsaker(stansOpphørVurderingId: Long): Set<Avslagsårsak>{
         return connection.queryList(
             """SELECT * FROM avslagsarsak WHERE stans_opphor_vurdering_id = ?""".trimIndent()
         ){
@@ -486,12 +486,12 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setLong(1, stansOpphørVurderingId)
             }
             setRowMapper { row ->
-                row.getEnum<AvslagsårsakDTO>("avslagsarsak")
+                row.getEnum<Avslagsårsak>("avslagsarsak")
             }
         }.toSet()
     }
 
-    private fun hentTilkjentYtelse(behandlingId: Long): List<TilkjentDTO> {
+    private fun hentTilkjentYtelse(behandlingId: Long): List<TilkjentPeriode> {
         return connection.queryList(
             """
                 SELECT * FROM TILKJENT_PERIODE
@@ -503,7 +503,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         ) {
             setParams { setLong(1, behandlingId) }
             setRowMapper {
-                TilkjentDTO(
+                TilkjentPeriode(
                     tilkjentFom = it.getPeriode("PERIODE").fom,
                     tilkjentTom = it.getPeriode("PERIODE").tom,
                     dagsats = it.getBigDecimal("DAGSATS").toInt(),

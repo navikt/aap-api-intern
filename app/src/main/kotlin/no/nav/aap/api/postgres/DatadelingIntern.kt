@@ -1,6 +1,5 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.StansEllerOpphørEnumDTO
 import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
@@ -9,17 +8,17 @@ import java.time.LocalDateTime
 data class BehandlingData(
     val behandlingsId: String,
     val behandlingsReferanse: String,
-    val underveisperiode: List<UnderveisDTO>,
+    val underveisperiode: List<UnderveisIntern>,
     val behandlingStatus: KelvinBehandlingStatus,
     val vedtaksDato: LocalDate,
     val sak: SakInfo,
-    val tilkjent: List<TilkjentDTO>,
+    val tilkjent: List<TilkjentPeriode>,
     val rettighetsTypeTidsLinje: List<RettighetsTypePeriode>,
     val samId: String?,
     val vedtakId: Long,
     val beregningsgrunnlag: BigDecimal?,
     val nyttVedtak: Boolean,
-    val stansOpphørVurdering: Set<GjeldendeStansEllerOpphørDTO>?,
+    val stansOpphørVurdering: Set<GjeldendeStansEllerOpphør>?,
 )
 
 data class SakInfo(
@@ -27,7 +26,7 @@ data class SakInfo(
     val status: KelvinSakStatus,
 )
 
-fun DatadelingDTO.tilBehandlingData(): BehandlingData = BehandlingData(
+fun DatadelingIntern.tilBehandlingData(): BehandlingData = BehandlingData(
     behandlingsId = this.behandlingsId,
     behandlingsReferanse = this.behandlingsReferanse,
     underveisperiode = this.underveisperiode,
@@ -43,8 +42,8 @@ fun DatadelingDTO.tilBehandlingData(): BehandlingData = BehandlingData(
     stansOpphørVurdering = this.stansOpphørVurdering,
 )
 
-data class DatadelingDTO(
-    val underveisperiode: List<UnderveisDTO>,
+data class DatadelingIntern(
+    val underveisperiode: List<UnderveisIntern>,
     @Deprecated("Ikke del disse utad.")
     val rettighetsPeriodeFom: LocalDate,
     @Deprecated("Ikke del disse utad.")
@@ -52,53 +51,53 @@ data class DatadelingDTO(
     val behandlingStatus: KelvinBehandlingStatus,
     val behandlingsId: String,
     val vedtaksDato: LocalDate,
-    val sak: SakDTO,
-    val tilkjent: List<TilkjentDTO>,
+    val sak: Sak,
+    val tilkjent: List<TilkjentPeriode>,
     val rettighetsTypeTidsLinje: List<RettighetsTypePeriode>,
     val behandlingsReferanse: String,
     val samId: String? = null,
     val vedtakId: Long,
     val beregningsgrunnlag: BigDecimal?,
     val nyttVedtak: Boolean,
-    val stansOpphørVurdering: Set<GjeldendeStansEllerOpphørDTO>?
+    val stansOpphørVurdering: Set<GjeldendeStansEllerOpphør>?
 )
 
-data class GjeldendeStansEllerOpphørDTO(
+data class GjeldendeStansEllerOpphør(
     val fom: LocalDate,
     val opprettet: Instant,
-    val vurdering: StansEllerOpphørEnumDTODomene,
-    val avslagsårsaker: Set<AvslagsårsakDTO>,
+    val vurdering: StansEllerOpphør,
+    val avslagsårsaker: Set<Avslagsårsak>,
 )
 
-public enum class AvslagsårsakDTO(
-    public val type: StansEllerOpphørEnumDTO,
+enum class Avslagsårsak(
+    val type: StansEllerOpphør,
 ) {
-    BRUKER_OVER_67(StansEllerOpphørEnumDTO.OPPHØR),
-    IKKE_RETT_PA_SYKEPENGEERSTATNING(StansEllerOpphørEnumDTO.OPPHØR),
-    IKKE_RETT_PA_STUDENT(StansEllerOpphørEnumDTO.OPPHØR),
-    VARIGHET_OVERSKREDET_STUDENT(StansEllerOpphørEnumDTO.OPPHØR),
-    IKKE_SYKDOM_AV_VISS_VARIGHET(StansEllerOpphørEnumDTO.OPPHØR),
-    IKKE_SYKDOM_SKADE_LYTE_VESENTLIGDEL(StansEllerOpphørEnumDTO.OPPHØR),
-    IKKE_NOK_REDUSERT_ARBEIDSEVNE(StansEllerOpphørEnumDTO.OPPHØR),
-    IKKE_BEHOV_FOR_OPPFOLGING(StansEllerOpphørEnumDTO.OPPHØR),
-    IKKE_MEDLEM(StansEllerOpphørEnumDTO.OPPHØR),
-    IKKE_OPPFYLT_OPPHOLDSKRAV_EØS(StansEllerOpphørEnumDTO.STANS),
-    ANNEN_FULL_YTELSE(StansEllerOpphørEnumDTO.OPPHØR),
-    INNTEKTSTAP_DEKKES_ETTER_ANNEN_LOVGIVNING(StansEllerOpphørEnumDTO.OPPHØR),
-    IKKE_RETT_PA_AAP_UNDER_BEHANDLING_AV_UFORE(StansEllerOpphørEnumDTO.OPPHØR),
-    VARIGHET_OVERSKREDET_OVERGANG_UFORE(StansEllerOpphørEnumDTO.OPPHØR),
-    VARIGHET_OVERSKREDET_ARBEIDSSØKER(StansEllerOpphørEnumDTO.OPPHØR),
-    IKKE_RETT_PA_AAP_I_PERIODE_SOM_ARBEIDSSOKER(StansEllerOpphørEnumDTO.STANS),
-    IKKE_RETT_UNDER_STRAFFEGJENNOMFØRING(StansEllerOpphørEnumDTO.STANS),
-    BRUDD_PÅ_AKTIVITETSPLIKT_STANS(StansEllerOpphørEnumDTO.STANS),
-    BRUDD_PÅ_AKTIVITETSPLIKT_OPPHØR(StansEllerOpphørEnumDTO.OPPHØR),
-    BRUDD_PÅ_OPPHOLDSKRAV_STANS(StansEllerOpphørEnumDTO.STANS),
-    BRUDD_PÅ_OPPHOLDSKRAV_OPPHØR(StansEllerOpphørEnumDTO.OPPHØR),
-    ORDINÆRKVOTE_BRUKT_OPP(StansEllerOpphørEnumDTO.OPPHØR),
-    SYKEPENGEERSTATNINGKVOTE_BRUKT_OPP(StansEllerOpphørEnumDTO.OPPHØR),
+    BRUKER_OVER_67(StansEllerOpphør.OPPHØR),
+    IKKE_RETT_PA_SYKEPENGEERSTATNING(StansEllerOpphør.OPPHØR),
+    IKKE_RETT_PA_STUDENT(StansEllerOpphør.OPPHØR),
+    VARIGHET_OVERSKREDET_STUDENT(StansEllerOpphør.OPPHØR),
+    IKKE_SYKDOM_AV_VISS_VARIGHET(StansEllerOpphør.OPPHØR),
+    IKKE_SYKDOM_SKADE_LYTE_VESENTLIGDEL(StansEllerOpphør.OPPHØR),
+    IKKE_NOK_REDUSERT_ARBEIDSEVNE(StansEllerOpphør.OPPHØR),
+    IKKE_BEHOV_FOR_OPPFOLGING(StansEllerOpphør.OPPHØR),
+    IKKE_MEDLEM(StansEllerOpphør.OPPHØR),
+    IKKE_OPPFYLT_OPPHOLDSKRAV_EØS(StansEllerOpphør.STANS),
+    ANNEN_FULL_YTELSE(StansEllerOpphør.OPPHØR),
+    INNTEKTSTAP_DEKKES_ETTER_ANNEN_LOVGIVNING(StansEllerOpphør.OPPHØR),
+    IKKE_RETT_PA_AAP_UNDER_BEHANDLING_AV_UFORE(StansEllerOpphør.OPPHØR),
+    VARIGHET_OVERSKREDET_OVERGANG_UFORE(StansEllerOpphør.OPPHØR),
+    VARIGHET_OVERSKREDET_ARBEIDSSØKER(StansEllerOpphør.OPPHØR),
+    IKKE_RETT_PA_AAP_I_PERIODE_SOM_ARBEIDSSOKER(StansEllerOpphør.STANS),
+    IKKE_RETT_UNDER_STRAFFEGJENNOMFØRING(StansEllerOpphør.STANS),
+    BRUDD_PÅ_AKTIVITETSPLIKT_STANS(StansEllerOpphør.STANS),
+    BRUDD_PÅ_AKTIVITETSPLIKT_OPPHØR(StansEllerOpphør.OPPHØR),
+    BRUDD_PÅ_OPPHOLDSKRAV_STANS(StansEllerOpphør.STANS),
+    BRUDD_PÅ_OPPHOLDSKRAV_OPPHØR(StansEllerOpphør.OPPHØR),
+    ORDINÆRKVOTE_BRUKT_OPP(StansEllerOpphør.OPPHØR),
+    SYKEPENGEERSTATNINGKVOTE_BRUKT_OPP(StansEllerOpphør.OPPHØR),
 }
 
-enum class StansEllerOpphørEnumDTODomene {
+enum class StansEllerOpphør {
     STANS,
     OPPHØR
 }
@@ -109,7 +108,7 @@ data class RettighetsTypePeriode(
     val verdi: String
 )
 
-data class SakDTO(
+data class Sak(
     val saksnummer: String,
     val status: KelvinSakStatus,
     val fnr: List<String>,
@@ -119,7 +118,7 @@ data class SakDTO(
 /**
  * @param samordningUføregradering Svarer til prosent uføre. 100% bør medføre 0% gradering.
  */
-data class TilkjentDTO(
+data class TilkjentPeriode(
     val tilkjentFom: LocalDate,
     val tilkjentTom: LocalDate,
     val dagsats: Int,
@@ -132,7 +131,7 @@ data class TilkjentDTO(
     val barnetillegg: BigDecimal
 )
 
-data class UnderveisDTO(
+data class UnderveisIntern(
     val underveisFom: LocalDate,
     val underveisTom: LocalDate,
     val meldeperiodeFom: LocalDate,

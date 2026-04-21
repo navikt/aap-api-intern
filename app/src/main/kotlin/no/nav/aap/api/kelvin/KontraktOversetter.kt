@@ -1,16 +1,16 @@
 package no.nav.aap.api.kelvin
 
-import no.nav.aap.api.postgres.AvslagsårsakDTO
-import no.nav.aap.api.postgres.GjeldendeStansEllerOpphørDTO
+import no.nav.aap.api.postgres.Avslagsårsak
+import no.nav.aap.api.postgres.GjeldendeStansEllerOpphør
 import no.nav.aap.api.postgres.KelvinBehandlingStatus
 import no.nav.aap.api.postgres.KelvinSakStatus
-import no.nav.aap.api.postgres.StansEllerOpphørEnumDTODomene
+import no.nav.aap.api.postgres.StansEllerOpphør
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.komponenter.type.Periode
 
-fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgres.DatadelingDTO {
-    return no.nav.aap.api.postgres.DatadelingDTO(
+fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgres.DatadelingIntern {
+    return no.nav.aap.api.postgres.DatadelingIntern(
         underveisperiode = this.underveisperiode.map { it.tilDomene() },
         rettighetsPeriodeFom = this.rettighetsPeriodeFom,
         rettighetsPeriodeTom = this.rettighetsPeriodeTom,
@@ -26,21 +26,21 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgre
         beregningsgrunnlag = this.beregningsgrunnlag,
         nyttVedtak = nyttVedtak,
         stansOpphørVurdering = this.stansOpphørVurdering?.map {
-            GjeldendeStansEllerOpphørDTO(
+            GjeldendeStansEllerOpphør(
                 fom = it.fom,
                 opprettet = it.opprettet,
                 vurdering = when(it.vurdering){
-                    StansEllerOpphørEnumDTO.STANS -> StansEllerOpphørEnumDTODomene.STANS
-                    StansEllerOpphørEnumDTO.OPPHØR -> StansEllerOpphørEnumDTODomene.OPPHØR
+                    StansEllerOpphørEnumDTO.STANS -> StansEllerOpphør.STANS
+                    StansEllerOpphørEnumDTO.OPPHØR -> StansEllerOpphør.OPPHØR
                 },
-                avslagsårsaker = it.avslagsårsaker.map { AvslagsårsakDTO.valueOf(it.name) }.toSet()
+                avslagsårsaker = it.avslagsårsaker.map { Avslagsårsak.valueOf(it.name) }.toSet()
             )
         }?.toSet().orEmpty()
     )
 }
 
-fun SakDTO.tilDomene(): no.nav.aap.api.postgres.SakDTO {
-    return no.nav.aap.api.postgres.SakDTO(
+fun SakDTO.tilDomene(): no.nav.aap.api.postgres.Sak {
+    return no.nav.aap.api.postgres.Sak(
         saksnummer = this.saksnummer,
         status = this.status.tilDomene(),
         fnr = this.fnr,
@@ -48,8 +48,8 @@ fun SakDTO.tilDomene(): no.nav.aap.api.postgres.SakDTO {
     )
 }
 
-fun UnderveisDTO.tilDomene(): no.nav.aap.api.postgres.UnderveisDTO {
-    return no.nav.aap.api.postgres.UnderveisDTO(
+fun UnderveisDTO.tilDomene(): no.nav.aap.api.postgres.UnderveisIntern {
+    return no.nav.aap.api.postgres.UnderveisIntern(
         underveisFom = this.underveisFom,
         underveisTom = this.underveisTom,
         meldeperiodeFom = this.meldeperiodeFom,
@@ -69,8 +69,8 @@ fun Status.tilDomene(): KelvinBehandlingStatus {
     }
 }
 
-fun TilkjentDTO.tilDomene(): no.nav.aap.api.postgres.TilkjentDTO {
-    return no.nav.aap.api.postgres.TilkjentDTO(
+fun TilkjentDTO.tilDomene(): no.nav.aap.api.postgres.TilkjentPeriode {
+    return no.nav.aap.api.postgres.TilkjentPeriode(
         tilkjentFom = this.tilkjentFom,
         tilkjentTom = this.tilkjentTom,
         dagsats = this.dagsats,
