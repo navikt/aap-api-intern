@@ -14,6 +14,7 @@ import java.time.LocalDateTime
 import no.nav.aap.api.intern.DsopMeldekortDTO
 import no.nav.aap.api.intern.DsopTimerArbeidetPerDagDTO
 import no.nav.aap.api.intern.PeriodeDTO
+import no.nav.aap.api.kelvin.slåSammenMeldeperioder
 
 class MeldekortDetaljerRepositoryTest {
     private lateinit var dataSource: TestDataSource
