@@ -10,6 +10,7 @@ import no.nav.aap.api.intern.DsopStatusDTO
 import no.nav.aap.api.intern.DsopVedtakDTO
 import no.nav.aap.api.intern.DsopVedtaksTypeDTO
 import no.nav.aap.api.intern.PeriodeDTO
+import no.nav.aap.api.kelvin.DsopService
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -98,7 +99,7 @@ class BehandlingsRepositoryTest {
         }
 
         val res = dataSource.transaction {
-            BehandlingsRepository(it).hentDsopVedtak(
+            DsopService(it).hentDsopVedtak(
                 "123445",
                 Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1))
             )
