@@ -1,25 +1,26 @@
-package no.nav.aap.api.postgres
+package no.nav.aap.api.kelvin
 
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.api.kelvin.MeldekortDTO
-import no.nav.aap.api.pdl.IPdlGateway
-import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.type.Periode
 import java.time.Clock
 import java.time.LocalDate
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.api.pdl.IPdlGateway
+import no.nav.aap.api.postgres.BehandlingsRepository
+import no.nav.aap.api.postgres.MeldekortDetaljerRepository
+import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.type.Periode
 
 class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, clock: Clock) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), clock)
-    val behandlingsRepository = BehandlingsRepository(connection)
+    val dsopService = DsopService(connection)
 
     private fun hentAlleMeldekort(
         personIdentifikator: String,
         fraDato: LocalDate? = null,
         tilDato: LocalDate? = null
-    ): List<MeldekortDTO> {
+    ): List<Meldekort> {
         val personIdenter =
-            pdlGateway.hentAlleIdenterForPerson(personIdentifikator).map { personIdentifikator }
+            pdlGateway.hentAlleIdenterForPerson(personIdentifikator).map { it.ident }
 
         if (personIdenter.isEmpty()) return emptyList()
 
@@ -34,7 +35,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         personIdentifikator: String,
         fom: LocalDate? = null,
         tom: LocalDate? = null
-    ): List<Pair<MeldekortDTO, VedtakUtenUtbetaling?>> {
+    ): List<Pair<Meldekort, VedtakUtenUtbetaling?>> {
         val meldekortDetaljListe = hentAlleMeldekort(personIdentifikator, fom, tom)
 
         return meldekortDetaljListe.map { meldekort ->
@@ -47,8 +48,8 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         personIdentifikator: String,
         fom: LocalDate,
         tom: LocalDate
-    ): List<MeldekortDTO> {
-        val kelvinVedtak = behandlingsRepository.hentDsopVedtak(
+    ): List<Meldekort> {
+        val kelvinVedtak = dsopService.hentDsopVedtak(
             personIdentifikator,
             Periode(fom, tom)
         )
@@ -57,7 +58,8 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
 
         val filtrerteMeldekort = meldekortListe.filter { meldekort ->
             kelvinVedtak.any {
-                it.virkningsperiode.overlapper(
+                val periode = Periode(it.virkningsperiode.fom, it.virkningsperiode.tom)
+                periode.overlapper(
                     Periode(
                         meldekort.meldePeriode.fom,
                         meldekort.meldePeriode.tom
@@ -71,7 +73,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
 
 
     private fun finnNyesteRelaterteVedtak(
-        meldekort: MeldekortDTO, personIdentifikator: String
+        meldekort: Meldekort, personIdentifikator: String
     ): VedtakUtenUtbetaling? {
         val meldePeriode = meldekort.meldePeriode
         // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info:
@@ -80,4 +82,3 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         return vedtak.firstOrNull()
     }
 }
-

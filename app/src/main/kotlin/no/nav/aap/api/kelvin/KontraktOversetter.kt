@@ -1,19 +1,13 @@
 package no.nav.aap.api.kelvin
 
-import no.nav.aap.api.postgres.AvslagsårsakDTO
-import no.nav.aap.api.postgres.GjeldendeStansEllerOpphørDTO
-import no.nav.aap.api.postgres.KelvinBehandlingStatus
-import no.nav.aap.api.postgres.KelvinSakStatus
-import no.nav.aap.api.postgres.StansEllerOpphørEnumDTODomene
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.komponenter.type.Periode
 
-fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgres.DatadelingDTO {
-    return no.nav.aap.api.postgres.DatadelingDTO(
+fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
+    return Behandling(
         underveisperiode = this.underveisperiode.map { it.tilDomene() },
-        rettighetsPeriodeFom = this.rettighetsPeriodeFom,
-        rettighetsPeriodeTom = this.rettighetsPeriodeTom,
+        rettighetsperiode = Periode(this.rettighetsPeriodeFom, this.rettighetsPeriodeTom),
         behandlingStatus = this.behandlingStatus.tilDomene(),
         behandlingsId = this.behandlingsId,
         vedtaksDato = this.vedtaksDato,
@@ -26,32 +20,31 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): no.nav.aap.api.postgre
         beregningsgrunnlag = this.beregningsgrunnlag,
         nyttVedtak = nyttVedtak,
         stansOpphørVurdering = this.stansOpphørVurdering?.map {
-            GjeldendeStansEllerOpphørDTO(
+            GjeldendeStansEllerOpphør(
                 fom = it.fom,
                 opprettet = it.opprettet,
-                vurdering = when(it.vurdering){
-                    StansEllerOpphørEnumDTO.STANS -> StansEllerOpphørEnumDTODomene.STANS
-                    StansEllerOpphørEnumDTO.OPPHØR -> StansEllerOpphørEnumDTODomene.OPPHØR
+                vurdering = when (it.vurdering) {
+                    StansEllerOpphørEnumDTO.STANS -> StansEllerOpphør.STANS
+                    StansEllerOpphørEnumDTO.OPPHØR -> StansEllerOpphør.OPPHØR
                 },
-                avslagsårsaker = it.avslagsårsaker.map { AvslagsårsakDTO.valueOf(it.name) }.toSet()
+                avslagsårsaker = it.avslagsårsaker.map { Avslagsårsak.valueOf(it.name) }.toSet()
             )
         }?.toSet().orEmpty()
     )
 }
 
-fun SakDTO.tilDomene(): no.nav.aap.api.postgres.SakDTO {
-    return no.nav.aap.api.postgres.SakDTO(
+fun SakDTO.tilDomene(): Sak {
+    return Sak(
         saksnummer = this.saksnummer,
         status = this.status.tilDomene(),
-        fnr = this.fnr,
         opprettetTidspunkt = this.opprettetTidspunkt
     )
 }
 
-fun UnderveisDTO.tilDomene(): no.nav.aap.api.postgres.UnderveisDTO {
-    return no.nav.aap.api.postgres.UnderveisDTO(
+fun UnderveisDTO.tilDomene(): UnderveisIntern {
+    return UnderveisIntern(
         underveisFom = this.underveisFom,
-        underveisTom = this.underveisFom,
+        underveisTom = this.underveisTom,
         meldeperiodeFom = this.meldeperiodeFom,
         meldeperiodeTom = this.meldeperiodeTom,
         utfall = this.utfall,
@@ -69,8 +62,8 @@ fun Status.tilDomene(): KelvinBehandlingStatus {
     }
 }
 
-fun TilkjentDTO.tilDomene(): no.nav.aap.api.postgres.TilkjentDTO {
-    return no.nav.aap.api.postgres.TilkjentDTO(
+fun TilkjentDTO.tilDomene(): TilkjentPeriode {
+    return TilkjentPeriode(
         tilkjentFom = this.tilkjentFom,
         tilkjentTom = this.tilkjentTom,
         dagsats = this.dagsats,
@@ -84,8 +77,8 @@ fun TilkjentDTO.tilDomene(): no.nav.aap.api.postgres.TilkjentDTO {
     )
 }
 
-fun RettighetsTypePeriode.tilDomene(): no.nav.aap.api.postgres.RettighetsTypePeriode {
-    return no.nav.aap.api.postgres.RettighetsTypePeriode(
+fun no.nav.aap.behandlingsflyt.kontrakt.datadeling.RettighetsTypePeriode.tilDomene(): RettighetsTypePeriode {
+    return RettighetsTypePeriode(
         fom = this.fom,
         tom = this.tom,
         verdi = this.verdi
@@ -101,15 +94,15 @@ fun no.nav.aap.behandlingsflyt.kontrakt.sak.Status.tilDomene(): KelvinSakStatus 
     }
 }
 
-fun ArbeidIPeriodeDTO.tilDomene(): MeldekortDTO.MeldeDag {
-    return MeldekortDTO.MeldeDag(
+fun ArbeidIPeriodeDTO.tilDomene(): Meldekort.MeldeDag {
+    return Meldekort.MeldeDag(
         timerArbeidet = this.timerArbeidet,
         dag = this.periodeFom // antar at periodeFom og periodeTom er samme
     )
 }
 
-fun DetaljertMeldekortDTO.tilDomene(): MeldekortDTO {
-    return MeldekortDTO(
+fun DetaljertMeldekortDTO.tilDomene(): Meldekort {
+    return Meldekort(
         personIdent = this.personIdent,
         saksnummer = this.saksnummer.toString(),
         behandlingId = this.behandlingId,

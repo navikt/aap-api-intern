@@ -1,18 +1,15 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.api.kelvin.MeldekortDTO
+import java.time.LocalDate
+import no.nav.aap.api.kelvin.Meldekort
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.dbconnect.Row
-import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 class MeldekortDetaljerRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun lagre(meldekortForSammeSak: List<MeldekortDTO>) {
+    fun lagre(meldekortForSammeSak: List<Meldekort>) {
         if (meldekortForSammeSak.isEmpty()) return
 
         val etMeldekort = meldekortForSammeSak.first()
@@ -40,7 +37,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         lagreNyeMeldekort(meldekortForSammeSak)
     }
 
-    private fun lagreNyeMeldekort(meldekortForSammeSak: List<MeldekortDTO>) {
+    private fun lagreNyeMeldekort(meldekortForSammeSak: List<Meldekort>) {
         meldekortForSammeSak.forEach {
             val meldekortId = insertMeldekort(connection, it)
             insertTimerArbeidet(connection, meldekortId, it.arbeidPerDag)
@@ -77,7 +74,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
             }
         }
 
-    private fun insertMeldekort(connection: DBConnection, meldekort: MeldekortDTO): Long {
+    private fun insertMeldekort(connection: DBConnection, meldekort: Meldekort): Long {
         return connection.executeReturnKey(
             """
                 INSERT INTO MELDEKORT(
@@ -101,7 +98,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
     private fun insertTimerArbeidet(
         connection: DBConnection,
         meldekortId: Long,
-        timerArbeid: List<MeldekortDTO.MeldeDag>
+        timerArbeid: List<Meldekort.MeldeDag>
     ) {
         connection.executeBatch(
             """
@@ -121,7 +118,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         personIdentifikatorer: List<String>,
         fom: LocalDate? = null,
         tom: LocalDate? = null
-    ): List<MeldekortDTO> {
+    ): List<Meldekort> {
         val iMorgen = LocalDate.now().plusDays(1)
         if (fom != null && !fom.isBefore(iMorgen)) {
             return emptyList()
@@ -146,8 +143,8 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         }
     }
 
-    private fun rowToMeldekortDTO(row: Row): MeldekortDTO {
-        return MeldekortDTO(
+    private fun rowToMeldekortDTO(row: Row): Meldekort {
+        return Meldekort(
             personIdent = row.getString("PERSON_IDENT"),
             saksnummer = row.getString("SAKSNUMMER"),
             behandlingId = row.getLong("BEHANDLING_ID"),
@@ -160,7 +157,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         )
     }
 
-    private fun hentArbeidPerDag(meldekortId: Long): List<MeldekortDTO.MeldeDag> {
+    private fun hentArbeidPerDag(meldekortId: Long): List<Meldekort.MeldeDag> {
         return connection.queryList(
             """SELECT DATO, TIMER_ARBEIDET FROM MELDEKORT_ARBEIDS_PERIODE
                 WHERE MELDEKORT_ID = ?
@@ -171,7 +168,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
                 setLong(1, meldekortId)
             }
             setRowMapper { row ->
-                MeldekortDTO.MeldeDag(
+                Meldekort.MeldeDag(
                     dag = row.getLocalDate("DATO"),
                     timerArbeidet = row.getBigDecimal("TIMER_ARBEIDET")
                 )
@@ -181,41 +178,3 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
 
 }
 
-data class DsopMeldekortRespons(
-    val uttrekksperiode: Periode,
-    val meldekort: List<Meldekort>
-)
-
-data class Meldekort(
-    val periode: Periode,
-    @Deprecated("Bruk timerArbeidetPerDag.")
-    val antallTimerArbeidet: BigDecimal,
-    val timerArbeidetPerDag: List<TimerArbeidetPerDag>,
-    val sistOppdatert: LocalDateTime,
-)
-
-fun List<Meldekort>.slåSammenMeldeperioder(): List<Meldekort> {
-    return this
-        .groupBy { it.periode }
-        .values.map { meldekort ->
-            Meldekort(
-                periode = meldekort.first().periode,
-                antallTimerArbeidet = BigDecimal.ZERO,
-                timerArbeidetPerDag = meldekort.sortedBy { it.sistOppdatert }
-                    .flatMap { it.timerArbeidetPerDag }
-                    .groupingBy { it.dag }.reduce { _, accumulator, element ->
-                        accumulator.copy(timerArbeidet = element.timerArbeidet)
-                    }.values.toList(),
-                sistOppdatert = meldekort.maxByOrNull { it.sistOppdatert }?.sistOppdatert
-                    ?: LocalDateTime.MIN,
-            ).let { meldekort ->
-                meldekort.copy(antallTimerArbeidet = meldekort.timerArbeidetPerDag.sumOf { it.timerArbeidet }
-                    .toBigDecimal())
-            }
-        }
-}
-
-data class TimerArbeidetPerDag(
-    val dag: LocalDate,
-    val timerArbeidet: Double,
-)

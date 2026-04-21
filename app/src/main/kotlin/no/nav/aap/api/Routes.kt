@@ -38,6 +38,13 @@ import java.time.Clock
 import java.time.LocalDate
 import java.util.*
 import javax.sql.DataSource
+import no.nav.aap.api.kelvin.AktivitetsfaseService
+import no.nav.aap.api.kelvin.DsopService
+import no.nav.aap.api.kelvin.KelvinBehandlingStatus
+import no.nav.aap.api.kelvin.KelvinSakStatus
+import no.nav.aap.api.kelvin.MeldekortService
+import no.nav.aap.api.kelvin.VedtakService
+import no.nav.aap.api.kelvin.slåSammenMeldeperioder
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -138,8 +145,8 @@ fun NormalOpenAPIRoute.api(
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val vedtakRequest = requestBody.tilKontrakt()
                 val aktfaseKelvin = dataSource.transaction { connection ->
-                    val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentPerioderMedAktivitetsfase(
+                    val aktivitetsfaseService = AktivitetsfaseService(connection)
+                    aktivitetsfaseService.hentPerioderMedAktivitetsfase(
                         vedtakRequest.personidentifikator,
                         Periode(vedtakRequest.fraOgMedDato, vedtakRequest.tilOgMedDato)
                     )
@@ -187,7 +194,7 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) + azpForTokenGenHvisIkkeProd()
             ), null,
-            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode")
+            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS.")
         ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
             val personIdentifikator = requestBody.personidentifikator
@@ -487,8 +494,8 @@ fun NormalOpenAPIRoute.api(
                     sjekkTilgangTilPerson(requestBody.personIdent, token())
 
                     val kelvinVedtak = dataSource.transaction { connection ->
-                        val behandlingsRepository = BehandlingsRepository(connection)
-                        behandlingsRepository.hentDsopVedtak(
+                        val dsopService = DsopService(connection)
+                        dsopService.hentDsopVedtak(
                             requestBody.personIdent,
                             utrekksperiode
                         )
@@ -496,7 +503,7 @@ fun NormalOpenAPIRoute.api(
 
                     respond(
                         DsopResponse(
-                            utrekksperiode,
+                            PeriodeDTO(utrekksperiode.fom, utrekksperiode.tom),
                             kelvinVedtak
                         )
                     )
@@ -519,11 +526,11 @@ fun NormalOpenAPIRoute.api(
                             requestBody.tomDato
                         )
                             .map { meldekort ->
-                                Meldekort(
-                                    Periode(meldekort.meldePeriode.fom, meldekort.meldePeriode.tom),
+                                DsopMeldekortDTO(
+                                    PeriodeDTO(meldekort.meldePeriode.fom, meldekort.meldePeriode.tom),
                                     meldekort.arbeidPerDag.sumOf { it.timerArbeidet },
                                     meldekort.arbeidPerDag.map {
-                                        TimerArbeidetPerDag(
+                                        DsopTimerArbeidetPerDagDTO(
                                             it.dag,
                                             it.timerArbeidet.toDouble()
                                         )
@@ -535,7 +542,7 @@ fun NormalOpenAPIRoute.api(
 
                     respond(
                         DsopMeldekortRespons(
-                            utrekksperiode,
+                            PeriodeDTO(utrekksperiode.fom, utrekksperiode.tom),
                             meldekortListe
                         )
                     )

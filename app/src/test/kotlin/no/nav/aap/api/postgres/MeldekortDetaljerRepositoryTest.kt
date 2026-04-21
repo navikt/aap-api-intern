@@ -1,6 +1,6 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.api.kelvin.MeldekortDTO
+import no.nav.aap.api.kelvin.Meldekort
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.type.Periode
@@ -11,6 +11,10 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import no.nav.aap.api.intern.DsopMeldekortDTO
+import no.nav.aap.api.intern.DsopTimerArbeidetPerDagDTO
+import no.nav.aap.api.intern.PeriodeDTO
+import no.nav.aap.api.kelvin.slåSammenMeldeperioder
 
 class MeldekortDetaljerRepositoryTest {
     private lateinit var dataSource: TestDataSource
@@ -27,7 +31,7 @@ class MeldekortDetaljerRepositoryTest {
 
     @Test
     fun `lagre og hente ut`() {
-        val meldekortDTO = MeldekortDTO(
+        val meldekort = Meldekort(
             personIdent = "12345678901",
             saksnummer = "asd123",
             mottattTidspunkt = LocalDateTime.now(),
@@ -39,11 +43,11 @@ class MeldekortDetaljerRepositoryTest {
                 LocalDate.of(2025, 4, 23)
             ),
             arbeidPerDag = listOf(
-                MeldekortDTO.MeldeDag(
+                Meldekort.MeldeDag(
                     dag = LocalDate.of(2025, 4, 15),
                     timerArbeidet = 7.toBigDecimal()
                 ),
-                MeldekortDTO.MeldeDag(
+                Meldekort.MeldeDag(
                     dag = LocalDate.of(2025, 4, 23),
                     timerArbeidet = 3.toBigDecimal()
                 )
@@ -52,7 +56,7 @@ class MeldekortDetaljerRepositoryTest {
         )
         dataSource.transaction {
             MeldekortDetaljerRepository(it).lagre(
-                listOf(meldekortDTO)
+                listOf(meldekort)
             )
         }
 
@@ -69,28 +73,28 @@ class MeldekortDetaljerRepositoryTest {
             .ignoringFields("mottattTidspunkt")
             .withComparatorForType({ a, b -> a.toDouble().compareTo(b.toDouble()) },
                 BigDecimal::class.java)
-            .isEqualTo(listOf(meldekortDTO))
+            .isEqualTo(listOf(meldekort))
     }
 
     @Test
     fun `slå sammen meldekort til ett`() {
         val periode = Periode(LocalDate.of(2025, 4, 14), LocalDate.of(2025, 4, 16))
         val meldekort = listOf(
-            Meldekort(
-                periode = periode,
+            DsopMeldekortDTO(
+                periode = periode.somDTO,
                 antallTimerArbeidet = BigDecimal.valueOf(10),
                 timerArbeidetPerDag = listOf(
-                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 14), 5.0),
-                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 15), 5.0)
+                    DsopTimerArbeidetPerDagDTO(LocalDate.of(2025, 4, 14), 5.0),
+                    DsopTimerArbeidetPerDagDTO(LocalDate.of(2025, 4, 15), 5.0)
                 ),
                 sistOppdatert = LocalDateTime.of(2025, 4, 17, 10, 0)
             ),
-            Meldekort(
-                periode = periode,
+            DsopMeldekortDTO(
+                periode = periode.somDTO,
                 antallTimerArbeidet = BigDecimal.valueOf(5),
                 timerArbeidetPerDag = listOf(
-                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 15), 2.0),
-                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 16), 3.0)
+                    DsopTimerArbeidetPerDagDTO(LocalDate.of(2025, 4, 15), 2.0),
+                    DsopTimerArbeidetPerDagDTO(LocalDate.of(2025, 4, 16), 3.0)
                 ),
                 sistOppdatert = LocalDateTime.of(2025, 4, 18, 10, 0)
             )
@@ -100,14 +104,14 @@ class MeldekortDetaljerRepositoryTest {
 
         assertThat(res).hasSize(1)
         val sammenslått = res.first()
-        assertThat(sammenslått.periode).isEqualTo(periode)
+        assertThat(sammenslått.periode).isEqualTo(periode.somDTO)
 
         // Meldekort nr 2 er korrigert. Så den 15de er det 2 timer arbeidet. 5+2+3=10
         assertThat(sammenslått.timerArbeidetPerDag.sumOf { it.timerArbeidet }).isEqualByComparingTo(10.0)
         assertThat(sammenslått.timerArbeidetPerDag).containsExactlyInAnyOrder(
-            TimerArbeidetPerDag(LocalDate.of(2025, 4, 14), 5.0),
-            TimerArbeidetPerDag(LocalDate.of(2025, 4, 15), 2.0),
-            TimerArbeidetPerDag(LocalDate.of(2025, 4, 16), 3.0)
+            DsopTimerArbeidetPerDagDTO(LocalDate.of(2025, 4, 14), 5.0),
+            DsopTimerArbeidetPerDagDTO(LocalDate.of(2025, 4, 15), 2.0),
+            DsopTimerArbeidetPerDagDTO(LocalDate.of(2025, 4, 16), 3.0)
         )
         assertThat(sammenslått.sistOppdatert).isEqualTo(LocalDateTime.of(2025, 4, 18, 10, 0))
     }
@@ -118,16 +122,16 @@ class MeldekortDetaljerRepositoryTest {
         val periode2 = Periode(LocalDate.of(2025, 4, 6), LocalDate.of(2025, 4, 10))
 
         val meldekort = listOf(
-            Meldekort(
-                periode = periode1,
+            DsopMeldekortDTO(
+                periode = periode1.somDTO,
                 antallTimerArbeidet = BigDecimal.valueOf(5),
-                timerArbeidetPerDag = listOf(TimerArbeidetPerDag(LocalDate.of(2025, 4, 1), 5.0)),
+                timerArbeidetPerDag = listOf(DsopTimerArbeidetPerDagDTO(LocalDate.of(2025, 4, 1), 5.0)),
                 sistOppdatert = LocalDateTime.now()
             ),
-            Meldekort(
-                periode = periode2,
+            DsopMeldekortDTO(
+                periode = periode2.somDTO,
                 antallTimerArbeidet = BigDecimal.valueOf(10),
-                timerArbeidetPerDag = listOf(TimerArbeidetPerDag(LocalDate.of(2025, 4, 6), 10.0)),
+                timerArbeidetPerDag = listOf(DsopTimerArbeidetPerDagDTO(LocalDate.of(2025, 4, 6), 10.0)),
                 sistOppdatert = LocalDateTime.now()
             )
         )
@@ -135,7 +139,9 @@ class MeldekortDetaljerRepositoryTest {
         val res = meldekort.slåSammenMeldeperioder()
 
         assertThat(res).hasSize(2)
-        assertThat(res.map { it.periode }).containsExactlyInAnyOrder(periode1, periode2)
+        assertThat(res.map { it.periode }).containsExactlyInAnyOrder(periode1.somDTO, periode2.somDTO)
     }
 
 }
+
+private val Periode.somDTO get() = PeriodeDTO(fom, tom)

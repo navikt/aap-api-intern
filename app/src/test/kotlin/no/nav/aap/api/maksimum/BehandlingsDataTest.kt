@@ -17,7 +17,6 @@ import no.nav.aap.api.intern.Maksimum
 import no.nav.aap.api.intern.Medium
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.kelvin.tilDomene
-import no.nav.aap.api.postgres.tilBehandlingData
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.PostgresTestBase
@@ -397,7 +396,7 @@ class BehandlingsDataTest : PostgresTestBase() {
 
             assertEquals(HttpStatusCode.OK, perioderResponseObo.status)
             assertEquals(
-                perioderMedAAp(listOf(testObject.tilDomene().tilBehandlingData())),
+                perioderMedAAp(listOf(testObject.tilDomene())),
                 perioderResponseObo.body<PerioderResponse>().perioder
             )
 
@@ -471,7 +470,7 @@ class BehandlingsDataTest : PostgresTestBase() {
 
     @Test
     fun `kan hente perioder fra vedtaksdata`() {
-        val result = perioderMedAAp(listOf(testObject.tilDomene().tilBehandlingData()))
+        val result = perioderMedAAp(listOf(testObject.tilDomene()))
 
         assertEquals(1, result.size)
         assertEquals(
