@@ -361,7 +361,7 @@ fun NormalOpenAPIRoute.api(
             AuthorizationMachineToMachineConfig(
                 authorizedAzps = listOf(
                     UUID.fromString(
-                        requiredConfigForKey("AZP_KELVIN_SAKSBEHANDLING_INTEGRASJONER")
+                        requiredConfigForKey("AZP_KELVIN_SAKSBEHANDLING")
                     )
                 ) + azpForTokenGenHvisIkkeProd()
             ),

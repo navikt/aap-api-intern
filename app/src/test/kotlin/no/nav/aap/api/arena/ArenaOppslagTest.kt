@@ -94,7 +94,7 @@ class ArenaOppslagTest {
     fun `kan hente saker for person`() {
         testWithKtorApp { token ->
             val res = jsonHttpClient.post("/arena/person/saker") {
-                bearerAuth(token.generate(isApp = true, azp = System.getProperty("AZP_KELVIN_SAKSBEHANDLING_INTEGRASJONER")))
+                bearerAuth(token.generate(isApp = true, azp = System.getProperty("AZP_KELVIN_SAKSBEHANDLING")))
                 contentType(ContentType.Application.Json)
                 setBody(SakerRequestV1(personidentifikator = "12345678910"))
             }
