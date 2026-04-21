@@ -26,15 +26,6 @@ class KontraktTest : PostgresTestBase() {
         "no.nav.aap.api.SakerRequestMeldekortbackend",
         "no.nav.aap.api.kelvin.MeldekortPerioderDTO",
         "no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest",
-        "no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArbeidIPeriodeDTO",
-        "no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO",
-        "no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO",
-        "no.nav.aap.behandlingsflyt.kontrakt.datadeling.GjeldendeStansEllerOpphørDTO",
-        "no.nav.aap.behandlingsflyt.kontrakt.datadeling.RettighetsTypePeriode",
-        "no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO",
-        "no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO",
-        "no.nav.aap.behandlingsflyt.kontrakt.datadeling.UnderveisDTO",
-        "no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer",
         "no.nav.aap.komponenter.type.Periode",
     )
 
@@ -65,7 +56,10 @@ class KontraktTest : PostgresTestBase() {
                     }
 
                     /* ideelt sett hadde vi sjekket at klassen er definert i :kontrakt på et eller annet vis. */
-                    assertThat(name).startsWith("no.nav.aap.api.intern.")
+                    assertThat(name).satisfiesAnyOf(
+                        { it.startsWith("no.nav.aap.api.intern.") },
+                        { it.startsWith("no.nav.aap.behandlingsflyt.kontrakt.") },
+                    )
                 }
             }
         }

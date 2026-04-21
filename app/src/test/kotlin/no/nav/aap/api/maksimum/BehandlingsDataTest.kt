@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.*
 import java.util.*
+import kotlin.collections.emptyList
 import kotlin.test.assertEquals
 
 
@@ -123,7 +124,8 @@ class BehandlingsDataTest : PostgresTestBase() {
             samId = "1234asd",
             vedtakId = 123456789L,
             beregningsgrunnlag = BigDecimal.valueOf(500_000),
-            stansOpphørVurdering = null
+            stansOpphørVurdering = null,
+            arenavedtak = emptyList(),
         )
 
         private val fakes = Fakes()
@@ -352,7 +354,8 @@ class BehandlingsDataTest : PostgresTestBase() {
                     samId = "1234asd",
                     vedtakId = Random().nextLong(),
                     beregningsgrunnlag = 600_000.toBigDecimal(),
-                    stansOpphørVurdering = null
+                    stansOpphørVurdering = null,
+                    arenavedtak = emptyList(),
                 )
             )
         }
