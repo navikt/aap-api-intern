@@ -4,11 +4,10 @@ import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
 import no.nav.aap.komponenter.type.Periode
 
-fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): DatadelingIntern {
-    return DatadelingIntern(
+fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
+    return Behandling(
         underveisperiode = this.underveisperiode.map { it.tilDomene() },
-        rettighetsPeriodeFom = this.rettighetsPeriodeFom,
-        rettighetsPeriodeTom = this.rettighetsPeriodeTom,
+        rettighetsperiode = Periode(this.rettighetsPeriodeFom, this.rettighetsPeriodeTom),
         behandlingStatus = this.behandlingStatus.tilDomene(),
         behandlingsId = this.behandlingsId,
         vedtaksDato = this.vedtaksDato,
@@ -38,7 +37,6 @@ fun SakDTO.tilDomene(): Sak {
     return Sak(
         saksnummer = this.saksnummer,
         status = this.status.tilDomene(),
-        fnr = this.fnr,
         opprettetTidspunkt = this.opprettetTidspunkt
     )
 }

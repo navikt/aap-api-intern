@@ -4,14 +4,17 @@ import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import no.nav.aap.komponenter.type.Periode
 
-data class BehandlingData(
+data class Behandling(
     val behandlingsId: String,
     val behandlingsReferanse: String,
+    @Deprecated("Ikke del denne utad.")
+    val rettighetsperiode: Periode,
     val underveisperiode: List<UnderveisIntern>,
     val behandlingStatus: KelvinBehandlingStatus,
     val vedtaksDato: LocalDate,
-    val sak: SakInfo,
+    val sak: Sak,
     val tilkjent: List<TilkjentPeriode>,
     val rettighetsTypeTidsLinje: List<RettighetsTypePeriode>,
     val samId: String?,
@@ -19,47 +22,6 @@ data class BehandlingData(
     val beregningsgrunnlag: BigDecimal?,
     val nyttVedtak: Boolean,
     val stansOpphørVurdering: Set<GjeldendeStansEllerOpphør>?,
-)
-
-data class SakInfo(
-    val saksnummer: String,
-    val status: KelvinSakStatus,
-)
-
-fun DatadelingIntern.tilBehandlingData(): BehandlingData = BehandlingData(
-    behandlingsId = this.behandlingsId,
-    behandlingsReferanse = this.behandlingsReferanse,
-    underveisperiode = this.underveisperiode,
-    behandlingStatus = this.behandlingStatus,
-    vedtaksDato = this.vedtaksDato,
-    sak = SakInfo(saksnummer = this.sak.saksnummer, status = this.sak.status),
-    tilkjent = this.tilkjent,
-    rettighetsTypeTidsLinje = this.rettighetsTypeTidsLinje,
-    samId = this.samId,
-    vedtakId = this.vedtakId,
-    beregningsgrunnlag = this.beregningsgrunnlag,
-    nyttVedtak = this.nyttVedtak,
-    stansOpphørVurdering = this.stansOpphørVurdering,
-)
-
-data class DatadelingIntern(
-    val underveisperiode: List<UnderveisIntern>,
-    @Deprecated("Ikke del disse utad.")
-    val rettighetsPeriodeFom: LocalDate,
-    @Deprecated("Ikke del disse utad.")
-    val rettighetsPeriodeTom: LocalDate,
-    val behandlingStatus: KelvinBehandlingStatus,
-    val behandlingsId: String,
-    val vedtaksDato: LocalDate,
-    val sak: Sak,
-    val tilkjent: List<TilkjentPeriode>,
-    val rettighetsTypeTidsLinje: List<RettighetsTypePeriode>,
-    val behandlingsReferanse: String,
-    val samId: String? = null,
-    val vedtakId: Long,
-    val beregningsgrunnlag: BigDecimal?,
-    val nyttVedtak: Boolean,
-    val stansOpphørVurdering: Set<GjeldendeStansEllerOpphør>?
 )
 
 data class GjeldendeStansEllerOpphør(
@@ -111,8 +73,7 @@ data class RettighetsTypePeriode(
 data class Sak(
     val saksnummer: String,
     val status: KelvinSakStatus,
-    val fnr: List<String>,
-    val opprettetTidspunkt: LocalDateTime = LocalDateTime.now(),
+    val opprettetTidspunkt: LocalDateTime,
 )
 
 /**

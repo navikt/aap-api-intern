@@ -91,7 +91,7 @@ fun NormalOpenAPIRoute.dataInsertion(
             val nyttVedtak = dataSource.transaction { connection ->
                 val behandlingsRepository = BehandlingsRepository(connection)
                 val nyttVedtak = behandlingsRepository.erNyttVedtak(body.sak.fnr.first())
-                behandlingsRepository.lagreBehandling(body.tilDomene(nyttVedtak))
+                behandlingsRepository.lagreBehandling(body.sak.fnr, body.tilDomene(nyttVedtak))
                 nyttVedtak
             }
 
