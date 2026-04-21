@@ -5,6 +5,11 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import no.nav.aap.api.intern.DsopRettighetsTypeDTO
+import no.nav.aap.api.intern.DsopStatusDTO
+import no.nav.aap.api.intern.DsopVedtakDTO
+import no.nav.aap.api.intern.DsopVedtaksTypeDTO
+import no.nav.aap.api.intern.PeriodeDTO
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -103,29 +108,29 @@ class BehandlingsRepositoryTest {
             .usingRecursiveComparison()
             .isEqualTo(
                 listOf(
-                    DsopVedtak(
+                    DsopVedtakDTO(
                         vedtakId = "1",
-                        vedtakStatus = DsopStatus.AVSLUTTET,
-                        virkningsperiode = Periode(
+                        vedtakStatus = DsopStatusDTO.AVSLUTTET,
+                        virkningsperiode = PeriodeDTO(
                             LocalDate.of(2021, 1, 1),
                             LocalDate.of(2021, 2, 1)
                         ),
                         rettighetsType = "AAP",
                         utfall = "JA",
-                        aktivitetsfase = RettighetsType.BISTANDSBEHOV,
-                        vedtaksType = VedtaksType.E,
+                        aktivitetsfase = DsopRettighetsTypeDTO.BISTANDSBEHOV,
+                        vedtaksType = DsopVedtaksTypeDTO.E,
                     ),
-                    DsopVedtak(
+                    DsopVedtakDTO(
                         vedtakId = "1",
-                        vedtakStatus = DsopStatus.AVSLUTTET,
-                        virkningsperiode = Periode(
+                        vedtakStatus = DsopStatusDTO.AVSLUTTET,
+                        virkningsperiode = PeriodeDTO(
                             LocalDate.of(2021, 2, 2),
                             LocalDate.of(2021, 4, 1)
                         ),
                         rettighetsType = "AAP",
                         utfall = "JA",
-                        aktivitetsfase = RettighetsType.SYKEPENGEERSTATNING,
-                        vedtaksType = VedtaksType.E,
+                        aktivitetsfase = DsopRettighetsTypeDTO.SYKEPENGEERSTATNING,
+                        vedtaksType = DsopVedtaksTypeDTO.E,
                     )
                 )
             )
