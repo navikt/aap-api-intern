@@ -9,6 +9,10 @@ plugins {
 apply(plugin = "maven-publish")
 apply(plugin = "java-library")
 
+dependencies {
+    implementation(libs.kelvinKtorOpenapiGenerator)
+}
+
 java {
     withSourcesJar()
 }

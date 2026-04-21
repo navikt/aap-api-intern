@@ -152,7 +152,7 @@ fun NormalOpenAPIRoute.api(
                 val aktivitetfase = arenaService.aktivitetfase(callId, vedtakRequest)
 
                 tellKildesystem(
-                    null,
+                    aktfaseKelvin,
                     aktivitetfase.perioder,
                     "/perioder/aktivitetfase"
                 )
