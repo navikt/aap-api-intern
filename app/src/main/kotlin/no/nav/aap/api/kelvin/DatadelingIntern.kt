@@ -1,4 +1,4 @@
-package no.nav.aap.api.postgres
+package no.nav.aap.api.kelvin
 
 import java.math.BigDecimal
 import java.time.Instant

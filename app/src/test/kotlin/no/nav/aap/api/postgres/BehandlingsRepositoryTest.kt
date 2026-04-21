@@ -10,7 +10,14 @@ import no.nav.aap.api.intern.DsopStatusDTO
 import no.nav.aap.api.intern.DsopVedtakDTO
 import no.nav.aap.api.intern.DsopVedtaksTypeDTO
 import no.nav.aap.api.intern.PeriodeDTO
+import no.nav.aap.api.kelvin.DatadelingIntern
 import no.nav.aap.api.kelvin.DsopService
+import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
+import no.nav.aap.api.kelvin.KelvinBehandlingStatus
+import no.nav.aap.api.kelvin.KelvinSakStatus
+import no.nav.aap.api.kelvin.RettighetsTypePeriode
+import no.nav.aap.api.kelvin.Sak
+import no.nav.aap.api.kelvin.StansEllerOpphør
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource

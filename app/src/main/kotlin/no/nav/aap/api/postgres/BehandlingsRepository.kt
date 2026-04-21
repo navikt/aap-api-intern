@@ -9,6 +9,17 @@ import java.time.LocalDateTime
 import kotlin.math.roundToInt
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.api.kelvin.Avslagsårsak
+import no.nav.aap.api.kelvin.BehandlingData
+import no.nav.aap.api.kelvin.DatadelingIntern
+import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
+import no.nav.aap.api.kelvin.KelvinBehandlingStatus
+import no.nav.aap.api.kelvin.KelvinSakStatus
+import no.nav.aap.api.kelvin.RettighetsTypePeriode
+import no.nav.aap.api.kelvin.SakInfo
+import no.nav.aap.api.kelvin.StansEllerOpphør
+import no.nav.aap.api.kelvin.TilkjentPeriode
+import no.nav.aap.api.kelvin.UnderveisIntern
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory

@@ -38,6 +38,10 @@ import java.util.*
 import javax.sql.DataSource
 import no.nav.aap.api.kelvin.AktivitetsfaseService
 import no.nav.aap.api.kelvin.DsopService
+import no.nav.aap.api.kelvin.KelvinBehandlingStatus
+import no.nav.aap.api.kelvin.KelvinSakStatus
+import no.nav.aap.api.kelvin.MeldekortService
+import no.nav.aap.api.kelvin.VedtakService
 
 private val logger = LoggerFactory.getLogger("App")
 
