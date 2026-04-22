@@ -23,8 +23,8 @@ import no.nav.aap.tilgang.TilgangResponse
 import java.util.*
 
 
-class Fakes : AutoCloseable {
-    val azure = embeddedServer(Netty, port = 0, module = Application::azure).start()
+class Fakes(azurePort: Int = 0) : AutoCloseable {
+    val azure = embeddedServer(Netty, port = azurePort, module = Application::azure).start()
     val arena = embeddedServer(Netty, port = 0, module = Application::arena).start()
     val pdl = embeddedServer(Netty, port = 0, module = Application::pdlFake).start()
     val tilgang = embeddedServer(Netty, port = 0, module = Application::tilgangFake).start()

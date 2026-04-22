@@ -2,10 +2,12 @@ package no.nav.aap.api.util
 
 import no.nav.aap.api.arena.IArenaoppslagGateway
 import no.nav.aap.api.intern.PerioderResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakOppsummeringKontrakt
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 import no.nav.aap.arenaoppslag.kontrakt.intern.*
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
+import java.time.LocalDate
 
 class FakeArenaGateway : IArenaoppslagGateway {
     override suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse {
@@ -40,7 +42,22 @@ class FakeArenaGateway : IArenaoppslagGateway {
     override suspend fun hentSakerForPerson(
         callId: String, req: SakerRequestV1
     ): SakerResponse {
-        return SakerResponse(emptyList())
+        return when (req.personidentifikator) {
+            "01410028596" -> SakerResponse(
+                listOf(
+                    ArenaSakOppsummeringKontrakt(
+                        sakId = "1",
+                        lopenummer = 1,
+                        aar = 2021,
+                        antallVedtak = 1,
+                        sakstype = "Arbeidsavklaringspenger",
+                        regDato = LocalDate.of(2022, 2, 2),
+                        avsluttetDato = null,
+                    )
+                )
+            )
+            else -> SakerResponse(emptyList())
+        }
     }
 
     override suspend fun hentMaksimum(

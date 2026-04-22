@@ -18,11 +18,17 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureC
 import java.net.URI
 
 fun main() {
-    val fakes = Fakes()
+    val fakes = Fakes(azurePort = 8085)
     val dataSource = TestDataSource()
     val kafkaFake = KafkaFake()
 
     val config = byggAppConfig(fakes)
+
+    println("===========================================")
+    println("  TestApp kjører på http://localhost:8084")
+    println("  Fake Azure kjører på http://localhost:8085")
+    println("  Hent token: POST http://localhost:8085")
+    println("===========================================")
 
     embeddedServer(Netty, port = 8084) {
         api(
