@@ -9,16 +9,45 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
-import io.ktor.http.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
-import io.ktor.server.request.*
-import io.ktor.server.routing.*
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.withCharset
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
+import io.ktor.server.request.ApplicationRequest
+import io.ktor.server.request.path
+import io.ktor.server.routing.RoutingContext
+import java.time.Clock
+import java.time.LocalDate
+import java.util.*
+import javax.sql.DataSource
 import no.nav.aap.api.arena.ArenaService
-import no.nav.aap.api.intern.*
+import no.nav.aap.api.dsop.dsopRoutes
+import no.nav.aap.api.intern.InternVedtakRequestApiIntern
+import no.nav.aap.api.intern.Maksimum
+import no.nav.aap.api.intern.Medium
+import no.nav.aap.api.intern.MeldekortDetaljerRequest
+import no.nav.aap.api.intern.MeldekortDetaljerResponse
+import no.nav.aap.api.intern.PeriodeDTO
+import no.nav.aap.api.intern.PerioderInkludert11_17Response
+import no.nav.aap.api.intern.PerioderResponse
+import no.nav.aap.api.intern.PersonEksistererIAAPArena
+import no.nav.aap.api.intern.SakStatus
+import no.nav.aap.api.intern.SakStatusMeldekortbackend
+import no.nav.aap.api.intern.SignifikanteSakerResponse
+import no.nav.aap.api.intern.Vedtak
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.api.kelvin.AktivitetsfaseService
+import no.nav.aap.api.kelvin.KelvinBehandlingStatus
 import no.nav.aap.api.kelvin.KelvinSakService
+import no.nav.aap.api.kelvin.KelvinSakStatus
+import no.nav.aap.api.kelvin.MeldekortService
+import no.nav.aap.api.kelvin.VedtakService
 import no.nav.aap.api.pdl.IPdlGateway
-import no.nav.aap.api.postgres.*
+import no.nav.aap.api.postgres.BehandlingsRepository
+import no.nav.aap.api.postgres.MeldekortPerioderRepository
+import no.nav.aap.api.postgres.SakStatusRepository
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
@@ -34,17 +63,6 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.LoggerFactory
-import java.time.Clock
-import java.time.LocalDate
-import java.util.*
-import javax.sql.DataSource
-import no.nav.aap.api.kelvin.AktivitetsfaseService
-import no.nav.aap.api.kelvin.DsopService
-import no.nav.aap.api.kelvin.KelvinBehandlingStatus
-import no.nav.aap.api.kelvin.KelvinSakStatus
-import no.nav.aap.api.kelvin.MeldekortService
-import no.nav.aap.api.kelvin.VedtakService
-import no.nav.aap.api.kelvin.slåSammenMeldeperioder
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -154,7 +172,7 @@ fun NormalOpenAPIRoute.api(
                 val aktivitetfase = arenaService.aktivitetfase(callId, vedtakRequest)
 
                 tellKildesystem(
-                    null,
+                    aktfaseKelvin,
                     aktivitetfase.perioder,
                     "/perioder/aktivitetfase"
                 )
@@ -472,76 +490,8 @@ fun NormalOpenAPIRoute.api(
     }
 
     tag(Tag.DSOP) {
-        route("/kelvin") {
-            route("/dsop") {
-                route("/vedtak").post<CallIdHeader, DsopResponse, DsopRequest>(
-                    info(
-                        description = """Henter ut vedtaksdata for en person for DSOP.
-                        Verdier som mangler er ikke tilgjengelige fra Kelvin.
-                    """.trimMargin(),
-                    )
-                ) { _, requestBody ->
-                    logger.info("Henter vedtak fra DSOP")
-                    Metrics.httpRequestTeller(pipeline.call)
-                    val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
-
-                    sjekkTilgangTilPerson(requestBody.personIdent, token())
-
-                    val kelvinVedtak = dataSource.transaction { connection ->
-                        val dsopService = DsopService(connection)
-                        dsopService.hentDsopVedtak(
-                            requestBody.personIdent,
-                            utrekksperiode
-                        )
-                    }
-
-                    respond(
-                        DsopResponse(
-                            PeriodeDTO(utrekksperiode.fom, utrekksperiode.tom),
-                            kelvinVedtak
-                        )
-                    )
-                }
-                route("/meldekort").post<CallIdHeader, DsopMeldekortRespons, DsopRequest>(
-                    info(
-                        description = """Henter ut meldekort for bruker for DSOP API."""
-                    )
-                ) { _, requestBody ->
-                    Metrics.httpRequestTeller(pipeline.call)
-                    val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
-
-                    sjekkTilgangTilPerson(requestBody.personIdent, token())
-
-                    val meldekortListe = dataSource.transaction { connection ->
-                        val meldekortService = MeldekortService(connection, pdlGateway, clock)
-                        meldekortService.hentAlleMeldekortMedRett(
-                            requestBody.personIdent,
-                            requestBody.fomDato,
-                            requestBody.tomDato
-                        )
-                            .map { meldekort ->
-                                DsopMeldekortDTO(
-                                    PeriodeDTO(meldekort.meldePeriode.fom, meldekort.meldePeriode.tom),
-                                    meldekort.arbeidPerDag.sumOf { it.timerArbeidet },
-                                    meldekort.arbeidPerDag.map {
-                                        DsopTimerArbeidetPerDagDTO(
-                                            it.dag,
-                                            it.timerArbeidet.toDouble()
-                                        )
-                                    },
-                                    meldekort.mottattTidspunkt
-                                )
-                            }.slåSammenMeldeperioder()
-                    }
-
-                    respond(
-                        DsopMeldekortRespons(
-                            PeriodeDTO(utrekksperiode.fom, utrekksperiode.tom),
-                            meldekortListe
-                        )
-                    )
-                }
-            }
+        route("/kelvin/dsop") {
+            dsopRoutes(dataSource, pdlGateway, clock)
         }
     }
 }
@@ -572,7 +522,7 @@ private fun tellKildesystem(
     }
 }
 
-private fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
+fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
     if (!token.isClientCredentials()) {
         Metrics.tokentype("m2m")
         val tilgang = TilgangGateway.harTilgangTilPerson(personIdent, token)
@@ -632,3 +582,5 @@ fun InternVedtakRequestApiIntern.tilKontrakt(): InternVedtakRequest {
 }
 
 class IngenTilgangException(message: String) : RuntimeException(message)
+
+val Periode.somDTO: PeriodeDTO get() = PeriodeDTO(fom, tom)

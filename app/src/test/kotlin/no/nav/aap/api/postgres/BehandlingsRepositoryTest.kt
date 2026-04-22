@@ -5,13 +5,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import no.nav.aap.api.intern.DsopRettighetsTypeDTO
-import no.nav.aap.api.intern.DsopStatusDTO
-import no.nav.aap.api.intern.DsopVedtakDTO
-import no.nav.aap.api.intern.DsopVedtaksTypeDTO
-import no.nav.aap.api.intern.PeriodeDTO
 import no.nav.aap.api.kelvin.Behandling
-import no.nav.aap.api.kelvin.DsopService
 import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
 import no.nav.aap.api.kelvin.KelvinBehandlingStatus
 import no.nav.aap.api.kelvin.KelvinSakStatus
@@ -92,51 +86,6 @@ class BehandlingsRepositoryTest {
         }
 
         assertThat(uthentetVedtak).hasSize(1)
-    }
-
-    @Test
-    fun `lagre ned og hente ut dsop-vedtak, komprimerer like rettighetstypeperioder`() {
-        dataSource.transaction {
-            BehandlingsRepository(it).lagreBehandling(fnr, testVedtak)
-        }
-
-        val res = dataSource.transaction {
-            DsopService(it).hentDsopVedtak(
-                "123445",
-                Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 1, 1))
-            )
-        }
-
-        assertThat(res)
-            .usingRecursiveComparison()
-            .isEqualTo(
-                listOf(
-                    DsopVedtakDTO(
-                        vedtakId = "1",
-                        vedtakStatus = DsopStatusDTO.AVSLUTTET,
-                        virkningsperiode = PeriodeDTO(
-                            LocalDate.of(2021, 1, 1),
-                            LocalDate.of(2021, 2, 1)
-                        ),
-                        rettighetsType = "AAP",
-                        utfall = "JA",
-                        aktivitetsfase = DsopRettighetsTypeDTO.BISTANDSBEHOV,
-                        vedtaksType = DsopVedtaksTypeDTO.E,
-                    ),
-                    DsopVedtakDTO(
-                        vedtakId = "1",
-                        vedtakStatus = DsopStatusDTO.AVSLUTTET,
-                        virkningsperiode = PeriodeDTO(
-                            LocalDate.of(2021, 2, 2),
-                            LocalDate.of(2021, 4, 1)
-                        ),
-                        rettighetsType = "AAP",
-                        utfall = "JA",
-                        aktivitetsfase = DsopRettighetsTypeDTO.SYKEPENGEERSTATNING,
-                        vedtaksType = DsopVedtaksTypeDTO.E,
-                    )
-                )
-            )
     }
 
     @Test

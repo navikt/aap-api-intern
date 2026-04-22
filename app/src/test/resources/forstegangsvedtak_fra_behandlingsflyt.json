@@ -777,5 +777,6 @@
   "behandlingsReferanse": "906e0a35-6e18-4f7d-94b0-f16393536c4e",
   "samId": null,
   "vedtakId": 2,
-  "beregningsgrunnlag": 212984.25
+  "beregningsgrunnlag": 212984.25,
+  "arenavedtak": []
 }
