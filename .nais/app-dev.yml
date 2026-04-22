@@ -133,6 +133,7 @@ spec:
         - application: k9-abakus
           namespace: k9saksbehandling
           cluster: dev-fss
+        - application: paw-patrol
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io
