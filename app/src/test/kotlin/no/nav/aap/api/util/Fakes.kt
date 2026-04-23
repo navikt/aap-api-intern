@@ -1,6 +1,6 @@
 package no.nav.aap.api.util
 
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -15,15 +15,15 @@ import no.nav.aap.api.pdl.PdlIdenter
 import no.nav.aap.api.pdl.PdlIdenterData
 import no.nav.aap.api.util.graphql.GraphQLResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.oppgave.enhet.EnhetOgOversendelse
 import no.nav.aap.oppgave.enhet.PersonRequest
 import no.nav.aap.tilgang.TilgangResponse
 import java.util.*
-
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 
 class Fakes : AutoCloseable {
     val azure = embeddedServer(Netty, port = 0, module = Application::azure).start()
+    val texas = embeddedServer(Netty, port = 0, module = Application::texas).start()
     val arena = embeddedServer(Netty, port = 0, module = Application::arena).start()
     val pdl = embeddedServer(Netty, port = 0, module = Application::pdlFake).start()
     val tilgang = embeddedServer(Netty, port = 0, module = Application::tilgangFake).start()
@@ -33,6 +33,7 @@ class Fakes : AutoCloseable {
 
     override fun close() {
         azure.stop(0L, 0L)
+        texas.stop(0L, 0L)
         arena.stop(0L, 0L)
         oppgave.stop(0L, 0L)
         pdl.stop(0L, 0L)
@@ -48,8 +49,10 @@ class Fakes : AutoCloseable {
         System.setProperty("AZURE_OPENID_CONFIG_JWKS_URI", "http://localhost:${azure.port()}/jwks")
         System.setProperty("AZURE_OPENID_CONFIG_ISSUER", "test")
 
-        // Kelvin
-        System.setProperty("KELVIN_PROXY_BASE_URL", "http://localhost:${azure.port()}")
+        // Texas
+        System.setProperty("nais.token.endpoint", "http://localhost:${texas.port()}/token")
+        System.setProperty("nais.token.exchange.endpoint", "http://localhost:${texas.port()}/token/exchange")
+        System.setProperty("nais.token.introspection.endpoint", "http://localhost:${texas.port()}/introspect")
 
         // Arena
         System.setProperty("ARENAOPPSLAG_PROXY_BASE_URL", "http://localhost:${arena.port()}")
@@ -110,6 +113,21 @@ fun Application.azure() {
             call.respond(TestToken(access_token = token))
         }
 
+    }
+}
+
+fun Application.texas() {
+    install(ContentNegotiation) { jackson() }
+    routing {
+        post("/token") {
+            call.respond(TestToken(AzureTokenGen("test", "test").generate(isApp = true)))
+        }
+        post("/token/exchange") {
+            call.respond(TestToken(AzureTokenGen("test", "test").generate(isApp = false)))
+        }
+        post("/introspect") {
+            call.respond(mapOf("active" to true))
+        }
     }
 }
 

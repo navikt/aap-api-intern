@@ -21,7 +21,7 @@ object TilgangGateway {
     private val client =
         RestClient.withDefaultResponseHandler(
             config = config,
-            tokenProvider = AzureOBOTokenProvider(),
+            tokenProvider = AzureOBOTokenProvider,
         )
 
     private val cache = Caffeine.newBuilder()
@@ -47,7 +47,6 @@ object TilgangGateway {
                 body = personTilgangRequest,
                 currentToken = token,
             )
-
 
             val respons = requireNotNull(
                 client.retryablePost<_, TilgangResponse>(

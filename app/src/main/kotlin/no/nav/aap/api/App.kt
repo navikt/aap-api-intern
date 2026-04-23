@@ -38,6 +38,7 @@ import no.nav.aap.api.util.registerCircuitBreakerMetrics
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import no.nav.aap.komponenter.server.AZURE
+import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
 
@@ -83,18 +84,20 @@ fun Application.api(
     install(StatusPages, StatusPagesConfigHelper.setup())
 
     commonKtorModule(
-        prometheus = prometheus, azureConfig = AzureConfig(), infoModel = InfoModel(
+        prometheus = prometheus,
+        infoModel = InfoModel(
             title = "aap-api-intern",
             description = "aap-intern-api tilbyr et internt API for henting av aap-data.\nBruker Azure til autentisering.",
             contact = ContactModel(
                 name = "Team AAP",
                 url = "https://github.com/navikt/aap-api-intern",
             )
-        )
+        ),
+        identityProvider = IdentityProvider.ENTRA_ID
     )
 
     routing {
-        authenticate(AZURE) {
+        authenticate(IdentityProvider.ENTRA_ID.value) {
             apiRouting {
                 api(datasource, arenaService, pdlGateway, clock)
                 dataInsertion(datasource, modiaProducer)
