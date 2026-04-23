@@ -139,7 +139,7 @@ class BehandlingsDataTest : PostgresTestBase() {
 
     @Test
     fun `kan lagre ned og hente maksimum`() {
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         testApplication {
@@ -196,7 +196,7 @@ class BehandlingsDataTest : PostgresTestBase() {
 
     @Test
     fun `kan lagre ned og hente maksimum med null param`() {
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         testApplication {
@@ -240,7 +240,7 @@ class BehandlingsDataTest : PostgresTestBase() {
 
     @Test
     fun `filtrering på periode fungerer`() {
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         val fnr = "12345678911"
@@ -364,7 +364,7 @@ class BehandlingsDataTest : PostgresTestBase() {
     @Test
     fun `kan lagre ned og hente perioder`() {
 
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         testApplication {
@@ -420,7 +420,7 @@ class BehandlingsDataTest : PostgresTestBase() {
 
     @Test
     fun `kan lagre ned og hente medium`() {
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         testApplication {
@@ -490,7 +490,7 @@ class BehandlingsDataTest : PostgresTestBase() {
     @Test
     fun `ekte data kopiert fra behandlingsflyt, snapshot-test`() {
         // Oppdater json-filene ved endring
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         val testfil =

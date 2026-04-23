@@ -44,10 +44,6 @@ private fun byggAppConfig(fakes: Fakes): AppConfig {
             proxyBaseUrl = "http://localhost:${fakes.arena.port()}",
             scope = "test"
         ),
-        kelvinConfig = KelvinConfig(
-            proxyBaseUrl = "http://localhost:$azurePort",
-            scope = "test"
-        ),
         azure = AzureConfig(
             tokenEndpoint = URI.create("http://localhost:$azurePort"),
             clientId = "test",

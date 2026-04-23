@@ -15,8 +15,8 @@ import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
 
 object TilgangGateway {
-    private val baseUrl = URI.create(requiredConfigForKey("integrasjon.tilgang.url"))
-    private val config = ClientConfig(scope = requiredConfigForKey("integrasjon.tilgang.scope"))
+    private val baseUrl = URI.create(requiredConfigForKey("INTEGRASJON_TILGANG_URL"))
+    private val config = ClientConfig(scope = requiredConfigForKey("INTEGRASJON_TILGANG_SCOPE"))
 
     private val client =
         RestClient.withDefaultResponseHandler(

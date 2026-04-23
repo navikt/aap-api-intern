@@ -64,7 +64,7 @@ class SakStatusKelvinTest {
     @Test
     fun `kan lagre ned og hente saker`() {
         Fakes().use { fakes ->
-            val config = TestConfig.default(fakes)
+            val config = TestConfig.default()
             val azure = AzureTokenGen("test", "test")
 
             testApplication {

@@ -16,6 +16,7 @@ import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.sjekkTilgangTilPerson
 import no.nav.aap.api.somDTO
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
@@ -42,6 +43,31 @@ fun NormalOpenAPIRoute.dsopRoutes(
         val kelvinVedtak = dataSource.transaction { connection ->
             val dsopService = DsopService(connection, pdlGateway, clock)
             dsopService.hentDsopVedtak(requestBody.personIdent, uttrekksperiode)
+        }
+
+        respond(
+            DsopResponse(
+                uttrekksperiode.somDTO,
+                kelvinVedtak
+            )
+        )
+    }
+
+    route("/vedtak-test").post<CallIdHeader, DsopResponse, DsopRequest>(
+        info(
+            description = """Midlertidig endepunkt, kommer til å bli slettet.""".trimMargin(),
+        )
+    ) { _, requestBody ->
+        require(!Miljø.erProd()) { "ikke tilgjengelig i prod" }
+        logger.info("Henter vedtak fra DSOP")
+        Metrics.httpRequestTeller(pipeline.call)
+        val uttrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
+
+        sjekkTilgangTilPerson(requestBody.personIdent, token())
+
+        val kelvinVedtak = dataSource.transaction { connection ->
+            val dsopService = DsopService(connection, pdlGateway, clock)
+            dsopService.hentDsopVedtakNy(requestBody.personIdent, uttrekksperiode)
         }
 
         respond(

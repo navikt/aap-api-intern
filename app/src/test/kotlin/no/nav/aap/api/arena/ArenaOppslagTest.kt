@@ -39,7 +39,7 @@ class ArenaOppslagTest {
     }
 
     fun testWithKtorApp(testBlock: suspend ApplicationTestBuilder.(azure: AzureTokenGen) -> Unit) {
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val token = AzureTokenGen("test", "test")
 
         testApplication {

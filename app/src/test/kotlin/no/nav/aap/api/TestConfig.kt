@@ -1,10 +1,10 @@
 package no.nav.aap.api
 
+import java.net.URI
 import no.nav.aap.api.kafka.KafkaConfig
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.port
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import java.net.URI
 
 object TestConfig {
     internal val postgres = DbConfig(
@@ -20,15 +20,11 @@ object TestConfig {
         issuer = "test",
     )
 
-    fun default(fakes: Fakes): AppConfig {
+    fun default(): AppConfig {
         return AppConfig(
             arenaoppslag = ArenaoppslagConfig(
                 proxyBaseUrl = "",
                 scope = "api://dev-fss.teamdokumenthandtering.dokarkiv/.default"
-            ),
-            kelvinConfig = KelvinConfig(
-                proxyBaseUrl = "",
-                scope = "api://behandlingsflyt/.default"
             ),
             kafka = KafkaConfig(
                 brokers = "localhost:2222",

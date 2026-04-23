@@ -23,10 +23,10 @@ interface IPdlGateway {
 }
 
 class PdlGateway : IPdlGateway {
-    private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.pdl.url"))
+    private val graphqlUrl = URI.create(requiredConfigForKey("INTEGRASJON_PDL_URL"))
     private val config =
         ClientConfig(
-            scope = requiredConfigForKey("integrasjon.pdl.scope"),
+            scope = requiredConfigForKey("INTEGRASJON_PDL_SCOPE"),
             additionalHeaders = listOf(Header("Behandlingsnummer", "B287")),
         )
 
