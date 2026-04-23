@@ -64,7 +64,7 @@ class MeldekortDetaljerTest : PostgresTestBase() {
 
     @Test
     fun `kan lagre og hente meldekort-detaljer`() {
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         testApplication {

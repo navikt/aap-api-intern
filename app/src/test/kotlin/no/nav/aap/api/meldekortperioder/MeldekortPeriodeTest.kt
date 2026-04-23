@@ -30,7 +30,7 @@ class MeldekortPeriodeTest : PostgresTestBase() {
     @Test
     fun `kan lagre ned og hente meldekortperioder`() {
         Fakes().use { fakes ->
-            val config = TestConfig.default(fakes)
+            val config = TestConfig.default()
             val azure = AzureTokenGen("test", "test")
 
             testApplication {
@@ -97,7 +97,7 @@ class MeldekortPeriodeTest : PostgresTestBase() {
     fun `kan lagre ned og hente aktivitetfase`() {
         Fakes().use { fakes ->
 
-            val config = TestConfig.default(fakes)
+            val config = TestConfig.default()
             val azure = AzureTokenGen("test", "test")
 
             testApplication {

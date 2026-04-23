@@ -32,7 +32,7 @@ class KontraktTest : PostgresTestBase() {
     @Test
     fun `schemas kommer kun fra kontrakter`() {
         Fakes().use { fakes ->
-            val config = TestConfig.default(fakes)
+            val config = TestConfig.default()
 
             testApplication {
                 application {
