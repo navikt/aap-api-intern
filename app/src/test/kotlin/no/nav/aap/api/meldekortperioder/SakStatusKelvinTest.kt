@@ -11,6 +11,7 @@ import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
+import no.nav.aap.api.intern.KelvinStatus
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.api.intern.Status
@@ -95,14 +96,13 @@ class SakStatusKelvinTest {
                     }
                 assertEquals(HttpStatusCode.OK, oboResponse.status)
                 assertEquals(
-                    SakStatus(
-                        statusKode = Status.REVURDERING_UNDER_BEHANDLING,
+                    SakStatus.Kelvin(
+                        statusKode = KelvinStatus.REVURDERING_UNDER_BEHANDLING,
                         periode = no.nav.aap.api.intern.Periode(
                             fraOgMedDato = LocalDate.of(2021, 1,1),
                             tilOgMedDato = LocalDate.of(2021,1,31)
                         ),
                         sakId = "1234",
-                        kilde = Kilde.KELVIN,
                         enhet = null
                     ),
                     oboResponse.body<List<SakStatus>>().first(),

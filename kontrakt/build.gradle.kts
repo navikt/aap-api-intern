@@ -11,6 +11,8 @@ apply(plugin = "java-library")
 
 dependencies {
     implementation(libs.kelvinKtorOpenapiGenerator)
+    implementation(libs.json)
+    api(libs.jacksonAnnotations)
 }
 
 java {

@@ -4,7 +4,7 @@ komponenter = "2.0.41"
 tilgang = "1.0.188"
 behandlingsflyt = "0.0.590"
 oppgave = "0.0.169"
-arenaoppslag = "0.5.0"
+arenaoppslag = "0.5.1"
 resilience4j = "2.4.0"
 kafka = "4.2.0"
 logback = "1.5.32"
@@ -26,6 +26,7 @@ kelvinDbmigrering = { module = "no.nav.aap.kelvin:dbmigrering", version.ref = "k
 kelvinTidslinje = { module = "no.nav.aap.kelvin:tidslinje", version.ref = "komponenter" }
 kelvinKtorOpenapiGenerator = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
 kelvinDbtest = { module = "no.nav.aap.kelvin:dbtest", version.ref = "komponenter" }
+json = { module = "no.nav.aap.kelvin:json", version.ref = "komponenter" }
 
 tilgangPlugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
 
@@ -59,6 +60,7 @@ logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 logstashLogbackEncoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstashEncoder" }
 
 jacksonDatatypeJsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
+jacksonAnnotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "jackson" }
 
 micrometerRegistryPrometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
 prometheusMetricsTracerInitializer = { module = "io.prometheus:prometheus-metrics-tracer-initializer", version.ref = "prometheus" }

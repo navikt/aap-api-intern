@@ -1,5 +1,6 @@
 package no.nav.aap.api.intern
 
+import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import java.time.LocalDate
 
 public data class SignifikanteSakerResponse(
@@ -8,6 +9,7 @@ public data class SignifikanteSakerResponse(
 )
 
 public data class PersonEksistererIAAPArena(
+    @property:Description("True om personen eksister i Arena.")
     val eksisterer: Boolean
 )
 

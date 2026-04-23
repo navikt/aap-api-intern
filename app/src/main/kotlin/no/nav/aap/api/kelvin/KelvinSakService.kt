@@ -1,11 +1,15 @@
 package no.nav.aap.api.kelvin
 
-import no.nav.aap.api.intern.NåværendeEnhet
-import no.nav.aap.api.intern.SakStatus
-import no.nav.aap.api.intern.SakStatusMeldekortbackend
+import no.nav.aap.api.intern.*
+import no.nav.aap.api.intern.behandlingsflyt.SakstatusFraKelvin
+import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.SakStatusRepository
+import no.nav.aap.komponenter.verdityper.Tid
 
-class KelvinSakService(private val sakStatusRepository: SakStatusRepository) {
+class KelvinSakService(
+    private val sakStatusRepository: SakStatusRepository,
+    private val behandlingsRepository: BehandlingsRepository
+) {
 
     /**
      * TODO: lag person-tabell, slik at vi slipper å spørre på hver ident
@@ -13,17 +17,36 @@ class KelvinSakService(private val sakStatusRepository: SakStatusRepository) {
     fun hentSakStatus(identer: List<String>): List<SakStatus> {
 
         return identer.flatMap { ident ->
-            val (enhetinfo, saksnummer) = OppgaveGateway.hentEnhetForPerson(ident) ?: Pair(null, null)
+            val (enhetinfo, saksnummer) = OppgaveGateway.hentEnhetForPerson(ident) ?: Pair(
+                null,
+                null
+            )
+
+            val periode = behandlingsRepository.hentVedtaksData(
+                ident,
+                no.nav.aap.komponenter.type.Periode(Tid.MIN, Tid.MAKS)
+            ).maxByOrNull { it.vedtaksDato }?.rettighetsTypeTidslinje?.helePerioden()
 
             sakStatusRepository.hentSakStatus(ident)
-                .map {
-                    if (enhetinfo != null && it.sakId == saksnummer) it.copy(
-                        enhet = NåværendeEnhet(
+                .map { kelvinSakStatus ->
+                    SakStatus.Kelvin(
+                        sakId = kelvinSakStatus.sakId,
+                        statusKode = when (kelvinSakStatus.statusKode) {
+                            SakstatusFraKelvin.OPPRETTET -> KelvinStatus.OPPRETTET
+                            SakstatusFraKelvin.UTREDES -> KelvinStatus.OPPRETTET
+                            SakstatusFraKelvin.LØPENDE -> KelvinStatus.LØPENDE
+                            SakstatusFraKelvin.AVSLUTTET -> KelvinStatus.AVSLUTTET
+                            SakstatusFraKelvin.SOKNAD_UNDER_BEHANDLING -> KelvinStatus.SOKNAD_UNDER_BEHANDLING
+                            SakstatusFraKelvin.REVURDERING_UNDER_BEHANDLING -> KelvinStatus.REVURDERING_UNDER_BEHANDLING
+                            SakstatusFraKelvin.FERDIGBEHANDLET -> KelvinStatus.FERDIGBEHANDLET
+                        },
+                        periode = periode!!.let { Periode(it.fom, it.tom) },
+                        enhet = if (enhetinfo != null && kelvinSakStatus.sakId == saksnummer) NåværendeEnhet(
                             oversendtDato = enhetinfo.oversendtDato,
                             oppgaveKategori = enhetinfo.oppgaveKategori,
                             enhet = enhetinfo.enhet,
-                        )
-                    ) else it
+                        ) else null
+                    )
                 }
         }
     }
@@ -31,7 +54,13 @@ class KelvinSakService(private val sakStatusRepository: SakStatusRepository) {
     fun hentSakStatusUtenEnhet(identer: List<String>): List<SakStatusMeldekortbackend> {
         return identer.flatMap { ident ->
             sakStatusRepository.hentSakStatus(ident)
-                .map { SakStatusMeldekortbackend(it.kilde, it.periode, it.sakId) }
+                .map {
+                    SakStatusMeldekortbackend(
+                        Kilde.KELVIN,
+                        it.periode.let { Periode(it.fom, it.tom) },
+                        it.sakId
+                    )
+                }
         }
     }
 }

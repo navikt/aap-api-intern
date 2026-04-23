@@ -19,7 +19,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class KontraktTest : PostgresTestBase() {
-    /* Det er ikke til å unngå at listen er tom, siden det er behandlingsflyt sin kontrakt som styrere
+    /* Det er ikke til å unngå at listen ikke er tom, siden det er behandlingsflyt sin kontrakt som styrer
      * insert-endepunktene. Utenom det, så hadde denne listen ideelt sett vært tom. */
     val unntak = setOf(
         "no.nav.aap.api.SakerRequest",
@@ -28,6 +28,35 @@ class KontraktTest : PostgresTestBase() {
         "no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest",
         "no.nav.aap.komponenter.type.Periode",
     )
+
+    @Test
+    fun `@Description annotasjoner på properties vises i openapi-skjema`() {
+        Fakes().use { fakes ->
+            val config = TestConfig.default(fakes)
+
+            testApplication {
+                application {
+                    api(
+                        config = config,
+                        datasource = dataSource,
+                        arenaService = fakes.arenaService,
+                        pdlGateway = PdlGatewayEmpty(),
+                        modiaProducer = fakes.kafka
+                    )
+                }
+
+                val res = jsonHttpClient.get("/openapi.json") {
+                    contentType(ContentType.Application.Json)
+                }
+                val body = res.bodyAsText()
+                val openapi = jacksonObjectMapper().readTree(body)
+                val schemas = openapi["components"]["schemas"]
+                val maksimum = schemas["no.nav.aap.api.intern.Maksimum"]
+                val vedtakDescription = maksimum["properties"]["vedtak"]["description"]?.asText()
+                assertThat(vedtakDescription).isNotNull().isNotEmpty()
+            }
+        }
+    }
 
     @Test
     fun `schemas kommer kun fra kontrakter`() {
