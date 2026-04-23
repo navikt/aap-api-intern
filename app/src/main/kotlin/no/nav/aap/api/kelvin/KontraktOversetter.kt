@@ -2,6 +2,7 @@ package no.nav.aap.api.kelvin
 
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArbeidIPeriodeDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArenaVedtaksvariantDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
@@ -35,7 +36,27 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
                 },
                 avslagsårsaker = it.avslagsårsaker.map { Avslagsårsak.valueOf(it.name) }.toSet()
             )
-        }?.toSet().orEmpty()
+        }?.toSet().orEmpty(),
+        arenakompatibleVedtak = this.arenavedtak.map {
+            Arenavedtak(
+                vedtakId = it.vedtakId,
+                fom = it.fom,
+                tom = it.tom,
+                vedtaksvariant = when (it.vedtaksvariant) {
+                    ArenaVedtaksvariantDTO.O_AVSLAG -> Arenavedtak.Vedtaksvariant.O_AVSLAG
+                    ArenaVedtaksvariantDTO.O_INNV_NAV -> Arenavedtak.Vedtaksvariant.O_INNV_NAV
+                    ArenaVedtaksvariantDTO.O_INNV_SOKNAD -> Arenavedtak.Vedtaksvariant.O_INNV_SOKNAD
+                    ArenaVedtaksvariantDTO.E_FORLENGE -> Arenavedtak.Vedtaksvariant.E_FORLENGE
+                    ArenaVedtaksvariantDTO.E_VERDI -> Arenavedtak.Vedtaksvariant.E_VERDI
+                    ArenaVedtaksvariantDTO.G_AVSLAG -> Arenavedtak.Vedtaksvariant.G_AVSLAG
+                    ArenaVedtaksvariantDTO.G_INNV_NAV -> Arenavedtak.Vedtaksvariant.G_INNV_NAV
+                    ArenaVedtaksvariantDTO.G_INNV_SOKNAD -> Arenavedtak.Vedtaksvariant.G_INNV_SOKNAD
+                    ArenaVedtaksvariantDTO.S_DOD -> Arenavedtak.Vedtaksvariant.S_DOD
+                    ArenaVedtaksvariantDTO.S_OPPHOR -> Arenavedtak.Vedtaksvariant.S_OPPHOR
+                    ArenaVedtaksvariantDTO.S_STANS -> Arenavedtak.Vedtaksvariant.S_STANS
+                },
+            )
+        },
     )
 }
 

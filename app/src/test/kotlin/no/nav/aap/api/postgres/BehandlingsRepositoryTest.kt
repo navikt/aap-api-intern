@@ -5,6 +5,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import no.nav.aap.api.kelvin.Arenavedtak
 import no.nav.aap.api.kelvin.Behandling
 import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
 import no.nav.aap.api.kelvin.KelvinBehandlingStatus
@@ -69,7 +70,27 @@ class BehandlingsRepositoryTest {
         vedtakId = 1234L,
         beregningsgrunnlag = BigDecimal.ZERO,
         nyttVedtak = false,
-        stansOpphørVurdering = emptySet()
+        stansOpphørVurdering = emptySet(),
+        arenakompatibleVedtak = listOf(
+            Arenavedtak(
+                vedtakId = 4,
+                fom = LocalDate.of(2021, 1, 1),
+                tom = LocalDate.of(2021, 2, 1),
+                vedtaksvariant = Arenavedtak.Vedtaksvariant.O_INNV_SOKNAD,
+            ),
+            Arenavedtak(
+                vedtakId = 10,
+                fom = LocalDate.of(2021, 2, 2),
+                tom = LocalDate.of(2021, 3, 1),
+                vedtaksvariant = Arenavedtak.Vedtaksvariant.E_VERDI,
+            ),
+            Arenavedtak(
+                vedtakId = 10,
+                fom = LocalDate.of(2021, 3, 2),
+                tom = LocalDate.of(2021, 4, 1),
+                vedtaksvariant = Arenavedtak.Vedtaksvariant.E_FORLENGE,
+            ),
+        ),
     )
 
     @Test
@@ -86,6 +107,8 @@ class BehandlingsRepositoryTest {
         }
 
         assertThat(uthentetVedtak).hasSize(1)
+        assertThat(uthentetVedtak[0].arenakompatibleVedtak)
+            .isEqualTo(testVedtak.arenakompatibleVedtak)
     }
 
     @Test

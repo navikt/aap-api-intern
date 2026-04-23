@@ -25,6 +25,7 @@ data class Behandling(
     val beregningsgrunnlag: BigDecimal?,
     val nyttVedtak: Boolean,
     val stansOpphørVurdering: Set<GjeldendeStansEllerOpphør>?,
+    val arenakompatibleVedtak: List<Arenavedtak>,
 ) {
     val rettighetsTypeTidslinje: Tidslinje<String>
         get() = rettighetsTypePerioder.somTidslinje({ it.periode }, { it.verdi })
@@ -110,6 +111,7 @@ data class TilkjentYtelse(
             (100 - (this.samordningUføregradering ?: 0)) / 100.0
         ).roundToInt()
 }
+
 data class UnderveisIntern(
     val underveisFom: LocalDate,
     val underveisTom: LocalDate,
@@ -136,4 +138,26 @@ enum class KelvinBehandlingStatus {
 
     fun iverksatt() =
         this == IVERKSETTES || this == AVSLUTTET
+}
+
+data class Arenavedtak(
+    val vedtakId: Long,
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val vedtaksvariant: Vedtaksvariant,
+) {
+    enum class Vedtaksvariant {
+        O_AVSLAG,
+        O_INNV_NAV,
+        O_INNV_SOKNAD,
+        E_FORLENGE,
+        E_VERDI,
+        G_AVSLAG,
+        G_INNV_NAV,
+        G_INNV_SOKNAD,
+        S_DOD,
+        S_OPPHOR,
+        S_STANS,
+        ;
+    }
 }
