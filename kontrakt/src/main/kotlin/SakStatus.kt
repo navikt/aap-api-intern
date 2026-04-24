@@ -29,7 +29,9 @@ public data class SakStatusOverlappskontroll(
     val sakId: String,
     @Deprecated("Ikke i bruk av konsument.")
     val statusKode: Status,
+    @Deprecated("Ikke i bruk av konsument (straks).")
     val periode: Periode,
+    val fraDato: LocalDate,
     @Deprecated("Ikke i bruk av konsument.")
     val kilde: Kilde,
     @Deprecated("Ikke i bruk av konsument.")

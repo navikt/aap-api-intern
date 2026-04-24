@@ -316,6 +316,8 @@ fun NormalOpenAPIRoute.api(
                     sakId = it.sakId,
                     statusKode = it.statusKode,
                     periode = it.periode,
+                    // Dette kommer fra Kelvin-periode, som alltid har ikke-null fra-dato
+                    fraDato = it.periode.fraOgMedDato!!,
                     kilde = it.kilde,
                     enhet = it.enhet
                 )
