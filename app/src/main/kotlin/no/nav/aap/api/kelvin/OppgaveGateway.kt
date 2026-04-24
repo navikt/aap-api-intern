@@ -7,7 +7,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.retryablePost
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.oppgave.enhet.EnhetOgOversendelse
 import no.nav.aap.oppgave.enhet.OppgaveKategori
 import no.nav.aap.oppgave.enhet.PersonRequest
@@ -20,7 +20,7 @@ object OppgaveGateway {
     private val client =
         RestClient.withDefaultResponseHandler(
             config = config,
-            tokenProvider = ClientCredentialsTokenProvider,
+            tokenProvider = AzureM2MTokenProvider,
         )
 
     fun hentEnhetForPerson(

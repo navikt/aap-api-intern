@@ -1,13 +1,21 @@
 package no.nav.aap.api.util.auth
 
 import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.client.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.*
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.accept
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
+import no.nav.aap.komponenter.config.requiredConfigForKey
 
 internal val defaultHttpClient = HttpClient(CIO) {
     install(ContentNegotiation) {
@@ -25,23 +33,20 @@ internal val defaultHttpClient = HttpClient(CIO) {
     }
 }
 
-class AzureAdTokenProvider(
-    private val config: AzureConfig = AzureConfig(),
-    client: HttpClient = defaultHttpClient,
-) {
-    private val cachingTokenClient = CachingTokenClient(client)
+class AzureAdTokenProvider(private val client: HttpClient = defaultHttpClient) {
 
-    suspend fun getClientCredentialToken(scope: String) =
-        cachingTokenClient.getAccessToken(config.tokenEndpoint.toString(), scope) {
-            """
-                client_id=${config.clientId}&
-                client_secret=${config.clientSecret}&
-                scope=$scope&
-                grant_type=client_credentials
-            """.asUrlPart()
+    suspend fun getClientCredentialToken(scope: String): String =
+        client.post(requiredConfigForKey("nais.token.endpoint")) {
+            accept(ContentType.Application.Json)
+            contentType(ContentType.Application.Json)
+            setBody(
+                mapOf(
+                    "identity_provider" to "entra_id",
+                    "target" to scope,
+                )
+            )
         }
-
+            .body<JsonNode>()
+            .get("access_token")
+            .asText()
 }
-
-internal fun String.asUrlPart() =
-    this.trimIndent().replace("\n", "")
