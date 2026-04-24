@@ -17,6 +17,7 @@ import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.api.util.PostgresTestBase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class KontraktTest : PostgresTestBase() {
     /* Det er ikke til å unngå at listen ikke er tom, siden det er behandlingsflyt sin kontrakt som styrer
@@ -32,7 +33,7 @@ class KontraktTest : PostgresTestBase() {
     @Test
     fun `@Description annotasjoner på properties vises i openapi-skjema`() {
         Fakes().use { fakes ->
-            val config = TestConfig.default(fakes)
+            val config = TestConfig.default()
 
             testApplication {
                 application {
@@ -48,6 +49,8 @@ class KontraktTest : PostgresTestBase() {
                 val res = jsonHttpClient.get("/openapi.json") {
                     contentType(ContentType.Application.Json)
                 }
+
+                File("openapi.json").writeText(res.bodyAsText())
                 val body = res.bodyAsText()
                 val openapi = jacksonObjectMapper().readTree(body)
                 val schemas = openapi["components"]["schemas"]

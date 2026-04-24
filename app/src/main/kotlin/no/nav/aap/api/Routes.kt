@@ -317,14 +317,14 @@ fun NormalOpenAPIRoute.api(
                 }
             val arenaSaker: List<SakStatusMeldekortbackend> =
                 arenaService.hentSaker(callId, listOf(requestBody.personidentifikator))
-                    .map { SakStatusMeldekortbackend(it.kilde, it.periode, it.sakId) }
+                    .map { SakStatusMeldekortbackend(it.kilde, it.periode(), it.sakId) }
 
             tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
 
             respond(arenaSaker + kelvinSaker)
         }
 
-        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
+        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus.Kelvin>, SakerRequest>(
             info(description = "Henter saker for en person. Kalles av Arena for overlappskontroll.")
         ) { _, requestBody ->
             logger.info("Henter saker for en person fra Kelvin.")
@@ -338,7 +338,7 @@ fun NormalOpenAPIRoute.api(
             Metrics.antallIdenter("/kelvin/sakerByFnr", requestBody.personidentifikatorer.size)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
-            val kelvinSaker: List<SakStatus> =
+            val kelvinSaker: List<SakStatus.Kelvin> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
                     val kelvinSakService = KelvinSakService(sakStatusRepository, BehandlingsRepository(connection))

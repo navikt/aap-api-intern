@@ -12,9 +12,7 @@ import io.ktor.server.testing.*
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
 import no.nav.aap.api.intern.KelvinStatus
-import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.SakStatus
-import no.nav.aap.api.intern.Status
 import no.nav.aap.api.intern.behandlingsflyt.Periode
 import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
 import no.nav.aap.api.intern.behandlingsflyt.SakstatusFraKelvin
@@ -103,7 +101,7 @@ class SakStatusKelvinTest {
                             tilOgMedDato = LocalDate.of(2021,1,31)
                         ),
                         sakId = "1234",
-                        enhet = null
+                        perioder = emptyList()
                     ),
                     oboResponse.body<List<SakStatus>>().first(),
                 )

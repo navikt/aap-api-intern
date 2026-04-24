@@ -1,5 +1,6 @@
 package no.nav.aap.api.intern
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.papsign.ktor.openapigen.annotations.Response
@@ -14,41 +15,74 @@ public data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalD
     }
 }
 
-/**
- * @param enhet Kan være null enten om kilde er ARENA, eller om det ikke finnes noen åpne oppgaver for personen.
- */
-//@Response(description = "Representerer saker både fra Arena og Kelvin. `enhet` er alltid null fra Arena.")
-//public data class SakStatus(
-//    val sakId: String,
-//    @property:Description("Fra Kelvin forteller denne om saksbehandlingsstatusen.")
-//    val statusKode: Status,
-//    val periode: Periode,
-//    val kilde: Kilde,
-//    val enhet: NåværendeEnhet? = null
-//)
-
-@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "kilde")
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "kilde"
+)
+@JsonSubTypes(
+    JsonSubTypes.Type(value = SakStatus.Arena::class, name = "ARENA"),
+    JsonSubTypes.Type(value = SakStatus.Kelvin::class, name = "KELVIN"),
+)
+@Response(description = "Representerer saker både fra Arena og Kelvin. `enhet` er alltid null fra Arena.")
 public sealed class SakStatus(
-    public val kilde: Kilde,
     public val sakId: String,
     public val periode: Periode,
-    public val statusKode: SakStatus2,
+    public val statusKode: SakStatusEnum,
 ) {
+
+    public abstract val kilde: Kilde
 
     @JsonTypeName("ARENA")
     public class Arena(
         statusKode: ArenaStatus,
         periode: Periode,
         sakId: String,
-    ) : SakStatus(Kilde.ARENA, sakId, periode, statusKode)
+    ) : SakStatus(sakId, periode, statusKode) {
+        override val kilde: Kilde = Kilde.ARENA
+
+        public fun periode(): Periode = this.periode
+
+
+    }
 
     @JsonTypeName("KELVIN")
     public class Kelvin(
         statusKode: KelvinStatus,
         periode: Periode,
+        public val perioder: List<Periode>,
         sakId: String,
         public val enhet: NåværendeEnhet? = null
-    ) : SakStatus(Kilde.KELVIN, sakId, periode, statusKode)
+    ) : SakStatus(sakId, periode, statusKode) {
+        override val kilde: Kilde = Kilde.KELVIN
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as SakStatus
+
+        if (sakId != other.sakId) return false
+        if (periode != other.periode) return false
+        if (statusKode != other.statusKode) return false
+        if (kilde != other.kilde) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = sakId.hashCode()
+        result = 31 * result + (periode?.hashCode() ?: 0)
+        result = 31 * result + statusKode.hashCode()
+        result = 31 * result + kilde.hashCode()
+        return result
+    }
+
+    override fun toString(): String {
+        return "SakStatus(periode=$periode, sakId='$sakId', statusKode=$statusKode, kilde=$kilde)"
+    }
+
 }
 
 public data class SakStatusMeldekortbackend(
@@ -79,9 +113,9 @@ public enum class Kilde {
     KELVIN
 }
 
-public sealed interface SakStatus2
+public sealed interface SakStatusEnum
 
-public enum class ArenaStatus : SakStatus2 {
+public enum class ArenaStatus : SakStatusEnum {
     AVSLU,
     FORDE,
     GODKJ,
@@ -94,7 +128,7 @@ public enum class ArenaStatus : SakStatus2 {
     UKJENT,
 }
 
-public enum class KelvinStatus : SakStatus2 {
+public enum class KelvinStatus : SakStatusEnum {
     // Disse skal bort fra Kelvin
     OPPRETTET,
     UTREDES,

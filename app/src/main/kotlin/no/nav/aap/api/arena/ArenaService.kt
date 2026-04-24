@@ -11,7 +11,6 @@ import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.Kilde
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
@@ -62,7 +61,7 @@ class ArenaService(
         )
     }
 
-    suspend fun hentSaker(callId: String, personIdenter: List<String>): List<SakStatus> {
+    suspend fun hentSaker(callId: String, personIdenter: List<String>): List<SakStatus.Arena> {
         val sakerRequest = SakerRequest(personIdenter)
         return arena.hentSakerByFnr(callId, sakerRequest).map {
             arenaSakStatusTilDomene(it)
