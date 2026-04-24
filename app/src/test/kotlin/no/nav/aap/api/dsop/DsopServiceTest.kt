@@ -48,7 +48,6 @@ class DsopServiceTest {
     private val fnr = listOf("123445")
 
     private val testVedtak = Behandling(
-        underveisperiode = listOf(),
         rettighetsperiode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 4, 1)),
         behandlingStatus = KelvinBehandlingStatus.UTREDES,
         vedtaksDato = LocalDate.now(),
@@ -289,7 +288,6 @@ class DsopServiceTest {
         return Behandling(
             behandlingsReferanse = UUID.randomUUID().toString(),
             rettighetsperiode = Periode(LocalDate.MIN, LocalDate.MIN),
-            underveisperiode = listOf(),
             behandlingStatus = KelvinBehandlingStatus.AVSLUTTET,
             vedtaksDato = LocalDate.MIN,
             sak = Sak(
