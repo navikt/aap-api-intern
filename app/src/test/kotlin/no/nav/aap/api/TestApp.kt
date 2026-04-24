@@ -14,8 +14,6 @@ import no.nav.aap.api.util.KafkaFake
 import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.api.util.port
 import no.nav.aap.komponenter.dbtest.TestDataSource
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import java.net.URI
 
 fun main() {
     val fakes = Fakes()
@@ -38,18 +36,10 @@ fun main() {
 }
 
 private fun byggAppConfig(fakes: Fakes): AppConfig {
-    val azurePort = fakes.azure.port()
     return AppConfig(
         arenaoppslag = ArenaoppslagConfig(
             proxyBaseUrl = "http://localhost:${fakes.arena.port()}",
             scope = "test"
-        ),
-        azure = AzureConfig(
-            tokenEndpoint = URI.create("http://localhost:$azurePort"),
-            clientId = "test",
-            clientSecret = "test",
-            jwksUri = "http://localhost:$azurePort/jwks",
-            issuer = "test"
         ),
         dbConfig = DbConfig(
             url = "jdbc:h2:mem:unused",
