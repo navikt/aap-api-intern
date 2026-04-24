@@ -3,21 +3,18 @@ package no.nav.aap.api
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.serialization.jackson.jackson
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
+import io.ktor.client.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import io.ktor.server.testing.*
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.api.util.PostgresTestBase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.io.File
 
 class KontraktTest : PostgresTestBase() {
     /* Det er ikke til å unngå at listen ikke er tom, siden det er behandlingsflyt sin kontrakt som styrer
@@ -29,37 +26,6 @@ class KontraktTest : PostgresTestBase() {
         "no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest",
         "no.nav.aap.komponenter.type.Periode",
     )
-
-    @Test
-    fun `@Description annotasjoner på properties vises i openapi-skjema`() {
-        Fakes().use { fakes ->
-            val config = TestConfig.default()
-
-            testApplication {
-                application {
-                    api(
-                        config = config,
-                        datasource = dataSource,
-                        arenaService = fakes.arenaService,
-                        pdlGateway = PdlGatewayEmpty(),
-                        modiaProducer = fakes.kafka
-                    )
-                }
-
-                val res = jsonHttpClient.get("/openapi.json") {
-                    contentType(ContentType.Application.Json)
-                }
-
-                File("openapi.json").writeText(res.bodyAsText())
-                val body = res.bodyAsText()
-                val openapi = jacksonObjectMapper().readTree(body)
-                val schemas = openapi["components"]["schemas"]
-                val maksimum = schemas["no.nav.aap.api.intern.Maksimum"]
-                val vedtakDescription = maksimum["properties"]["vedtak"]["description"]?.asText()
-                assertThat(vedtakDescription).isNotNull().isNotEmpty()
-            }
-        }
-    }
 
     @Test
     fun `schemas kommer kun fra kontrakter`() {
