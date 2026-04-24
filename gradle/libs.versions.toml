@@ -1,7 +1,7 @@
 [versions]
 ktor = "3.4.2"
-komponenter = "2.0.44"
-tilgang = "1.0.195"
+komponenter = "2.0.46"
+tilgang = "1.0.196"
 behandlingsflyt = "0.0.590"
 oppgave = "0.0.169"
 arenaoppslag = "0.5.1"
