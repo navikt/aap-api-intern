@@ -52,7 +52,7 @@ public sealed class SakStatus(
             return kilde == other.kilde
         }
 
-        verride fun hashCode(): Int {
+        override fun hashCode(): Int {
             var result = super.hashCode()
             result = 31 * result + kilde.hashCode()
             return result
