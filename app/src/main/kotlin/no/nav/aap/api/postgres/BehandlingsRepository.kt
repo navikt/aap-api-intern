@@ -1,7 +1,6 @@
 package no.nav.aap.api.postgres
 
 import java.math.BigDecimal
-import java.time.LocalDateTime
 import java.time.ZoneOffset
 import no.nav.aap.api.kelvin.Arenavedtak
 import no.nav.aap.api.kelvin.Avslagsårsak
@@ -12,7 +11,6 @@ import no.nav.aap.api.kelvin.RettighetsTypePeriode
 import no.nav.aap.api.kelvin.Sak
 import no.nav.aap.api.kelvin.StansEllerOpphør
 import no.nav.aap.api.kelvin.TilkjentYtelse
-import no.nav.aap.api.kelvin.UnderveisIntern
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
@@ -162,25 +160,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setString(3, it.verdi)
             }
         }
-
-
-        connection.executeBatch(
-            """
-                INSERT INTO UNDERVEIS (BEHANDLING_ID, PERIODE, MELDEPERIODE, UTFALL, RETTIGHETS_TYPE, OPPRETTET_TID)
-                VALUES (?, ?::daterange, ?::daterange, ?, ?, ?)
-            """.trimIndent(),
-            behandling.underveisperiode
-        ) {
-            setParams {
-                setLong(1, nyBehandlingId)
-                setPeriode(2, Periode(it.underveisFom, it.underveisTom))
-                setPeriode(3, Periode(it.meldeperiodeFom, it.meldeperiodeTom))
-                setString(4, it.utfall)
-                setString(5, it.rettighetsType ?: "")
-                setLocalDateTime(6, LocalDateTime.now())
-            }
-        }
-
 
         connection.execute(
             """DELETE FROM TILKJENT_YTELSE WHERE BEHANDLING_ID = ?""".trimIndent()
@@ -380,7 +359,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     samId = row.getStringOrNull("SAMID"),
                     vedtakId = row.getLongOrNull("VEDTAKID") ?: 0L,
                     nyttVedtak = row.getBoolean("NYTT_VEDTAK"),
-                    underveisperiode = hentUnderveis(behandlingId),
                     tilkjent = hentTilkjentYtelse(behandlingId),
                     rettighetsTypePerioder = hentRettighetsTypePerioder(behandlingId),
                     beregningsgrunnlag = hentBeregningsGrunnlag(behandlingId)
@@ -388,32 +366,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     stansOpphørVurdering = hentStansOpphør(behandlingId),
                     rettighetsperiode = sak.rettighetsPeriode,
                     arenakompatibleVedtak = hentArenavedtak(behandlingId),
-                )
-            }
-        }
-    }
-
-    private fun hentUnderveis(behandlingId: Long): List<UnderveisIntern> {
-        return connection.queryList(
-            """
-                SELECT * FROM UNDERVEIS
-                WHERE BEHANDLING_ID = ?
-            """.trimIndent()
-        ) {
-            setParams {
-                setLong(1, behandlingId)
-            }
-            setRowMapper { row ->
-                val periode = row.getPeriode("PERIODE")
-                val meldePeriode = row.getPeriode("MELDEPERIODE")
-                UnderveisIntern(
-                    underveisFom = periode.fom,
-                    underveisTom = periode.tom,
-                    meldeperiodeFom = meldePeriode.fom,
-                    meldeperiodeTom = meldePeriode.tom,
-                    utfall = row.getString("UTFALL"),
-                    rettighetsType = row.getString("RETTIGHETS_TYPE"),
-                    avslagsårsak = null
                 )
             }
         }

@@ -3,47 +3,19 @@ package no.nav.aap.api
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
-import com.papsign.ktor.openapigen.route.info
+import com.papsign.ktor.openapigen.route.*
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
-import com.papsign.ktor.openapigen.route.route
-import com.papsign.ktor.openapigen.route.tag
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.withCharset
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
-import io.ktor.server.request.ApplicationRequest
-import io.ktor.server.request.path
-import io.ktor.server.routing.RoutingContext
-import java.time.Clock
-import java.time.LocalDate
-import java.util.*
-import javax.sql.DataSource
+import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+import io.ktor.server.routing.*
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.dsop.dsopRoutes
-import no.nav.aap.api.intern.InternVedtakRequestApiIntern
-import no.nav.aap.api.intern.Maksimum
-import no.nav.aap.api.intern.Medium
-import no.nav.aap.api.intern.MeldekortDetaljerRequest
-import no.nav.aap.api.intern.MeldekortDetaljerResponse
-import no.nav.aap.api.intern.PeriodeDTO
-import no.nav.aap.api.intern.PerioderInkludert11_17Response
-import no.nav.aap.api.intern.PerioderResponse
-import no.nav.aap.api.intern.PersonEksistererIAAPArena
-import no.nav.aap.api.intern.SakStatus
-import no.nav.aap.api.intern.SakStatusMeldekortbackend
-import no.nav.aap.api.intern.SignifikanteSakerResponse
-import no.nav.aap.api.intern.Vedtak
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.api.kelvin.AktivitetsfaseService
-import no.nav.aap.api.kelvin.KelvinBehandlingStatus
-import no.nav.aap.api.kelvin.KelvinSakService
-import no.nav.aap.api.kelvin.KelvinSakStatus
-import no.nav.aap.api.kelvin.MeldekortService
-import no.nav.aap.api.kelvin.VedtakService
+import no.nav.aap.api.intern.*
+import no.nav.aap.api.kelvin.*
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortPerioderRepository
@@ -61,6 +33,10 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.LoggerFactory
+import java.time.Clock
+import java.time.LocalDate
+import java.util.*
+import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -79,6 +55,7 @@ data class CallIdHeader(
 enum class Tag(override val description: String) : APITag {
     Perioder("For å hente perioder med AAP"),
     Saker("For å hente AAP-saker"),
+    NKS("Endepunkter brukt av NKS"),
     Meldekort("For å hente AAP-meldekort"),
     Maksimum("For å hente maksimumsløsning"),
     DSOP("For DSOP-relaterte endepunkter"),
@@ -86,12 +63,12 @@ enum class Tag(override val description: String) : APITag {
 }
 
 data class SakerRequest(
-    @param:Description("Liste med personidentifikatorer. Må svare til samme person.")
+    @property:Description("Liste med personidentifikatorer. Må svare til samme person.")
     val personidentifikatorer: List<String>,
 )
 
 data class SakerRequestMeldekortbackend(
-    @param:Description("Personidentifikator")
+    @property:Description("Personidentifikator")
     val personidentifikator: String
 )
 
@@ -210,7 +187,8 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) + azpForTokenGenHvisIkkeProd()
             ), null,
-            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS.")
+            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS."),
+            tags(Tag.NKS)
         ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
             val personIdentifikator = requestBody.personidentifikator
@@ -250,7 +228,9 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) + azpForTokenGenHvisIkkeProd()
             ),
-            null, info(description = "Endepunkt ment kun for NKS. Henter saker for en person.")
+            null, info(description = "Endepunkt ment kun for NKS. Henter saker for en person."),
+            responseDescription(description = "Liste med saker, potensielt fra både Arena og Kelvin. `enhet` er alltid null fra Arena."),
+            tags(Tag.NKS)
         ) { callIdHeader, requestBody ->
             val callId = receiveCall(callIdHeader, pipeline)
 
@@ -259,7 +239,7 @@ fun NormalOpenAPIRoute.api(
             * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
             */
             sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
-            Metrics.antallIdenter("/kelvin/sakerByFnr", requestBody.personidentifikatorer.size)
+            Metrics.antallIdenter("/sakerByFnr", requestBody.personidentifikatorer.size)
             if (!token().isClientCredentials()) {
                 logger.info("Token er client credentials, sjekker ikke tilgang.")
             }
@@ -267,7 +247,10 @@ fun NormalOpenAPIRoute.api(
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
             val kelvinSaker: List<SakStatus> =
                 dataSource.transaction { connection ->
-                    val kelvinSakService = KelvinSakService(SakStatusRepository(connection))
+                    val kelvinSakService = KelvinSakService(
+                        SakStatusRepository(connection),
+                        BehandlingsRepository(connection)
+                    )
 
                     kelvinSakService.hentSakStatus(personIdenter)
                 }
@@ -299,23 +282,25 @@ fun NormalOpenAPIRoute.api(
 
             val kelvinSaker: List<SakStatusMeldekortbackend> =
                 dataSource.transaction { connection ->
-                    val kelvinSakService = KelvinSakService(SakStatusRepository(connection))
+                    val kelvinSakService = KelvinSakService(
+                        SakStatusRepository(connection),
+                        BehandlingsRepository(connection)
+                    )
 
                     kelvinSakService.hentSakStatusUtenEnhet(personIdenter)
                 }
             val arenaSaker: List<SakStatusMeldekortbackend> =
                 arenaService.hentSaker(callId, listOf(requestBody.personidentifikator))
-                    .map { SakStatusMeldekortbackend(it.kilde, it.periode, it.sakId) }
+                    .map { SakStatusMeldekortbackend(it.kilde, it.periode(), it.sakId) }
 
             tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
 
             respond(arenaSaker + kelvinSaker)
         }
 
-        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
-            info(description = "Henter saker for en person")
+        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatusOverlappskontroll>, SakerRequest>(
+            info(description = "Henter saker for en person. Brukes av Arena for overlappskontroll. Hvis flere konsumenter ønsker dette, dupliser endepunktet.")
         ) { _, requestBody ->
-            logger.info("Henter saker for en person fra Kelvin.")
             Metrics.httpRequestTeller(pipeline.call)
 
             /*
@@ -326,21 +311,32 @@ fun NormalOpenAPIRoute.api(
             Metrics.antallIdenter("/kelvin/sakerByFnr", requestBody.personidentifikatorer.size)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
-            val kelvinSaker: List<SakStatus> =
+            val kelvinSaker: List<SakStatus.Kelvin> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
-                    val kelvinSakService = KelvinSakService(sakStatusRepository)
+                    val kelvinSakService =
+                        KelvinSakService(sakStatusRepository, BehandlingsRepository(connection))
 
                     kelvinSakService.hentSakStatus(personIdenter)
                 }
             tellKildesystem(kelvinSaker, null, "/kelvin/sakerByFnr")
-            respond(kelvinSaker)
+            respond(kelvinSaker.map {
+                SakStatusOverlappskontroll(
+                    sakId = it.sakId,
+                    statusKode = it.status(),
+                    periode = it.periode,
+                    // Dette kommer fra Kelvin-periode, som alltid har ikke-null fra-dato
+                    fraDato = it.periode.fraOgMedDato!!,
+                    kilde = it.kilde,
+                    enhet = it.enhet
+                )
+            })
         }
     }
     tag(Tag.ArenaHistorikk) {
         route("/arena/person/aap/eksisterer") {
             post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
-                info(description = "Sjekker om en person eksisterer i AAP-arena")
+                info(description = "Sjekker om en person eksisterer i Arena (AAP).")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om person eksisterer i aap-arena")
                 val callId = receiveCall(callIdHeader, pipeline)
@@ -356,7 +352,7 @@ fun NormalOpenAPIRoute.api(
         }
         route("/arena/person/aap/signifikant-historikk") {
             post<CallIdHeader, SignifikanteSakerResponse, SignifikanteSakerRequest>(
-                info(description = "Sjekker om en person kan behandles i Kelvin mtp. AAP-Arena-historikken deres")
+                info(description = "Sjekker om en person kan behandles i Kelvin mtp. AAP-Arena-historikken deres.")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om personen kan behandles i Kelvin")
                 val callId = receiveCall(callIdHeader, pipeline)
@@ -511,13 +507,13 @@ private fun tellKildesystem(
 
 fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
     if (!token.isClientCredentials()) {
-        Metrics.tokentype("m2m")
+        Metrics.tokentype("obo")
         val tilgang = TilgangGateway.harTilgangTilPerson(personIdent, token)
         if (!tilgang) {
             throw IngenTilgangException("Har ikke tilgang til person")
         }
     } else {
-        Metrics.tokentype("obo")
+        Metrics.tokentype("m2m")
     }
 }
 
@@ -546,17 +542,17 @@ fun utledVedtakStatus(
     sakStatus: KelvinSakStatus,
     periode: Periode,
     nå: LocalDate = LocalDate.now(),
-): String =
+): Status =
     if (
         (behandlingStatus.iverksatt() && sakStatus != KelvinSakStatus.AVSLUTTET) ||
         periode.tom.isAfter(nå) ||
         sakStatus != KelvinSakStatus.AVSLUTTET
     ) {
-        Status.LØPENDE.toString()
+        Status.LØPENDE
     } else if (behandlingStatus == KelvinBehandlingStatus.AVSLUTTET) {
-        Status.AVSLUTTET.toString()
+        Status.AVSLUTTET
     } else {
-        Status.UTREDES.toString()
+        Status.UTREDES
     }
 
 

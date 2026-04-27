@@ -16,7 +16,6 @@ data class Behandling(
     val behandlingsReferanse: String,
     @Deprecated("Ikke del denne utad.")
     val rettighetsperiode: Periode,
-    val underveisperiode: List<UnderveisIntern>,
     val behandlingStatus: KelvinBehandlingStatus,
     val vedtaksDato: LocalDate,
     val sak: Sak,
@@ -117,16 +116,6 @@ data class TilkjentYtelse(
         ).roundToInt()
 }
 
-data class UnderveisIntern(
-    val underveisFom: LocalDate,
-    val underveisTom: LocalDate,
-    val meldeperiodeFom: LocalDate,
-    val meldeperiodeTom: LocalDate,
-    val utfall: String,
-    val rettighetsType: String?,
-    val avslagsårsak: String?, // skal ikke denne være Avslagsårsak?
-)
-
 enum class KelvinSakStatus {
     OPPRETTET,
     UTREDES,
@@ -154,7 +143,7 @@ data class Arenavedtak(
     val periode = Periode(fom, tom)
 
     enum class Vedtaksvariant(
-        val type:  DsopVedtaksTypeDTO,
+        val type: DsopVedtaksTypeDTO,
         val somDTO: DsopVedtaksvariantDTO,
     ) {
         O_AVSLAG(DsopVedtaksTypeDTO.O, DsopVedtaksvariantDTO.O_AVSLAG),

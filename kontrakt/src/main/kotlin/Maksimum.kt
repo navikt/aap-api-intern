@@ -1,8 +1,12 @@
 package no.nav.aap.api.intern
 
+import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import java.time.LocalDate
 
-public data class Maksimum(val vedtak: List<Vedtak>)
+public data class Maksimum(
+    @property:Description("""En liste med "vedtak". For Arena-saker svarer hvert element til et vedtak, mens for Kelvin-saker er listen brutt opp etter type AAP (rettighetstype).""")
+    val vedtak: List<Vedtak>
+)
 
 public data class Medium(val vedtak: List<VedtakUtenUtbetaling>)
 
@@ -23,9 +27,9 @@ public data class Vedtak(
     val vedtakId: String,
     val status: String,
     val saksnummer: String,
-    val vedtaksdato: LocalDate, //reg_dato
+    val vedtaksdato: LocalDate,
     val periode: Periode,
-    val rettighetsType: String, ////aktivitetsfase //Aktfasekode
+    val rettighetsType: String,
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
     val barnetillegg: Int,
@@ -45,13 +49,13 @@ public data class VedtakUtenUtbetaling(
     val dagsats: Int,
     val dagsatsEtterUføreReduksjon: Int?,
     val vedtakId: String,
-    val status: String, //Hypotese, vedtaksstatuskode
+    val status: String,
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
     val vedtaksTypeKode: String?,
     val vedtaksTypeNavn: String?,
     val periode: Periode,
-    val rettighetsType: String, ////aktivitetsfase //Aktfasekode
+    val rettighetsType: String,
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
     val barnetillegg: Int,
@@ -64,6 +68,7 @@ public data class VedtakUtenUtbetaling(
  * @param barnetillegg Hvor mange kroner i barnetillegg.
  */
 public data class UtbetalingMedMer(
+    @property:Description("Reduksjon i utbetaling. Denne fås kun fra Arena,")
     val reduksjon: Reduksjon? = null,
     val utbetalingsgrad: Int? = null,
     val periode: Periode,
@@ -71,6 +76,7 @@ public data class UtbetalingMedMer(
     val dagsats: Int,
     @Deprecated("Bruk barnetillegg")
     val barnetilegg: Int,
+    @property:Description("Barnetillegg, _etter_ gradering.")
     val barnetillegg: Int,
 )
 
