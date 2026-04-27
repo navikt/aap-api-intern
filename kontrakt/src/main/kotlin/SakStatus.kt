@@ -42,7 +42,21 @@ public sealed class SakStatus(
         override val kilde: Kilde = Kilde.ARENA
 
         public fun periode(): Periode = this.periode
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+            if (!super.equals(other)) return false
 
+            other as Arena
+
+            return kilde == other.kilde
+        }
+
+        verride fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + kilde.hashCode()
+            return result
+        }
 
     }
 
@@ -57,6 +71,10 @@ public sealed class SakStatus(
         override val kilde: Kilde = Kilde.KELVIN
 
         public fun status(): KelvinStatus = this.statusKode as KelvinStatus
+    }
+
+    override fun toString(): String {
+        return "SakStatus(periode=$periode, sakId='$sakId', statusKode=$statusKode, kilde=$kilde)"
     }
 
     override fun equals(other: Any?): Boolean {
@@ -75,14 +93,10 @@ public sealed class SakStatus(
 
     override fun hashCode(): Int {
         var result = sakId.hashCode()
-        result = 31 * result + (periode?.hashCode() ?: 0)
+        result = 31 * result + periode.hashCode()
         result = 31 * result + statusKode.hashCode()
         result = 31 * result + kilde.hashCode()
         return result
-    }
-
-    override fun toString(): String {
-        return "SakStatus(periode=$periode, sakId='$sakId', statusKode=$statusKode, kilde=$kilde)"
     }
 }
 
