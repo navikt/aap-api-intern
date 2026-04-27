@@ -36,8 +36,6 @@ import no.nav.aap.api.postgres.initDatasource
 import no.nav.aap.api.util.StatusPagesConfigHelper
 import no.nav.aap.api.util.registerCircuitBreakerMetrics
 import no.nav.aap.komponenter.dbmigrering.Migrering
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import no.nav.aap.komponenter.server.AZURE
 import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import org.slf4j.LoggerFactory
@@ -134,11 +132,9 @@ fun Application.api(
 }
 
 private fun opprettArenaService(config: AppConfig): ArenaService {
-    val arenaRestGateway = ArenaoppslagGateway(
-        config.arenaoppslag, config.azure
-    )
+    val arenaRestGateway = ArenaoppslagGateway(config.arenaoppslag)
     val arenaHistorikkGateway = ArenaoppslagGateway(
-        config.arenaoppslag, config.azure,
+        arenaoppslagConfig = config.arenaoppslag,
         // Vi øker timeouts fordi disse db-queries er tunge
         timeoutMillis = 2.minutes.inWholeMilliseconds,
         slowRequestMillis = 1.minutes.inWholeMilliseconds
