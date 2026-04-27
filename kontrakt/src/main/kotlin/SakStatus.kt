@@ -25,39 +25,22 @@ public data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalD
     JsonSubTypes.Type(value = SakStatus.Kelvin::class, name = "KELVIN"),
 )
 @Response(description = "Representerer saker både fra Arena og Kelvin. `enhet` er alltid null fra Arena.")
-public sealed class SakStatus(
-    public val sakId: String,
-    public val periode: Periode,
-    public val statusKode: SakStatusEnum,
-) {
+public sealed interface SakStatus {
+    public val sakId: String
+    public val periode: Periode
+    public val statusKode: SakStatusEnum
 
-    public abstract val kilde: Kilde
+    public val kilde: Kilde
 
     @JsonTypeName("ARENA")
-    public class Arena(
-        statusKode: ArenaStatus,
-        periode: Periode,
-        sakId: String,
-    ) : SakStatus(sakId, periode, statusKode) {
+    public data class Arena(
+        override val statusKode: ArenaStatus,
+        override val periode: Periode,
+        override val sakId: String,
+    ) : SakStatus {
         override val kilde: Kilde = Kilde.ARENA
 
         public fun periode(): Periode = this.periode
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (javaClass != other?.javaClass) return false
-            if (!super.equals(other)) return false
-
-            other as Arena
-
-            return kilde == other.kilde
-        }
-
-        override fun hashCode(): Int {
-            var result = super.hashCode()
-            result = 31 * result + kilde.hashCode()
-            return result
-        }
-
     }
 
     public enum class YtelseStatus {
@@ -65,43 +48,17 @@ public sealed class SakStatus(
     }
 
     @JsonTypeName("KELVIN")
-    public class Kelvin(
-        statusKode: KelvinStatus,
+    public data class Kelvin(
+        override val statusKode: KelvinStatus,
+        override val periode: Periode,
+        override val sakId: String,
         public val ytelsestatus: YtelseStatus,
-        periode: Periode,
         public val perioder: List<Periode>,
-        sakId: String,
         public val enhet: NåværendeEnhet? = null
-    ) : SakStatus(sakId, periode, statusKode) {
+    ) : SakStatus {
         override val kilde: Kilde = Kilde.KELVIN
 
-        public fun status(): KelvinStatus = this.statusKode as KelvinStatus
-    }
-
-    override fun toString(): String {
-        return "SakStatus(periode=$periode, sakId='$sakId', statusKode=$statusKode, kilde=$kilde)"
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as SakStatus
-
-        if (sakId != other.sakId) return false
-        if (periode != other.periode) return false
-        if (statusKode != other.statusKode) return false
-        if (kilde != other.kilde) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = sakId.hashCode()
-        result = 31 * result + periode.hashCode()
-        result = 31 * result + statusKode.hashCode()
-        result = 31 * result + kilde.hashCode()
-        return result
+        public fun status(): KelvinStatus = this.statusKode
     }
 }
 
