@@ -23,7 +23,10 @@ import no.nav.aap.api.util.PostgresTestBase
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.RettighetsTypePeriode
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -34,7 +37,6 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.*
 import java.util.*
-import kotlin.collections.emptyList
 import kotlin.test.assertEquals
 
 
@@ -44,17 +46,7 @@ class BehandlingsDataTest : PostgresTestBase() {
         val testObject = DatadelingDTO(
             behandlingsId = 123456789L.toString(),
             behandlingsReferanse = "1234567890987654321",
-            underveisperiode = listOf(
-                UnderveisDTO(
-                    underveisFom = LocalDate.now().minusYears(2),
-                    underveisTom = LocalDate.now().minusYears(1),
-                    meldeperiodeFom = LocalDate.now().minusYears(2),
-                    meldeperiodeTom = LocalDate.now().minusYears(1),
-                    utfall = "",
-                    rettighetsType = RettighetsType.STUDENT.name,
-                    avslagsårsak = ""
-                )
-            ),
+            underveisperiode = listOf(),
             rettighetsPeriodeFom = LocalDate.now().minusYears(2),
             rettighetsPeriodeTom = LocalDate.now().minusYears(1),
             behandlingStatus = Status.IVERKSETTES,
@@ -309,17 +301,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                 DatadelingDTO(
                     behandlingsId = 123456789L.toString(),
                     behandlingsReferanse = UUID.randomUUID().toString(),
-                    underveisperiode = listOf(
-                        UnderveisDTO(
-                            underveisFom = fraOgMed,
-                            underveisTom = fraOgMed.plusYears(1),
-                            meldeperiodeFom = fraOgMed,
-                            meldeperiodeTom = fraOgMed.plusYears(1),
-                            utfall = "",
-                            rettighetsType = RettighetsType.STUDENT.name,
-                            avslagsårsak = ""
-                        )
-                    ),
+                    underveisperiode = listOf(),
                     rettighetsPeriodeFom = fraOgMed,
                     rettighetsPeriodeTom = fraOgMed.plusYears(1),
                     behandlingStatus = Status.IVERKSETTES,

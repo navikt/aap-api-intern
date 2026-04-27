@@ -16,7 +16,6 @@ data class Behandling(
     val behandlingsReferanse: String,
     @Deprecated("Ikke del denne utad.")
     val rettighetsperiode: Periode,
-    val underveisperiode: List<UnderveisIntern>,
     val behandlingStatus: KelvinBehandlingStatus,
     val vedtaksDato: LocalDate,
     val sak: Sak,
@@ -116,16 +115,6 @@ data class TilkjentYtelse(
             (100 - (this.samordningUføregradering ?: 0)) / 100.0
         ).roundToInt()
 }
-
-data class UnderveisIntern(
-    val underveisFom: LocalDate,
-    val underveisTom: LocalDate,
-    val meldeperiodeFom: LocalDate,
-    val meldeperiodeTom: LocalDate,
-    val utfall: String,
-    val rettighetsType: String?,
-    val avslagsårsak: String?, // skal ikke denne være Avslagsårsak?
-)
 
 enum class KelvinSakStatus {
     OPPRETTET,

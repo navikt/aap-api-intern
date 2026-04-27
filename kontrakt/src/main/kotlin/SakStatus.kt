@@ -55,6 +55,8 @@ public sealed class SakStatus(
         public val enhet: NåværendeEnhet? = null
     ) : SakStatus(sakId, periode, statusKode) {
         override val kilde: Kilde = Kilde.KELVIN
+
+        public fun status(): KelvinStatus = this.statusKode as KelvinStatus
     }
 
     override fun equals(other: Any?): Boolean {
@@ -82,8 +84,21 @@ public sealed class SakStatus(
     override fun toString(): String {
         return "SakStatus(periode=$periode, sakId='$sakId', statusKode=$statusKode, kilde=$kilde)"
     }
-
 }
+
+@Response(description = "Representerer saker fra Kelvin.")
+public data class SakStatusOverlappskontroll(
+    @Deprecated("Ikke i bruk av konsument.")
+    val sakId: String,
+    @Deprecated("Ikke i bruk av konsument.")
+    val statusKode: KelvinStatus,
+    @Deprecated("Ikke i bruk av konsument (straks).")
+    val periode: Periode,
+    val fraDato: LocalDate,
+    val kilde: Kilde,
+    @Deprecated("Ikke i bruk av konsument.")
+    val enhet: NåværendeEnhet? = null
+)
 
 public data class SakStatusMeldekortbackend(
     val kilde: Kilde,
