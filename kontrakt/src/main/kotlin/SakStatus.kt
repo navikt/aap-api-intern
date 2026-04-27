@@ -23,6 +23,20 @@ public data class SakStatus(
     val enhet: NåværendeEnhet? = null
 )
 
+@Response(description = "Representerer saker fra Kelvin.")
+public data class SakStatusOverlappskontroll(
+    @Deprecated("Ikke i bruk av konsument.")
+    val sakId: String,
+    @Deprecated("Ikke i bruk av konsument.")
+    val statusKode: Status,
+    @Deprecated("Ikke i bruk av konsument (straks).")
+    val periode: Periode,
+    val fraDato: LocalDate,
+    val kilde: Kilde,
+    @Deprecated("Ikke i bruk av konsument.")
+    val enhet: NåværendeEnhet? = null
+)
+
 public data class SakStatusMeldekortbackend(
     val kilde: Kilde,
     val periode: Periode,

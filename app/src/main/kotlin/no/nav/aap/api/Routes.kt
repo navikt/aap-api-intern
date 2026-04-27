@@ -9,41 +9,15 @@ import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.withCharset
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
-import io.ktor.server.request.ApplicationRequest
-import io.ktor.server.request.path
-import io.ktor.server.routing.RoutingContext
-import java.time.Clock
-import java.time.LocalDate
-import java.util.*
-import javax.sql.DataSource
+import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.*
+import io.ktor.server.routing.*
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.dsop.dsopRoutes
-import no.nav.aap.api.intern.InternVedtakRequestApiIntern
-import no.nav.aap.api.intern.Maksimum
-import no.nav.aap.api.intern.Medium
-import no.nav.aap.api.intern.MeldekortDetaljerRequest
-import no.nav.aap.api.intern.MeldekortDetaljerResponse
-import no.nav.aap.api.intern.PeriodeDTO
-import no.nav.aap.api.intern.PerioderInkludert11_17Response
-import no.nav.aap.api.intern.PerioderResponse
-import no.nav.aap.api.intern.PersonEksistererIAAPArena
-import no.nav.aap.api.intern.SakStatus
-import no.nav.aap.api.intern.SakStatusMeldekortbackend
-import no.nav.aap.api.intern.SignifikanteSakerResponse
-import no.nav.aap.api.intern.Vedtak
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.api.kelvin.AktivitetsfaseService
-import no.nav.aap.api.kelvin.KelvinBehandlingStatus
-import no.nav.aap.api.kelvin.KelvinSakService
-import no.nav.aap.api.kelvin.KelvinSakStatus
-import no.nav.aap.api.kelvin.MeldekortService
-import no.nav.aap.api.kelvin.VedtakService
+import no.nav.aap.api.intern.*
+import no.nav.aap.api.kelvin.*
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortPerioderRepository
@@ -61,6 +35,10 @@ import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
 import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.LoggerFactory
+import java.time.Clock
+import java.time.LocalDate
+import java.util.*
+import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -259,7 +237,7 @@ fun NormalOpenAPIRoute.api(
             * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
             */
             sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
-            Metrics.antallIdenter("/kelvin/sakerByFnr", requestBody.personidentifikatorer.size)
+            Metrics.antallIdenter("/sakerByFnr", requestBody.personidentifikatorer.size)
             if (!token().isClientCredentials()) {
                 logger.info("Token er client credentials, sjekker ikke tilgang.")
             }
@@ -312,10 +290,9 @@ fun NormalOpenAPIRoute.api(
             respond(arenaSaker + kelvinSaker)
         }
 
-        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
-            info(description = "Henter saker for en person")
+        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatusOverlappskontroll>, SakerRequest>(
+            info(description = "Henter saker for en person. Brukes av Arena for overlappskontroll. Hvis flere konsumenter ønsker dette, dupliser endepunktet.")
         ) { _, requestBody ->
-            logger.info("Henter saker for en person fra Kelvin.")
             Metrics.httpRequestTeller(pipeline.call)
 
             /*
@@ -334,7 +311,17 @@ fun NormalOpenAPIRoute.api(
                     kelvinSakService.hentSakStatus(personIdenter)
                 }
             tellKildesystem(kelvinSaker, null, "/kelvin/sakerByFnr")
-            respond(kelvinSaker)
+            respond(kelvinSaker.map {
+                SakStatusOverlappskontroll(
+                    sakId = it.sakId,
+                    statusKode = it.statusKode,
+                    periode = it.periode,
+                    // Dette kommer fra Kelvin-periode, som alltid har ikke-null fra-dato
+                    fraDato = it.periode.fraOgMedDato!!,
+                    kilde = it.kilde,
+                    enhet = it.enhet
+                )
+            })
         }
     }
     tag(Tag.ArenaHistorikk) {
