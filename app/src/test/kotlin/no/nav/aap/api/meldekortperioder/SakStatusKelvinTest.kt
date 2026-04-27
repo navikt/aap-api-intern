@@ -102,7 +102,7 @@ class SakStatusKelvinTest {
                         ),
                         sakId = "1234",
                         perioder = emptyList(),
-                        ytelsestatus = SakStatus.YtelseStatus.LØPENDE
+                        ytelsestatus = SakStatus.YtelseStatus.FØR_VEDTAK
                     ),
                     oboResponse.body<List<SakStatus>>().first(),
                 )
