@@ -13,7 +13,7 @@ class KelvinSakService(private val sakStatusRepository: SakStatusRepository) {
     fun hentSakStatus(identer: List<String>): List<SakStatus> {
 
         return identer.flatMap { ident ->
-            val (enhetinfo, saksnummer) = OppgaveGateway.hentEnhetForPerson(ident) ?: Pair(null, null)
+            val (enhetinfo, saksnummer) = OppgaveGateway.hentEnhetForPerson(ident)
 
             sakStatusRepository.hentSakStatus(ident)
                 .map {

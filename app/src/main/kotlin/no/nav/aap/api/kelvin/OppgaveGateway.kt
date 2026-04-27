@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
 import java.net.URI
 import java.time.Duration
 import no.nav.aap.api.Metrics
+import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.intern.NåværendeEnhet
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
@@ -30,15 +31,15 @@ object OppgaveGateway {
         .maximumSize(10_000)
         .expireAfterWrite(Duration.ofMinutes(15))
         .recordStats()
-        .build<String, Pair<NåværendeEnhet, String>?>()
+        .build<String, Pair<NåværendeEnhet?, String?>>()
 
     init {
-        CaffeineCacheMetrics.monitor(Metrics.prometheus, cache, "oppgave_enhet_cache")
+        CaffeineCacheMetrics.monitor(prometheus, cache, "oppgave_enhet_cache")
     }
 
     fun hentEnhetForPerson(
         personIdent: String,
-    ): Pair<NåværendeEnhet, String>? = cache.get(personIdent) {
+    ): Pair<NåværendeEnhet?, String?> = cache.get(personIdent) {
         val httpRequest = PostRequest(PersonRequest(personIdent))
 
         val respons = requireNotNull(
@@ -65,6 +66,6 @@ object OppgaveGateway {
                 },
                 enhet = it.enhet,
             ) to it.saksnummer
-        }
+        } ?: Pair(null, null)
     }
 }
