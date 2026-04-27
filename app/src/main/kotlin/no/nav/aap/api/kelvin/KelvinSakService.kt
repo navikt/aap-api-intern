@@ -6,6 +6,7 @@ import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.SakStatusRepository
 import no.nav.aap.komponenter.tidslinje.orEmpty
 import no.nav.aap.komponenter.verdityper.Tid
+import java.time.LocalDate
 
 class KelvinSakService(
     private val sakStatusRepository: SakStatusRepository,
@@ -43,6 +44,17 @@ class KelvinSakService(
                             SakstatusFraKelvin.REVURDERING_UNDER_BEHANDLING -> KelvinStatus.REVURDERING_UNDER_BEHANDLING
                             SakstatusFraKelvin.FERDIGBEHANDLET -> KelvinStatus.FERDIGBEHANDLET
                         },
+                        ytelsestatus = when {
+                            kelvinSakStatus.statusKode == SakstatusFraKelvin.SOKNAD_UNDER_BEHANDLING -> SakStatus.YtelseStatus.FØR_VEDTAK
+                            // Behandling er kun null før vedtaket er fattet
+                            nyesteBehandling == null -> SakStatus.YtelseStatus.FØR_VEDTAK
+                            erAvsluttetNå(
+                                nyesteBehandling,
+                                LocalDate.now()
+                            ) -> SakStatus.YtelseStatus.AVSLUTTET
+
+                            else -> SakStatus.YtelseStatus.LØPENDE
+                        },
                         periode = periode?.let { Periode(it.fom, it.tom) }
                             ?: kelvinSakStatus.periode.let { Periode(it.fom, it.tom) },
                         enhet = if (enhetinfo != null && kelvinSakStatus.sakId == saksnummer) NåværendeEnhet(
@@ -55,6 +67,18 @@ class KelvinSakService(
                     )
                 }
         }
+    }
+
+    fun erAvsluttetNå(behandling: Behandling, nå: LocalDate): Boolean {
+        val perioderMedRett = behandling.rettighetsTypeTidslinje.segmenter().map { it.periode }
+
+        val sisteStans = behandling.stansOpphørVurdering.orEmpty().filter { stansEllerOpphør ->
+            perioderMedRett.all { periode ->
+                periode.tom.isBefore(stansEllerOpphør.fom)
+            }
+        }.maxByOrNull { it.fom }
+
+        return sisteStans != null && sisteStans.fom.plusDays(1).isBefore(nå)
     }
 
     fun hentSakStatusUtenEnhet(identer: List<String>): List<SakStatusMeldekortbackend> {

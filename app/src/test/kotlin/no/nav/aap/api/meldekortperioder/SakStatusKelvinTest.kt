@@ -97,11 +97,12 @@ class SakStatusKelvinTest {
                     SakStatus.Kelvin(
                         statusKode = KelvinStatus.REVURDERING_UNDER_BEHANDLING,
                         periode = no.nav.aap.api.intern.Periode(
-                            fraOgMedDato = LocalDate.of(2021, 1,1),
-                            tilOgMedDato = LocalDate.of(2021,1,31)
+                            fraOgMedDato = LocalDate.of(2021, 1, 1),
+                            tilOgMedDato = LocalDate.of(2021, 1, 31)
                         ),
                         sakId = "1234",
-                        perioder = emptyList()
+                        perioder = emptyList(),
+                        ytelsestatus = SakStatus.YtelseStatus.LØPENDE
                     ),
                     oboResponse.body<List<SakStatus>>().first(),
                 )

@@ -143,7 +143,7 @@ data class Arenavedtak(
     val periode = Periode(fom, tom)
 
     enum class Vedtaksvariant(
-        val type:  DsopVedtaksTypeDTO,
+        val type: DsopVedtaksTypeDTO,
         val somDTO: DsopVedtaksvariantDTO,
     ) {
         O_AVSLAG(DsopVedtaksTypeDTO.O, DsopVedtaksvariantDTO.O_AVSLAG),

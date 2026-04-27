@@ -42,6 +42,7 @@ class SakStatusSerializationTest {
                 )
             ),
             sakId = "KELVIN456",
+            ytelsestatus = SakStatus.YtelseStatus.LØPENDE,
             enhet = NåværendeEnhet(
                 oversendtDato = LocalDate.of(2024, 3, 1),
                 oppgaveKategori = OppgaveKategori.NAY,

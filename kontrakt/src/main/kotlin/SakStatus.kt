@@ -60,9 +60,14 @@ public sealed class SakStatus(
 
     }
 
+    public enum class YtelseStatus {
+        FØR_VEDTAK, LØPENDE, AVSLUTTET
+    }
+
     @JsonTypeName("KELVIN")
     public class Kelvin(
         statusKode: KelvinStatus,
+        public val ytelsestatus: YtelseStatus,
         periode: Periode,
         public val perioder: List<Periode>,
         sakId: String,

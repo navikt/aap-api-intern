@@ -314,7 +314,8 @@ fun NormalOpenAPIRoute.api(
             val kelvinSaker: List<SakStatus.Kelvin> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
-                    val kelvinSakService = KelvinSakService(sakStatusRepository, BehandlingsRepository(connection))
+                    val kelvinSakService =
+                        KelvinSakService(sakStatusRepository, BehandlingsRepository(connection))
 
                     kelvinSakService.hentSakStatus(personIdenter)
                 }
@@ -541,17 +542,17 @@ fun utledVedtakStatus(
     sakStatus: KelvinSakStatus,
     periode: Periode,
     nå: LocalDate = LocalDate.now(),
-): String =
+): Status =
     if (
         (behandlingStatus.iverksatt() && sakStatus != KelvinSakStatus.AVSLUTTET) ||
         periode.tom.isAfter(nå) ||
         sakStatus != KelvinSakStatus.AVSLUTTET
     ) {
-        Status.LØPENDE.toString()
+        Status.LØPENDE
     } else if (behandlingStatus == KelvinBehandlingStatus.AVSLUTTET) {
-        Status.AVSLUTTET.toString()
+        Status.AVSLUTTET
     } else {
-        Status.UTREDES.toString()
+        Status.UTREDES
     }
 
 
