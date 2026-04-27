@@ -9,7 +9,7 @@ public data class SignifikanteSakerResponse(
 )
 
 public data class PersonEksistererIAAPArena(
-    @property:Description("True om personen eksister i Arena.")
+    @property:Description("True om personen eksisterer i Arena.")
     val eksisterer: Boolean
 )
 
