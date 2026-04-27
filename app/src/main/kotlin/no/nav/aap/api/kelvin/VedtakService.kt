@@ -39,7 +39,7 @@ class VedtakService(
                                 behandling.behandlingStatus,
                                 behandling.sak.status,
                                 periode
-                            ),
+                            ).toString(),
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
@@ -139,7 +139,7 @@ class VedtakService(
                                 behandling.behandlingStatus,
                                 behandling.sak.status,
                                 periode
-                            ),
+                            ).toString(),
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,

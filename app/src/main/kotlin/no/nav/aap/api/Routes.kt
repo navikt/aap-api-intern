@@ -3,12 +3,10 @@ package no.nav.aap.api
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
-import com.papsign.ktor.openapigen.route.info
+import com.papsign.ktor.openapigen.route.*
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
-import com.papsign.ktor.openapigen.route.route
-import com.papsign.ktor.openapigen.route.tag
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -57,6 +55,7 @@ data class CallIdHeader(
 enum class Tag(override val description: String) : APITag {
     Perioder("For å hente perioder med AAP"),
     Saker("For å hente AAP-saker"),
+    NKS("Endepunkter brukt av NKS"),
     Meldekort("For å hente AAP-meldekort"),
     Maksimum("For å hente maksimumsløsning"),
     DSOP("For DSOP-relaterte endepunkter"),
@@ -64,12 +63,12 @@ enum class Tag(override val description: String) : APITag {
 }
 
 data class SakerRequest(
-    @param:Description("Liste med personidentifikatorer. Må svare til samme person.")
+    @property:Description("Liste med personidentifikatorer. Må svare til samme person.")
     val personidentifikatorer: List<String>,
 )
 
 data class SakerRequestMeldekortbackend(
-    @param:Description("Personidentifikator")
+    @property:Description("Personidentifikator")
     val personidentifikator: String
 )
 
@@ -188,7 +187,8 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) + azpForTokenGenHvisIkkeProd()
             ), null,
-            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS.")
+            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS."),
+            tags(Tag.NKS)
         ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
             val personIdentifikator = requestBody.personidentifikator
@@ -228,7 +228,9 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) + azpForTokenGenHvisIkkeProd()
             ),
-            null, info(description = "Endepunkt ment kun for NKS. Henter saker for en person.")
+            null, info(description = "Endepunkt ment kun for NKS. Henter saker for en person."),
+            responseDescription(description = "Liste med saker, potensielt fra både Arena og Kelvin. `enhet` er alltid null fra Arena."),
+            tags(Tag.NKS)
         ) { callIdHeader, requestBody ->
             val callId = receiveCall(callIdHeader, pipeline)
 
@@ -245,7 +247,10 @@ fun NormalOpenAPIRoute.api(
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
             val kelvinSaker: List<SakStatus> =
                 dataSource.transaction { connection ->
-                    val kelvinSakService = KelvinSakService(SakStatusRepository(connection))
+                    val kelvinSakService = KelvinSakService(
+                        SakStatusRepository(connection),
+                        BehandlingsRepository(connection)
+                    )
 
                     kelvinSakService.hentSakStatus(personIdenter)
                 }
@@ -277,13 +282,16 @@ fun NormalOpenAPIRoute.api(
 
             val kelvinSaker: List<SakStatusMeldekortbackend> =
                 dataSource.transaction { connection ->
-                    val kelvinSakService = KelvinSakService(SakStatusRepository(connection))
+                    val kelvinSakService = KelvinSakService(
+                        SakStatusRepository(connection),
+                        BehandlingsRepository(connection)
+                    )
 
                     kelvinSakService.hentSakStatusUtenEnhet(personIdenter)
                 }
             val arenaSaker: List<SakStatusMeldekortbackend> =
                 arenaService.hentSaker(callId, listOf(requestBody.personidentifikator))
-                    .map { SakStatusMeldekortbackend(it.kilde, it.periode, it.sakId) }
+                    .map { SakStatusMeldekortbackend(it.kilde, it.periode(), it.sakId) }
 
             tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
 
@@ -303,10 +311,11 @@ fun NormalOpenAPIRoute.api(
             Metrics.antallIdenter("/kelvin/sakerByFnr", requestBody.personidentifikatorer.size)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
-            val kelvinSaker: List<SakStatus> =
+            val kelvinSaker: List<SakStatus.Kelvin> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
-                    val kelvinSakService = KelvinSakService(sakStatusRepository)
+                    val kelvinSakService =
+                        KelvinSakService(sakStatusRepository, BehandlingsRepository(connection))
 
                     kelvinSakService.hentSakStatus(personIdenter)
                 }
@@ -314,7 +323,7 @@ fun NormalOpenAPIRoute.api(
             respond(kelvinSaker.map {
                 SakStatusOverlappskontroll(
                     sakId = it.sakId,
-                    statusKode = it.statusKode,
+                    statusKode = it.status(),
                     periode = it.periode,
                     // Dette kommer fra Kelvin-periode, som alltid har ikke-null fra-dato
                     fraDato = it.periode.fraOgMedDato!!,
@@ -327,7 +336,7 @@ fun NormalOpenAPIRoute.api(
     tag(Tag.ArenaHistorikk) {
         route("/arena/person/aap/eksisterer") {
             post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
-                info(description = "Sjekker om en person eksisterer i AAP-arena")
+                info(description = "Sjekker om en person eksisterer i Arena (AAP).")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om person eksisterer i aap-arena")
                 val callId = receiveCall(callIdHeader, pipeline)
@@ -343,7 +352,7 @@ fun NormalOpenAPIRoute.api(
         }
         route("/arena/person/aap/signifikant-historikk") {
             post<CallIdHeader, SignifikanteSakerResponse, SignifikanteSakerRequest>(
-                info(description = "Sjekker om en person kan behandles i Kelvin mtp. AAP-Arena-historikken deres")
+                info(description = "Sjekker om en person kan behandles i Kelvin mtp. AAP-Arena-historikken deres.")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om personen kan behandles i Kelvin")
                 val callId = receiveCall(callIdHeader, pipeline)
@@ -498,13 +507,13 @@ private fun tellKildesystem(
 
 fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
     if (!token.isClientCredentials()) {
-        Metrics.tokentype("m2m")
+        Metrics.tokentype("obo")
         val tilgang = TilgangGateway.harTilgangTilPerson(personIdent, token)
         if (!tilgang) {
             throw IngenTilgangException("Har ikke tilgang til person")
         }
     } else {
-        Metrics.tokentype("obo")
+        Metrics.tokentype("m2m")
     }
 }
 
@@ -533,17 +542,17 @@ fun utledVedtakStatus(
     sakStatus: KelvinSakStatus,
     periode: Periode,
     nå: LocalDate = LocalDate.now(),
-): String =
+): Status =
     if (
         (behandlingStatus.iverksatt() && sakStatus != KelvinSakStatus.AVSLUTTET) ||
         periode.tom.isAfter(nå) ||
         sakStatus != KelvinSakStatus.AVSLUTTET
     ) {
-        Status.LØPENDE.toString()
+        Status.LØPENDE
     } else if (behandlingStatus == KelvinBehandlingStatus.AVSLUTTET) {
-        Status.AVSLUTTET.toString()
+        Status.AVSLUTTET
     } else {
-        Status.UTREDES.toString()
+        Status.UTREDES
     }
 
 

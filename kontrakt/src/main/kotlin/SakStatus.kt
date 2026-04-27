@@ -1,6 +1,10 @@
 package no.nav.aap.api.intern
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeName
 import com.papsign.ktor.openapigen.annotations.Response
+import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import java.time.LocalDate
 
 public data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalDate?) {
@@ -11,24 +15,102 @@ public data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalD
     }
 }
 
-/**
- * @param enhet Kan være null enten om kilde er ARENA, eller om det ikke finnes noen åpne oppgaver for personen.
- */
-@Response(description = "Representerer saker både fra Arena og Kelvin. `enhet` er alltid null fra Arena.")
-public data class SakStatus(
-    val sakId: String,
-    val statusKode: Status,
-    val periode: Periode,
-    val kilde: Kilde,
-    val enhet: NåværendeEnhet? = null
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    property = "kilde"
 )
+@JsonSubTypes(
+    JsonSubTypes.Type(value = SakStatus.Arena::class, name = "ARENA"),
+    JsonSubTypes.Type(value = SakStatus.Kelvin::class, name = "KELVIN"),
+)
+@Response(description = "Representerer saker både fra Arena og Kelvin. `enhet` er alltid null fra Arena.")
+public sealed class SakStatus(
+    public val sakId: String,
+    public val periode: Periode,
+    public val statusKode: SakStatusEnum,
+) {
+
+    public abstract val kilde: Kilde
+
+    @JsonTypeName("ARENA")
+    public class Arena(
+        statusKode: ArenaStatus,
+        periode: Periode,
+        sakId: String,
+    ) : SakStatus(sakId, periode, statusKode) {
+        override val kilde: Kilde = Kilde.ARENA
+
+        public fun periode(): Periode = this.periode
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+            if (!super.equals(other)) return false
+
+            other as Arena
+
+            return kilde == other.kilde
+        }
+
+        override fun hashCode(): Int {
+            var result = super.hashCode()
+            result = 31 * result + kilde.hashCode()
+            return result
+        }
+
+    }
+
+    public enum class YtelseStatus {
+        FØR_VEDTAK, LØPENDE, AVSLUTTET
+    }
+
+    @JsonTypeName("KELVIN")
+    public class Kelvin(
+        statusKode: KelvinStatus,
+        public val ytelsestatus: YtelseStatus,
+        periode: Periode,
+        public val perioder: List<Periode>,
+        sakId: String,
+        public val enhet: NåværendeEnhet? = null
+    ) : SakStatus(sakId, periode, statusKode) {
+        override val kilde: Kilde = Kilde.KELVIN
+
+        public fun status(): KelvinStatus = this.statusKode as KelvinStatus
+    }
+
+    override fun toString(): String {
+        return "SakStatus(periode=$periode, sakId='$sakId', statusKode=$statusKode, kilde=$kilde)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as SakStatus
+
+        if (sakId != other.sakId) return false
+        if (periode != other.periode) return false
+        if (statusKode != other.statusKode) return false
+        if (kilde != other.kilde) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = sakId.hashCode()
+        result = 31 * result + periode.hashCode()
+        result = 31 * result + statusKode.hashCode()
+        result = 31 * result + kilde.hashCode()
+        return result
+    }
+}
 
 @Response(description = "Representerer saker fra Kelvin.")
 public data class SakStatusOverlappskontroll(
     @Deprecated("Ikke i bruk av konsument.")
     val sakId: String,
     @Deprecated("Ikke i bruk av konsument.")
-    val statusKode: Status,
+    val statusKode: KelvinStatus,
     @Deprecated("Ikke i bruk av konsument (straks).")
     val periode: Periode,
     val fraDato: LocalDate,
@@ -52,8 +134,11 @@ public enum class OppgaveKategori {
 }
 
 public data class NåværendeEnhet(
+    @property:Description("Datoen behandlingen havnet på denne enheten første gang.")
     val oversendtDato: LocalDate,
+    @property:Description("Hvilken type oppgave som behandles nå.")
     val oppgaveKategori: OppgaveKategori,
+    @property:Description("Firesifret enhetskode.")
     val enhet: String,
 )
 
@@ -61,6 +146,35 @@ public enum class Kilde {
     ARENA,
     KELVIN
 }
+
+public sealed interface SakStatusEnum
+
+public enum class ArenaStatus : SakStatusEnum {
+    AVSLU,
+    FORDE,
+    GODKJ,
+    INNST,
+    IVERK,
+    KONT,
+    MOTAT,
+    OPPRE,
+    REGIS,
+    UKJENT,
+}
+
+public enum class KelvinStatus : SakStatusEnum {
+    // Disse skal bort fra Kelvin
+    OPPRETTET,
+    UTREDES,
+    LØPENDE,
+    AVSLUTTET,
+
+    // Disse kommer fra Kelvin
+    SOKNAD_UNDER_BEHANDLING,
+    REVURDERING_UNDER_BEHANDLING,
+    FERDIGBEHANDLET,
+}
+
 
 public enum class Status {
     AVSLU,
