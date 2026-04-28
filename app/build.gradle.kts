@@ -77,6 +77,7 @@ tasks {
 }
 
 tasks.register<JavaExec>("runTestApp") {
+    description = "Kjør TestApp"
     mainClass.set("no.nav.aap.api.TestAppKt")
     classpath = sourceSets["test"].runtimeClasspath
 }

@@ -3,14 +3,16 @@ package no.nav.aap.api.dsop
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.UUID
+import java.util.*
 import no.nav.aap.api.intern.DsopMeldekortDTO
 import no.nav.aap.api.intern.DsopRettighetsTypeDTO
 import no.nav.aap.api.intern.DsopStatusDTO
 import no.nav.aap.api.intern.DsopTimerArbeidetPerDagDTO
 import no.nav.aap.api.intern.DsopVedtakDTO
 import no.nav.aap.api.intern.DsopVedtaksTypeDTO
-import no.nav.aap.api.intern.PeriodeDTO
+import no.nav.aap.api.intern.DsopVedtaksvariantDTO
+import no.nav.aap.api.intern.PeriodeNullableTomDTO
+import no.nav.aap.api.kelvin.Arenavedtak
 import no.nav.aap.api.kelvin.Behandling
 import no.nav.aap.api.kelvin.KelvinBehandlingStatus
 import no.nav.aap.api.kelvin.KelvinSakStatus
@@ -22,6 +24,8 @@ import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.komponenter.tidslinje.tidslinjeOf
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -44,18 +48,16 @@ class DsopServiceTest {
     private val fnr = listOf("123445")
 
     private val testVedtak = Behandling(
-        underveisperiode = listOf(),
         rettighetsperiode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 4, 1)),
         behandlingStatus = KelvinBehandlingStatus.UTREDES,
-        behandlingsId = "123",
         vedtaksDato = LocalDate.now(),
         sak = Sak(
             saksnummer = "ABCDE",
             status = KelvinSakStatus.OPPRETTET,
             opprettetTidspunkt = LocalDateTime.now()
         ),
-        tilkjent = listOf(),
-        rettighetsTypeTidsLinje = listOf(
+        tilkjent = tidslinjeOf(),
+        rettighetsTypePerioder = listOf(
             RettighetsTypePeriode(
                 LocalDate.of(2021, 1, 1),
                 LocalDate.of(2021, 2, 1),
@@ -78,6 +80,7 @@ class DsopServiceTest {
         beregningsgrunnlag = BigDecimal.ZERO,
         nyttVedtak = false,
         stansOpphørVurdering = emptySet(),
+        arenakompatibleVedtak = emptyList(),
     )
 
     @Test
@@ -98,28 +101,28 @@ class DsopServiceTest {
             .isEqualTo(
                 listOf(
                     DsopVedtakDTO(
-                        vedtakId = "1",
+                        vedtakId = "1234",
                         vedtakStatus = DsopStatusDTO.AVSLUTTET,
-                        virkningsperiode = PeriodeDTO(
+                        virkningsperiode = PeriodeNullableTomDTO(
                             LocalDate.of(2021, 1, 1),
                             LocalDate.of(2021, 2, 1)
                         ),
-                        rettighetsType = "AAP",
                         utfall = "JA",
                         aktivitetsfase = DsopRettighetsTypeDTO.BISTANDSBEHOV,
                         vedtaksType = DsopVedtaksTypeDTO.E,
+                        vedtaksvariant = null,
                     ),
                     DsopVedtakDTO(
-                        vedtakId = "1",
+                        vedtakId = "1234",
                         vedtakStatus = DsopStatusDTO.AVSLUTTET,
-                        virkningsperiode = PeriodeDTO(
+                        virkningsperiode = PeriodeNullableTomDTO(
                             LocalDate.of(2021, 2, 2),
                             LocalDate.of(2021, 4, 1)
                         ),
-                        rettighetsType = "AAP",
                         utfall = "JA",
                         aktivitetsfase = DsopRettighetsTypeDTO.SYKEPENGEERSTATNING,
                         vedtaksType = DsopVedtaksTypeDTO.E,
+                        vedtaksvariant = null,
                     )
                 )
             )
@@ -191,4 +194,121 @@ class DsopServiceTest {
         assertThat(res.map { it.periode }).containsExactlyInAnyOrder(periode1.somDTO, periode2.somDTO)
     }
 
+    @Test
+    fun `ordinær førstegangsbehandling`() {
+        val vedtaksperiode = Periode(LocalDate.of(2020, 1, 1), LocalDate.of(2021, 12, 31))
+        val x = DsopService.utledDsopVedtak(
+            behandling = behandling(
+                rettighetstyper = tidslinjeOf(
+                    vedtaksperiode to "BISTANDSBEHOV"
+                ),
+                arenavedtak = listOf(
+                    Arenavedtak(
+                        vedtakId = 1L,
+                        fom = vedtaksperiode.fom,
+                        tom = vedtaksperiode.tom,
+                        vedtaksvariant = Arenavedtak.Vedtaksvariant.O_INNV_SOKNAD,
+                    ),
+                ),
+            ),
+            now = LocalDate.of(2021, 1, 1),
+        )
+        assertThat(x)
+            .isEqualTo(
+                listOf(
+                    DsopVedtakDTO(
+                        vedtakId = "1",
+                        vedtakStatus = DsopStatusDTO.LØPENDE,
+                        virkningsperiode = PeriodeNullableTomDTO(vedtaksperiode.fom, vedtaksperiode.tom),
+                        utfall = "JA",
+                        aktivitetsfase = DsopRettighetsTypeDTO.BISTANDSBEHOV,
+                        vedtaksType = DsopVedtaksTypeDTO.O,
+                        vedtaksvariant = DsopVedtaksvariantDTO.O_INNV_SOKNAD,
+                    )
+                )
+            )
+    }
+
+    @Test
+    fun `ordinær førstegangsbehandling, men tidlig stans`() {
+        val vedtaksperiode = Periode(LocalDate.of(2020, 1, 1), LocalDate.of(2020, 6, 30))
+        val x = DsopService.utledDsopVedtak(
+            behandling = behandling(
+                rettighetstyper = tidslinjeOf(
+                    vedtaksperiode to "BISTANDSBEHOV"
+                ),
+                arenavedtak = listOf(
+                    Arenavedtak(
+                        vedtakId = 1L,
+                        fom = vedtaksperiode.fom,
+                        tom = vedtaksperiode.tom,
+                        vedtaksvariant = Arenavedtak.Vedtaksvariant.O_INNV_SOKNAD,
+                    ),
+                    Arenavedtak(
+                        vedtakId = 2L,
+                        fom = vedtaksperiode.tom.plusDays(1),
+                        tom = vedtaksperiode.tom.plusDays(1),
+                        vedtaksvariant = Arenavedtak.Vedtaksvariant.S_STANS,
+                    ),
+                ),
+            ),
+            now = LocalDate.of(2020, 7, 1),
+        )
+        assertThat(x)
+            .isEqualTo(
+                listOf(
+                    DsopVedtakDTO(
+                        vedtakId = "1",
+                        vedtakStatus = DsopStatusDTO.AVSLUTTET,
+                        virkningsperiode = PeriodeNullableTomDTO(vedtaksperiode.fom, vedtaksperiode.tom),
+                        utfall = "JA",
+                        aktivitetsfase = DsopRettighetsTypeDTO.BISTANDSBEHOV,
+                        vedtaksType = DsopVedtaksTypeDTO.O,
+                        vedtaksvariant = DsopVedtaksvariantDTO.O_INNV_SOKNAD,
+                    ),
+                    DsopVedtakDTO(
+                        vedtakId = "2",
+                        vedtakStatus = DsopStatusDTO.LØPENDE,
+                        virkningsperiode = PeriodeNullableTomDTO(vedtaksperiode.tom.plusDays(1), null),
+                        utfall = "NEI",
+                        aktivitetsfase = null,
+                        vedtaksType = DsopVedtaksTypeDTO.S,
+                        vedtaksvariant = DsopVedtaksvariantDTO.S_STANS,
+                    ),
+                )
+            )
+    }
+
+
+    private fun behandling(
+        rettighetstyper: Tidslinje<String>,
+        arenavedtak: List<Arenavedtak>,
+        nyttVedtak: Boolean = true,
+    ): Behandling {
+        return Behandling(
+            behandlingsReferanse = UUID.randomUUID().toString(),
+            rettighetsperiode = Periode(LocalDate.MIN, LocalDate.MIN),
+            behandlingStatus = KelvinBehandlingStatus.AVSLUTTET,
+            vedtaksDato = LocalDate.MIN,
+            sak = Sak(
+                saksnummer = "s1",
+                status = KelvinSakStatus.LØPENDE,
+                opprettetTidspunkt = LocalDateTime.MIN,
+            ),
+            tilkjent = Tidslinje.empty(),
+            rettighetsTypePerioder = rettighetstyper.map { periode, type ->
+                RettighetsTypePeriode(
+                    periode.fom,
+                    periode.tom,
+                    type
+                )
+            }.verdier().toList(),
+            samId = null,
+            vedtakId = -1L,
+            beregningsgrunnlag = null,
+            nyttVedtak = nyttVedtak,
+            stansOpphørVurdering = setOf(),
+            arenakompatibleVedtak = arenavedtak,
+        )
+    }
 }

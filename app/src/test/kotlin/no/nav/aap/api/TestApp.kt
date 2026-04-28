@@ -14,11 +14,9 @@ import no.nav.aap.api.util.KafkaFake
 import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.api.util.port
 import no.nav.aap.komponenter.dbtest.TestDataSource
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import java.net.URI
 
 fun main() {
-    val fakes = Fakes(azurePort = 8085)
+    val fakes = Fakes()
     val dataSource = TestDataSource()
     val kafkaFake = KafkaFake()
 
@@ -26,8 +24,8 @@ fun main() {
 
     println("===========================================")
     println("  TestApp kjører på http://localhost:8084")
-    println("  Fake Azure kjører på http://localhost:8085")
-    println("  Hent token: POST http://localhost:8085")
+    println("  Fake Texas kjører på http://localhost:${fakes.texas.port()}")
+    println("  Hent token: POST http://localhost:${fakes.texas.port()}/token")
     println("===========================================")
 
     embeddedServer(Netty, port = 8084) {
@@ -44,22 +42,10 @@ fun main() {
 }
 
 private fun byggAppConfig(fakes: Fakes): AppConfig {
-    val azurePort = fakes.azure.port()
     return AppConfig(
         arenaoppslag = ArenaoppslagConfig(
             proxyBaseUrl = "http://localhost:${fakes.arena.port()}",
             scope = "test"
-        ),
-        kelvinConfig = KelvinConfig(
-            proxyBaseUrl = "http://localhost:$azurePort",
-            scope = "test"
-        ),
-        azure = AzureConfig(
-            tokenEndpoint = URI.create("http://localhost:$azurePort"),
-            clientId = "test",
-            clientSecret = "test",
-            jwksUri = "http://localhost:$azurePort/jwks",
-            issuer = "test"
         ),
         dbConfig = DbConfig(
             url = "jdbc:h2:mem:unused",

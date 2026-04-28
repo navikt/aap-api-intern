@@ -11,58 +11,65 @@ import no.nav.aap.api.intern.DsopTimerArbeidetPerDagDTO
 import no.nav.aap.api.intern.DsopVedtakDTO
 import no.nav.aap.api.intern.DsopVedtaksTypeDTO
 import no.nav.aap.api.intern.PeriodeDTO
+import no.nav.aap.api.intern.PeriodeNullableTomDTO
+import no.nav.aap.api.kelvin.Arenavedtak
+import no.nav.aap.api.kelvin.Behandling
 import no.nav.aap.api.kelvin.Meldekort
 import no.nav.aap.api.kelvin.MeldekortService
 import no.nav.aap.api.kelvin.RettighetsTypePeriode
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.komponenter.verdityper.Tid
 
 class DsopService(
     private val behandlingsRepository: BehandlingsRepository,
     private val meldekortService: MeldekortService,
+    private val clock: Clock = Clock.systemDefaultZone(),
 ) {
     constructor(
         connection: DBConnection,
         pdlGateway: IPdlGateway,
         clock: Clock = Clock.systemDefaultZone(),
-   ) : this(
+    ) : this(
         behandlingsRepository = BehandlingsRepository(connection),
         meldekortService = MeldekortService(connection, pdlGateway, clock),
+        clock = clock,
     )
 
     fun hentDsopVedtak(fnr: String, uttrekksperiode: Periode): List<DsopVedtakDTO> {
-        val vedtaksdata = behandlingsRepository.hentVedtaksData(fnr, uttrekksperiode)
+        val behandlinger = behandlingsRepository.hentVedtaksData(fnr, uttrekksperiode)
 
-        return vedtaksdata.flatMap {
-            it.rettighetsTypeTidsLinje
-                .somTidslinje({ rettighetsTypePeriode ->
-                    Periode(
-                        rettighetsTypePeriode.fom,
-                        rettighetsTypePeriode.tom
-                    )
-                }, { rettighetstype -> rettighetstype.verdi })
-                .komprimer()
+        return behandlinger.flatMap {
+            it.rettighetsTypeTidslinje
                 .segmenter()
                 .map { (periode, verdi) -> RettighetsTypePeriode(periode.fom, periode.tom, verdi) }
                 .map { rettighetsTypePeriode ->
                     DsopVedtakDTO(
-                        vedtakId = it.behandlingsId,
+                        vedtakId = it.vedtakId.toString(),
                         vedtakStatus = when (rettighetsTypePeriode.tom >= LocalDate.now()) {
                             true -> DsopStatusDTO.LØPENDE
                             else -> DsopStatusDTO.AVSLUTTET
                         },
-                        virkningsperiode = PeriodeDTO(
+                        virkningsperiode = PeriodeNullableTomDTO(
                             rettighetsTypePeriode.fom,
                             rettighetsTypePeriode.tom
                         ),
                         utfall = "JA",
                         aktivitetsfase = DsopRettighetsTypeDTO.valueOf(rettighetsTypePeriode.verdi),
                         vedtaksType = if (it.nyttVedtak) DsopVedtaksTypeDTO.O else DsopVedtaksTypeDTO.E,
+                        vedtaksvariant = null,
                     )
                 }
+        }
+    }
+
+    fun hentDsopVedtakNy(fnr: String, uttrekksperiode: Periode): List<DsopVedtakDTO> {
+        val behandlinger = behandlingsRepository.hentVedtaksData(fnr, uttrekksperiode)
+
+        return behandlinger.flatMap { behandling ->
+            utledDsopVedtak(behandling, LocalDate.now(clock))
         }
     }
 
@@ -100,7 +107,7 @@ class DsopService(
 
         val filtrerteMeldekort = meldekortListe.filter { meldekort ->
             kelvinVedtak.any {
-                val periode = Periode(it.virkningsperiode.fom, it.virkningsperiode.tom)
+                val periode = Periode(it.virkningsperiode.fom, it.virkningsperiode.tom ?: Tid.MAKS)
                 periode.overlapper(
                     Periode(
                         meldekort.meldePeriode.fom,
@@ -113,6 +120,67 @@ class DsopService(
         return filtrerteMeldekort
     }
 
+    companion object {
+        fun utledDsopVedtak(
+            behandling: Behandling,
+            now: LocalDate,
+        ): List<DsopVedtakDTO> =
+            behandling.rettighetsTypeTidslinje.outerJoin(behandling.arenakompatibleVedtakTidslinje) { periode, rettighetsType, arenavedtak ->
+                if (arenavedtak != null) {
+                    require(
+                        (rettighetsType == null) == (
+                                arenavedtak.vedtaksvariant in setOf(
+                                    Arenavedtak.Vedtaksvariant.G_AVSLAG,
+                                    Arenavedtak.Vedtaksvariant.O_AVSLAG,
+                                    Arenavedtak.Vedtaksvariant.S_STANS,
+                                    Arenavedtak.Vedtaksvariant.S_OPPHOR,
+                                    Arenavedtak.Vedtaksvariant.S_DOD,
+                                ))
+                    ) {
+                        "Hvis vedtaksvariant er satt, så har man ikke rett til AAP (rettighetstype == null) hvis og bare hvis det er en variant som ikke gir rett til AAP"
+                    }
+                }
+
+                val vedtaksvariant = arenavedtak?.vedtaksvariant
+
+                DsopVedtakDTO(
+                    vedtakId = arenavedtak?.vedtakId?.toString() ?: behandling.vedtakId.toString(),
+                    vedtakStatus = when (periode.tom >= now) {
+                        true -> DsopStatusDTO.LØPENDE
+                        else -> DsopStatusDTO.AVSLUTTET
+                    },
+                    virkningsperiode = when (vedtaksvariant) {
+                        null,
+                        Arenavedtak.Vedtaksvariant.O_INNV_NAV,
+                        Arenavedtak.Vedtaksvariant.O_INNV_SOKNAD,
+                        Arenavedtak.Vedtaksvariant.E_FORLENGE,
+                        Arenavedtak.Vedtaksvariant.E_VERDI,
+                        Arenavedtak.Vedtaksvariant.G_INNV_NAV,
+                        Arenavedtak.Vedtaksvariant.G_INNV_SOKNAD ->
+                            PeriodeNullableTomDTO(periode.fom, periode.tom)
+
+                        Arenavedtak.Vedtaksvariant.O_AVSLAG,
+                        Arenavedtak.Vedtaksvariant.G_AVSLAG,
+                        Arenavedtak.Vedtaksvariant.S_DOD,
+                        Arenavedtak.Vedtaksvariant.S_OPPHOR,
+                        Arenavedtak.Vedtaksvariant.S_STANS -> {
+                            require(periode.fom == periode.tom) {
+                                """vedtakslengde ved avslag, stans og opphør har ingen sluttdato, som skal være 
+                                            representert med fom == tom."""
+                            }
+                            PeriodeNullableTomDTO(periode.fom, null)
+                        }
+                    },
+                    utfall = if (rettighetsType == null) "NEI" else "JA",
+                    aktivitetsfase = rettighetsType?.let { DsopRettighetsTypeDTO.valueOf(it) },
+                    vedtaksType = vedtaksvariant?.type
+                        ?: if (behandling.nyttVedtak) DsopVedtaksTypeDTO.O else DsopVedtaksTypeDTO.E,
+                    vedtaksvariant = vedtaksvariant?.somDTO,
+                )
+            }
+                .verdier()
+                .toList()
+    }
 }
 
 fun List<DsopMeldekortDTO>.slåSammenMeldeperioder(): List<DsopMeldekortDTO> {

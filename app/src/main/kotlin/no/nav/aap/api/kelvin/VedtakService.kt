@@ -1,6 +1,9 @@
 package no.nav.aap.api.kelvin
 
+import com.papsign.ktor.openapigen.annotations.properties.description.Description
+import java.math.BigDecimal
 import java.time.Clock
+import java.time.DayOfWeek
 import java.time.LocalDate
 import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.Maksimum
@@ -9,14 +12,10 @@ import no.nav.aap.api.intern.UtbetalingMedMer
 import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.postgres.BehandlingsRepository
-import no.nav.aap.api.postgres.TilkjentDB
-import no.nav.aap.api.postgres.VedtakUtenUtbetalingUtenPeriode
-import no.nav.aap.api.postgres.weekdaysBetween
 import no.nav.aap.api.utledVedtakStatus
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
-import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 
 class VedtakService(
@@ -26,35 +25,8 @@ class VedtakService(
     fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
         val kelvinData = behandlingsRepository.hentVedtaksData(fnr, interval)
         val vedtak = kelvinData.flatMap { behandling ->
-            val rettighetsTypeTidslinje = Tidslinje(
-                behandling.rettighetsTypeTidsLinje.map {
-                    Segment(
-                        Periode(it.fom, it.tom),
-                        it.verdi
-                    )
-                }
-            )
-
-            val tilkjent = Tidslinje(
-                behandling.tilkjent.map {
-                    Segment(
-                        Periode(it.tilkjentFom, it.tilkjentTom),
-                        TilkjentDB(
-                            dagsats = it.dagsats,
-                            gradering = it.gradering,
-                            grunnlagsfaktor = it.grunnlagsfaktor,
-                            grunnbeløp = it.grunnbeløp,
-                            antallBarn = it.antallBarn,
-                            barnetilleggsats = it.barnetilleggsats,
-                            barnetillegg = it.barnetillegg,
-                            uføregrad = it.samordningUføregradering
-                        )
-                    )
-                }
-            )
-
-            val perioderTidslinje = rettighetsTypeTidslinje.kombiner(
-                tilkjent,
+            val perioderTidslinje = behandling.rettighetsTypeTidslinje.kombiner(
+                behandling.tilkjent,
                 JoinStyle.LEFT_JOIN { periode, left, right ->
                     Segment(
                         periode,
@@ -67,7 +39,7 @@ class VedtakService(
                                 behandling.behandlingStatus,
                                 behandling.sak.status,
                                 periode
-                            ),
+                            ).toString(),
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
@@ -82,7 +54,7 @@ class VedtakService(
                 }
             ).komprimer()
             val tilkjentPerioder =
-                tilkjent.splittOppIPerioder(perioderTidslinje.perioder().toList())
+                behandling.tilkjent.splittOppIPerioder(perioderTidslinje.perioder().toList())
 
             perioderTidslinje.kombiner(
                 tilkjentPerioder,
@@ -153,35 +125,8 @@ class VedtakService(
     ): Medium {
         val kelvinData = behandlingsRepository.hentVedtaksData(fnr, periode)
         val vedtak: List<VedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
-            val rettighetsTypeTidslinje = Tidslinje(
-                behandling.rettighetsTypeTidsLinje.map {
-                    Segment(
-                        Periode(it.fom, it.tom),
-                        it.verdi
-                    )
-                }
-            )
-
-            val tilkjent = Tidslinje(
-                behandling.tilkjent.map {
-                    Segment(
-                        Periode(it.tilkjentFom, it.tilkjentTom),
-                        TilkjentDB(
-                            it.dagsats,
-                            it.gradering,
-                            it.grunnlagsfaktor,
-                            it.grunnbeløp,
-                            it.antallBarn,
-                            it.barnetilleggsats,
-                            it.barnetillegg,
-                            it.samordningUføregradering
-                        )
-                    )
-                }
-            )
-
-            rettighetsTypeTidslinje.kombiner(
-                tilkjent,
+            behandling.rettighetsTypeTidslinje.kombiner(
+                behandling.tilkjent,
                 JoinStyle.LEFT_JOIN { periode, left, right ->
                     Segment(
                         periode,
@@ -194,7 +139,7 @@ class VedtakService(
                                 behandling.behandlingStatus,
                                 behandling.sak.status,
                                 periode
-                            ),
+                            ).toString(),
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
@@ -221,5 +166,64 @@ class VedtakService(
         }
 
         return Medium(vedtak)
+    }
+}
+
+fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
+    var count = 0
+    var date = startDate
+
+    while (!date.isAfter(endDate)) {
+        if (date.dayOfWeek != DayOfWeek.SATURDAY && date.dayOfWeek != DayOfWeek.SUNDAY) {
+            count++
+        }
+        date = date.plusDays(1)
+    }
+
+    return count
+}
+
+/**
+ * @param vedtakId Svarer til ID til vedtak-tabellen i behandlingsflyt.
+ */
+data class VedtakUtenUtbetalingUtenPeriode(
+    val vedtakId: String,
+    @param:Description("Full dagsats før reduksjoner.")
+    val dagsats: Int,
+    @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin). Ved manglende data er denne null.")
+    val dagsatsEtterUføreReduksjon: Int,
+    @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
+    val status: String, //Hypotese, vedtaksstatuskode
+    val saksnummer: String,
+    val vedtaksdato: LocalDate, //reg_dato
+    @param:Description("Rettighetsgruppe. For data fra Arena er dette aktivitetsfasekode.")
+    val rettighetsType: String, ////aktivitetsfase //Aktfasekode
+    val beregningsgrunnlag: Int,
+    val barnMedStonad: Int,
+    @param:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
+    val kildesystem: Kilde,
+    val samordningsId: String? = null,
+    val opphorsAarsak: String? = null,
+    val barnetilleggSats: BigDecimal? = null,
+) {
+    fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode): VedtakUtenUtbetaling {
+        return VedtakUtenUtbetaling(
+            vedtakId = this.vedtakId,
+            dagsats = this.dagsats,
+            dagsatsEtterUføreReduksjon = this.dagsatsEtterUføreReduksjon,
+            status = this.status,
+            saksnummer = this.saksnummer,
+            vedtaksdato = this.vedtaksdato,
+            vedtaksTypeKode = null,
+            vedtaksTypeNavn = null,
+            periode = periode,
+            rettighetsType = this.rettighetsType,
+            beregningsgrunnlag = this.beregningsgrunnlag,
+            barnMedStonad = this.barnMedStonad,
+            barnetillegg = barnMedStonad * (this.barnetilleggSats?.toInt() ?: 0),
+            kildesystem = this.kildesystem,
+            samordningsId = this.samordningsId,
+            opphorsAarsak = this.opphorsAarsak
+        )
     }
 }

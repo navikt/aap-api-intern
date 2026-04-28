@@ -1,35 +1,63 @@
 package no.nav.aap.api.kelvin
 
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArbeidIPeriodeDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArenaVedtaksvariantDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.StansEllerOpphørEnumDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
+import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
 
 fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
     return Behandling(
-        underveisperiode = this.underveisperiode.map { it.tilDomene() },
         rettighetsperiode = Periode(this.rettighetsPeriodeFom, this.rettighetsPeriodeTom),
         behandlingStatus = this.behandlingStatus.tilDomene(),
-        behandlingsId = this.behandlingsId,
         vedtaksDato = this.vedtaksDato,
         sak = this.sak.tilDomene(),
-        tilkjent = this.tilkjent.map { it.tilDomene() },
-        rettighetsTypeTidsLinje = this.rettighetsTypeTidsLinje.map { it.tilDomene() },
+        tilkjent = this.tilkjent.somTidslinje(
+            { Periode(it.tilkjentFom, it.tilkjentTom) },
+            { it.tilDomene() }),
+        rettighetsTypePerioder = this.rettighetsTypeTidsLinje.map { it.tilDomene() },
         behandlingsReferanse = this.behandlingsReferanse,
         samId = this.samId,
         vedtakId = this.vedtakId,
         beregningsgrunnlag = this.beregningsgrunnlag,
         nyttVedtak = nyttVedtak,
-        stansOpphørVurdering = this.stansOpphørVurdering?.map {
+        stansOpphørVurdering = this.stansOpphørVurdering?.map { stansEllerOpphør ->
             GjeldendeStansEllerOpphør(
-                fom = it.fom,
-                opprettet = it.opprettet,
-                vurdering = when (it.vurdering) {
+                fom = stansEllerOpphør.fom,
+                opprettet = stansEllerOpphør.opprettet,
+                vurdering = when (stansEllerOpphør.vurdering) {
                     StansEllerOpphørEnumDTO.STANS -> StansEllerOpphør.STANS
                     StansEllerOpphørEnumDTO.OPPHØR -> StansEllerOpphør.OPPHØR
                 },
-                avslagsårsaker = it.avslagsårsaker.map { Avslagsårsak.valueOf(it.name) }.toSet()
+                avslagsårsaker = stansEllerOpphør.avslagsårsaker.map { Avslagsårsak.valueOf(it.name) }
+                    .toSet()
             )
-        }?.toSet().orEmpty()
+        }?.toSet().orEmpty(),
+        arenakompatibleVedtak = this.arenavedtak.map {
+            Arenavedtak(
+                vedtakId = it.vedtakId,
+                fom = it.fom,
+                tom = it.tom,
+                vedtaksvariant = when (it.vedtaksvariant) {
+                    ArenaVedtaksvariantDTO.O_AVSLAG -> Arenavedtak.Vedtaksvariant.O_AVSLAG
+                    ArenaVedtaksvariantDTO.O_INNV_NAV -> Arenavedtak.Vedtaksvariant.O_INNV_NAV
+                    ArenaVedtaksvariantDTO.O_INNV_SOKNAD -> Arenavedtak.Vedtaksvariant.O_INNV_SOKNAD
+                    ArenaVedtaksvariantDTO.E_FORLENGE -> Arenavedtak.Vedtaksvariant.E_FORLENGE
+                    ArenaVedtaksvariantDTO.E_VERDI -> Arenavedtak.Vedtaksvariant.E_VERDI
+                    ArenaVedtaksvariantDTO.G_AVSLAG -> Arenavedtak.Vedtaksvariant.G_AVSLAG
+                    ArenaVedtaksvariantDTO.G_INNV_NAV -> Arenavedtak.Vedtaksvariant.G_INNV_NAV
+                    ArenaVedtaksvariantDTO.G_INNV_SOKNAD -> Arenavedtak.Vedtaksvariant.G_INNV_SOKNAD
+                    ArenaVedtaksvariantDTO.S_DOD -> Arenavedtak.Vedtaksvariant.S_DOD
+                    ArenaVedtaksvariantDTO.S_OPPHOR -> Arenavedtak.Vedtaksvariant.S_OPPHOR
+                    ArenaVedtaksvariantDTO.S_STANS -> Arenavedtak.Vedtaksvariant.S_STANS
+                },
+            )
+        },
     )
 }
 
@@ -38,18 +66,6 @@ fun SakDTO.tilDomene(): Sak {
         saksnummer = this.saksnummer,
         status = this.status.tilDomene(),
         opprettetTidspunkt = this.opprettetTidspunkt
-    )
-}
-
-fun UnderveisDTO.tilDomene(): UnderveisIntern {
-    return UnderveisIntern(
-        underveisFom = this.underveisFom,
-        underveisTom = this.underveisTom,
-        meldeperiodeFom = this.meldeperiodeFom,
-        meldeperiodeTom = this.meldeperiodeTom,
-        utfall = this.utfall,
-        rettighetsType = this.rettighetsType,
-        avslagsårsak = this.avslagsårsak
     )
 }
 
@@ -62,10 +78,8 @@ fun Status.tilDomene(): KelvinBehandlingStatus {
     }
 }
 
-fun TilkjentDTO.tilDomene(): TilkjentPeriode {
-    return TilkjentPeriode(
-        tilkjentFom = this.tilkjentFom,
-        tilkjentTom = this.tilkjentTom,
+fun TilkjentDTO.tilDomene(): TilkjentYtelse {
+    return TilkjentYtelse(
         dagsats = this.dagsats,
         gradering = this.gradering,
         samordningUføregradering = this.samordningUføregradering,

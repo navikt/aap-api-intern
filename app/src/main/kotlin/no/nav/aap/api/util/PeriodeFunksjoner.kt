@@ -5,7 +5,7 @@ import no.nav.aap.api.kelvin.Behandling
 
 fun perioderMedAAp(input: List<Behandling>): List<Periode> {
     return input.flatMap { sak ->
-        sak.rettighetsTypeTidsLinje.map { segment ->
+        sak.rettighetsTypePerioder.map { segment ->
             Periode(segment.fom, segment.tom)
         }
     }

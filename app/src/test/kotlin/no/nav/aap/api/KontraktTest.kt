@@ -3,15 +3,13 @@ package no.nav.aap.api
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.get
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.serialization.jackson.jackson
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.ktor.server.testing.testApplication
+import io.ktor.client.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import io.ktor.server.testing.*
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.api.util.PostgresTestBase
@@ -19,7 +17,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class KontraktTest : PostgresTestBase() {
-    /* Det er ikke til å unngå at listen er tom, siden det er behandlingsflyt sin kontrakt som styrere
+    /* Det er ikke til å unngå at listen ikke er tom, siden det er behandlingsflyt sin kontrakt som styrer
      * insert-endepunktene. Utenom det, så hadde denne listen ideelt sett vært tom. */
     val unntak = setOf(
         "no.nav.aap.api.SakerRequest",
@@ -35,7 +33,7 @@ class KontraktTest : PostgresTestBase() {
     @Test
     fun `schemas kommer kun fra kontrakter`() {
         Fakes().use { fakes ->
-            val config = TestConfig.default(fakes)
+            val config = TestConfig.default()
 
             testApplication {
                 application {

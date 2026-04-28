@@ -11,7 +11,6 @@ import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.Kilde
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
@@ -64,7 +63,7 @@ class ArenaService(
         )
     }
 
-    suspend fun hentSaker(callId: String, personIdenter: List<String>): List<SakStatus> {
+    suspend fun hentSaker(callId: String, personIdenter: List<String>): List<SakStatus.Arena> {
         val sakerRequest = SakerRequest(personIdenter)
         return arena.hentSakerByFnr(callId, sakerRequest).map {
             arenaSakStatusTilDomene(it)
@@ -72,27 +71,24 @@ class ArenaService(
     }
 
     private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus) =
-        SakStatus(
+        SakStatus.Arena(
             sakId = it.sakId,
             statusKode = when (it.statusKode) {
-                Status.AVSLU -> no.nav.aap.api.intern.Status.AVSLU
-                Status.FORDE -> no.nav.aap.api.intern.Status.FORDE
-                Status.GODKJ -> no.nav.aap.api.intern.Status.GODKJ
-                Status.INNST -> no.nav.aap.api.intern.Status.INNST
-                Status.IVERK -> no.nav.aap.api.intern.Status.IVERK
-                Status.KONT -> no.nav.aap.api.intern.Status.KONT
-                Status.MOTAT -> no.nav.aap.api.intern.Status.MOTAT
-                Status.OPPRE -> no.nav.aap.api.intern.Status.OPPRE
-                Status.REGIS -> no.nav.aap.api.intern.Status.REGIS
-                Status.UKJENT -> no.nav.aap.api.intern.Status.UKJENT
+                Status.AVSLU -> no.nav.aap.api.intern.ArenaStatus.AVSLU
+                Status.FORDE -> no.nav.aap.api.intern.ArenaStatus.FORDE
+                Status.GODKJ -> no.nav.aap.api.intern.ArenaStatus.GODKJ
+                Status.INNST -> no.nav.aap.api.intern.ArenaStatus.INNST
+                Status.IVERK -> no.nav.aap.api.intern.ArenaStatus.IVERK
+                Status.KONT -> no.nav.aap.api.intern.ArenaStatus.KONT
+                Status.MOTAT -> no.nav.aap.api.intern.ArenaStatus.MOTAT
+                Status.OPPRE -> no.nav.aap.api.intern.ArenaStatus.OPPRE
+                Status.REGIS -> no.nav.aap.api.intern.ArenaStatus.REGIS
+                Status.UKJENT -> no.nav.aap.api.intern.ArenaStatus.UKJENT
             },
             periode = Periode(
                 it.periode.fraOgMedDato,
                 it.periode.tilOgMedDato
-            ),
-            kilde = when (it.kilde) {
-                Kilde.ARENA -> no.nav.aap.api.intern.Kilde.ARENA
-            }
+            )
         )
 
     suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): List<Periode> {

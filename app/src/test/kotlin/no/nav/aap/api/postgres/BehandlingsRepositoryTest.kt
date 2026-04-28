@@ -5,6 +5,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
+import no.nav.aap.api.kelvin.Arenavedtak
 import no.nav.aap.api.kelvin.Behandling
 import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
 import no.nav.aap.api.kelvin.KelvinBehandlingStatus
@@ -15,6 +16,7 @@ import no.nav.aap.api.kelvin.StansEllerOpphør
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
+import no.nav.aap.komponenter.tidslinje.tidslinjeOf
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -36,18 +38,16 @@ class BehandlingsRepositoryTest {
 
     private val fnr = listOf("123445")
     private val testVedtak = Behandling(
-        underveisperiode = listOf(),
         rettighetsperiode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2022, 4, 1)),
         behandlingStatus = KelvinBehandlingStatus.UTREDES,
-        behandlingsId = "123",
         vedtaksDato = LocalDate.now(),
         sak = Sak(
             saksnummer = "ABCDE",
             status = KelvinSakStatus.OPPRETTET,
             opprettetTidspunkt = LocalDateTime.now()
         ),
-        tilkjent = listOf(),
-        rettighetsTypeTidsLinje = listOf(
+        tilkjent = tidslinjeOf(),
+        rettighetsTypePerioder = listOf(
             RettighetsTypePeriode(
                 LocalDate.of(2021, 1, 1),
                 LocalDate.of(2021, 2, 1),
@@ -69,7 +69,27 @@ class BehandlingsRepositoryTest {
         vedtakId = 1234L,
         beregningsgrunnlag = BigDecimal.ZERO,
         nyttVedtak = false,
-        stansOpphørVurdering = emptySet()
+        stansOpphørVurdering = emptySet(),
+        arenakompatibleVedtak = listOf(
+            Arenavedtak(
+                vedtakId = 4,
+                fom = LocalDate.of(2021, 1, 1),
+                tom = LocalDate.of(2021, 2, 1),
+                vedtaksvariant = Arenavedtak.Vedtaksvariant.O_INNV_SOKNAD,
+            ),
+            Arenavedtak(
+                vedtakId = 10,
+                fom = LocalDate.of(2021, 2, 2),
+                tom = LocalDate.of(2021, 3, 1),
+                vedtaksvariant = Arenavedtak.Vedtaksvariant.E_VERDI,
+            ),
+            Arenavedtak(
+                vedtakId = 10,
+                fom = LocalDate.of(2021, 3, 2),
+                tom = LocalDate.of(2021, 4, 1),
+                vedtaksvariant = Arenavedtak.Vedtaksvariant.E_FORLENGE,
+            ),
+        ),
     )
 
     @Test
@@ -86,6 +106,8 @@ class BehandlingsRepositoryTest {
         }
 
         assertThat(uthentetVedtak).hasSize(1)
+        assertThat(uthentetVedtak[0].arenakompatibleVedtak)
+            .isEqualTo(testVedtak.arenakompatibleVedtak)
     }
 
     @Test

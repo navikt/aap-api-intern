@@ -1,28 +1,40 @@
 package no.nav.aap.api.kelvin
 
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.math.roundToInt
+import no.nav.aap.api.intern.DsopVedtaksTypeDTO
+import no.nav.aap.api.intern.DsopVedtaksvariantDTO
+import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
 
 data class Behandling(
-    val behandlingsId: String,
     val behandlingsReferanse: String,
     @Deprecated("Ikke del denne utad.")
     val rettighetsperiode: Periode,
-    val underveisperiode: List<UnderveisIntern>,
     val behandlingStatus: KelvinBehandlingStatus,
     val vedtaksDato: LocalDate,
     val sak: Sak,
-    val tilkjent: List<TilkjentPeriode>,
-    val rettighetsTypeTidsLinje: List<RettighetsTypePeriode>,
+    val tilkjent: Tidslinje<TilkjentYtelse>,
+    val rettighetsTypePerioder: List<RettighetsTypePeriode>,
     val samId: String?,
     val vedtakId: Long,
     val beregningsgrunnlag: BigDecimal?,
     val nyttVedtak: Boolean,
     val stansOpphørVurdering: Set<GjeldendeStansEllerOpphør>?,
-)
+    val arenakompatibleVedtak: List<Arenavedtak>,
+) {
+    val rettighetsTypeTidslinje: Tidslinje<String>
+        get() = rettighetsTypePerioder.somTidslinje({ it.periode }, { it.verdi })
+            .komprimer()
+
+    val arenakompatibleVedtakTidslinje: Tidslinje<Arenavedtak>
+        get() = arenakompatibleVedtak.somTidslinje { it.periode }
+}
 
 data class GjeldendeStansEllerOpphør(
     val fom: LocalDate,
@@ -68,7 +80,10 @@ data class RettighetsTypePeriode(
     val fom: LocalDate,
     val tom: LocalDate,
     val verdi: String
-)
+) {
+    val periode: Periode
+        get() = Periode(fom, tom)
+}
 
 data class Sak(
     val saksnummer: String,
@@ -77,30 +92,29 @@ data class Sak(
 )
 
 /**
- * @param samordningUføregradering Svarer til prosent uføre. 100% bør medføre 0% gradering.
+ * @param samordningUføregradering Svarer til prosent uføre.
  */
-data class TilkjentPeriode(
-    val tilkjentFom: LocalDate,
-    val tilkjentTom: LocalDate,
+data class TilkjentYtelse(
     val dagsats: Int,
     val gradering: Int,
-    val samordningUføregradering: Int? = null,
+    val samordningUføregradering: Int?,
     val grunnlagsfaktor: BigDecimal,
     val grunnbeløp: BigDecimal,
     val antallBarn: Int,
     val barnetilleggsats: BigDecimal,
-    val barnetillegg: BigDecimal
-)
+    val barnetillegg: BigDecimal,
+) {
+    fun gradertBarnetillegg(): BigDecimal =
+        this.barnetillegg.multiply(
+            this.gradering.toBigDecimal()
+                .divide(100.toBigDecimal())
+        ).setScale(0, RoundingMode.HALF_UP)
 
-data class UnderveisIntern(
-    val underveisFom: LocalDate,
-    val underveisTom: LocalDate,
-    val meldeperiodeFom: LocalDate,
-    val meldeperiodeTom: LocalDate,
-    val utfall: String,
-    val rettighetsType: String?,
-    val avslagsårsak: String?, // skal ikke denne være Avslagsårsak?
-)
+    fun regnUtDagsatsEtterUføreReduksjon(): Int =
+        this.dagsats.times(
+            (100 - (this.samordningUføregradering ?: 0)) / 100.0
+        ).roundToInt()
+}
 
 enum class KelvinSakStatus {
     OPPRETTET,
@@ -118,5 +132,31 @@ enum class KelvinBehandlingStatus {
 
     fun iverksatt() =
         this == IVERKSETTES || this == AVSLUTTET
+}
 
+data class Arenavedtak(
+    val vedtakId: Long,
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val vedtaksvariant: Vedtaksvariant,
+) {
+    val periode = Periode(fom, tom)
+
+    enum class Vedtaksvariant(
+        val type: DsopVedtaksTypeDTO,
+        val somDTO: DsopVedtaksvariantDTO,
+    ) {
+        O_AVSLAG(DsopVedtaksTypeDTO.O, DsopVedtaksvariantDTO.O_AVSLAG),
+        O_INNV_NAV(DsopVedtaksTypeDTO.O, DsopVedtaksvariantDTO.O_INNV_NAV),
+        O_INNV_SOKNAD(DsopVedtaksTypeDTO.O, DsopVedtaksvariantDTO.O_INNV_SOKNAD),
+        E_FORLENGE(DsopVedtaksTypeDTO.E, DsopVedtaksvariantDTO.E_FORLENGE),
+        E_VERDI(DsopVedtaksTypeDTO.E, DsopVedtaksvariantDTO.E_VERDI),
+        G_AVSLAG(DsopVedtaksTypeDTO.G, DsopVedtaksvariantDTO.G_AVSLAG),
+        G_INNV_NAV(DsopVedtaksTypeDTO.G, DsopVedtaksvariantDTO.G_INNV_NAV),
+        G_INNV_SOKNAD(DsopVedtaksTypeDTO.G, DsopVedtaksvariantDTO.G_INNV_SOKNAD),
+        S_DOD(DsopVedtaksTypeDTO.S, DsopVedtaksvariantDTO.S_DOD),
+        S_OPPHOR(DsopVedtaksTypeDTO.S, DsopVedtaksvariantDTO.S_OPPHOR),
+        S_STANS(DsopVedtaksTypeDTO.S, DsopVedtaksvariantDTO.S_STANS),
+        ;
+    }
 }

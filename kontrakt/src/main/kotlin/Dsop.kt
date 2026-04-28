@@ -36,16 +36,38 @@ public data class DsopResponse(
 public data class DsopVedtakDTO(
     val vedtakId: String,
     val vedtakStatus: DsopStatusDTO,
-    val virkningsperiode: PeriodeDTO,
-    val rettighetsType: String = "AAP",
-    val utfall: String = "JA",
-    val aktivitetsfase: DsopRettighetsTypeDTO,
+    val virkningsperiode: PeriodeNullableTomDTO,
+    val utfall: String,
+    val aktivitetsfase: DsopRettighetsTypeDTO?,
     val vedtaksType: DsopVedtaksTypeDTO,
-)
+    val vedtaksvariant: DsopVedtaksvariantDTO?,
+) {
+    /** Dette er ikke Kelvins rettighetstype, men Arena sin rettighetstype som skiller
+     * mellom AAP og andre ytelser.
+     */
+    val rettighetsType: String = "AAP"
+}
 
 public enum class DsopVedtaksTypeDTO(description: String) {
     O("NY RETTIGHET"),
-    E("ENDRING I RETTIGHET")
+    E("ENDRING I RETTIGHET"),
+    G("GJENINNTREDEN"),
+    S("STANS ELLER OPPHØR"),
+}
+
+public enum class DsopVedtaksvariantDTO {
+    O_AVSLAG,
+    O_INNV_NAV,
+    O_INNV_SOKNAD,
+    E_FORLENGE,
+    E_VERDI,
+    G_AVSLAG,
+    G_INNV_NAV,
+    G_INNV_SOKNAD,
+    S_DOD,
+    S_OPPHOR,
+    S_STANS,
+    ;
 }
 
 public enum class DsopStatusDTO {

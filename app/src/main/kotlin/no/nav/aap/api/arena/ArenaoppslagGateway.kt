@@ -42,7 +42,6 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import org.slf4j.LoggerFactory
 
 private val secureLog = LoggerFactory.getLogger("team-logs")
@@ -61,11 +60,10 @@ private val objectMapper =
 
 class ArenaoppslagGateway(
     private val arenaoppslagConfig: ArenaoppslagConfig,
-    azureConfig: AzureConfig,
     private val slowRequestMillis: Long = 2000,
     private val timeoutMillis: Long = 20_000,
 ) : IArenaoppslagGateway {
-    private val tokenProvider = AzureAdTokenProvider(azureConfig)
+    private val tokenProvider = AzureAdTokenProvider()
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
         // Mange kall til arenaoppslag tar gjerne 300-400ms har vi sett av prometheus-metrikker.
         // Legger denne derfor litt over dette

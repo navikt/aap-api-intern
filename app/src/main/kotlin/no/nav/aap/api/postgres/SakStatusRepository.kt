@@ -1,6 +1,7 @@
 package no.nav.aap.api.postgres
 
 import no.nav.aap.api.intern.behandlingsflyt.SakStatus
+import no.nav.aap.api.intern.behandlingsflyt.SakstatusFraKelvin
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 
@@ -33,7 +34,7 @@ class SakStatusRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentSakStatus(fnr: String): List<no.nav.aap.api.intern.SakStatus> {
+    fun hentSakStatus(fnr: String): List<SakStatus> {
         return connection.queryList(
             """
                 SELECT SAKSNUMMER, STATUS, RETTIGHETS_PERIODE
@@ -45,11 +46,11 @@ class SakStatusRepository(private val connection: DBConnection) {
                 setString(1, fnr)
             }
             setRowMapper { row ->
-                no.nav.aap.api.intern.SakStatus(
+                SakStatus(
                     sakId = row.getString("SAKSNUMMER"),
-                    statusKode = no.nav.aap.api.intern.Status.valueOf(row.getString("STATUS")),
-                    periode = row.getPeriode("RETTIGHETS_PERIODE").toKontraktPeriode(),
-                    kilde = no.nav.aap.api.intern.Kilde.KELVIN
+                    statusKode = SakstatusFraKelvin.valueOf(row.getString("STATUS")),
+                    periode = row.getPeriode("RETTIGHETS_PERIODE")
+                        .let { no.nav.aap.api.intern.behandlingsflyt.Periode(it.fom, it.tom) },
                 )
             }
         }

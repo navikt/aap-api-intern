@@ -15,7 +15,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.Header
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.post
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.ClientCredentialsTokenProvider
+import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import org.slf4j.LoggerFactory
 
 interface IPdlGateway {
@@ -23,10 +23,10 @@ interface IPdlGateway {
 }
 
 class PdlGateway : IPdlGateway {
-    private val graphqlUrl = URI.create(requiredConfigForKey("integrasjon.pdl.url"))
+    private val graphqlUrl = URI.create(requiredConfigForKey("INTEGRASJON_PDL_URL"))
     private val config =
         ClientConfig(
-            scope = requiredConfigForKey("integrasjon.pdl.scope"),
+            scope = requiredConfigForKey("INTEGRASJON_PDL_SCOPE"),
             additionalHeaders = listOf(Header("Behandlingsnummer", "B287")),
         )
 
@@ -35,7 +35,7 @@ class PdlGateway : IPdlGateway {
     private val client =
         RestClient(
             config = config,
-            tokenProvider = ClientCredentialsTokenProvider,
+            tokenProvider = AzureM2MTokenProvider,
             responseHandler = GraphQLResponseHandler(),
         )
 

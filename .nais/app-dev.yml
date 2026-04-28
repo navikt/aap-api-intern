@@ -133,6 +133,7 @@ spec:
         - application: k9-abakus
           namespace: k9saksbehandling
           cluster: dev-fss
+        - application: paw-patrol
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io
@@ -148,10 +149,6 @@ spec:
       value: https://arenaoppslag.dev-fss-pub.nais.io
     - name: ARENAOPPSLAG_SCOPE
       value: api://dev-fss.aap.arenaoppslag/.default
-    - name: KELVIN_PROXY_BASE_URL
-      value: http://behandlingsflyt
-    - name: KELVIN_SCOPE
-      value: api://dev-gcp.aap.behandlingsflyt/.default
     - name: INTEGRASJON_PDL_URL
       value: https://pdl-api.dev-fss-pub.nais.io/graphql
     - name: INTEGRASJON_PDL_SCOPE

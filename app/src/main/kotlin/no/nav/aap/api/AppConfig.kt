@@ -1,23 +1,12 @@
 package no.nav.aap.api
 
-import no.nav.aap.api.kafka.KafkaConfig
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
-import java.net.URI
 import kotlin.time.Duration.Companion.seconds
-
+import no.nav.aap.api.kafka.KafkaConfig
 
 private fun getEnvVar(envar: String) = System.getenv(envar) ?: error("missing envvar $envar")
 
 data class AppConfig(
     val arenaoppslag: ArenaoppslagConfig = ArenaoppslagConfig(),
-    val kelvinConfig: KelvinConfig = KelvinConfig(),
-    val azure: AzureConfig = AzureConfig(
-        tokenEndpoint = URI.create(getEnvVar("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT")),
-        clientId = getEnvVar("AZURE_APP_CLIENT_ID"),
-        clientSecret = getEnvVar("AZURE_APP_CLIENT_SECRET"),
-        jwksUri = getEnvVar("AZURE_OPENID_CONFIG_JWKS_URI"),
-        issuer = getEnvVar("AZURE_OPENID_CONFIG_ISSUER")
-    ),
     val dbConfig: DbConfig = DbConfig(),
     val kafka: KafkaConfig = KafkaConfig(
         brokers = getEnvVar("KAFKA_BROKERS"),
@@ -51,11 +40,6 @@ data class ArenaoppslagConfig(
 
 data class ModiaConfig(
     val topic: String = getEnvVar("MODIA_TOPIC"),
-)
-
-data class KelvinConfig(
-    val proxyBaseUrl: String = getEnvVar("KELVIN_PROXY_BASE_URL"),
-    val scope: String = getEnvVar("KELVIN_SCOPE")
 )
 
 class DbConfig(

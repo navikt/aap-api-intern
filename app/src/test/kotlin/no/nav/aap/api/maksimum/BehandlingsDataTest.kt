@@ -23,7 +23,10 @@ import no.nav.aap.api.util.PostgresTestBase
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.*
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.RettighetsTypePeriode
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.json.DefaultJsonMapper
@@ -34,7 +37,6 @@ import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.*
 import java.util.*
-import kotlin.collections.emptyList
 import kotlin.test.assertEquals
 
 
@@ -44,17 +46,6 @@ class BehandlingsDataTest : PostgresTestBase() {
         val testObject = DatadelingDTO(
             behandlingsId = 123456789L.toString(),
             behandlingsReferanse = "1234567890987654321",
-            underveisperiode = listOf(
-                UnderveisDTO(
-                    underveisFom = LocalDate.now().minusYears(2),
-                    underveisTom = LocalDate.now().minusYears(1),
-                    meldeperiodeFom = LocalDate.now().minusYears(2),
-                    meldeperiodeTom = LocalDate.now().minusYears(1),
-                    utfall = "",
-                    rettighetsType = RettighetsType.STUDENT.name,
-                    avslagsårsak = ""
-                )
-            ),
             rettighetsPeriodeFom = LocalDate.now().minusYears(2),
             rettighetsPeriodeTom = LocalDate.now().minusYears(1),
             behandlingStatus = Status.IVERKSETTES,
@@ -139,7 +130,7 @@ class BehandlingsDataTest : PostgresTestBase() {
 
     @Test
     fun `kan lagre ned og hente maksimum`() {
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         testApplication {
@@ -196,7 +187,7 @@ class BehandlingsDataTest : PostgresTestBase() {
 
     @Test
     fun `kan lagre ned og hente maksimum med null param`() {
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         testApplication {
@@ -240,7 +231,7 @@ class BehandlingsDataTest : PostgresTestBase() {
 
     @Test
     fun `filtrering på periode fungerer`() {
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         val fnr = "12345678911"
@@ -309,17 +300,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                 DatadelingDTO(
                     behandlingsId = 123456789L.toString(),
                     behandlingsReferanse = UUID.randomUUID().toString(),
-                    underveisperiode = listOf(
-                        UnderveisDTO(
-                            underveisFom = fraOgMed,
-                            underveisTom = fraOgMed.plusYears(1),
-                            meldeperiodeFom = fraOgMed,
-                            meldeperiodeTom = fraOgMed.plusYears(1),
-                            utfall = "",
-                            rettighetsType = RettighetsType.STUDENT.name,
-                            avslagsårsak = ""
-                        )
-                    ),
                     rettighetsPeriodeFom = fraOgMed,
                     rettighetsPeriodeTom = fraOgMed.plusYears(1),
                     behandlingStatus = Status.IVERKSETTES,
@@ -364,7 +344,7 @@ class BehandlingsDataTest : PostgresTestBase() {
     @Test
     fun `kan lagre ned og hente perioder`() {
 
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         testApplication {
@@ -420,7 +400,7 @@ class BehandlingsDataTest : PostgresTestBase() {
 
     @Test
     fun `kan lagre ned og hente medium`() {
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         testApplication {
@@ -490,7 +470,7 @@ class BehandlingsDataTest : PostgresTestBase() {
     @Test
     fun `ekte data kopiert fra behandlingsflyt, snapshot-test`() {
         // Oppdater json-filene ved endring
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         val testfil =
