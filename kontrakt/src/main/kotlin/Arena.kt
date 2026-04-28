@@ -17,3 +17,21 @@ public data class SignifikanteSakerRequest (
     val personidentifikatorer: List<String>,
     val virkningstidspunkt: LocalDate, // datoen søknaden ble mottatt, feks. per post
 )
+
+public data class ArenaSakerRequest(
+    val personidentifikator: String,
+)
+
+public data class ArenaSakOppsummering(
+    val sakId: String,
+    val lopenummer: Int,
+    val aar: Int,
+    val antallVedtak: Int,
+    val sakstype: String?,
+    val regDato: LocalDate,
+    val avsluttetDato: LocalDate?,
+)
+
+public data class ArenaSakerResponse(
+    val saker: List<ArenaSakOppsummering>,
+)

@@ -24,9 +24,6 @@ class KontraktTest : PostgresTestBase() {
         "no.nav.aap.api.SakerRequestMeldekortbackend",
         "no.nav.aap.api.kelvin.MeldekortPerioderDTO",
         "no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest",
-        "no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakOppsummeringKontrakt",
-        "no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest",
-        "no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse",
         "no.nav.aap.komponenter.type.Periode",
     )
 

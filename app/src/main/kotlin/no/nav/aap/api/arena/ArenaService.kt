@@ -1,5 +1,7 @@
 package no.nav.aap.api.arena
 
+import no.nav.aap.api.intern.ArenaSakOppsummering
+import no.nav.aap.api.intern.ArenaSakerResponse
 import no.nav.aap.api.intern.Periode
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.PerioderInkludert11_17Response
@@ -95,8 +97,8 @@ class ArenaService(
         return arena.hentPerioder(callId, vedtakRequest).perioder
     }
 
-    suspend fun hentSakerForPerson(callId: String, personidentifikator: String): SakerResponse {
-        return arena.hentSakerForPerson(callId, SakerRequestV1(personidentifikator))
+    suspend fun hentSakerForPerson(callId: String, personidentifikator: String): ArenaSakerResponse {
+        return arena.hentSakerForPerson(callId, SakerRequestV1(personidentifikator)).toResponse()
     }
 
     suspend fun hentVedtakUtenUtbetaling(
@@ -111,3 +113,17 @@ class ArenaService(
     }
 
 }
+
+private fun SakerResponse.toResponse() = ArenaSakerResponse(
+    saker = saker.map { sak ->
+        ArenaSakOppsummering(
+            sakId = sak.sakId,
+            lopenummer = sak.lopenummer,
+            aar = sak.aar,
+            antallVedtak = sak.antallVedtak,
+            sakstype = sak.sakstype,
+            regDato = sak.regDato,
+            avsluttetDato = sak.avsluttetDato,
+        )
+    }
+)
