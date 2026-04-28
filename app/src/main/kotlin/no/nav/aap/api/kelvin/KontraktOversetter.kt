@@ -64,7 +64,6 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
 fun SakDTO.tilDomene(): Sak {
     return Sak(
         saksnummer = this.saksnummer,
-        status = this.status.tilDomene(),
         opprettetTidspunkt = this.opprettetTidspunkt
     )
 }
@@ -97,15 +96,6 @@ fun no.nav.aap.behandlingsflyt.kontrakt.datadeling.RettighetsTypePeriode.tilDome
         tom = this.tom,
         verdi = this.verdi
     )
-}
-
-fun no.nav.aap.behandlingsflyt.kontrakt.sak.Status.tilDomene(): KelvinSakStatus {
-    return when (this) {
-        no.nav.aap.behandlingsflyt.kontrakt.sak.Status.OPPRETTET -> KelvinSakStatus.OPPRETTET
-        no.nav.aap.behandlingsflyt.kontrakt.sak.Status.UTREDES -> KelvinSakStatus.UTREDES
-        no.nav.aap.behandlingsflyt.kontrakt.sak.Status.LØPENDE -> KelvinSakStatus.LØPENDE
-        no.nav.aap.behandlingsflyt.kontrakt.sak.Status.AVSLUTTET -> KelvinSakStatus.AVSLUTTET
-    }
 }
 
 fun ArbeidIPeriodeDTO.tilDomene(): Meldekort.MeldeDag {

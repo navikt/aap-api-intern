@@ -4,10 +4,9 @@ import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.response.respond
+import io.ktor.http.*
+import io.ktor.server.response.*
 import io.micrometer.core.instrument.DistributionSummary
-import javax.sql.DataSource
 import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.intern.behandlingsflyt.OppdaterIdenterDto
 import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
@@ -23,6 +22,7 @@ import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.LoggerFactory
+import javax.sql.DataSource
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -30,9 +30,10 @@ fun NormalOpenAPIRoute.dataInsertion(
     dataSource: DataSource,
     modiaKafkaProducer: KafkaProducer,
 ) {
-    val antallMeldekortMottattPerRequestHistogram = DistributionSummary.builder("aap_api_intern_insert_meldekort_detaljer_antall_mottatt")
-        .publishPercentileHistogram(true)
-        .register(prometheus)
+    val antallMeldekortMottattPerRequestHistogram =
+        DistributionSummary.builder("aap_api_intern_insert_meldekort_detaljer_antall_mottatt")
+            .publishPercentileHistogram(true)
+            .register(prometheus)
 
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
@@ -44,7 +45,7 @@ fun NormalOpenAPIRoute.dataInsertion(
             modules = listOf(
                 info(
                     "Legg inn meldekortperioder",
-                    "Legg inn meldekortperioder for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                    "Legg inn meldekortperioder for en person. Endepunktet kan kun brukes av behandlingsflyt. Kalles ved hvert stopp i behandlingen før vedtak."
                 )
             ).toTypedArray(),
         ) { _, body ->
@@ -65,7 +66,7 @@ fun NormalOpenAPIRoute.dataInsertion(
             ),
             modules = listOf(
                 info(
-                    "Legg inn sakstatus for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                    "Legg inn sakstatus for en person. Endepunktet kan kun brukes av behandlingsflyt. Kalles ved hvert stopp i behandlingen før vedtak."
                 )
             ).toTypedArray(),
         ) { _, body ->
@@ -84,7 +85,7 @@ fun NormalOpenAPIRoute.dataInsertion(
             modules = listOf(
                 info(
                     "Legg inn sak, behandling, og vedtaksdata",
-                    "Legg inn sak, behandling, og vedtaksdata for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                    "Legg inn sak, behandling, og vedtaksdata for en person. Endepunktet kan kun brukes av behandlingsflyt. Kalles etter at vedtak er fattet, men før behandlingen er avsluttet."
                 )
             ).toTypedArray(),
         ) { _, body ->
@@ -113,7 +114,7 @@ fun NormalOpenAPIRoute.dataInsertion(
             modules = listOf(
                 info(
                     "Legg inn detaljerte meldekort",
-                    "Legg inn meldekort-liste for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                    "Legg inn meldekort-liste for en person. Endepunktet kan kun brukes av behandlingsflyt. Kalles ved hvert stopp i behandlingen, også før vedtak."
                 )
             ).toTypedArray()
         ) { _, meldekortPåSammeSak: List<DetaljertMeldekortDTO> ->
@@ -135,7 +136,7 @@ fun NormalOpenAPIRoute.dataInsertion(
                 applicationRole = "add-data",
             ),
             modules = listOf(
-                info("Oppdaterer identer for en sak. Endepunktet kan kun brukes av behandlingsflyt")
+                info("Oppdaterer identer for en sak. Endepunktet kan kun brukes av behandlingsflyt. Kalles manuelt fra Paw Patrol.")
             ).toTypedArray()
         ) { _, req ->
             dataSource.transaction { connection ->
