@@ -1,22 +1,16 @@
 package no.nav.aap.api.kelvin
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
-import java.math.BigDecimal
-import java.time.Clock
-import java.time.DayOfWeek
-import java.time.LocalDate
-import no.nav.aap.api.intern.Kilde
-import no.nav.aap.api.intern.Maksimum
-import no.nav.aap.api.intern.Medium
-import no.nav.aap.api.intern.UtbetalingMedMer
-import no.nav.aap.api.intern.Vedtak
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.api.intern.*
 import no.nav.aap.api.postgres.BehandlingsRepository
-import no.nav.aap.api.utledVedtakStatus
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.type.Periode
+import java.math.BigDecimal
+import java.time.Clock
+import java.time.DayOfWeek
+import java.time.LocalDate
 
 class VedtakService(
     private val behandlingsRepository: BehandlingsRepository,
@@ -35,11 +29,7 @@ class VedtakService(
                             dagsats = right?.verdi?.dagsats ?: 0,
                             dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
                                 ?: 0,
-                            status = utledVedtakStatus(
-                                behandling.behandlingStatus,
-                                behandling.sak.status,
-                                periode
-                            ).toString(),
+                            status = Status.LØPENDE.toString(), // TODO
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
@@ -135,11 +125,7 @@ class VedtakService(
                             dagsats = right?.verdi?.dagsats ?: 0,
                             dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
                                 ?: 0,
-                            status = utledVedtakStatus(
-                                behandling.behandlingStatus,
-                                behandling.sak.status,
-                                periode
-                            ).toString(),
+                            status = Status.LØPENDE.toString(), // TODO!
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
@@ -193,7 +179,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
     @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin). Ved manglende data er denne null.")
     val dagsatsEtterUføreReduksjon: Int,
     @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
-    val status: String, //Hypotese, vedtaksstatuskode
+    val status: String,
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
     @param:Description("Rettighetsgruppe. For data fra Arena er dette aktivitetsfasekode.")
