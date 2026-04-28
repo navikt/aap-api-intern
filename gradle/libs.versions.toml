@@ -2,7 +2,7 @@
 ktor = "3.4.3"
 komponenter = "2.0.48"
 tilgang = "1.0.200"
-behandlingsflyt = "0.0.594"
+behandlingsflyt = "0.0.595"
 oppgave = "0.0.169"
 arenaoppslag = "0.5.1"
 resilience4j = "2.4.0"
