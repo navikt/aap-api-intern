@@ -46,7 +46,6 @@ class BehandlingsDataTest : PostgresTestBase() {
         val testObject = DatadelingDTO(
             behandlingsId = 123456789L.toString(),
             behandlingsReferanse = "1234567890987654321",
-            underveisperiode = listOf(),
             rettighetsPeriodeFom = LocalDate.now().minusYears(2),
             rettighetsPeriodeTom = LocalDate.now().minusYears(1),
             behandlingStatus = Status.IVERKSETTES,
@@ -301,7 +300,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                 DatadelingDTO(
                     behandlingsId = 123456789L.toString(),
                     behandlingsReferanse = UUID.randomUUID().toString(),
-                    underveisperiode = listOf(),
                     rettighetsPeriodeFom = fraOgMed,
                     rettighetsPeriodeTom = fraOgMed.plusYears(1),
                     behandlingStatus = Status.IVERKSETTES,
