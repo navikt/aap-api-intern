@@ -44,7 +44,7 @@ public sealed interface SakStatus {
     }
 
     public enum class YtelseStatus {
-        FØR_VEDTAK, LØPENDE, AVSLUTTET
+        FOR_VEDTAK, LOPENDE, AVSLUTTET
     }
 
     @JsonTypeName("KELVIN")
