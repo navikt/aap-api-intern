@@ -42,15 +42,15 @@ class KelvinSakService(
                             SakstatusFraKelvin.FERDIGBEHANDLET -> KelvinStatus.FERDIGBEHANDLET
                         },
                         ytelsestatus = when {
-                            kelvinSakStatus.statusKode == SakstatusFraKelvin.SOKNAD_UNDER_BEHANDLING -> SakStatus.YtelseStatus.FØR_VEDTAK
+                            kelvinSakStatus.statusKode == SakstatusFraKelvin.SOKNAD_UNDER_BEHANDLING -> SakStatus.YtelseStatus.FOR_VEDTAK
                             // Behandling er kun null før vedtaket er fattet
-                            nyesteBehandling == null -> SakStatus.YtelseStatus.FØR_VEDTAK
+                            nyesteBehandling == null -> SakStatus.YtelseStatus.FOR_VEDTAK
                             erAvsluttetNå(
                                 nyesteBehandling,
                                 LocalDate.now()
                             ) -> SakStatus.YtelseStatus.AVSLUTTET
 
-                            else -> SakStatus.YtelseStatus.LØPENDE
+                            else -> SakStatus.YtelseStatus.LOPENDE
                         },
                         periode = periode?.let { Periode(it.fom, it.tom) }
                             ?: kelvinSakStatus.periode.let { Periode(it.fom, it.tom) },
