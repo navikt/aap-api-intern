@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
 import com.papsign.ktor.openapigen.annotations.Response
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
+import com.papsign.ktor.openapigen.annotations.type.string.example.StringExample
 import java.time.LocalDate
 
 public data class Periode(val fraOgMedDato: LocalDate?, val tilOgMedDato: LocalDate?) {
@@ -38,6 +39,7 @@ public sealed interface SakStatus {
         override val periode: Periode,
         override val sakId: String,
     ) : SakStatus {
+        @StringExample("ARENA")
         override val kilde: Kilde = Kilde.ARENA
 
         public fun periode(): Periode = this.periode
@@ -56,6 +58,7 @@ public sealed interface SakStatus {
         public val perioder: List<Periode>,
         public val enhet: NåværendeEnhet? = null
     ) : SakStatus {
+        @StringExample("KELVIN")
         override val kilde: Kilde = Kilde.KELVIN
 
         public fun status(): KelvinStatus = this.statusKode
