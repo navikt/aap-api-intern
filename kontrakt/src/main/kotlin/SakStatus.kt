@@ -100,6 +100,7 @@ public data class NåværendeEnhet(
     val oppgaveKategori: OppgaveKategori,
     @property:Description("Firesifret enhetskode.")
     val enhet: String,
+    @property:Description("true, om saken er markert som hastesak i Kelvin.") val erHasteSak: Boolean
 )
 
 public enum class Kilde {

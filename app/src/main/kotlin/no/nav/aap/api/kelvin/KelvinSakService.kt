@@ -60,6 +60,7 @@ class KelvinSakService(
                             oversendtDato = enhetinfo.oversendtDato,
                             oppgaveKategori = enhetinfo.oppgaveKategori,
                             enhet = enhetinfo.enhet,
+                            erHasteSak = enhetinfo.erHasteSak
                         ) else null,
                         perioder = nyesteBehandling?.rettighetsTypeTidslinje.orEmpty().segmenter()
                             .map { it.periode }.map { Periode(it.fom, it.tom) },

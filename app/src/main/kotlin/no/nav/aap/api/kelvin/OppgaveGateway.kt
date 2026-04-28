@@ -65,6 +65,7 @@ object OppgaveGateway {
                     OppgaveKategori.BESLUTTER -> no.nav.aap.api.intern.OppgaveKategori.BESLUTTER
                 },
                 enhet = it.enhet,
+                erHasteSak = it.markertSomHasteSak
             ) to it.saksnummer
         } ?: Pair(null, null)
     }
