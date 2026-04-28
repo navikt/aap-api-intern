@@ -124,6 +124,7 @@ spec:
         - application: su-se-bakover
           namespace: supstonad
           cluster: dev-gcp
+        - application: saksbehandling
         - application: behandlingsflyt
           namespace: aap
           cluster: dev-gcp

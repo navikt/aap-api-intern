@@ -110,6 +110,7 @@ spec:
         - application: k9-abakus
           namespace: k9saksbehandling
           cluster: prod-fss
+        - application: saksbehandling
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp
