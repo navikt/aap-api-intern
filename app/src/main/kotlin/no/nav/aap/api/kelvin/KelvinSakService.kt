@@ -26,7 +26,9 @@ class KelvinSakService(
                 no.nav.aap.komponenter.type.Periode(Tid.MIN, Tid.MAKS)
             ).maxByOrNull { it.vedtaksDato }
 
-            val periode = nyesteBehandling?.rettighetsTypeTidslinje?.helePerioden()
+            val periode = nyesteBehandling?.rettighetsTypeTidslinje.orEmpty().let {
+                if (it.isEmpty()) null else it.helePerioden()
+            }
 
             sakStatusRepository.hentSakStatus(ident)
                 .map { kelvinSakStatus ->
