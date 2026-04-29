@@ -110,6 +110,7 @@ spec:
         - application: k9-abakus
           namespace: k9saksbehandling
           cluster: prod-fss
+        - application: saksbehandling
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp
@@ -152,3 +153,4 @@ spec:
       value: 2a6c103b-75a6-4691-bd74-b62530d8d516
     - name: AZP_TILLEGGSSTONADER_INTEGRASJONER
       value: 1626e9aa-354f-49aa-ba99-50e33f6bd908
+

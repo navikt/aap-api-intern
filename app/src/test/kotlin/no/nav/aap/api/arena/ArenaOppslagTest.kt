@@ -15,6 +15,8 @@ import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.intern.SignifikanteSakerResponse
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -84,6 +86,45 @@ class ArenaOppslagTest {
             val parsedBody = res.body<SignifikanteSakerResponse>()
             assertThat(parsedBody).isNotNull
             assertThat(parsedBody.harSignifikantHistorikk).isFalse // forventet respons fra MockedArenaClient
+        }
+    }
+
+    @Test
+    fun `kan hente saker for person`() {
+        testWithKtorApp { token ->
+            val res = jsonHttpClient.post("/arena/person/saker") {
+                bearerAuth(token.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(SakerRequestV1(personidentifikator = "12345678910"))
+            }
+            assertThat(res).isNotNull()
+            assertThat(res.status).isEqualTo(HttpStatusCode.OK)
+            val parsedBody = res.body<SakerResponse>()
+            assertThat(parsedBody).isNotNull
+            assertThat(parsedBody.saker).isEmpty() // forventet respons fra FakeArenaGateway
+        }
+    }
+
+
+    @Test
+    fun `hentSakerForPerson returnerer 400 når body mangler`() {
+        testWithKtorApp { token ->
+            val res = jsonHttpClient.post("/arena/person/saker") {
+                bearerAuth(token.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+            }
+            assertThat(res.status.value).isGreaterThanOrEqualTo(400)
+        }
+    }
+
+    @Test
+    fun `hentSakerForPerson returnerer 401 uten token`() {
+        testWithKtorApp { _ ->
+            val res = jsonHttpClient.post("/arena/person/saker") {
+                contentType(ContentType.Application.Json)
+                setBody(SakerRequestV1(personidentifikator = "12345678910"))
+            }
+            assertThat(res.status).isEqualTo(HttpStatusCode.Unauthorized)
         }
     }
 

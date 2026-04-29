@@ -22,6 +22,12 @@ fun main() {
 
     val config = byggAppConfig(fakes)
 
+    println("===========================================")
+    println("  TestApp kjører på http://localhost:8084")
+    println("  Fake Texas kjører på http://localhost:${fakes.texas.port()}")
+    println("  Hent token: POST http://localhost:${fakes.texas.port()}/token")
+    println("===========================================")
+
     embeddedServer(Netty, port = 8084) {
         api(
             prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),

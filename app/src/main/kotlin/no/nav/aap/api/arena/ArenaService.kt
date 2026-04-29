@@ -1,5 +1,7 @@
 package no.nav.aap.api.arena
 
+import no.nav.aap.api.intern.ArenaSakOppsummering
+import no.nav.aap.api.intern.ArenaSakerResponse
 import no.nav.aap.api.intern.Periode
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.PerioderInkludert11_17Response
@@ -13,6 +15,8 @@ import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import java.time.LocalDate
 
@@ -93,6 +97,10 @@ class ArenaService(
         return arena.hentPerioder(callId, vedtakRequest).perioder
     }
 
+    suspend fun hentSakerForPerson(callId: String, personidentifikator: String): ArenaSakerResponse {
+        return arena.hentSakerForPerson(callId, SakerRequestV1(personidentifikator)).toResponse()
+    }
+
     suspend fun hentVedtakUtenUtbetaling(
         callId: String,
         vedtakRequest: InternVedtakRequest
@@ -105,3 +113,19 @@ class ArenaService(
     }
 
 }
+
+private fun SakerResponse.toResponse() = ArenaSakerResponse(
+    saker = saker.map { sak ->
+        ArenaSakOppsummering(
+            sakId = sak.sakId,
+            lopenummer = sak.lopenummer,
+            aar = sak.aar,
+            antallVedtak = sak.antallVedtak,
+            statuskode = sak.statuskode,
+            statusnavn = sak.statusnavn,
+            sakstype = sak.sakstype,
+            regDato = sak.regDato,
+            avsluttetDato = sak.avsluttetDato,
+        )
+    }
+)

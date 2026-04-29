@@ -371,6 +371,17 @@ fun NormalOpenAPIRoute.api(
                 respond(harSignifikantAAPArenaHistorikk)
             }
         }
+        route("/arena/person/saker") {
+            post<CallIdHeader, ArenaSakerResponse, ArenaSakerRequest>(
+                info(description = "Henter saker for en person fra Arena via ny v1-kontrakt.")
+            ) { callIdHeader, requestBody ->
+                logger.info("Henter saker for person fra Arena (v1)")
+                val callId = receiveCall(callIdHeader, pipeline)
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                val saker = arenaService.hentSakerForPerson(callId, requestBody.personidentifikator)
+                respond(saker)
+            }
+        }
     }
 
     tag(Tag.Maksimum) {
