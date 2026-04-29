@@ -105,7 +105,7 @@ class ArenaoppslagGateway(
     override suspend fun hentSakerForPerson(
         callId: String, req: SakerRequestV1,
     ): SakerResponse = gjørArenaOppslag<SakerResponse, SakerRequestV1>(
-        "/intern/person/saker", callId, req
+        "/api/v1/person/saker", callId, req
     ).getOrThrow()
 
     override suspend fun hentMaksimum(
