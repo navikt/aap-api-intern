@@ -1,23 +1,7 @@
 package no.nav.aap.api.dsop
 
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
-import no.nav.aap.api.intern.DsopMeldekortDTO
-import no.nav.aap.api.intern.DsopRettighetsTypeDTO
-import no.nav.aap.api.intern.DsopStatusDTO
-import no.nav.aap.api.intern.DsopTimerArbeidetPerDagDTO
-import no.nav.aap.api.intern.DsopVedtakDTO
-import no.nav.aap.api.intern.DsopVedtaksTypeDTO
-import no.nav.aap.api.intern.DsopVedtaksvariantDTO
-import no.nav.aap.api.intern.PeriodeNullableTomDTO
-import no.nav.aap.api.kelvin.Arenavedtak
-import no.nav.aap.api.kelvin.Behandling
-import no.nav.aap.api.kelvin.KelvinBehandlingStatus
-import no.nav.aap.api.kelvin.KelvinSakStatus
-import no.nav.aap.api.kelvin.RettighetsTypePeriode
-import no.nav.aap.api.kelvin.Sak
+import no.nav.aap.api.intern.*
+import no.nav.aap.api.kelvin.*
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.somDTO
 import no.nav.aap.api.util.PdlGatewayEmpty
@@ -31,6 +15,10 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 class DsopServiceTest {
     private lateinit var dataSource: TestDataSource
@@ -53,7 +41,6 @@ class DsopServiceTest {
         vedtaksDato = LocalDate.now(),
         sak = Sak(
             saksnummer = "ABCDE",
-            status = KelvinSakStatus.OPPRETTET,
             opprettetTidspunkt = LocalDateTime.now()
         ),
         tilkjent = tidslinjeOf(),
@@ -292,7 +279,6 @@ class DsopServiceTest {
             vedtaksDato = LocalDate.MIN,
             sak = Sak(
                 saksnummer = "s1",
-                status = KelvinSakStatus.LØPENDE,
                 opprettetTidspunkt = LocalDateTime.MIN,
             ),
             tilkjent = Tidslinje.empty(),

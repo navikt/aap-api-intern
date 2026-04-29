@@ -27,11 +27,8 @@ public data class SakStatus(
 )
 
 public enum class SakstatusFraKelvin {
-    // Kelvin:
-    OPPRETTET,
+    // Kelvin (gammel, skjer ikke lenger)
     UTREDES,
-    LØPENDE,
-    AVSLUTTET,
 
     // Nye:
     SOKNAD_UNDER_BEHANDLING,

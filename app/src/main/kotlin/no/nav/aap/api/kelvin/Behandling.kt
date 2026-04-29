@@ -87,7 +87,6 @@ data class RettighetsTypePeriode(
 
 data class Sak(
     val saksnummer: String,
-    val status: KelvinSakStatus,
     val opprettetTidspunkt: LocalDateTime,
 )
 
@@ -117,10 +116,7 @@ data class TilkjentYtelse(
 }
 
 enum class KelvinSakStatus {
-    OPPRETTET,
     UTREDES,
-    LØPENDE,
-    AVSLUTTET
 }
 
 

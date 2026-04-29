@@ -8,7 +8,11 @@ import org.slf4j.LoggerFactory
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
-class ModiaKafkaProducer(config: KafkaConfig, modiaConfig: ModiaConfig, private val closeTimeout: Duration) :
+class ModiaKafkaProducer(
+    config: KafkaConfig,
+    modiaConfig: ModiaConfig,
+    private val closeTimeout: Duration
+) :
     KafkaProducer, AutoCloseable {
     private val producer = KafkaFactory.createProducer("aap-api", config)
     private val topic = modiaConfig.topic
@@ -16,7 +20,8 @@ class ModiaKafkaProducer(config: KafkaConfig, modiaConfig: ModiaConfig, private 
 
     override fun produce(personident: String, nyttVedtak: Boolean) {
 
-        val meldingstype = if (nyttVedtak) ModiaRecord.Meldingstype.OPPRETT else ModiaRecord.Meldingstype.OPPDATER
+        val meldingstype =
+            if (nyttVedtak) ModiaRecord.Meldingstype.OPPRETT else ModiaRecord.Meldingstype.OPPDATER
 
         val record = createRecord(personident, meldingstype)
 
@@ -28,7 +33,10 @@ class ModiaKafkaProducer(config: KafkaConfig, modiaConfig: ModiaConfig, private 
         }.get() // Blocking call to ensure the message is sent
     }
 
-    private fun createRecord(personident: String, type: ModiaRecord.Meldingstype): ProducerRecord<String, String> {
+    private fun createRecord(
+        personident: String,
+        type: ModiaRecord.Meldingstype
+    ): ProducerRecord<String, String> {
         val json = ObjectMapper().writeValueAsString(ModiaRecord(personident, type))
 
         return ProducerRecord(topic, personident, json)

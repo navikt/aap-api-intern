@@ -15,7 +15,10 @@ import io.ktor.server.routing.*
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.dsop.dsopRoutes
 import no.nav.aap.api.intern.*
-import no.nav.aap.api.kelvin.*
+import no.nav.aap.api.kelvin.AktivitetsfaseService
+import no.nav.aap.api.kelvin.KelvinSakService
+import no.nav.aap.api.kelvin.MeldekortService
+import no.nav.aap.api.kelvin.VedtakService
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortPerioderRepository
@@ -23,7 +26,6 @@ import no.nav.aap.api.postgres.SakStatusRepository
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -547,24 +549,6 @@ private fun hentAllePersonidenter(
     }
     return identerFraPdl
 }
-
-fun utledVedtakStatus(
-    behandlingStatus: KelvinBehandlingStatus,
-    sakStatus: KelvinSakStatus,
-    periode: Periode,
-    nå: LocalDate = LocalDate.now(),
-): Status =
-    if (
-        (behandlingStatus.iverksatt() && sakStatus != KelvinSakStatus.AVSLUTTET) ||
-        periode.tom.isAfter(nå) ||
-        sakStatus != KelvinSakStatus.AVSLUTTET
-    ) {
-        Status.LØPENDE
-    } else if (behandlingStatus == KelvinBehandlingStatus.AVSLUTTET) {
-        Status.AVSLUTTET
-    } else {
-        Status.UTREDES
-    }
 
 
 fun InternVedtakRequestApiIntern.tilKontrakt(): InternVedtakRequest {
