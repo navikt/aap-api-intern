@@ -50,6 +50,8 @@ class FakeArenaGateway : IArenaoppslagGateway {
                         lopenummer = 1,
                         aar = 2021,
                         antallVedtak = 1,
+                        statuskode = "AKTIV",
+                        statusnavn = "Aktiv",
                         sakstype = "Arbeidsavklaringspenger",
                         regDato = LocalDate.of(2022, 2, 2),
                         avsluttetDato = null,

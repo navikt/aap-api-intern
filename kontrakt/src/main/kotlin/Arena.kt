@@ -27,6 +27,8 @@ public data class ArenaSakOppsummering(
     val lopenummer: Int,
     val aar: Int,
     val antallVedtak: Int,
+    val statuskode: String,
+    val statusnavn: String,
     val sakstype: String?,
     val regDato: LocalDate,
     val avsluttetDato: LocalDate?,
