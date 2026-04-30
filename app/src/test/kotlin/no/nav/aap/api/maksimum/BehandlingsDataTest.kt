@@ -464,137 +464,27 @@ class BehandlingsDataTest : PostgresTestBase() {
     }
 
     @Test
-    fun `snapshot - maksimum`() {
-        // Oppdater json-filene ved endring
-        val config = TestConfig.default()
-        val azure = AzureTokenGen("test", "test")
-
-        val testfil =
-            javaClass.getResource("/forstegangsvedtak_fra_behandlingsflyt.json")!!.readText()
-        val testData = DefaultJsonMapper.fromJson<DatadelingDTO>(testfil)
-
-
-        testApplication {
-            application {
-                api(
-                    config = config,
-                    datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
-                    clock = Clock.fixed(
-                        Instant.from(
-                            LocalDate.of(2025, 12, 13).atStartOfDay().toInstant(ZoneOffset.UTC)
-                        ),
-                        ZoneId.of("UTC")
-                    )
-                )
-            }
-
-            jsonHttpClient.post("/api/insert/vedtak") {
-                bearerAuth(azure.generate(isApp = true))
-                contentType(ContentType.Application.Json)
-                setBody(
-                    testData
-                )
-            }
-
-            val maksimumRespons = jsonHttpClient.post("/maksimum") {
-                bearerAuth(azure.generate(isApp = true))
-                contentType(ContentType.Application.Json)
-                setBody(
-                    InternVedtakRequest(
-                        "01410026747",
-                        LocalDate.now().minusYears(0),
-                        LocalDate.now().plusMonths(1)
-                    )
-                )
-            }
-            assertThat(maksimumRespons.status).isEqualTo(HttpStatusCode.OK)
-
-            val uthentetFraApi = maksimumRespons.body<Maksimum>()
-            println(DefaultJsonMapper.toJson(uthentetFraApi))
-            assertThat(uthentetFraApi.vedtak).hasSize(2)
-
-            val forventetResultatFraResources =
-                javaClass.getResource("/forstegangsvedtak_fra_maksimum.json")!!.readText()
-            val forventet = DefaultJsonMapper.fromJson<Maksimum>(forventetResultatFraResources)
-
-            println(DefaultJsonMapper.toJson(uthentetFraApi))
-
-
-            assertThat(uthentetFraApi).usingRecursiveComparison().isEqualTo(forventet)
-        }
-    }
-
+    fun `snapshot - maksimum`() = snapshotTest<Maksimum>(
+        endpoint = "/maksimum",
+        forventetResourceFil = "/forstegangsvedtak_fra_maksimum.json",
+    )
 
     @Test
-    fun `snapshot - maksimum uten utbetaling`() {
-        // Oppdater json-filene ved endring
-        val config = TestConfig.default()
-        val azure = AzureTokenGen("test", "test")
-
-        val testfil =
-            javaClass.getResource("/forstegangsvedtak_fra_behandlingsflyt.json")!!.readText()
-        val testData = DefaultJsonMapper.fromJson<DatadelingDTO>(testfil)
-
-
-        testApplication {
-            application {
-                api(
-                    config = config,
-                    datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
-                    clock = Clock.fixed(
-                        Instant.from(
-                            LocalDate.of(2025, 12, 13).atStartOfDay().toInstant(ZoneOffset.UTC)
-                        ),
-                        ZoneId.of("UTC")
-                    )
-                )
-            }
-
-            jsonHttpClient.post("/api/insert/vedtak") {
-                bearerAuth(azure.generate(isApp = true))
-                contentType(ContentType.Application.Json)
-                setBody(
-                    testData
-                )
-            }
-
-            val maksimumRespons = jsonHttpClient.post("/maksimumUtenUtbetaling") {
-                bearerAuth(azure.generate(isApp = true))
-                contentType(ContentType.Application.Json)
-                setBody(
-                    InternVedtakRequest(
-                        "01410026747",
-                        LocalDate.now().minusYears(0),
-                        LocalDate.now().plusMonths(1)
-                    )
-                )
-            }
-            assertThat(maksimumRespons.status).isEqualTo(HttpStatusCode.OK)
-
-            val uthentetFraApi = maksimumRespons.body<Medium>()
-            println(DefaultJsonMapper.toJson(uthentetFraApi))
-            assertThat(uthentetFraApi.vedtak).hasSize(2)
-
-            val forventetResultatFraResources =
-                javaClass.getResource("/forstegangsvedtak_fra_medium.json")!!.readText()
-            val forventet = DefaultJsonMapper.fromJson<Medium>(forventetResultatFraResources)
-
-            println(DefaultJsonMapper.toJson(uthentetFraApi))
-
-
-            assertThat(uthentetFraApi).usingRecursiveComparison().isEqualTo(forventet)
-        }
-    }
-
+    fun `snapshot - maksimum uten utbetaling`() = snapshotTest<Medium>(
+        endpoint = "/maksimumUtenUtbetaling",
+        forventetResourceFil = "/forstegangsvedtak_fra_medium.json",
+    )
 
     @Test
-    fun `snapshot - kelvin maksimum uten utbetaling`() {
+    fun `snapshot - kelvin maksimum uten utbetaling`() = snapshotTest<Medium>(
+        endpoint = "/kelvin/maksimumUtenUtbetaling",
+        forventetResourceFil = "/forstegangsvedtak_fra_medium.json",
+    )
+
+    private inline fun <reified T : Any> snapshotTest(
+        endpoint: String,
+        forventetResourceFil: String,
+    ) {
         // Oppdater json-filene ved endring
         val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
@@ -602,7 +492,6 @@ class BehandlingsDataTest : PostgresTestBase() {
         val testfil =
             javaClass.getResource("/forstegangsvedtak_fra_behandlingsflyt.json")!!.readText()
         val testData = DefaultJsonMapper.fromJson<DatadelingDTO>(testfil)
-
 
         testApplication {
             application {
@@ -624,12 +513,10 @@ class BehandlingsDataTest : PostgresTestBase() {
             jsonHttpClient.post("/api/insert/vedtak") {
                 bearerAuth(azure.generate(isApp = true))
                 contentType(ContentType.Application.Json)
-                setBody(
-                    testData
-                )
+                setBody(testData)
             }
 
-            val maksimumRespons = jsonHttpClient.post("/kelvin/maksimumUtenUtbetaling") {
+            val maksimumRespons = jsonHttpClient.post(endpoint) {
                 bearerAuth(azure.generate(isApp = true))
                 contentType(ContentType.Application.Json)
                 setBody(
@@ -642,16 +529,12 @@ class BehandlingsDataTest : PostgresTestBase() {
             }
             assertThat(maksimumRespons.status).isEqualTo(HttpStatusCode.OK)
 
-            val uthentetFraApi = maksimumRespons.body<Medium>()
+            val uthentetFraApi = maksimumRespons.body<T>()
             println(DefaultJsonMapper.toJson(uthentetFraApi))
-            assertThat(uthentetFraApi.vedtak).hasSize(2)
 
             val forventetResultatFraResources =
-                javaClass.getResource("/forstegangsvedtak_fra_medium.json")!!.readText()
-            val forventet = DefaultJsonMapper.fromJson<Medium>(forventetResultatFraResources)
-
-            println(DefaultJsonMapper.toJson(uthentetFraApi))
-
+                javaClass.getResource(forventetResourceFil)!!.readText()
+            val forventet = DefaultJsonMapper.fromJson<T>(forventetResultatFraResources)
 
             assertThat(uthentetFraApi).usingRecursiveComparison().isEqualTo(forventet)
         }
