@@ -430,7 +430,7 @@ class BehandlingsDataTest : PostgresTestBase() {
             }
             assertThat(mediumResponseM2m.status).isEqualTo(HttpStatusCode.OK)
             val body = mediumResponseM2m.body<Medium>()
-            assertThat(body.vedtak).hasSize(4)
+            assertThat(body.vedtak).hasSize(3)
 
             val mediumResponseObo = jsonHttpClient.post("/maksimumUtenUtbetaling") {
                 bearerAuth(OidcToken(azure.generate(isApp = false)).token())

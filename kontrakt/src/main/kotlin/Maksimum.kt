@@ -31,8 +31,28 @@ public data class Vedtak(
     val periode: Periode,
     val rettighetsType: String,
     val beregningsgrunnlag: Int,
+
+    /** Antall barn som gir rett til barnetillegg. */
     val barnMedStonad: Int,
+
+    /** Størrelsen på total, ugradert barnetillegg.
+     *
+     * Verdien er total i den forstand at den tar hensyn til antall barn.
+     *
+     * Den er ugradert i den forstand at hvis medlemmet har 2 barn, får 75 % AAP
+     * på grunn av samordning, og barnetilleggssatsen er spesifisert i AAP-forskriften § 8 til 38 kroner,
+     * så vil [barnetillegg] være 2 * 38 = 76 kroner. Altså vi har ikke redusert barnetillegget med 25% her.
+     *
+     * Spesifikasjon: [barnetillegg] = [barnetilleggSats] * [barnMedStonad].
+     */
     val barnetillegg: Int,
+
+    /** Størrelsen på ugradert barnetilleggsats.
+     *
+     * Verdien er ugradert, i den forstand at:
+     * Hvis barnetilleggsatsen er spesifisert i AAP-forskriften § 8 til 38 kroner, og medlemmet får 50% AAP,
+     * så vil [barnetilleggSats] være 38.
+     **/
     val barnetilleggSats: Int,
     val kildesystem: Kilde,
     val samordningsId: String? = null,
@@ -58,7 +78,20 @@ public data class VedtakUtenUtbetaling(
     val periode: Periode,
     val rettighetsType: String,
     val beregningsgrunnlag: Int,
+
+    /** Antall barn som gir rett til barnetillegg. */
     val barnMedStonad: Int,
+
+    /** Størrelsen på total, ugradert barnetillegg.
+     *
+     * Verdien er total i den forstand at den tar hensyn til antall barn.
+     *
+     * Den er ugradert i den forstand at hvis medlemmet har 2 barn, får 75 % AAP
+     * på grunn av samordning, og barnetilleggssatsen er spesifisert i AAP-forskriften § 8 til 38 kroner,
+     * så vil [barnetillegg] være 2 * 38 = 76 kroner. Altså vi har ikke redusert barnetillegget med 25% her.
+     *
+     * Spesifikasjon: [barnetillegg] = [barnetilleggsats] * [antallBarn].
+     */
     val barnetillegg: Int,
     val kildesystem: Kilde,
     val samordningsId: String? = null,
@@ -75,11 +108,21 @@ public data class UtbetalingMedMer(
     val periode: Periode,
     val belop: Int,
     val dagsats: Int,
-    @Deprecated("Bruk barnetillegg")
-    val barnetilegg: Int,
     @property:Description("Barnetillegg, _etter_ gradering.")
+
+    /** Størrelsen på total, gradert barnetillegg.
+     *
+     * Verdien er total i den forstand at den tar hensyn til antall barn.
+     *
+     * Den er gradert i den forstand at hvis medlemmet har 2 barn, får 75 % AAP
+     * på grunn av samordning, og barnetilleggssatsen er spesifisert i AAP-forskriften § 8 til 38 kroner,
+     * så vil [barnetillegg] gi 2 * 38 * 0.75 = 57 kroner.
+     */
     val barnetillegg: Int,
-)
+) {
+    @Deprecated("Bruk barnetillegg")
+    val barnetilegg: Int = barnetillegg
+}
 
 public data class Reduksjon(
     val timerArbeidet: Double,
