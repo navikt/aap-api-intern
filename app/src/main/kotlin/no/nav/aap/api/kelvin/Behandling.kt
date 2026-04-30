@@ -99,11 +99,42 @@ data class TilkjentYtelse(
     val samordningUføregradering: Int?,
     val grunnlagsfaktor: BigDecimal,
     val grunnbeløp: BigDecimal,
+
+    /** Antall barn som gir rett til barnetillegg. */
     val antallBarn: Int,
+
+    /** Størrelsen på ugradert barnetilleggsats.
+     *
+     * Verdien er ugradert, i den forstand at:
+     * Hvis barnetilleggsatsen er spesifisert i AAP-forskriften § 8 til 38 kroner, og medlemmet får 50% AAP,
+     * så vil [barnetilleggsats] være 38.
+     **/
     val barnetilleggsats: BigDecimal,
+
+    /** Størrelsen på total, ugradert barnetillegg.
+     *
+     * Verdien er total i den forstand at den tar hensyn til antall barn.
+     *
+     * Den er ugradert i den forstand at hvis medlemmet har 2 barn, får 75 % AAP
+     * på grunn av samordning, og barnetilleggssatsen er spesifisert i AAP-forskriften § 8 til 38 kroner,
+     * så vil [barnetillegg] være 2 * 38 = 76 kroner. Altså vi har ikke redusert barnetillegget med 25% her.
+     *
+     * Spesifikasjon: [barnetillegg] = [barnetilleggsats] * [antallBarn].
+     */
     val barnetillegg: BigDecimal,
 ) {
+
+    /** Størrelsen på total, gradert barnetillegg.
+     *
+     * Verdien er total i den forstand at den tar hensyn til antall barn.
+     *
+     * Den er gradert i den forstand at hvis medlemmet har 2 barn, får 75 % AAP
+     * på grunn av samordning, og barnetilleggssatsen er spesifisert i AAP-forskriften § 8 til 38 kroner,
+     * så vil [gradertBarnetillegg] gi 2 * 38 * 0.75 = 57 kroner. I motsetning til [barnetillegg] som ikke
+     * tar hensyn til gradering, og dermed gir 76 kroner.
+     */
     fun gradertBarnetillegg(): BigDecimal =
+        /* TODO: denne utregningen burde flyttes til behandlingsflyt. Ønsker ikke at vi f.eks. får forskjellig avrunding i vedtaket og dette API-et.  */
         this.barnetillegg.multiply(
             this.gradering.toBigDecimal()
                 .divide(100.toBigDecimal())

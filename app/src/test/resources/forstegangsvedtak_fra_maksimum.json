@@ -1,0 +1,63 @@
+{
+  "vedtak": [
+    {
+      "dagsats": 1022,
+      "dagsatsEtterUføreReduksjon": 1022,
+      "vedtakId": "2",
+      "status": "LØPENDE",
+      "saksnummer": "4LDQPDS",
+      "vedtaksdato": "2025-11-19",
+      "periode": {
+        "fraOgMedDato": "2025-11-19",
+        "tilOgMedDato": "2025-12-31"
+      },
+      "rettighetsType": "SYKEPENGEERSTATNING",
+      "beregningsgrunnlag": 212984,
+      "barnMedStonad": 2,
+      "barnetillegg": 76,
+      "barnetilleggSats": 38,
+      "kildesystem": "KELVIN",
+      "samordningsId": null,
+      "opphorsAarsak": null,
+      "vedtaksTypeKode": null,
+      "vedtaksTypeNavn": null,
+      "utbetaling": [
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 100,
+          "periode": {
+            "fraOgMedDato": "2025-11-19",
+            "tilOgMedDato": "2025-11-30"
+          },
+          "belop": 8784,
+          "dagsats": 1022,
+          "barnetilegg": 76,
+          "barnetillegg": 76
+        }
+      ]
+    },
+    {
+      "dagsats": 1022,
+      "dagsatsEtterUføreReduksjon": 1022,
+      "vedtakId": "2",
+      "status": "LØPENDE",
+      "saksnummer": "4LDQPDS",
+      "vedtaksdato": "2025-11-19",
+      "periode": {
+        "fraOgMedDato": "2026-01-01",
+        "tilOgMedDato": "2026-11-18"
+      },
+      "rettighetsType": "BISTANDSBEHOV",
+      "beregningsgrunnlag": 212984,
+      "barnMedStonad": 2,
+      "barnetillegg": 76,
+      "barnetilleggSats": 38,
+      "kildesystem": "KELVIN",
+      "samordningsId": null,
+      "opphorsAarsak": null,
+      "vedtaksTypeKode": null,
+      "vedtaksTypeNavn": null,
+      "utbetaling": []
+    }
+  ]
+}

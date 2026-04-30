@@ -1,16 +1,21 @@
 package no.nav.aap.api.kelvin
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
-import no.nav.aap.api.intern.*
+import java.math.BigDecimal
+import java.time.Clock
+import java.time.DayOfWeek
+import java.time.LocalDate
+import no.nav.aap.api.intern.Kilde
+import no.nav.aap.api.intern.Maksimum
+import no.nav.aap.api.intern.Medium
+import no.nav.aap.api.intern.UtbetalingMedMer
+import no.nav.aap.api.intern.Vedtak
+import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.type.Periode
-import java.math.BigDecimal
-import java.time.Clock
-import java.time.DayOfWeek
-import java.time.LocalDate
 
 class VedtakService(
     private val behandlingsRepository: BehandlingsRepository,
@@ -87,8 +92,6 @@ class VedtakService(
                                         utbetaling.periode.tom
                                     ),
                                     dagsats = utbetaling.verdi.dagsats * utbetaling.verdi.gradering / 100,
-                                    barnetilegg = utbetaling.verdi.gradertBarnetillegg()
-                                        .toInt(),
                                     barnetillegg = utbetaling.verdi.gradertBarnetillegg()
                                         .toInt()
                                 )
@@ -134,7 +137,7 @@ class VedtakService(
                             kildesystem = Kilde.KELVIN,
                             samordningsId = behandling.samId,
                             opphorsAarsak = null,
-                            barnetilleggSats = right?.verdi?.gradertBarnetillegg(),
+                            barnetilleggSats = right?.verdi?.barnetilleggsats,
                         )
                     )
                 }
@@ -185,11 +188,29 @@ data class VedtakUtenUtbetalingUtenPeriode(
     @param:Description("Rettighetsgruppe. For data fra Arena er dette aktivitetsfasekode.")
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,
+
+    @param:Description("Antall barn som gir rett til barnetillegg.")
+    /** Antall barn som gir rett til barnetillegg.  */
     val barnMedStonad: Int,
+
     @param:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
     val kildesystem: Kilde,
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
+
+    @param:Description("""
+     Størrelsen på ugradert barnetilleggsats.
+    
+    Verdien er ugradert, i den forstand at:
+    Hvis barnetilleggsatsen er spesifisert i AAP-forskriften § 8 til 38 kroner, og medlemmet får 50% AAP,
+    så vil [barnetilleggSats] være 38.
+    """)
+    /** Størrelsen på ugradert barnetilleggsats.
+     *
+     * Verdien er ugradert, i den forstand at:
+     * Hvis barnetilleggsatsen er spesifisert i AAP-forskriften § 8 til 38 kroner, og medlemmet får 50% AAP,
+     * så vil [barnetilleggSats] være 38.
+     **/
     val barnetilleggSats: BigDecimal? = null,
 ) {
     fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode): VedtakUtenUtbetaling {

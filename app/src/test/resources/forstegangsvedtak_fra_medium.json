@@ -13,27 +13,14 @@
       },
       "rettighetsType": "SYKEPENGEERSTATNING",
       "beregningsgrunnlag": 212984,
-      "barnMedStonad": 0,
-      "barnetillegg": 0,
+      "barnMedStonad": 2,
+      "barnetillegg": 76,
+      "barnetilleggSats": 38,
       "kildesystem": "KELVIN",
       "samordningsId": null,
       "opphorsAarsak": null,
       "vedtaksTypeKode": null,
-      "vedtaksTypeNavn": null,
-      "utbetaling": [
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-11-19",
-            "tilOgMedDato": "2025-11-30"
-          },
-          "belop": 8176,
-          "dagsats": 1022,
-          "barnetilegg": 0,
-          "barnetillegg": 0
-        }
-      ]
+      "vedtaksTypeNavn": null
     },
     {
       "dagsats": 1022,
@@ -48,14 +35,14 @@
       },
       "rettighetsType": "BISTANDSBEHOV",
       "beregningsgrunnlag": 212984,
-      "barnMedStonad": 0,
-      "barnetillegg": 0,
+      "barnMedStonad": 2,
+      "barnetillegg": 76,
+      "barnetilleggSats": 38,
       "kildesystem": "KELVIN",
       "samordningsId": null,
       "opphorsAarsak": null,
       "vedtaksTypeKode": null,
-      "vedtaksTypeNavn": null,
-      "utbetaling": []
+      "vedtaksTypeNavn": null
     }
   ]
 }
