@@ -33,9 +33,10 @@ public data class Vedtak(
     val beregningsgrunnlag: Int,
     val barnMedStonad: Int,
     val barnetillegg: Int,
-    val barnetilleggSats: Int = 0,
+    val barnetilleggSats: Int,
     val kildesystem: Kilde,
     val samordningsId: String? = null,
+    @Deprecated("Alltid null, bør fjernes fra kontrakt.")
     val opphorsAarsak: String? = null,
     val vedtaksTypeKode: String?,
     val vedtaksTypeNavn: String?,
@@ -51,7 +52,7 @@ public data class VedtakUtenUtbetaling(
     val vedtakId: String,
     val status: String,
     val saksnummer: String,
-    val vedtaksdato: LocalDate, //reg_dato
+    val vedtaksdato: LocalDate,
     val vedtaksTypeKode: String?,
     val vedtaksTypeNavn: String?,
     val periode: Periode,
@@ -69,8 +70,8 @@ public data class VedtakUtenUtbetaling(
  */
 public data class UtbetalingMedMer(
     @property:Description("Reduksjon i utbetaling. Denne fås kun fra Arena,")
-    val reduksjon: Reduksjon? = null,
-    val utbetalingsgrad: Int? = null,
+    val reduksjon: Reduksjon?,
+    val utbetalingsgrad: Int?,
     val periode: Periode,
     val belop: Int,
     val dagsats: Int,

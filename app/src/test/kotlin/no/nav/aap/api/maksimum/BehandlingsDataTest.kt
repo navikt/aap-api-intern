@@ -220,7 +220,10 @@ class BehandlingsDataTest : PostgresTestBase() {
             }
 
             assertEquals(HttpStatusCode.OK, maksimumResponseM2m.status)
-            assertEquals(3, maksimumResponseM2m.body<Maksimum>().vedtak.size)
+            val response = maksimumResponseM2m.body<Maksimum>()
+            assertEquals(3, response.vedtak.size)
+            assertThat(response.vedtak.first().barnetillegg).isEqualTo(72)
+            assertThat(response.vedtak.first().utbetaling.first().barnetillegg).isEqualTo(72)
         }
     }
 
@@ -461,7 +464,7 @@ class BehandlingsDataTest : PostgresTestBase() {
     }
 
     @Test
-    fun `ekte data kopiert fra behandlingsflyt, snapshot-test`() {
+    fun `snapshot - maksimum`() {
         // Oppdater json-filene ved endring
         val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
@@ -480,7 +483,9 @@ class BehandlingsDataTest : PostgresTestBase() {
                     modiaProducer = fakes.kafka,
                     // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
                     clock = Clock.fixed(
-                        Instant.from(LocalDate.of(2025, 12, 13).atStartOfDay().toInstant(ZoneOffset.UTC)),
+                        Instant.from(
+                            LocalDate.of(2025, 12, 13).atStartOfDay().toInstant(ZoneOffset.UTC)
+                        ),
                         ZoneId.of("UTC")
                     )
                 )
@@ -512,7 +517,7 @@ class BehandlingsDataTest : PostgresTestBase() {
             assertThat(uthentetFraApi.vedtak).hasSize(2)
 
             val forventetResultatFraResources =
-                javaClass.getResource("/forstegangsvedtak_fra_api.json")!!.readText()
+                javaClass.getResource("/forstegangsvedtak_fra_maksimum.json")!!.readText()
             val forventet = DefaultJsonMapper.fromJson<Maksimum>(forventetResultatFraResources)
 
             println(DefaultJsonMapper.toJson(uthentetFraApi))
@@ -521,6 +526,137 @@ class BehandlingsDataTest : PostgresTestBase() {
             assertThat(uthentetFraApi).usingRecursiveComparison().isEqualTo(forventet)
         }
     }
+
+
+    @Test
+    fun `snapshot - maksimum uten utbetaling`() {
+        // Oppdater json-filene ved endring
+        val config = TestConfig.default()
+        val azure = AzureTokenGen("test", "test")
+
+        val testfil =
+            javaClass.getResource("/forstegangsvedtak_fra_behandlingsflyt.json")!!.readText()
+        val testData = DefaultJsonMapper.fromJson<DatadelingDTO>(testfil)
+
+
+        testApplication {
+            application {
+                api(
+                    config = config,
+                    datasource = dataSource,
+                    arenaService = fakes.arenaService,
+                    modiaProducer = fakes.kafka,
+                    // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
+                    clock = Clock.fixed(
+                        Instant.from(
+                            LocalDate.of(2025, 12, 13).atStartOfDay().toInstant(ZoneOffset.UTC)
+                        ),
+                        ZoneId.of("UTC")
+                    )
+                )
+            }
+
+            jsonHttpClient.post("/api/insert/vedtak") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    testData
+                )
+            }
+
+            val maksimumRespons = jsonHttpClient.post("/maksimumUtenUtbetaling") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    InternVedtakRequest(
+                        "01410026747",
+                        LocalDate.now().minusYears(0),
+                        LocalDate.now().plusMonths(1)
+                    )
+                )
+            }
+            assertThat(maksimumRespons.status).isEqualTo(HttpStatusCode.OK)
+
+            val uthentetFraApi = maksimumRespons.body<Medium>()
+            println(DefaultJsonMapper.toJson(uthentetFraApi))
+            assertThat(uthentetFraApi.vedtak).hasSize(2)
+
+            val forventetResultatFraResources =
+                javaClass.getResource("/forstegangsvedtak_fra_medium.json")!!.readText()
+            val forventet = DefaultJsonMapper.fromJson<Medium>(forventetResultatFraResources)
+
+            println(DefaultJsonMapper.toJson(uthentetFraApi))
+
+
+            assertThat(uthentetFraApi).usingRecursiveComparison().isEqualTo(forventet)
+        }
+    }
+
+
+    @Test
+    fun `snapshot - kelvin maksimum uten utbetaling`() {
+        // Oppdater json-filene ved endring
+        val config = TestConfig.default()
+        val azure = AzureTokenGen("test", "test")
+
+        val testfil =
+            javaClass.getResource("/forstegangsvedtak_fra_behandlingsflyt.json")!!.readText()
+        val testData = DefaultJsonMapper.fromJson<DatadelingDTO>(testfil)
+
+
+        testApplication {
+            application {
+                api(
+                    config = config,
+                    datasource = dataSource,
+                    arenaService = fakes.arenaService,
+                    modiaProducer = fakes.kafka,
+                    // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
+                    clock = Clock.fixed(
+                        Instant.from(
+                            LocalDate.of(2025, 12, 13).atStartOfDay().toInstant(ZoneOffset.UTC)
+                        ),
+                        ZoneId.of("UTC")
+                    )
+                )
+            }
+
+            jsonHttpClient.post("/api/insert/vedtak") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    testData
+                )
+            }
+
+            val maksimumRespons = jsonHttpClient.post("/kelvin/maksimumUtenUtbetaling") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    InternVedtakRequest(
+                        "01410026747",
+                        LocalDate.now().minusYears(0),
+                        LocalDate.now().plusMonths(1)
+                    )
+                )
+            }
+            assertThat(maksimumRespons.status).isEqualTo(HttpStatusCode.OK)
+
+            val uthentetFraApi = maksimumRespons.body<Medium>()
+            println(DefaultJsonMapper.toJson(uthentetFraApi))
+            assertThat(uthentetFraApi.vedtak).hasSize(2)
+
+            val forventetResultatFraResources =
+                javaClass.getResource("/forstegangsvedtak_fra_medium.json")!!.readText()
+            val forventet = DefaultJsonMapper.fromJson<Medium>(forventetResultatFraResources)
+
+            println(DefaultJsonMapper.toJson(uthentetFraApi))
+
+
+            assertThat(uthentetFraApi).usingRecursiveComparison().isEqualTo(forventet)
+        }
+    }
+
 
 
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient

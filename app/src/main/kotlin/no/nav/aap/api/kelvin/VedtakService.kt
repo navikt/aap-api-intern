@@ -206,7 +206,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
             rettighetsType = this.rettighetsType,
             beregningsgrunnlag = this.beregningsgrunnlag,
             barnMedStonad = this.barnMedStonad,
-            barnetillegg = barnMedStonad * (this.barnetilleggSats?.toInt() ?: 0),
+            barnetillegg = this.barnetilleggSats?.toInt() ?: 0,
             kildesystem = this.kildesystem,
             samordningsId = this.samordningsId,
             opphorsAarsak = this.opphorsAarsak
