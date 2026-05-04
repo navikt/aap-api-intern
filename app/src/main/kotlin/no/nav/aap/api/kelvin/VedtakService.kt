@@ -48,12 +48,22 @@ class VedtakService(
                     )
                 }
             ).komprimer()
+            val arenavedtakPerPeriode =
+                behandling.arenakompatibleVedtakTidslinje.splittOppIPerioder(perioderTidslinje.perioder().toList())
+            val perioderMedArena = perioderTidslinje.kombiner(
+                arenavedtakPerPeriode,
+                JoinStyle.LEFT_JOIN { periode, left, right ->
+                    Segment(periode, left.verdi.copy(arenavedtak = right?.verdi?.segmenter()?.firstOrNull()?.verdi))
+                }
+            )
             val tilkjentPerioder =
-                behandling.tilkjent.splittOppIPerioder(perioderTidslinje.perioder().toList())
+                behandling.tilkjent.splittOppIPerioder(perioderMedArena.perioder().toList())
 
-            perioderTidslinje.kombiner(
+            perioderMedArena.kombiner(
                 tilkjentPerioder,
                 JoinStyle.LEFT_JOIN { periode, left, right ->
+                    val vedtaksTypeKode = left.verdi.arenavedtak?.vedtaksvariant?.typeKode
+                        ?: if (behandling.nyttVedtak) "O" else "E"
                     Segment(
                         periode,
                         Vedtak(
@@ -72,7 +82,7 @@ class VedtakService(
                                 ?.first()?.verdi?.barnetilleggsats?.toInt()
                                 ?: 0),
                             barnetilleggSats = left.verdi.barnetilleggSats?.toInt() ?: 0,
-                            vedtaksTypeKode = null,
+                            vedtaksTypeKode = vedtaksTypeKode,
                             vedtaksTypeNavn = null,
                             utbetaling = right?.verdi?.filter {
                                 it.periode.tom.isBefore(LocalDate.now(clock)) || it.periode.tom.isEqual(
@@ -142,13 +152,24 @@ class VedtakService(
                     )
                 }
             ).komprimer()
+                .let { perioderTidslinje ->
+                    val arenavedtakPerPeriode =
+                        behandling.arenakompatibleVedtakTidslinje.splittOppIPerioder(perioderTidslinje.perioder().toList())
+                    perioderTidslinje.kombiner(
+                        arenavedtakPerPeriode,
+                        JoinStyle.LEFT_JOIN { periode, left, right ->
+                            Segment(periode, left.verdi.copy(arenavedtak = right?.verdi?.segmenter()?.firstOrNull()?.verdi))
+                        }
+                    )
+                }
                 .segmenter()
                 .map {
                     it.verdi.tilVedtakUtenUtbetaling(
                         no.nav.aap.api.intern.Periode(
                             it.periode.fom,
                             it.periode.tom
-                        )
+                        ),
+                        behandling.nyttVedtak,
                     )
                 }
                 .filter { (it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString()) }
@@ -212,8 +233,11 @@ data class VedtakUtenUtbetalingUtenPeriode(
      * så vil [barnetilleggSats] være 38.
      **/
     val barnetilleggSats: BigDecimal? = null,
+    val arenavedtak: Arenavedtak? = null,
 ) {
-    fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode): VedtakUtenUtbetaling {
+    fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode, nyttVedtak: Boolean): VedtakUtenUtbetaling {
+        val vedtaksTypeKode = arenavedtak?.vedtaksvariant?.typeKode
+            ?: if (nyttVedtak) "O" else "E"
         return VedtakUtenUtbetaling(
             vedtakId = this.vedtakId,
             dagsats = this.dagsats,
@@ -221,7 +245,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
             status = this.status,
             saksnummer = this.saksnummer,
             vedtaksdato = this.vedtaksdato,
-            vedtaksTypeKode = null,
+            vedtaksTypeKode = vedtaksTypeKode,
             vedtaksTypeNavn = null,
             periode = periode,
             rettighetsType = this.rettighetsType,

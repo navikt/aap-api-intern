@@ -185,5 +185,7 @@ data class Arenavedtak(
         S_OPPHOR(DsopVedtaksTypeDTO.S, DsopVedtaksvariantDTO.S_OPPHOR),
         S_STANS(DsopVedtaksTypeDTO.S, DsopVedtaksvariantDTO.S_STANS),
         ;
+
+        val typeKode: String get() = type.name
     }
 }
