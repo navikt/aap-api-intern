@@ -116,6 +116,14 @@ class ArenaoppslagGateway(
             ?: gjørArenaOppslag<Maksimum, InternVedtakRequest>("/intern/maksimum", callId, req)
                 .getOrThrow()
                 .also { maksimumCache.put(key, it) }
+                .also {
+                    // Midlertidig, vil undersøke data
+                    for (vedtak in it.vedtak) {
+                        if (vedtak.barnMedStonad > 0) {
+                            secureLog.info("BarnMedStonad: ${vedtak.barnMedStonad}. Barnetillegg: ${vedtak.barnetillegg}. Sats: ${vedtak.barnetilleggsats}. VedtakId: ${vedtak.vedtaksId}. G: ${vedtak.justertG}")
+                        }
+                    }
+                }
     }
 
     override suspend fun hentPersonEksistererIAapContext(
