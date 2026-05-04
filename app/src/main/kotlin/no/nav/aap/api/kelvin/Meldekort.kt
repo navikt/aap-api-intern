@@ -16,8 +16,7 @@ data class Meldekort(
     val meldePeriode: Periode,
     val arbeidPerDag: List<MeldeDag>,
     val meldepliktStatusKode: String?,
-    val rettighetsTypeKode: String?,
-    val avslagsårsakKode: String?,
+    val rettighetsTypeKode: String?
 ) {
     fun tilKontrakt(vedtak: VedtakUtenUtbetaling?): MeldekortDetalj {
         return MeldekortDetalj(

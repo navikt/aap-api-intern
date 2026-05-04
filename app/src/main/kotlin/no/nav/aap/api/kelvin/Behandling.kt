@@ -146,10 +146,6 @@ data class TilkjentYtelse(
         ).roundToInt()
 }
 
-enum class KelvinSakStatus {
-    UTREDES,
-}
-
 
 enum class KelvinBehandlingStatus {
     OPPRETTET,
@@ -157,8 +153,6 @@ enum class KelvinBehandlingStatus {
     IVERKSETTES,
     AVSLUTTET;
 
-    fun iverksatt() =
-        this == IVERKSETTES || this == AVSLUTTET
 }
 
 data class Arenavedtak(

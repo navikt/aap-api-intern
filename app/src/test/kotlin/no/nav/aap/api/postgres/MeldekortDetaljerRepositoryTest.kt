@@ -48,7 +48,6 @@ class MeldekortDetaljerRepositoryTest {
                     timerArbeidet = 3.toBigDecimal()
                 )
             ),
-            avslagsårsakKode = null,
         )
         dataSource.transaction {
             MeldekortDetaljerRepository(it).lagre(
