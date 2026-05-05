@@ -48,8 +48,9 @@ class VedtakService(
                     )
                 }
             ).komprimer()
-            val perioderMedArena = perioderTidslinje.leftJoin(behandling.arenakompatibleVedtakTidslinje){ left, right ->
-                left.copy(arenavedtak = right)
+            val perioderMedArena =
+                perioderTidslinje.leftJoin(behandling.arenakompatibleVedtakTidslinje) { left, right ->
+                    left.copy(arenavedtak = right)
                 }
 
             val tilkjentPerioder =
@@ -110,8 +111,6 @@ class VedtakService(
                 }
             ).komprimer().segmenter().map { it.verdi }
                 .filter { it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString() }
-
-
         }
 
         return Maksimum(vedtak)
@@ -149,16 +148,11 @@ class VedtakService(
                 }
             ).komprimer()
                 .let { perioderTidslinje ->
-                    val arenavedtakPerPeriode =
-                        behandling.arenakompatibleVedtakTidslinje.splittOppIPerioder(perioderTidslinje.perioder().toList())
-                    perioderTidslinje.kombiner(
-                        arenavedtakPerPeriode,
-                        JoinStyle.LEFT_JOIN { periode, left, right ->
-                            Segment(periode, left.verdi.copy(arenavedtak = right?.verdi?.segmenter()?.firstOrNull()?.verdi))
-                        }
-                    )
+                    perioderTidslinje.leftJoin(behandling.arenakompatibleVedtakTidslinje) { periode, left, right ->
+                        Segment(periode, left.copy(arenavedtak = right))
+                    }
+
                 }
-                .segmenter()
                 .map {
                     it.verdi.tilVedtakUtenUtbetaling(
                         no.nav.aap.api.intern.Periode(
@@ -168,7 +162,7 @@ class VedtakService(
                         behandling.nyttVedtak,
                     )
                 }
-                .filter { (it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString()) }
+                .filter { (it.verdi.status == Status.LØPENDE.toString() || it.verdi.status == Status.AVSLUTTET.toString()) }.verdier()
         }
 
         return Medium(vedtak)
@@ -215,13 +209,15 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
 
-    @param:Description("""
+    @param:Description(
+        """
      Størrelsen på ugradert barnetilleggsats.
     
     Verdien er ugradert, i den forstand at:
     Hvis barnetilleggsatsen er spesifisert i AAP-forskriften § 8 til 38 kroner, og medlemmet får 50% AAP,
     så vil [barnetilleggSats] være 38.
-    """)
+    """
+    )
     /** Størrelsen på ugradert barnetilleggsats.
      *
      * Verdien er ugradert, i den forstand at:
