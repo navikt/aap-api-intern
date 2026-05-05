@@ -48,14 +48,10 @@ class VedtakService(
                     )
                 }
             ).komprimer()
-            val arenavedtakPerPeriode =
-                behandling.arenakompatibleVedtakTidslinje.splittOppIPerioder(perioderTidslinje.perioder().toList())
-            val perioderMedArena = perioderTidslinje.kombiner(
-                arenavedtakPerPeriode,
-                JoinStyle.LEFT_JOIN { periode, left, right ->
-                    Segment(periode, left.verdi.copy(arenavedtak = right?.verdi?.segmenter()?.firstOrNull()?.verdi))
+            val perioderMedArena = perioderTidslinje.leftJoin(behandling.arenakompatibleVedtakTidslinje){ left, right ->
+                left.copy(arenavedtak = right)
                 }
-            )
+
             val tilkjentPerioder =
                 behandling.tilkjent.splittOppIPerioder(perioderMedArena.perioder().toList())
 
