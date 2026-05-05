@@ -19,7 +19,7 @@
       "kildesystem": "KELVIN",
       "samordningsId": null,
       "opphorsAarsak": null,
-      "vedtaksTypeKode": null,
+      "vedtaksTypeKode": "E",
       "vedtaksTypeNavn": null
     },
     {
@@ -41,7 +41,7 @@
       "kildesystem": "KELVIN",
       "samordningsId": null,
       "opphorsAarsak": null,
-      "vedtaksTypeKode": null,
+      "vedtaksTypeKode": "E",
       "vedtaksTypeNavn": null
     }
   ]

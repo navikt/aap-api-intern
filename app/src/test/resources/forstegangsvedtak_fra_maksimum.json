@@ -19,7 +19,7 @@
       "kildesystem": "KELVIN",
       "samordningsId": null,
       "opphorsAarsak": null,
-      "vedtaksTypeKode": null,
+      "vedtaksTypeKode": "E",
       "vedtaksTypeNavn": null,
       "utbetaling": [
         {
@@ -55,7 +55,7 @@
       "kildesystem": "KELVIN",
       "samordningsId": null,
       "opphorsAarsak": null,
-      "vedtaksTypeKode": null,
+      "vedtaksTypeKode": "E",
       "vedtaksTypeNavn": null,
       "utbetaling": []
     }
