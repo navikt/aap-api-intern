@@ -1,8 +1,8 @@
 [versions]
 ktor = "3.4.3"
-komponenter = "2.0.51"
-tilgang = "1.0.202"
-behandlingsflyt = "0.0.598"
+komponenter = "2.0.55"
+tilgang = "1.0.211"
+behandlingsflyt = "0.0.599"
 oppgave = "0.0.170"
 arenaoppslag = "0.5.4"
 resilience4j = "2.4.0"
