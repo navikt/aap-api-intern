@@ -118,6 +118,8 @@ spec:
             roles:
               - "add-data"
         - application: meldekort-backend
+        - application: veilarboppfolging
+          namespace: poao
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io

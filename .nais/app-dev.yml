@@ -135,6 +135,8 @@ spec:
           namespace: k9saksbehandling
           cluster: dev-fss
         - application: paw-patrol
+        - application: veilarboppfolging
+          namespace: poao
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io
