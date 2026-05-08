@@ -28,6 +28,9 @@ kelvinKtorOpenapiGenerator = { module = "no.nav.aap.kelvin:ktor-openapi-generato
 kelvinDbtest = { module = "no.nav.aap.kelvin:dbtest", version.ref = "komponenter" }
 json = { module = "no.nav.aap.kelvin:json", version.ref = "komponenter" }
 
+motor = { module = "no.nav.aap.kelvin:motor", version.ref = "komponenter" }
+motorApi = { module = "no.nav.aap.kelvin:motor-api", version.ref = "komponenter" }
+
 tilgangPlugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
 
 behandlingsflytKontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version.ref = "behandlingsflyt" }

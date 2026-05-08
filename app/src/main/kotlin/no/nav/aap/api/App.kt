@@ -30,17 +30,25 @@ import no.nav.aap.api.kafka.KafkaProducer
 import no.nav.aap.api.kafka.ModiaKafkaProducer
 import no.nav.aap.api.kafka.ProducerHolder
 import no.nav.aap.api.kelvin.dataInsertion
+import no.nav.aap.api.motor.ProsesseringsJobber
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.pdl.PdlGateway
 import no.nav.aap.api.postgres.initDatasource
 import no.nav.aap.api.util.StatusPagesConfigHelper
 import no.nav.aap.api.util.registerCircuitBreakerMetrics
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
+import no.nav.aap.motor.Motor
+import no.nav.aap.motor.Motor.Companion.invoke
+import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
+import no.nav.aap.motor.retry.RetryService
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("App")
+
+private const val ANTALL_WORKERS = 4
 
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.javaClass}", e) }
@@ -76,6 +84,7 @@ fun Application.api(
 
     Migrering.migrate(datasource)
     registerCircuitBreakerMetrics(prometheus)
+    val motor = module(datasource)
 
     ProducerHolder.setProducer(modiaProducer)
 
@@ -101,7 +110,7 @@ fun Application.api(
                 dataInsertion(datasource, modiaProducer)
             }
         }
-        actuator(prometheus)
+        actuator(prometheus, motor)
     }
 
     monitor.subscribe(ApplicationStarted) { environment ->
@@ -129,6 +138,33 @@ fun Application.api(
             // Ignorert
         }
     }
+}
+
+fun Application.module(dataSource: DataSource): Motor {
+    val motor = Motor(
+        dataSource = dataSource,
+        antallKammer = ANTALL_WORKERS,
+        logInfoProvider = NoExtraLogInfoProvider,
+        jobber = ProsesseringsJobber.alle(),
+        prometheus = Metrics.prometheus,
+    )
+
+    dataSource.transaction { dbConnection ->
+        RetryService(dbConnection).enable()
+    }
+
+    monitor.subscribe(ApplicationStarted) {
+        motor.start()
+    }
+    monitor.subscribe(ApplicationStopped) { application ->
+        application.environment.log.info("Server har stoppet")
+        motor.stop()
+        // Release resources and unsubscribe from events
+        application.monitor.unsubscribe(ApplicationStarted) {}
+        application.monitor.unsubscribe(ApplicationStopped) {}
+    }
+
+    return motor
 }
 
 private fun opprettArenaService(config: AppConfig): ArenaService {
