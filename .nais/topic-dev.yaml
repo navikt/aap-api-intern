@@ -1,0 +1,16 @@
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  name: aap.api-intern-hendelse-v1
+  namespace: aap
+  labels:
+    team: aap
+spec:
+  pool: nav-dev
+  config:
+    cleanupPolicy: delete
+    retention: -1
+  acl:
+    - application: api-intern
+      team: aap
+      access: readwrite

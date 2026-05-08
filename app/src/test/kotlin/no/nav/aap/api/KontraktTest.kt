@@ -39,7 +39,6 @@ class KontraktTest : PostgresTestBase() {
                         datasource = dataSource,
                         arenaService = fakes.arenaService,
                         pdlGateway = PdlGatewayEmpty(),
-                        modiaProducer = fakes.kafka
                     )
                 }
 

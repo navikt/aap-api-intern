@@ -10,7 +10,11 @@ import io.micrometer.core.instrument.DistributionSummary
 import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.intern.behandlingsflyt.OppdaterIdenterDto
 import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
-import no.nav.aap.api.kafka.KafkaProducer
+import no.nav.aap.api.motor.jobber.AapHendelsePayload
+import no.nav.aap.api.motor.jobber.Hendelse
+import no.nav.aap.api.motor.jobber.ModiaHendelsePayload
+import no.nav.aap.api.motor.jobber.SendAapHendelseUtfører
+import no.nav.aap.api.motor.jobber.SendModiaHendelseUtfører
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortDetaljerRepository
 import no.nav.aap.api.postgres.MeldekortPerioderRepository
@@ -18,6 +22,9 @@ import no.nav.aap.api.postgres.SakStatusRepository
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.motor.JobbInput
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
@@ -28,7 +35,6 @@ private val logger = LoggerFactory.getLogger("App")
 
 fun NormalOpenAPIRoute.dataInsertion(
     dataSource: DataSource,
-    modiaKafkaProducer: KafkaProducer,
 ) {
     val antallMeldekortMottattPerRequestHistogram =
         DistributionSummary.builder("aap_api_intern_insert_meldekort_detaljer_antall_mottatt")
@@ -89,21 +95,24 @@ fun NormalOpenAPIRoute.dataInsertion(
                 )
             ).toTypedArray(),
         ) { _, body ->
-            val nyttVedtak = dataSource.transaction { connection ->
+            dataSource.transaction { connection ->
+                val fnr = body.sak.fnr.first()
                 val behandlingsRepository = BehandlingsRepository(connection)
-                val nyttVedtak = behandlingsRepository.erNyttVedtak(body.sak.fnr.first())
+                val nyttVedtak = behandlingsRepository.erNyttVedtak(fnr)
                 behandlingsRepository.lagreBehandling(body.sak.fnr, body.tilDomene(nyttVedtak))
-                nyttVedtak
-            }
 
-            try {
-                modiaKafkaProducer.produce(body.sak.fnr.first(), nyttVedtak)
-            } catch (e: Exception) {
-                logger.error("Klarte ikke sende melding til kafka", e)
+                val hendelse = if (nyttVedtak) Hendelse.FORSTEGANGSVEDTAK else Hendelse.ENDRINGSVEDTAK
+
+                val jobb = JobbInput(SendAapHendelseUtfører)
+                    .medPayload(DefaultJsonMapper.toJson(AapHendelsePayload(fnr, hendelse)))
+                val modiaJobb = JobbInput(SendModiaHendelseUtfører)
+                    .medPayload(DefaultJsonMapper.toJson(ModiaHendelsePayload(fnr, nyttVedtak)))
+                val repo = FlytJobbRepository(connection)
+                repo.leggTil(jobb)
+                repo.leggTil(modiaJobb)
             }
 
             pipeline.call.respond(HttpStatusCode.OK)
-
         }
         route("/meldekort-detaljer").authorizedPost<Unit, Unit, List<DetaljertMeldekortDTO>>(
             routeConfig = AuthorizationBodyPathConfig(

@@ -24,6 +24,9 @@ object TestConfig {
             dbConfig = postgres,
             modia = ModiaConfig(
                 topic = "test"
+            ),
+            aapHendelse = AapHendelseConfig(
+                topic = "test-aap-hendelse-topic"
             )
         )
     }

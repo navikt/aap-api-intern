@@ -40,7 +40,6 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                         datasource = dataSource,
                         arenaService = fakes.arenaService,
                         pdlGateway = PdlGatewayEmpty(),
-                        modiaProducer = fakes.kafka
                     )
                 }
 
@@ -107,7 +106,6 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                         datasource = dataSource,
                         arenaService = fakes.arenaService,
                         pdlGateway = PdlGatewayEmpty(),
-                        modiaProducer = fakes.kafka
                     )
                 }
                 //Disabled OBO TEST, SJEKK VED LEDIG KAPASITET

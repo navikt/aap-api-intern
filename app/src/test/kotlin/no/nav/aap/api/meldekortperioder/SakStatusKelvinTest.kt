@@ -72,7 +72,6 @@ class SakStatusKelvinTest {
                         datasource = dataSource,
                         arenaService = fakes.arenaService,
                         pdlGateway = PdlGatewayEmpty(),
-                        modiaProducer = fakes.kafka
                     )
                 }
 

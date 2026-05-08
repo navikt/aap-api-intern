@@ -166,6 +166,8 @@ spec:
       value: api://dev-gcp.aap.oppgave/.default
     - name: MODIA_TOPIC
       value: obo.ytelser-v1
+    - name: AAP_HENDELSE_TOPIC
+      value: aap.api-intern-hendelse-v1
     - name: AZP_MELDEKORT_BACKEND
       value: 796867fa-951f-4441-9a68-b2ee4409f3c7
     - name: AZP_TOKEN_GEN

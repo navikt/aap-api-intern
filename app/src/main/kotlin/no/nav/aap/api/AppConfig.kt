@@ -15,7 +15,8 @@ data class AppConfig(
         keystorePath = getEnvVar("KAFKA_KEYSTORE_PATH"),
         credstorePsw = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
     ),
-    val modia: ModiaConfig = ModiaConfig()
+    val modia: ModiaConfig = ModiaConfig(),
+    val aapHendelse: AapHendelseConfig = AapHendelseConfig(),
 ){
     companion object {
         val ANTALL_WORKERS: Int = 4
@@ -45,6 +46,10 @@ data class ArenaoppslagConfig(
 
 data class ModiaConfig(
     val topic: String = getEnvVar("MODIA_TOPIC"),
+)
+
+data class AapHendelseConfig(
+    val topic: String = getEnvVar("AAP_HENDELSE_TOPIC"),
 )
 
 class DbConfig(

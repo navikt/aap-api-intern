@@ -134,7 +134,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka
                 )
             }
 
@@ -191,7 +190,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka
                 )
             }
 
@@ -240,7 +238,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka
                 )
             }
 
@@ -349,7 +346,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka
                 )
             }
 
@@ -405,7 +401,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka
                 )
             }
 
@@ -499,7 +494,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
                     // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
                     clock = Clock.fixed(
                         Instant.from(
