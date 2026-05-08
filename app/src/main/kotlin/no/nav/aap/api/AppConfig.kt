@@ -1,5 +1,6 @@
 package no.nav.aap.api
 
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import no.nav.aap.api.kafka.KafkaConfig
 
@@ -17,6 +18,8 @@ data class AppConfig(
     val modia: ModiaConfig = ModiaConfig()
 ){
     companion object {
+        val ANTALL_WORKERS: Int = 4
+
         // Vi endrer ktor sin default-verdi som er "antall CPUer" synlige for JVM-en, som normalt er antall tilgjengelige kjener på container-hosten.
         // Dette kan gi et for høyt antall tråder i forhold. På den andre siden har vi en del venting på IO (db, http-auth).
         // Sett den til en balansert verdi:
@@ -30,6 +33,8 @@ data class AppConfig(
 
         // Tid appen får til å fullføre påbegynte requests, jobber etc. Må være mindre enn `shutdownTimeout`.
         val shutdownGracePeriod = shutdownTimeout - 3.seconds
+
+        val stansArbeidTimeout: Duration = shutdownGracePeriod - 1.seconds
     }
 }
 

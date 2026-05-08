@@ -45,10 +45,10 @@ import no.nav.aap.motor.Motor.Companion.invoke
 import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration.Companion.seconds
 
 private val logger = LoggerFactory.getLogger("App")
 
-private const val ANTALL_WORKERS = 4
 
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.javaClass}", e) }
@@ -143,7 +143,7 @@ fun Application.api(
 fun Application.module(dataSource: DataSource): Motor {
     val motor = Motor(
         dataSource = dataSource,
-        antallKammer = ANTALL_WORKERS,
+        antallKammer = AppConfig.ANTALL_WORKERS,
         logInfoProvider = NoExtraLogInfoProvider,
         jobber = ProsesseringsJobber.alle(),
         prometheus = Metrics.prometheus,
@@ -156,12 +156,11 @@ fun Application.module(dataSource: DataSource): Motor {
     monitor.subscribe(ApplicationStarted) {
         motor.start()
     }
-    monitor.subscribe(ApplicationStopped) { application ->
-        application.environment.log.info("Server har stoppet")
-        motor.stop()
-        // Release resources and unsubscribe from events
-        application.monitor.unsubscribe(ApplicationStarted) {}
-        application.monitor.unsubscribe(ApplicationStopped) {}
+    monitor.subscribe(ApplicationStopping) { env ->
+        // ktor sine eventer kjøres synkront, så vi må kjøre dette asynkront for ikke å blokkere nedstengings-sekvensen
+        env.launch(Dispatchers.IO) {
+            motor.stop(AppConfig.stansArbeidTimeout)
+        }
     }
 
     return motor
