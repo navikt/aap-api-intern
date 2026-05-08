@@ -39,6 +39,8 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                         config = config,
                         datasource = dataSource,
                         arenaService = fakes.arenaService,
+                        modiaProducer = fakes.kafka,
+                        aapHendelseProducer = fakes.aapHendelse,
                         pdlGateway = PdlGatewayEmpty(),
                     )
                 }
@@ -105,6 +107,8 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                         config = config,
                         datasource = dataSource,
                         arenaService = fakes.arenaService,
+                        modiaProducer = fakes.kafka,
+                        aapHendelseProducer = fakes.aapHendelse,
                         pdlGateway = PdlGatewayEmpty(),
                     )
                 }

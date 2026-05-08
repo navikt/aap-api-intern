@@ -33,6 +33,8 @@ fun main() {
             datasource = dataSource,
             arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway()),
             pdlGateway = PdlGatewayEmpty(),
+            modiaProducer = fakes.kafka,
+            aapHendelseProducer = fakes.aapHendelse,
         )
         loggStoppOgRyddOpp(fakes, dataSource)
     }.start(wait = true)

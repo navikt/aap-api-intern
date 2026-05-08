@@ -134,6 +134,8 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
+                    modiaProducer = fakes.kafka,
+                    aapHendelseProducer = fakes.aapHendelse,
                 )
             }
 
@@ -190,6 +192,8 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
+                    modiaProducer = fakes.kafka,
+                    aapHendelseProducer = fakes.aapHendelse,
                 )
             }
 
@@ -238,6 +242,8 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
+                    modiaProducer = fakes.kafka,
+                    aapHendelseProducer = fakes.aapHendelse,
                 )
             }
 
@@ -346,6 +352,8 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
+                    modiaProducer = fakes.kafka,
+                    aapHendelseProducer = fakes.aapHendelse,
                 )
             }
 
@@ -401,6 +409,8 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
+                    modiaProducer = fakes.kafka,
+                    aapHendelseProducer = fakes.aapHendelse,
                 )
             }
 
@@ -494,6 +504,8 @@ class BehandlingsDataTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
+                    modiaProducer = fakes.kafka,
+                    aapHendelseProducer = fakes.aapHendelse,
                     // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
                     clock = Clock.fixed(
                         Instant.from(

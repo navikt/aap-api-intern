@@ -50,6 +50,8 @@ class ArenaOppslagTest {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
+                    modiaProducer = fakes.kafka,
+                    aapHendelseProducer = fakes.aapHendelse,
                 )
             }
             testBlock(token)

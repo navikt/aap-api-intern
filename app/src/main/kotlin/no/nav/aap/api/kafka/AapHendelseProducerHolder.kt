@@ -2,13 +2,13 @@ package no.nav.aap.api.kafka
 
 object AapHendelseProducerHolder {
 
-    private var producer: AapHendelseKafkaProducer? = null
+    private var producer: AapHendelseProducer? = null
 
-    fun set(producer: AapHendelseKafkaProducer) {
+    fun set(producer: AapHendelseProducer) {
         this.producer = producer
     }
 
-    fun producer(): AapHendelseKafkaProducer {
-        return requireNotNull(producer) { "AapHendelseKafkaProducer was not set." }
+    fun producer(): AapHendelseProducer {
+        return requireNotNull(producer) { "AapHendelseProducer was not set." }
     }
 }

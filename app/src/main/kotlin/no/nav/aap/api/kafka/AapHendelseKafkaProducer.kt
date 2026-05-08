@@ -6,6 +6,10 @@ import org.slf4j.LoggerFactory
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
+interface AapHendelseProducer : AutoCloseable {
+    fun produce(fnr: String, hendelse: Enum<*>)
+}
+
 data class AapHendelseRecord(
     val fnr: String,
     val hendelse: String,
@@ -15,12 +19,12 @@ class AapHendelseKafkaProducer(
     config: KafkaConfig,
     private val topic: String,
     private val closeTimeout: Duration,
-) : AutoCloseable {
+) : AapHendelseProducer {
     private val producer = KafkaFactory.createProducer("aap-api-hendelse", config)
     private val objectMapper = ObjectMapper()
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    fun produce(fnr: String, hendelse: Enum<*>) {
+    override fun produce(fnr: String, hendelse: Enum<*>) {
         val json = objectMapper.writeValueAsString(AapHendelseRecord(fnr, hendelse.name))
         val record = ProducerRecord(topic, fnr, json)
         producer.send(record) { metadata, err ->
