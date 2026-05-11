@@ -12,7 +12,7 @@ interface AapHendelseProducer : AutoCloseable {
 }
 
 data class AapHendelseRecord(
-    val fnr: String,
+    val ident: String,
     val hendelse: Hendelse,
 )
 

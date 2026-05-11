@@ -1,6 +1,6 @@
 package no.nav.aap.api.kafka
 
-interface ModiaKafkaProducer: AutoCloseable {
+interface KafkaProducer: AutoCloseable {
     fun produce(personident: String, nyttVedtak: Boolean)
 }
 
