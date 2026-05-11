@@ -13,7 +13,7 @@ interface AapHendelseProducer : AutoCloseable {
 
 data class AapHendelseRecord(
     val fnr: String,
-    val hendelse: String,
+    val hendelse: Hendelse,
 )
 
 class AapHendelseKafkaProducer(
@@ -27,7 +27,7 @@ class AapHendelseKafkaProducer(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun produce(fnr: String, hendelse: Hendelse) {
-        val json = objectMapper.writeValueAsString(AapHendelseRecord(fnr, hendelse.name))
+        val json = objectMapper.writeValueAsString(AapHendelseRecord(fnr, hendelse))
         val record = ProducerRecord(topic, fnr, json)
         logger.info("Sender hendelse $hendelse til kafka-topic $topic")
         producer.send(record) { metadata, err ->
