@@ -12,6 +12,7 @@ import no.nav.aap.api.intern.DsopVedtakDTO
 import no.nav.aap.api.intern.DsopVedtaksTypeDTO
 import no.nav.aap.api.intern.PeriodeDTO
 import no.nav.aap.api.intern.PeriodeNullableTomDTO
+import no.nav.aap.api.intern.Utfall
 import no.nav.aap.api.kelvin.Arenavedtak
 import no.nav.aap.api.kelvin.Behandling
 import no.nav.aap.api.kelvin.Meldekort
@@ -56,7 +57,7 @@ class DsopService(
                             rettighetsTypePeriode.fom,
                             rettighetsTypePeriode.tom
                         ),
-                        utfall = "JA",
+                        utfall = Utfall.JA,
                         aktivitetsfase = DsopRettighetsTypeDTO.valueOf(rettighetsTypePeriode.verdi),
                         vedtaksType = if (it.nyttVedtak) DsopVedtaksTypeDTO.O else DsopVedtaksTypeDTO.E,
                         vedtaksvariant = null,
@@ -171,7 +172,7 @@ class DsopService(
                             PeriodeNullableTomDTO(periode.fom, null)
                         }
                     },
-                    utfall = if (rettighetsType == null) "NEI" else "JA",
+                    utfall = utfallFraVedtaksvariant(vedtaksvariant),
                     aktivitetsfase = rettighetsType?.let { DsopRettighetsTypeDTO.valueOf(it) },
                     vedtaksType = vedtaksvariant?.type
                         ?: if (behandling.nyttVedtak) DsopVedtaksTypeDTO.O else DsopVedtaksTypeDTO.E,
@@ -181,6 +182,23 @@ class DsopService(
                 .verdier()
                 .toList()
     }
+}
+
+fun utfallFraVedtaksvariant(vedtaksvariant: Arenavedtak.Vedtaksvariant?) = when (vedtaksvariant) {
+    Arenavedtak.Vedtaksvariant.O_INNV_NAV -> Utfall.JA
+    Arenavedtak.Vedtaksvariant.O_INNV_SOKNAD -> Utfall.JA
+    Arenavedtak.Vedtaksvariant.O_AVSLAG -> Utfall.NEI
+    Arenavedtak.Vedtaksvariant.E_FORLENGE -> Utfall.JA
+    Arenavedtak.Vedtaksvariant.E_VERDI -> Utfall.JA
+    Arenavedtak.Vedtaksvariant.G_INNV_NAV -> Utfall.JA
+    Arenavedtak.Vedtaksvariant.G_INNV_SOKNAD -> Utfall.JA
+    Arenavedtak.Vedtaksvariant.G_AVSLAG -> Utfall.NEI
+    Arenavedtak.Vedtaksvariant.S_DOD -> Utfall.JA
+    Arenavedtak.Vedtaksvariant.S_OPPHOR -> Utfall.JA
+    Arenavedtak.Vedtaksvariant.S_STANS -> Utfall.JA
+
+    /* Hvis vi ikke har vedtaksvariant, så er det data som ikke er back-fillet. Da returnerer vi alltid JA. */
+    null -> Utfall.JA
 }
 
 fun List<DsopMeldekortDTO>.slåSammenMeldeperioder(): List<DsopMeldekortDTO> {
