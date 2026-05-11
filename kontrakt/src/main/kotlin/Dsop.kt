@@ -37,7 +37,12 @@ public data class DsopVedtakDTO(
     val vedtakId: String,
     val vedtakStatus: DsopStatusDTO,
     val virkningsperiode: PeriodeNullableTomDTO,
-    val utfall: String,
+    /** Utfall settes relativt til [vedtaksType].
+     * Er [vedtaksType] S (stans), så er utfall JA hvis det ble stans, og NEI hvis det ikke ble stans.
+     * Mens er [vedtaksType] O (førstegangsbehandling), så er utfall JA hvis det er innvilgelse, og NEI hvis det er avslag.
+     * Utfall er altså IKKE om det er et positivt vedtak for bruker eller om bruker får rett.
+     * */
+    val utfall: Utfall,
     val aktivitetsfase: DsopRettighetsTypeDTO?,
     val vedtaksType: DsopVedtaksTypeDTO,
     val vedtaksvariant: DsopVedtaksvariantDTO?,
@@ -47,6 +52,8 @@ public data class DsopVedtakDTO(
      */
     val rettighetsType: String = "AAP"
 }
+
+public enum class Utfall { JA, NEI }
 
 public enum class DsopVedtaksTypeDTO(description: String) {
     O("NY RETTIGHET"),
