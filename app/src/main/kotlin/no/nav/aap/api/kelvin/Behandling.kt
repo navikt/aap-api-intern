@@ -69,6 +69,7 @@ enum class Avslagsårsak(
     BRUDD_PÅ_OPPHOLDSKRAV_OPPHØR(StansEllerOpphør.OPPHØR),
     ORDINÆRKVOTE_BRUKT_OPP(StansEllerOpphør.OPPHØR),
     SYKEPENGEERSTATNINGKVOTE_BRUKT_OPP(StansEllerOpphør.OPPHØR),
+    IKKE_SYKDOM_SKADE_LYTE(StansEllerOpphør.OPPHØR),
 }
 
 enum class StansEllerOpphør {
