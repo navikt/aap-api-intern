@@ -9,7 +9,6 @@ spec:
   pool: nav-prod
   config:
     cleanupPolicy: delete
-    retention: -1
   acl:
     - application: api-intern
       team: aap

@@ -28,10 +28,10 @@ import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.arena.ArenaoppslagGateway
 import no.nav.aap.api.kafka.AapHendelseProducer
 import no.nav.aap.api.kafka.AapHendelseKafkaProducer
-import no.nav.aap.api.kafka.AapHendelseProducerHolder
+import no.nav.aap.api.kafka.aapHendelseProducerHolder
 import no.nav.aap.api.kafka.KafkaProducer
 import no.nav.aap.api.kafka.ModiaKafkaProducer
-import no.nav.aap.api.kafka.ProducerHolder
+import no.nav.aap.api.kafka.modiaProducerHolder
 import no.nav.aap.api.kelvin.dataInsertion
 import no.nav.aap.api.motor.ProsesseringsJobber
 import no.nav.aap.api.pdl.IPdlGateway
@@ -79,7 +79,7 @@ fun Application.api(
     arenaService: ArenaService = opprettArenaService(config),
     pdlGateway: IPdlGateway = PdlGateway(),
     clock: Clock = Clock.systemDefaultZone(),
-    aapHendelseProducer: AapHendelseProducer = AapHendelseKafkaProducer(config.kafka, config.aapHendelse.topic, AppConfig.shutdownGracePeriod),
+    aapHendelseProducer: AapHendelseProducer = AapHendelseKafkaProducer(config.kafka, config.aapHendelse, AppConfig.shutdownGracePeriod),
     modiaProducer: KafkaProducer = ModiaKafkaProducer(config.kafka, config.modia, AppConfig.shutdownGracePeriod),
 ) {
 
@@ -87,8 +87,8 @@ fun Application.api(
     registerCircuitBreakerMetrics(prometheus)
     val motor = module(datasource)
 
-    AapHendelseProducerHolder.set(aapHendelseProducer)
-    ProducerHolder.setProducer(modiaProducer)
+    aapHendelseProducerHolder = aapHendelseProducer
+    modiaProducerHolder = modiaProducer
 
     install(StatusPages, StatusPagesConfigHelper.setup())
 

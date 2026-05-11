@@ -10,8 +10,8 @@ import io.micrometer.core.instrument.DistributionSummary
 import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.intern.behandlingsflyt.OppdaterIdenterDto
 import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
+import no.nav.aap.api.kafka.Hendelse
 import no.nav.aap.api.motor.jobber.AapHendelsePayload
-import no.nav.aap.api.motor.jobber.Hendelse
 import no.nav.aap.api.motor.jobber.ModiaHendelsePayload
 import no.nav.aap.api.motor.jobber.SendAapHendelseUtfører
 import no.nav.aap.api.motor.jobber.SendModiaHendelseUtfører
@@ -101,7 +101,7 @@ fun NormalOpenAPIRoute.dataInsertion(
                 val nyttVedtak = behandlingsRepository.erNyttVedtak(fnr)
                 behandlingsRepository.lagreBehandling(body.sak.fnr, body.tilDomene(nyttVedtak))
 
-                val hendelse = if (nyttVedtak) Hendelse.FORSTEGANGSVEDTAK else Hendelse.ENDRINGSVEDTAK
+                val hendelse = Hendelse.VEDTAK
 
                 val jobb = JobbInput(SendAapHendelseUtfører)
                     .medPayload(DefaultJsonMapper.toJson(AapHendelsePayload(fnr, hendelse)))

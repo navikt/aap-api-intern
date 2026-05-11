@@ -1,6 +1,6 @@
 package no.nav.aap.api.motor.jobber
 
-import no.nav.aap.api.kafka.ProducerHolder
+import no.nav.aap.api.kafka.modiaProducerHolder
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.Jobb
@@ -15,7 +15,7 @@ data class ModiaHendelsePayload(
 class SendModiaHendelseUtfører : JobbUtfører {
     override fun utfør(input: JobbInput) {
         val payload = DefaultJsonMapper.fromJson<ModiaHendelsePayload>(input.payload())
-        ProducerHolder.producer().produce(payload.fnr, payload.nyttVedtak)
+        modiaProducerHolder.produce(payload.fnr, payload.nyttVedtak)
     }
 
     companion object : Jobb {
