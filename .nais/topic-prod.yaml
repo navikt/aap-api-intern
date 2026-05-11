@@ -9,6 +9,7 @@ spec:
   pool: nav-prod
   config:
     cleanupPolicy: delete
+    retentionHours: 336
   acl:
     - application: api-intern
       team: aap
