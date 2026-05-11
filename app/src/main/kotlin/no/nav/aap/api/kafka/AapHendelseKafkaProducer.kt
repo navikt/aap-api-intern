@@ -8,7 +8,7 @@ import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 
 interface AapHendelseProducer : AutoCloseable {
-    fun produce(fnr: String, hendelse: Hendelse)
+    fun produce(ident: String, hendelse: Hendelse)
 }
 
 data class AapHendelseRecord(
@@ -26,9 +26,9 @@ class AapHendelseKafkaProducer(
     private val objectMapper = ObjectMapper()
     private val logger = LoggerFactory.getLogger(javaClass)
 
-    override fun produce(fnr: String, hendelse: Hendelse) {
-        val json = objectMapper.writeValueAsString(AapHendelseRecord(fnr, hendelse))
-        val record = ProducerRecord(topic, fnr, json)
+    override fun produce(ident: String, hendelse: Hendelse) {
+        val json = objectMapper.writeValueAsString(AapHendelseRecord(ident, hendelse))
+        val record = ProducerRecord(topic, ident, json)
         logger.info("Sender hendelse $hendelse til kafka-topic $topic")
         producer.send(record) { metadata, err ->
             if (err != null) {

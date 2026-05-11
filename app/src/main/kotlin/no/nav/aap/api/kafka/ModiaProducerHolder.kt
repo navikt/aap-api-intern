@@ -1,3 +1,3 @@
 package no.nav.aap.api.kafka
 
-lateinit var modiaProducerHolder: KafkaProducer
+lateinit var modiaProducerHolder: ModiaKafkaProducer
