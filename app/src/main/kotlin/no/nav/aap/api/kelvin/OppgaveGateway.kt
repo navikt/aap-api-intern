@@ -63,6 +63,7 @@ object OppgaveGateway {
                     OppgaveKategori.KVALITETSSIKRING -> no.nav.aap.api.intern.OppgaveKategori.KVALITETSSIKRING
                     OppgaveKategori.NAY -> no.nav.aap.api.intern.OppgaveKategori.NAY
                     OppgaveKategori.BESLUTTER -> no.nav.aap.api.intern.OppgaveKategori.BESLUTTER
+                    OppgaveKategori.STUDENT -> no.nav.aap.api.intern.OppgaveKategori.STUDENT
                 },
                 enhet = it.enhet,
             ) to it.saksnummer
