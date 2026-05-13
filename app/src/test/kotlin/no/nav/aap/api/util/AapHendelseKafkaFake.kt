@@ -6,6 +6,8 @@ import no.nav.aap.api.kafka.Hendelse
 class AapHendelseKafkaFake : AapHendelseProducer {
     private val messages = mutableListOf<Pair<String, Hendelse>>()
 
+    fun sentMessages(): List<Pair<String, Hendelse>> = messages.toList()
+
     override fun produce(fnr: String, hendelse: Hendelse) {
         messages.add(fnr to hendelse)
     }
