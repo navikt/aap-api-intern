@@ -25,7 +25,6 @@ import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -35,14 +34,6 @@ import kotlin.test.assertEquals
 class AapHendelseIntegrasjonTest : PostgresTestBase() {
 
     companion object {
-        private val fakes = Fakes()
-
-        @AfterAll
-        @JvmStatic
-        fun tearDown() {
-            fakes.close()
-        }
-
         val vedtakDTO = DatadelingDTO(
             behandlingsId = "123456789",
             behandlingsReferanse = "1234567890987654321",
@@ -85,59 +76,62 @@ class AapHendelseIntegrasjonTest : PostgresTestBase() {
 
     @Test
     fun `vedtak-endepunkt produserer VEDTAK-hendelse på kafka`() {
-        val azure = AzureTokenGen("test", "test")
+        Fakes().use { fakes ->
+            val azure = AzureTokenGen("test", "test")
 
-        testApplication {
-            application {
-                api(
-                    config = TestConfig.default(),
-                    datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    aapHendelseProducer = fakes.aapHendelse,
-                )
+            testApplication {
+                application {
+                    api(
+                        config = TestConfig.default(),
+                        datasource = dataSource,
+                        arenaService = fakes.arenaService,
+                        modiaProducer = fakes.kafka,
+                        aapHendelseProducer = fakes.aapHendelse,
+                    )
+                }
+
+                val res = jsonHttpClient.post("/api/insert/vedtak") {
+                    bearerAuth(azure.generate(isApp = true))
+                    contentType(ContentType.Application.Json)
+                    setBody(vedtakDTO)
+                }
+
+                assertEquals(HttpStatusCode.OK, res.status)
+
+                val melding = pollForMessage(fakes, fnr = "12345678910")
+                assertThat(melding).isNotNull
+                assertThat(melding!!.second).isEqualTo(Hendelse.VEDTAK)
+                assertThat(melding.first).isEqualTo("12345678910")
             }
-
-            val res = jsonHttpClient.post("/api/insert/vedtak") {
-                bearerAuth(azure.generate(isApp = true))
-                contentType(ContentType.Application.Json)
-                setBody(vedtakDTO)
-            }
-
-            assertEquals(HttpStatusCode.OK, res.status)
-
-            // Vent på at motor-jobben plukkes opp og hendelsen sendes
-            val melding = pollForMessage(fakes, fnr = "12345678910")
-            assertThat(melding).isNotNull
-            assertThat(melding!!.second).isEqualTo(Hendelse.VEDTAK)
-            assertThat(melding.first).isEqualTo("12345678910")
         }
     }
 
     @Test
     fun `vedtak-endepunkt produserer hendelse med riktig fnr som kafka-nøkkel`() {
-        val azure = AzureTokenGen("test", "test")
-        val forventetFnr = "12345678910"
+        Fakes().use { fakes ->
+            val azure = AzureTokenGen("test", "test")
+            val forventetFnr = "12345678910"
 
-        testApplication {
-            application {
-                api(
-                    config = TestConfig.default(),
-                    datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    aapHendelseProducer = fakes.aapHendelse,
-                )
+            testApplication {
+                application {
+                    api(
+                        config = TestConfig.default(),
+                        datasource = dataSource,
+                        arenaService = fakes.arenaService,
+                        modiaProducer = fakes.kafka,
+                        aapHendelseProducer = fakes.aapHendelse,
+                    )
+                }
+
+                jsonHttpClient.post("/api/insert/vedtak") {
+                    bearerAuth(azure.generate(isApp = true))
+                    contentType(ContentType.Application.Json)
+                    setBody(vedtakDTO)
+                }
+
+                val melding = pollForMessage(fakes, fnr = forventetFnr)
+                assertThat(melding?.first).isEqualTo(forventetFnr)
             }
-
-            jsonHttpClient.post("/api/insert/vedtak") {
-                bearerAuth(azure.generate(isApp = true))
-                contentType(ContentType.Application.Json)
-                setBody(vedtakDTO)
-            }
-
-            val melding = pollForMessage(fakes, fnr = forventetFnr)
-            assertThat(melding?.first).isEqualTo(forventetFnr)
         }
     }
 
