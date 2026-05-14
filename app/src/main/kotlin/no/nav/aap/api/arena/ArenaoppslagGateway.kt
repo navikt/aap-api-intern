@@ -62,6 +62,7 @@ class ArenaoppslagGateway(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     private val slowRequestMillis: Long = 2000,
     private val timeoutMillis: Long = 20_000,
+    private val cacheName: String = "arenaoppslag_maksimum_cache",
 ) : IArenaoppslagGateway {
     private val tokenProvider = AzureAdTokenProvider()
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
@@ -73,15 +74,17 @@ class ArenaoppslagGateway(
     private val maksimumCache = Caffeine.newBuilder()
         .maximumSize(10_000)
         .expireAfterWrite(Duration.ofMinutes(15))
+        .recordStats()
         .build<String, Maksimum>()
 
     private val personEksistererCache = Caffeine.newBuilder()
         .maximumSize(10_000)
         .expireAfterWrite(Duration.ofMinutes(15))
+        .recordStats()
         .build<String, PersonEksistererIAAPArena>()
 
     init {
-        CaffeineCacheMetrics.monitor(prometheus, maksimumCache, "arenaoppslag_maksimum_cache")
+        CaffeineCacheMetrics.monitor(prometheus, maksimumCache, cacheName)
     }
 
     override suspend fun hentPerioder(
@@ -116,14 +119,6 @@ class ArenaoppslagGateway(
             ?: gjørArenaOppslag<Maksimum, InternVedtakRequest>("/intern/maksimum", callId, req)
                 .getOrThrow()
                 .also { maksimumCache.put(key, it) }
-                .also {
-                    // Midlertidig, vil undersøke data
-                    for (vedtak in it.vedtak) {
-                        if (vedtak.barnMedStonad > 0) {
-                            secureLog.info("BarnMedStonad: ${vedtak.barnMedStonad}. Barnetillegg: ${vedtak.barnetillegg}. Sats: ${vedtak.barnetilleggsats}. VedtakId: ${vedtak.vedtaksId}. G: ${vedtak.justertG}")
-                        }
-                    }
-                }
     }
 
     override suspend fun hentPersonEksistererIAapContext(
