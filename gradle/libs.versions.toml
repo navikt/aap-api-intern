@@ -1,17 +1,17 @@
 [versions]
 ktor = "3.4.3"
-komponenter = "2.0.48"
-tilgang = "1.0.200"
-behandlingsflyt = "0.0.593"
-oppgave = "0.0.170"
-arenaoppslag = "0.5.1"
+komponenter = "2.0.56"
+tilgang = "1.0.221"
+behandlingsflyt = "0.0.601"
+oppgave = "0.0.172"
+arenaoppslag = "0.5.11"
 resilience4j = "2.4.0"
 kafka = "4.2.0"
 logback = "1.5.32"
 jackson = "2.21"
 micrometer = "1.16.5"
 logstashEncoder = "9.0"
-prometheus = "1.5.1"
+prometheus = "1.6.1"
 hikaricp = "7.0.2"
 caffeine = "3.2.3"
 assertj = "3.27.7"
@@ -27,6 +27,9 @@ kelvinTidslinje = { module = "no.nav.aap.kelvin:tidslinje", version.ref = "kompo
 kelvinKtorOpenapiGenerator = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
 kelvinDbtest = { module = "no.nav.aap.kelvin:dbtest", version.ref = "komponenter" }
 json = { module = "no.nav.aap.kelvin:json", version.ref = "komponenter" }
+
+motor = { module = "no.nav.aap.kelvin:motor", version.ref = "komponenter" }
+motorApi = { module = "no.nav.aap.kelvin:motor-api", version.ref = "komponenter" }
 
 tilgangPlugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
 

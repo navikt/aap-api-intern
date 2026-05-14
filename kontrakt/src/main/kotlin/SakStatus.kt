@@ -87,6 +87,7 @@ public data class SakStatusMeldekortbackend(
 
 public enum class OppgaveKategori {
     MEDLEMSKAP,
+    STUDENT,
     LOKALKONTOR,
     KVALITETSSIKRING,
     NAY,

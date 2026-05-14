@@ -30,7 +30,10 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
         vedtaksTypeNavn = this.vedtaksTypeNavn,
         utbetaling = this.utbetaling.map { it.fraKontrakt() },
         kildesystem = Kilde.ARENA,
-        barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0
+        barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0,
+        barnetilleggSats = 0, // Hva skal dette være? Kanskje (this.utbetaling.lastOrNull()?.barnetillegg ?: 0) / this.barnMedStonad,
+        samordningsId = null,
+        opphorsAarsak = null
     )
 }
 
@@ -96,7 +99,6 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.UtbetalingMedMer.fraKontrakt(): Ut
         this.belop,
         this.dagsats,
         this.barnetillegg,
-        this.barnetillegg
     )
 }
 

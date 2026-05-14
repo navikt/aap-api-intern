@@ -1,18 +1,6 @@
 package no.nav.aap.api.postgres
 
-import java.math.BigDecimal
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.UUID
-import no.nav.aap.api.kelvin.Arenavedtak
-import no.nav.aap.api.kelvin.Behandling
-import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
-import no.nav.aap.api.kelvin.KelvinBehandlingStatus
-import no.nav.aap.api.kelvin.KelvinSakStatus
-import no.nav.aap.api.kelvin.RettighetsTypePeriode
-import no.nav.aap.api.kelvin.Sak
-import no.nav.aap.api.kelvin.StansEllerOpphør
+import no.nav.aap.api.kelvin.*
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -22,6 +10,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.math.BigDecimal
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 class BehandlingsRepositoryTest {
     private lateinit var dataSource: TestDataSource
@@ -43,7 +36,6 @@ class BehandlingsRepositoryTest {
         vedtaksDato = LocalDate.now(),
         sak = Sak(
             saksnummer = "ABCDE",
-            status = KelvinSakStatus.OPPRETTET,
             opprettetTidspunkt = LocalDateTime.now()
         ),
         tilkjent = tidslinjeOf(),
@@ -116,7 +108,7 @@ class BehandlingsRepositoryTest {
         val originalIdent = "55555555555"
 
         val behandling = testVedtak.copy(
-            sak = Sak(saksnummer, KelvinSakStatus.LØPENDE, testVedtak.sak.opprettetTidspunkt)
+            sak = Sak(saksnummer, testVedtak.sak.opprettetTidspunkt)
         )
 
         dataSource.transaction {

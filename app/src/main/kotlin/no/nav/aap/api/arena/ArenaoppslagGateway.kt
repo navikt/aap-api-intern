@@ -37,6 +37,8 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
@@ -60,6 +62,7 @@ class ArenaoppslagGateway(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     private val slowRequestMillis: Long = 2000,
     private val timeoutMillis: Long = 20_000,
+    private val cacheName: String = "arenaoppslag_maksimum_cache",
 ) : IArenaoppslagGateway {
     private val tokenProvider = AzureAdTokenProvider()
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
@@ -71,15 +74,17 @@ class ArenaoppslagGateway(
     private val maksimumCache = Caffeine.newBuilder()
         .maximumSize(10_000)
         .expireAfterWrite(Duration.ofMinutes(15))
+        .recordStats()
         .build<String, Maksimum>()
 
     private val personEksistererCache = Caffeine.newBuilder()
         .maximumSize(10_000)
         .expireAfterWrite(Duration.ofMinutes(15))
+        .recordStats()
         .build<String, PersonEksistererIAAPArena>()
 
     init {
-        CaffeineCacheMetrics.monitor(prometheus, maksimumCache, "arenaoppslag_maksimum_cache")
+        CaffeineCacheMetrics.monitor(prometheus, maksimumCache, cacheName)
     }
 
     override suspend fun hentPerioder(
@@ -98,6 +103,12 @@ class ArenaoppslagGateway(
         callId: String, req: SakerRequest,
     ): List<SakStatus> = gjørArenaOppslag<List<SakStatus>, SakerRequest>(
         "/intern/saker", callId, req
+    ).getOrThrow()
+
+    override suspend fun hentSakerForPerson(
+        callId: String, req: SakerRequestV1,
+    ): SakerResponse = gjørArenaOppslag<SakerResponse, SakerRequestV1>(
+        "/api/v1/person/saker", callId, req
     ).getOrThrow()
 
     override suspend fun hentMaksimum(

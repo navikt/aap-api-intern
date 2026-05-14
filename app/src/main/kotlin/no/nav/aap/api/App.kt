@@ -30,17 +30,25 @@ import no.nav.aap.api.kafka.KafkaProducer
 import no.nav.aap.api.kafka.ModiaKafkaProducer
 import no.nav.aap.api.kafka.ProducerHolder
 import no.nav.aap.api.kelvin.dataInsertion
+import no.nav.aap.api.motor.ProsesseringsJobber
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.pdl.PdlGateway
 import no.nav.aap.api.postgres.initDatasource
 import no.nav.aap.api.util.StatusPagesConfigHelper
 import no.nav.aap.api.util.registerCircuitBreakerMetrics
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
+import no.nav.aap.motor.Motor
+import no.nav.aap.motor.Motor.Companion.invoke
+import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
+import no.nav.aap.motor.retry.RetryService
 import org.slf4j.LoggerFactory
+import kotlin.time.Duration.Companion.seconds
 
 private val logger = LoggerFactory.getLogger("App")
+
 
 fun main() {
     Thread.currentThread().setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.javaClass}", e) }
@@ -76,6 +84,7 @@ fun Application.api(
 
     Migrering.migrate(datasource)
     registerCircuitBreakerMetrics(prometheus)
+    val motor = module(datasource)
 
     ProducerHolder.setProducer(modiaProducer)
 
@@ -101,7 +110,7 @@ fun Application.api(
                 dataInsertion(datasource, modiaProducer)
             }
         }
-        actuator(prometheus)
+        actuator(prometheus, motor)
     }
 
     monitor.subscribe(ApplicationStarted) { environment ->
@@ -131,13 +140,40 @@ fun Application.api(
     }
 }
 
+fun Application.module(dataSource: DataSource): Motor {
+    val motor = Motor(
+        dataSource = dataSource,
+        antallKammer = AppConfig.ANTALL_WORKERS,
+        logInfoProvider = NoExtraLogInfoProvider,
+        jobber = ProsesseringsJobber.alle(),
+        prometheus = Metrics.prometheus,
+    )
+
+    dataSource.transaction { dbConnection ->
+        RetryService(dbConnection).enable()
+    }
+
+    monitor.subscribe(ApplicationStarted) {
+        motor.start()
+    }
+    monitor.subscribe(ApplicationStopping) { env ->
+        // ktor sine eventer kjøres synkront, så vi må kjøre dette asynkront for ikke å blokkere nedstengings-sekvensen
+        env.launch(Dispatchers.IO) {
+            motor.stop(AppConfig.stansArbeidTimeout)
+        }
+    }
+
+    return motor
+}
+
 private fun opprettArenaService(config: AppConfig): ArenaService {
     val arenaRestGateway = ArenaoppslagGateway(config.arenaoppslag)
     val arenaHistorikkGateway = ArenaoppslagGateway(
         arenaoppslagConfig = config.arenaoppslag,
         // Vi øker timeouts fordi disse db-queries er tunge
         timeoutMillis = 2.minutes.inWholeMilliseconds,
-        slowRequestMillis = 1.minutes.inWholeMilliseconds
+        slowRequestMillis = 1.minutes.inWholeMilliseconds,
+        cacheName = "arenaoppslag_historikk_maksimum_cache",
     )
 
     return ArenaService(arenaRestGateway, arenaHistorikkGateway)

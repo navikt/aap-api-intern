@@ -124,6 +124,7 @@ spec:
         - application: su-se-bakover
           namespace: supstonad
           cluster: dev-gcp
+        - application: saksbehandling
         - application: behandlingsflyt
           namespace: aap
           cluster: dev-gcp
@@ -134,6 +135,8 @@ spec:
           namespace: k9saksbehandling
           cluster: dev-fss
         - application: paw-patrol
+        - application: veilarboppfolging
+          namespace: poao
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io

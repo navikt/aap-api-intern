@@ -153,7 +153,6 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
             arbeidPerDag = hentArbeidPerDag(row.getLong("ID")), // midlertidig, overskrives under mapping
             meldepliktStatusKode = row.getStringOrNull("MELDEPLIKTSTATUSKODE"),
             rettighetsTypeKode = row.getStringOrNull("RETTIGHETSTYPEKODE"),
-            avslagsårsakKode = null,
         )
     }
 

@@ -18,6 +18,7 @@ import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.pdl.PdlIdenter
 import no.nav.aap.api.pdl.PdlIdenterData
 import no.nav.aap.api.util.graphql.GraphQLResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import no.nav.aap.oppgave.enhet.EnhetOgOversendelse
 import no.nav.aap.oppgave.enhet.PersonRequest
@@ -46,6 +47,7 @@ class Fakes : AutoCloseable {
         System.setProperty("nais.token.endpoint", "http://localhost:${texas.port()}/token")
         System.setProperty("nais.token.exchange.endpoint", "http://localhost:${texas.port()}/token/exchange")
         System.setProperty("nais.token.introspection.endpoint", "http://localhost:${texas.port()}/introspect")
+
 
         // Arena
         System.setProperty("ARENAOPPSLAG_PROXY_BASE_URL", "http://localhost:${arena.port()}")
@@ -100,11 +102,10 @@ fun Application.arena() {
     install(ContentNegotiation) { jackson() }
     routing {
         post("/intern/maksimum") {
-            call.respond(
-                Maksimum(
-                    vedtak = emptyList()
-                )
-            )
+            call.respond(Maksimum(vedtak = emptyList()))
+        }
+        post("/intern/person/saker") {
+            call.respond(SakerResponse(emptyList()))
         }
     }
 }

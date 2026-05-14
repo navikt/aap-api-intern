@@ -12,7 +12,6 @@ import no.nav.aap.api.intern.UtbetalingMedMer
 import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.postgres.BehandlingsRepository
-import no.nav.aap.api.utledVedtakStatus
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
@@ -35,11 +34,7 @@ class VedtakService(
                             dagsats = right?.verdi?.dagsats ?: 0,
                             dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
                                 ?: 0,
-                            status = utledVedtakStatus(
-                                behandling.behandlingStatus,
-                                behandling.sak.status,
-                                periode
-                            ).toString(),
+                            status = Status.LØPENDE.toString(), // TODO
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
@@ -53,12 +48,19 @@ class VedtakService(
                     )
                 }
             ).komprimer()
-            val tilkjentPerioder =
-                behandling.tilkjent.splittOppIPerioder(perioderTidslinje.perioder().toList())
+            val perioderMedArena =
+                perioderTidslinje.leftJoin(behandling.arenakompatibleVedtakTidslinje) { left, right ->
+                    left.copy(arenavedtak = right)
+                }
 
-            perioderTidslinje.kombiner(
+            val tilkjentPerioder =
+                behandling.tilkjent.splittOppIPerioder(perioderMedArena.perioder().toList())
+
+            perioderMedArena.kombiner(
                 tilkjentPerioder,
                 JoinStyle.LEFT_JOIN { periode, left, right ->
+                    val vedtaksTypeKode = left.verdi.arenavedtak?.vedtaksvariant?.typeKode
+                        ?: if (behandling.nyttVedtak) "O" else "E"
                     Segment(
                         periode,
                         Vedtak(
@@ -77,7 +79,7 @@ class VedtakService(
                                 ?.first()?.verdi?.barnetilleggsats?.toInt()
                                 ?: 0),
                             barnetilleggSats = left.verdi.barnetilleggSats?.toInt() ?: 0,
-                            vedtaksTypeKode = null,
+                            vedtaksTypeKode = vedtaksTypeKode,
                             vedtaksTypeNavn = null,
                             utbetaling = right?.verdi?.filter {
                                 it.periode.tom.isBefore(LocalDate.now(clock)) || it.periode.tom.isEqual(
@@ -97,8 +99,6 @@ class VedtakService(
                                         utbetaling.periode.tom
                                     ),
                                     dagsats = utbetaling.verdi.dagsats * utbetaling.verdi.gradering / 100,
-                                    barnetilegg = utbetaling.verdi.gradertBarnetillegg()
-                                        .toInt(),
                                     barnetillegg = utbetaling.verdi.gradertBarnetillegg()
                                         .toInt()
                                 )
@@ -111,8 +111,6 @@ class VedtakService(
                 }
             ).komprimer().segmenter().map { it.verdi }
                 .filter { it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString() }
-
-
         }
 
         return Maksimum(vedtak)
@@ -135,11 +133,7 @@ class VedtakService(
                             dagsats = right?.verdi?.dagsats ?: 0,
                             dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
                                 ?: 0,
-                            status = utledVedtakStatus(
-                                behandling.behandlingStatus,
-                                behandling.sak.status,
-                                periode
-                            ).toString(),
+                            status = Status.LØPENDE.toString(), // TODO!
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
@@ -148,21 +142,27 @@ class VedtakService(
                             kildesystem = Kilde.KELVIN,
                             samordningsId = behandling.samId,
                             opphorsAarsak = null,
-                            barnetilleggSats = right?.verdi?.gradertBarnetillegg(),
+                            barnetilleggSats = right?.verdi?.barnetilleggsats,
                         )
                     )
                 }
             ).komprimer()
-                .segmenter()
+                .let { perioderTidslinje ->
+                    perioderTidslinje.leftJoin(behandling.arenakompatibleVedtakTidslinje) { periode, left, right ->
+                        Segment(periode, left.copy(arenavedtak = right))
+                    }
+
+                }
                 .map {
                     it.verdi.tilVedtakUtenUtbetaling(
                         no.nav.aap.api.intern.Periode(
                             it.periode.fom,
                             it.periode.tom
-                        )
+                        ),
+                        behandling.nyttVedtak,
                     )
                 }
-                .filter { (it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString()) }
+                .filter { (it.verdi.status == Status.LØPENDE.toString() || it.verdi.status == Status.AVSLUTTET.toString()) }.verdier()
         }
 
         return Medium(vedtak)
@@ -193,20 +193,43 @@ data class VedtakUtenUtbetalingUtenPeriode(
     @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin). Ved manglende data er denne null.")
     val dagsatsEtterUføreReduksjon: Int,
     @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
-    val status: String, //Hypotese, vedtaksstatuskode
+    val status: String,
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
     @param:Description("Rettighetsgruppe. For data fra Arena er dette aktivitetsfasekode.")
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,
+
+    @param:Description("Antall barn som gir rett til barnetillegg.")
+    /** Antall barn som gir rett til barnetillegg.  */
     val barnMedStonad: Int,
+
     @param:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
     val kildesystem: Kilde,
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
+
+    @param:Description(
+        """
+     Størrelsen på ugradert barnetilleggsats.
+    
+    Verdien er ugradert, i den forstand at:
+    Hvis barnetilleggsatsen er spesifisert i AAP-forskriften § 8 til 38 kroner, og medlemmet får 50% AAP,
+    så vil [barnetilleggSats] være 38.
+    """
+    )
+    /** Størrelsen på ugradert barnetilleggsats.
+     *
+     * Verdien er ugradert, i den forstand at:
+     * Hvis barnetilleggsatsen er spesifisert i AAP-forskriften § 8 til 38 kroner, og medlemmet får 50% AAP,
+     * så vil [barnetilleggSats] være 38.
+     **/
     val barnetilleggSats: BigDecimal? = null,
+    val arenavedtak: Arenavedtak? = null,
 ) {
-    fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode): VedtakUtenUtbetaling {
+    fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode, nyttVedtak: Boolean): VedtakUtenUtbetaling {
+        val vedtaksTypeKode = arenavedtak?.vedtaksvariant?.typeKode
+            ?: if (nyttVedtak) "O" else "E"
         return VedtakUtenUtbetaling(
             vedtakId = this.vedtakId,
             dagsats = this.dagsats,
@@ -214,7 +237,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
             status = this.status,
             saksnummer = this.saksnummer,
             vedtaksdato = this.vedtaksdato,
-            vedtaksTypeKode = null,
+            vedtaksTypeKode = vedtaksTypeKode,
             vedtaksTypeNavn = null,
             periode = periode,
             rettighetsType = this.rettighetsType,

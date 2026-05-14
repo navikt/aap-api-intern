@@ -1,21 +1,13 @@
 package no.nav.aap.api.postgres
 
-import java.math.BigDecimal
-import java.time.ZoneOffset
-import no.nav.aap.api.kelvin.Arenavedtak
-import no.nav.aap.api.kelvin.Avslagsårsak
-import no.nav.aap.api.kelvin.Behandling
-import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
-import no.nav.aap.api.kelvin.KelvinSakStatus
-import no.nav.aap.api.kelvin.RettighetsTypePeriode
-import no.nav.aap.api.kelvin.Sak
-import no.nav.aap.api.kelvin.StansEllerOpphør
-import no.nav.aap.api.kelvin.TilkjentYtelse
+import no.nav.aap.api.kelvin.*
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
+import java.math.BigDecimal
+import java.time.ZoneOffset
 
 class BehandlingsRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -36,14 +28,13 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
         val sakId = gammelSak ?: connection.executeReturnKey(
             """
-                INSERT INTO SAK (STATUS, RETTIGHETSPERIODE, SAKSNUMMER)
-                VALUES (?, ?::daterange, ?)
+                INSERT INTO SAK (RETTIGHETSPERIODE, SAKSNUMMER)
+                VALUES (?::daterange, ?)
             """.trimIndent()
         ) {
             setParams {
-                setString(1, behandling.sak.status.toString())
-                setPeriode(2, behandling.rettighetsperiode)
-                setString(3, behandling.sak.saksnummer)
+                setPeriode(1, behandling.rettighetsperiode)
+                setString(2, behandling.sak.saksnummer)
             }
         }
 
@@ -268,7 +259,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setRowMapper { row ->
                     SakDB(
                         saksnummer = row.getString("SAKSNUMMER"),
-                        status = KelvinSakStatus.valueOf(row.getString("STATUS")),
                         rettighetsPeriode = row.getPeriode("RETTIGHETSPERIODE"),
                         id = it
                     )
@@ -352,7 +342,6 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     vedtaksDato = row.getLocalDate("VEDTAKS_DATO"),
                     sak = Sak(
                         saksnummer = sak.saksnummer,
-                        status = sak.status,
                         opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
                     ),
                     behandlingsReferanse = row.getString("BEHANDLING_REFERANSE"),
@@ -475,9 +464,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
     }
 }
 
-data class SakDB(
+private data class SakDB(
     val id: Long,
-    val status: KelvinSakStatus,
     val rettighetsPeriode: Periode,
     val saksnummer: String,
 )

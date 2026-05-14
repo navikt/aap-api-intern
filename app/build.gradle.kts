@@ -22,6 +22,8 @@ dependencies {
     implementation(libs.behandlingsflytKontrakt)
     implementation(libs.oppgaveApiKontrakt)
     implementation(libs.arenaoppslagKontrakt)
+    implementation(libs.motor)
+    implementation(libs.motorApi)
 
     implementation(libs.ktorSerializationJackson)
 

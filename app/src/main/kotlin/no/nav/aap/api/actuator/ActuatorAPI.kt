@@ -7,8 +7,9 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import no.nav.aap.motor.Motor
 
-fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
+fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor) {
     route("/actuator") {
         get("/metrics") {
             call.respondText(prometheus.scrape())
@@ -17,7 +18,12 @@ fun Routing.actuator(prometheus: PrometheusMeterRegistry) {
             call.respond(HttpStatusCode.OK, "api")
         }
         get("/ready") {
-            call.respond(HttpStatusCode.OK, "api")
+            if (motor.kjører()) {
+                val status = HttpStatusCode.OK
+                call.respond(status, "Oppe!")
+            } else {
+                call.respond(HttpStatusCode.ServiceUnavailable, "Kjører ikke")
+            }
         }
     }
 }

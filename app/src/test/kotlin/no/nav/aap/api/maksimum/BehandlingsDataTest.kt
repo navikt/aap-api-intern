@@ -52,7 +52,6 @@ class BehandlingsDataTest : PostgresTestBase() {
             vedtaksDato = LocalDate.now().minusYears(2).plusDays(20),
             sak = SakDTO(
                 saksnummer = "test",
-                status = no.nav.aap.behandlingsflyt.kontrakt.sak.Status.LØPENDE,
                 fnr = listOf("12345678910", "10987654321"),
                 opprettetTidspunkt = LocalDateTime.now().minusYears(2),
             ),
@@ -62,7 +61,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                     tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(2).minusDays(1),
                     dagsats = 200,
                     gradering = 100,
-                    grunnlag = 2000.toBigDecimal(),
                     grunnlagsfaktor = 2.4.toBigDecimal(),
                     grunnbeløp = 123321.toBigDecimal(),
                     antallBarn = 2,
@@ -74,7 +72,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                     tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(4).minusDays(1),
                     dagsats = 200,
                     gradering = 100,
-                    grunnlag = 2000.toBigDecimal(),
                     grunnlagsfaktor = 2.4.toBigDecimal(),
                     grunnbeløp = 123321.toBigDecimal(),
                     antallBarn = 2,
@@ -85,7 +82,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                     tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(6).minusDays(1),
                     dagsats = 300,
                     gradering = 0,
-                    grunnlag = 2000.toBigDecimal(),
                     grunnlagsfaktor = 2.4.toBigDecimal(),
                     grunnbeløp = 123321.toBigDecimal(),
                     antallBarn = 2,
@@ -97,7 +93,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                     tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(8).minusDays(1),
                     dagsats = 300,
                     gradering = 100,
-                    grunnlag = 2000.toBigDecimal(),
                     grunnlagsfaktor = 2.4.toBigDecimal(),
                     grunnbeløp = 123321.toBigDecimal(),
                     antallBarn = 2,
@@ -225,7 +220,10 @@ class BehandlingsDataTest : PostgresTestBase() {
             }
 
             assertEquals(HttpStatusCode.OK, maksimumResponseM2m.status)
-            assertEquals(3, maksimumResponseM2m.body<Maksimum>().vedtak.size)
+            val response = maksimumResponseM2m.body<Maksimum>()
+            assertEquals(3, response.vedtak.size)
+            assertThat(response.vedtak.first().barnetillegg).isEqualTo(72)
+            assertThat(response.vedtak.first().utbetaling.first().barnetillegg).isEqualTo(72)
         }
     }
 
@@ -306,7 +304,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                     vedtaksDato = fraOgMed.plusYears(2).plusDays(20),
                     sak = SakDTO(
                         saksnummer = "test" + Random().nextInt(1000),
-                        status = no.nav.aap.behandlingsflyt.kontrakt.sak.Status.LØPENDE,
                         fnr = listOf(fnr),
                         opprettetTidspunkt = LocalDateTime.now().minusYears(2),
                     ),
@@ -316,7 +313,6 @@ class BehandlingsDataTest : PostgresTestBase() {
                             tilkjentTom = fraOgMed.plusYears(2).plusWeeks(2).minusDays(1),
                             dagsats = 200,
                             gradering = 100,
-                            grunnlag = 2000.toBigDecimal(),
                             grunnlagsfaktor = 2.4.toBigDecimal(),
                             grunnbeløp = 123321.toBigDecimal(),
                             antallBarn = 2,
@@ -434,7 +430,7 @@ class BehandlingsDataTest : PostgresTestBase() {
             }
             assertThat(mediumResponseM2m.status).isEqualTo(HttpStatusCode.OK)
             val body = mediumResponseM2m.body<Medium>()
-            assertThat(body.vedtak).hasSize(4)
+            assertThat(body.vedtak).hasSize(3)
 
             val mediumResponseObo = jsonHttpClient.post("/maksimumUtenUtbetaling") {
                 bearerAuth(OidcToken(azure.generate(isApp = false)).token())
@@ -468,7 +464,27 @@ class BehandlingsDataTest : PostgresTestBase() {
     }
 
     @Test
-    fun `ekte data kopiert fra behandlingsflyt, snapshot-test`() {
+    fun `snapshot - maksimum`() = snapshotTest<Maksimum>(
+        endpoint = "/maksimum",
+        forventetResourceFil = "/forstegangsvedtak_fra_maksimum.json",
+    )
+
+    @Test
+    fun `snapshot - maksimum uten utbetaling`() = snapshotTest<Medium>(
+        endpoint = "/maksimumUtenUtbetaling",
+        forventetResourceFil = "/forstegangsvedtak_fra_medium.json",
+    )
+
+    @Test
+    fun `snapshot - kelvin maksimum uten utbetaling`() = snapshotTest<Medium>(
+        endpoint = "/kelvin/maksimumUtenUtbetaling",
+        forventetResourceFil = "/forstegangsvedtak_fra_medium.json",
+    )
+
+    private inline fun <reified T : Any> snapshotTest(
+        endpoint: String,
+        forventetResourceFil: String,
+    ) {
         // Oppdater json-filene ved endring
         val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
@@ -476,7 +492,6 @@ class BehandlingsDataTest : PostgresTestBase() {
         val testfil =
             javaClass.getResource("/forstegangsvedtak_fra_behandlingsflyt.json")!!.readText()
         val testData = DefaultJsonMapper.fromJson<DatadelingDTO>(testfil)
-
 
         testApplication {
             application {
@@ -487,7 +502,9 @@ class BehandlingsDataTest : PostgresTestBase() {
                     modiaProducer = fakes.kafka,
                     // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
                     clock = Clock.fixed(
-                        Instant.from(LocalDate.of(2025, 12, 13).atStartOfDay().toInstant(ZoneOffset.UTC)),
+                        Instant.from(
+                            LocalDate.of(2025, 12, 13).atStartOfDay().toInstant(ZoneOffset.UTC)
+                        ),
                         ZoneId.of("UTC")
                     )
                 )
@@ -496,12 +513,10 @@ class BehandlingsDataTest : PostgresTestBase() {
             jsonHttpClient.post("/api/insert/vedtak") {
                 bearerAuth(azure.generate(isApp = true))
                 contentType(ContentType.Application.Json)
-                setBody(
-                    testData
-                )
+                setBody(testData)
             }
 
-            val maksimumRespons = jsonHttpClient.post("/maksimum") {
+            val maksimumRespons = jsonHttpClient.post(endpoint) {
                 bearerAuth(azure.generate(isApp = true))
                 contentType(ContentType.Application.Json)
                 setBody(
@@ -514,20 +529,17 @@ class BehandlingsDataTest : PostgresTestBase() {
             }
             assertThat(maksimumRespons.status).isEqualTo(HttpStatusCode.OK)
 
-            val uthentetFraApi = maksimumRespons.body<Maksimum>()
+            val uthentetFraApi = maksimumRespons.body<T>()
             println(DefaultJsonMapper.toJson(uthentetFraApi))
-            assertThat(uthentetFraApi.vedtak).hasSize(2)
 
             val forventetResultatFraResources =
-                javaClass.getResource("/forstegangsvedtak_fra_api.json")!!.readText()
-            val forventet = DefaultJsonMapper.fromJson<Maksimum>(forventetResultatFraResources)
-
-            println(DefaultJsonMapper.toJson(uthentetFraApi))
-
+                javaClass.getResource(forventetResourceFil)!!.readText()
+            val forventet = DefaultJsonMapper.fromJson<T>(forventetResultatFraResources)
 
             assertThat(uthentetFraApi).usingRecursiveComparison().isEqualTo(forventet)
         }
     }
+
 
 
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient
