@@ -62,6 +62,7 @@ class KelvinSakService(
                         ) else null,
                         perioder = nyesteBehandling?.rettighetsTypeTidslinje.orEmpty().segmenter()
                             .map { it.periode }.map { Periode(it.fom, it.tom) },
+                        foreløpigMaksdato = nyesteBehandling?.foreløpigMaksdato,
                     )
                 }
         }

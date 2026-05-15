@@ -7,6 +7,7 @@ import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.ZoneOffset
 
 class BehandlingsRepository(private val connection: DBConnection) {
@@ -26,15 +27,30 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
         log.info("Lagrer behandling for sak: ${behandling.sak.saksnummer}, gammel sak id: $gammelSak")
 
-        val sakId = gammelSak ?: connection.executeReturnKey(
-            """
-                INSERT INTO SAK (RETTIGHETSPERIODE, SAKSNUMMER)
-                VALUES (?::daterange, ?)
-            """.trimIndent()
-        ) {
-            setParams {
-                setPeriode(1, behandling.rettighetsperiode)
-                setString(2, behandling.sak.saksnummer)
+        val sakId = if (gammelSak != null) {
+            connection.execute(
+                """
+                    UPDATE SAK SET FORELOPIG_MAKSDATO = ? WHERE ID = ?
+                """.trimIndent()
+            ) {
+                setParams {
+                    setLocalDate(1, behandling.foreløpigMaksdato)
+                    setLong(2, gammelSak)
+                }
+            }
+            gammelSak
+        } else {
+            connection.executeReturnKey(
+                """
+                    INSERT INTO SAK (RETTIGHETSPERIODE, SAKSNUMMER, FORELOPIG_MAKSDATO)
+                    VALUES (?::daterange, ?, ?)
+                """.trimIndent()
+            ) {
+                setParams {
+                    setPeriode(1, behandling.rettighetsperiode)
+                    setString(2, behandling.sak.saksnummer)
+                    setLocalDate(3, behandling.foreløpigMaksdato)
+                }
             }
         }
 
@@ -260,7 +276,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     SakDB(
                         saksnummer = row.getString("SAKSNUMMER"),
                         rettighetsPeriode = row.getPeriode("RETTIGHETSPERIODE"),
-                        id = it
+                        id = it,
+                        foreløpigMaksdato = row.getLocalDateOrNull("FORELOPIG_MAKSDATO"),
                     )
                 }
             }
@@ -355,6 +372,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     stansOpphørVurdering = hentStansOpphør(behandlingId),
                     rettighetsperiode = sak.rettighetsPeriode,
                     arenakompatibleVedtak = hentArenavedtak(behandlingId),
+                    foreløpigMaksdato = sak.foreløpigMaksdato,
                 )
             }
         }
@@ -468,4 +486,5 @@ private data class SakDB(
     val id: Long,
     val rettighetsPeriode: Periode,
     val saksnummer: String,
+    val foreløpigMaksdato: LocalDate?,
 )
