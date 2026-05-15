@@ -174,3 +174,5 @@ spec:
       value: d4b4792b-3321-45ad-aa24-848a029f8450
     - name: AZP_TILLEGGSSTONADER_INTEGRASJONER
       value: d476981c-d129-4402-a74d-ea35a03cac5c
+    - name: AZP_VEILARBOPPFOLGING
+      value: 5afdf9f0-4487-41ef-b103-b4c35be4f9fb

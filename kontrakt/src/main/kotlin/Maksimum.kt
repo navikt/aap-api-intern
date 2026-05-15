@@ -10,6 +10,16 @@ public data class Maksimum(
 
 public data class Medium(val vedtak: List<VedtakUtenUtbetaling>)
 
+public data class ResponsTilTeamObo(val vedtak: List<VedtakTeamObo>, val sakstatus: KelvinStatus)
+
+public data class VedtakTeamObo(
+    val status: String,
+    val saksnummer: String,
+    val vedtaksdato: LocalDate,
+    val periode: Periode,
+    val rettighetsType: String,
+)
+
 public data class InternVedtakRequestApiIntern(
     val personidentifikator: String,
     val fraOgMedDato: LocalDate? = LocalDate.of(1, 1, 1),

@@ -61,6 +61,7 @@ enum class Tag(override val description: String) : APITag {
     Meldekort("For å hente AAP-meldekort"),
     Maksimum("For å hente maksimumsløsning"),
     DSOP("For DSOP-relaterte endepunkter"),
+    OBO("Endepunkter ment for Team OBO."),
     ArenaHistorikk("For å hente informasjon om AAP historikk fra Arena"), ;
 }
 
@@ -132,7 +133,7 @@ fun NormalOpenAPIRoute.api(
                             requiredConfigForKey("AZP_TILLEGGSSTONADER_INTEGRASJONER")
                         )
                     ) + azpForTokenGenHvisIkkeProd()
-                ), null,
+                ), null, null, null,
                 info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall. Er ment for Team Tilleggstønader.")
             ) { callIdHeader, requestBody ->
                 val callId = receiveCall(callIdHeader, pipeline)
@@ -188,7 +189,7 @@ fun NormalOpenAPIRoute.api(
                         requiredConfigForKey("AZP_SAAS_PROXY")
                     )
                 ) + azpForTokenGenHvisIkkeProd()
-            ), null,
+            ), null, null, null,
             info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS."),
             tags(Tag.NKS)
         ) { _, requestBody ->
@@ -230,7 +231,10 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) + azpForTokenGenHvisIkkeProd()
             ),
-            null, info(description = "Endepunkt ment kun for NKS. Henter saker for en person."),
+            null,
+            null,
+            null,
+            info(description = "Endepunkt ment kun for NKS. Henter saker for en person."),
             responseDescription(description = "Liste med saker, potensielt fra både Arena og Kelvin. `enhet` er alltid null fra Arena."),
             tags(Tag.NKS)
         ) { callIdHeader, requestBody ->
@@ -273,7 +277,7 @@ fun NormalOpenAPIRoute.api(
                     )
                 ) + azpForTokenGenHvisIkkeProd()
             ),
-            null,
+            null, null, null,
             info(description = "Henter saker for en person. Kan kun kalles fra meldekort-backend.")
         ) { callIdHeader, requestBody ->
             val callId = receiveCall(callIdHeader, pipeline)
@@ -463,13 +467,13 @@ fun NormalOpenAPIRoute.api(
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
-                val tilArenaKontrakt = requestBody.tilKontrakt()
+                val request = requestBody.tilKontrakt()
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
                         requestBody.personidentifikator,
-                        Periode(tilArenaKontrakt.fraOgMedDato, tilArenaKontrakt.tilOgMedDato),
+                        Periode(request.fraOgMedDato, request.tilOgMedDato),
                     ).vedtak
                 }
                 pipeline.call.response.headers.append(
@@ -481,8 +485,79 @@ fun NormalOpenAPIRoute.api(
 
                 respond(Medium(kelvinSaker))
             }
-
         }
+    }
+
+    route("/kelvin/") {
+        route("obo").authorizedPost<CallIdHeader, ResponsTilTeamObo, InternVedtakRequestApiIntern>(
+            AuthorizationMachineToMachineConfig(
+                authorizedAzps = listOf(
+                    UUID.fromString(
+                        requiredConfigForKey("AZP_SAAS_PROXY")
+                    )
+                ) + azpForTokenGenHvisIkkeProd()
+            ),
+            auditLogConfig = null,
+            exampleResponse = ResponsTilTeamObo(
+                vedtak = listOf(
+                    VedtakTeamObo(
+                        status = "LØPENDE",
+                        saksnummer = "4MGL8LS",
+                        vedtaksdato = LocalDate.now(),
+                        periode = Periode(
+                            fraOgMedDato = LocalDate.of(2021, 1, 1),
+                            tilOgMedDato = LocalDate.of(2021, 1, 31)
+                        ),
+                        rettighetsType = "BISTANDSBEHOV",
+                    )
+                ),
+                sakstatus = KelvinStatus.FERDIGBEHANDLET
+            ),
+            exampleRequest = null,
+            info(description = "Endepunkt Team OBO."),
+            tags(Tag.OBO),
+
+            ) { _, requestBody ->
+            Metrics.httpRequestTeller(pipeline.call)
+
+            sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+
+            val request = requestBody.tilKontrakt()
+
+            val (kelvinSaker, sakStatus) = dataSource.transaction { connection ->
+                val behandlingsRepository = BehandlingsRepository(connection)
+
+                val sakstatus = KelvinSakService(
+                    SakStatusRepository(connection),
+                    BehandlingsRepository(connection)
+                ).hentSakStatus(listOf(requestBody.personidentifikator)).first().status()
+
+                Pair(
+                    VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
+                        requestBody.personidentifikator,
+                        Periode(request.fraOgMedDato, request.tilOgMedDato),
+                    ).vedtak, sakstatus
+                )
+            }
+
+            tellKildesystem(kelvinSaker, null, "/kelvin/maksimumUtenUtbetaling")
+
+            respond(
+                ResponsTilTeamObo(
+                    kelvinSaker.map {
+                        VedtakTeamObo(
+                            status = it.status,
+                            saksnummer = it.saksnummer,
+                            vedtaksdato = it.vedtaksdato,
+                            periode = it.periode,
+                            rettighetsType = it.rettighetsType,
+                        )
+                    },
+                    sakstatus = sakStatus
+                )
+            )
+        }
+
     }
 
     tag(Tag.DSOP) {
