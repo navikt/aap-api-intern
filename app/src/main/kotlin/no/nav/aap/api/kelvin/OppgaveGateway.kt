@@ -66,6 +66,7 @@ object OppgaveGateway {
                     OppgaveKategori.STUDENT -> no.nav.aap.api.intern.OppgaveKategori.STUDENT
                 },
                 enhet = it.enhet,
+                venteAarsak = it.venteÅrsak,
                 erHasteSak = it.markertSomHasteSak
             ) to it.saksnummer
         } ?: Pair(null, null)
