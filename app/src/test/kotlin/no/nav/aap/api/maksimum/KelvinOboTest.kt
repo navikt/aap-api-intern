@@ -90,6 +90,7 @@ class KelvinOboTest {
         beregningsgrunnlag = BigDecimal("500000"),
         stansOpphørVurdering = null,
         arenavedtak = emptyList(),
+        muligMaksdato = rettighetsTom.plusDays(1),
     )
 
     private val testSakStatus = SakStatusKelvin(
@@ -145,6 +146,7 @@ class KelvinOboTest {
 
                 val respons = oboResponse.body<ResponsTilTeamObo>()
                 assertThat(respons.sakstatus).isEqualTo(KelvinStatus.FERDIGBEHANDLET)
+                assertThat(respons.maksdato).isEqualTo(rettighetsTom.plusDays(1))
                 assertThat(respons.vedtak).hasSize(1)
                 assertThat(respons.vedtak.first().saksnummer).isEqualTo(saksnummer)
                 assertThat(respons.vedtak.first().rettighetsType).isEqualTo(RettighetsType.BISTANDSBEHOV.name)

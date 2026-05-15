@@ -511,7 +511,8 @@ fun NormalOpenAPIRoute.api(
                         rettighetsType = "BISTANDSBEHOV",
                     )
                 ),
-                sakstatus = KelvinStatus.FERDIGBEHANDLET
+                sakstatus = KelvinStatus.FERDIGBEHANDLET,
+                maksdato = LocalDate.of(2021, 2, 1)
             ),
             exampleRequest = null,
             info(description = "Endepunkt Team OBO."),
@@ -530,7 +531,7 @@ fun NormalOpenAPIRoute.api(
                 val sakstatus = KelvinSakService(
                     SakStatusRepository(connection),
                     BehandlingsRepository(connection)
-                ).hentSakStatus(listOf(requestBody.personidentifikator)).first().status()
+                ).hentSakStatus(listOf(requestBody.personidentifikator)).first()
 
                 Pair(
                     VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
@@ -553,7 +554,8 @@ fun NormalOpenAPIRoute.api(
                             rettighetsType = it.rettighetsType,
                         )
                     },
-                    sakstatus = sakStatus
+                    sakstatus = sakStatus.status(),
+                    maksdato = sakStatus.foreløpigMaksdato
                 )
             )
         }

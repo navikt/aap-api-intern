@@ -56,7 +56,8 @@ public sealed interface SakStatus {
         override val sakId: String,
         public val ytelsestatus: YtelseStatus,
         public val perioder: List<Periode>,
-        public val enhet: NåværendeEnhet? = null
+        public val enhet: NåværendeEnhet? = null,
+        public val foreløpigMaksdato: LocalDate? = null,
     ) : SakStatus {
         @StringExample("KELVIN")
         override val kilde: Kilde = Kilde.KELVIN

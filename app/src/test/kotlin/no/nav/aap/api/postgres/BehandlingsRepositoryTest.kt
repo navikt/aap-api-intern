@@ -82,6 +82,7 @@ class BehandlingsRepositoryTest {
                 vedtaksvariant = Arenavedtak.Vedtaksvariant.E_FORLENGE,
             ),
         ),
+        foreløpigMaksdato = null,
     )
 
     @Test

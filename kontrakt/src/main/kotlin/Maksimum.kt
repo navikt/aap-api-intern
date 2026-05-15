@@ -10,7 +10,11 @@ public data class Maksimum(
 
 public data class Medium(val vedtak: List<VedtakUtenUtbetaling>)
 
-public data class ResponsTilTeamObo(val vedtak: List<VedtakTeamObo>, val sakstatus: KelvinStatus)
+public data class ResponsTilTeamObo(
+    val vedtak: List<VedtakTeamObo>,
+    val sakstatus: KelvinStatus,
+    val maksdato: LocalDate?
+)
 
 public data class VedtakTeamObo(
     val status: String,

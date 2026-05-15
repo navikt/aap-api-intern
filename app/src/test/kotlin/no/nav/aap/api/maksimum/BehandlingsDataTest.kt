@@ -112,6 +112,7 @@ class BehandlingsDataTest : PostgresTestBase() {
             beregningsgrunnlag = BigDecimal.valueOf(500_000),
             stansOpphørVurdering = null,
             arenavedtak = emptyList(),
+            muligMaksdato = null,
         )
 
         private val fakes = Fakes()
@@ -332,6 +333,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     beregningsgrunnlag = 600_000.toBigDecimal(),
                     stansOpphørVurdering = null,
                     arenavedtak = emptyList(),
+                    muligMaksdato = null,
                 )
             )
         }
