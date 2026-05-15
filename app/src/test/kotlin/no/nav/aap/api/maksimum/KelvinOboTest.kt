@@ -130,7 +130,7 @@ class KelvinOboTest {
                 }.also { assertThat(it.status).isEqualTo(HttpStatusCode.OK) }
 
                 val oboResponse = jsonHttpClient.post("/kelvin/obo") {
-                    bearerAuth(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY")))
+                    bearerAuth(azure.generate(isApp = true, azp = System.getProperty("AZP_VEILARBOPPFOLGING")))
                     contentType(ContentType.Application.Json)
                     setBody(
                         InternVedtakRequestApiIntern(
