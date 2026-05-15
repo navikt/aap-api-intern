@@ -493,7 +493,7 @@ fun NormalOpenAPIRoute.api(
             AuthorizationMachineToMachineConfig(
                 authorizedAzps = listOf(
                     UUID.fromString(
-                        requiredConfigForKey("AZP_SAAS_PROXY")
+                        requiredConfigForKey("AZP_VEILARBOPPFOLGING")
                     )
                 ) + azpForTokenGenHvisIkkeProd()
             ),
