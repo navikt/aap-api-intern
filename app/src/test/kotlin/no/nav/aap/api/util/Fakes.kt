@@ -31,6 +31,7 @@ class Fakes : AutoCloseable {
     val tilgang = embeddedServer(Netty, port = 0, module = Application::tilgangFake).start()
     val oppgave = embeddedServer(Netty, port = 0, module = Application::oppgaveFake).start()
     val kafka = KafkaFake()
+    val aapHendelse = AapHendelseKafkaFake()
     val arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway())
 
     override fun close() {
@@ -40,6 +41,7 @@ class Fakes : AutoCloseable {
         pdl.stop(0L, 0L)
         tilgang.stop(0L, 0L)
         kafka.close()
+        aapHendelse.close()
     }
 
     init {

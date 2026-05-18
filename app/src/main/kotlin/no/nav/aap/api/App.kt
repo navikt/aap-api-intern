@@ -26,9 +26,12 @@ import kotlinx.coroutines.launch
 import no.nav.aap.api.actuator.actuator
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.arena.ArenaoppslagGateway
+import no.nav.aap.api.kafka.AapHendelseProducer
+import no.nav.aap.api.kafka.AapHendelseKafkaProducer
+import no.nav.aap.api.kafka.aapHendelseProducerHolder
 import no.nav.aap.api.kafka.KafkaProducer
 import no.nav.aap.api.kafka.ModiaKafkaProducer
-import no.nav.aap.api.kafka.ProducerHolder
+import no.nav.aap.api.kafka.modiaProducerHolder
 import no.nav.aap.api.kelvin.dataInsertion
 import no.nav.aap.api.motor.ProsesseringsJobber
 import no.nav.aap.api.pdl.IPdlGateway
@@ -76,17 +79,16 @@ fun Application.api(
     arenaService: ArenaService = opprettArenaService(config),
     pdlGateway: IPdlGateway = PdlGateway(),
     clock: Clock = Clock.systemDefaultZone(),
-    modiaProducer: KafkaProducer = ModiaKafkaProducer(
-        config.kafka, config.modia,
-        AppConfig.shutdownGracePeriod
-    ),
+    aapHendelseProducer: AapHendelseProducer = AapHendelseKafkaProducer(config.kafka, config.aapHendelse, AppConfig.shutdownGracePeriod),
+    modiaProducer: KafkaProducer = ModiaKafkaProducer(config.kafka, config.modia, AppConfig.shutdownGracePeriod),
 ) {
 
     Migrering.migrate(datasource)
     registerCircuitBreakerMetrics(prometheus)
     val motor = module(datasource)
 
-    ProducerHolder.setProducer(modiaProducer)
+    aapHendelseProducerHolder = aapHendelseProducer
+    modiaProducerHolder = modiaProducer
 
     install(StatusPages, StatusPagesConfigHelper.setup())
 
@@ -107,7 +109,7 @@ fun Application.api(
         authenticate(IdentityProvider.ENTRA_ID.value) {
             apiRouting {
                 api(datasource, arenaService, pdlGateway, clock)
-                dataInsertion(datasource, modiaProducer)
+                dataInsertion(datasource)
             }
         }
         actuator(prometheus, motor)
@@ -124,7 +126,8 @@ fun Application.api(
         try {
             // ktor sine eventer kjøres synkront, så vi må kjøre dette asynkront for ikke å blokkere nedstengings-sekvensen
             env.launch(Dispatchers.IO) {
-                modiaProducer.close()
+                try { aapHendelseProducer.close() } catch (e: Exception) { logger.warn("Feil ved lukking av aapHendelseProducer", e) }
+                try { modiaProducer.close() } catch (e: Exception) { logger.warn("Feil ved lukking av modiaProducer", e) }
             }
         } catch (_: Exception) {
             // Ignorert

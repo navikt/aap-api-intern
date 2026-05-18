@@ -39,8 +39,9 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                         config = config,
                         datasource = dataSource,
                         arenaService = fakes.arenaService,
+                        modiaProducer = fakes.kafka,
+                        aapHendelseProducer = fakes.aapHendelse,
                         pdlGateway = PdlGatewayEmpty(),
-                        modiaProducer = fakes.kafka
                     )
                 }
 
@@ -106,8 +107,9 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                         config = config,
                         datasource = dataSource,
                         arenaService = fakes.arenaService,
+                        modiaProducer = fakes.kafka,
+                        aapHendelseProducer = fakes.aapHendelse,
                         pdlGateway = PdlGatewayEmpty(),
-                        modiaProducer = fakes.kafka
                     )
                 }
                 //Disabled OBO TEST, SJEKK VED LEDIG KAPASITET

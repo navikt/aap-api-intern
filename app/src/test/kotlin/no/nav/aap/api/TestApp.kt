@@ -10,7 +10,6 @@ import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.kafka.KafkaConfig
 import no.nav.aap.api.util.FakeArenaGateway
 import no.nav.aap.api.util.Fakes
-import no.nav.aap.api.util.KafkaFake
 import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.api.util.port
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -18,7 +17,6 @@ import no.nav.aap.komponenter.dbtest.TestDataSource
 fun main() {
     val fakes = Fakes()
     val dataSource = TestDataSource()
-    val kafkaFake = KafkaFake()
 
     val config = byggAppConfig(fakes)
 
@@ -35,9 +33,10 @@ fun main() {
             datasource = dataSource,
             arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway()),
             pdlGateway = PdlGatewayEmpty(),
-            modiaProducer = kafkaFake,
+            modiaProducer = fakes.kafka,
+            aapHendelseProducer = fakes.aapHendelse,
         )
-        loggStoppOgRyddOpp(fakes, kafkaFake, dataSource)
+        loggStoppOgRyddOpp(fakes, dataSource)
     }.start(wait = true)
 }
 
@@ -58,19 +57,18 @@ private fun byggAppConfig(fakes: Fakes): AppConfig {
             keystorePath = "",
             credstorePsw = ""
         ),
-        modia = ModiaConfig(topic = "test-modia-topic")
+        modia = ModiaConfig(topic = "test-modia-topic"),
+        aapHendelse = AapHendelseConfig(topic = "test-aap-hendelse-topic")
     )
 }
 
 private fun Application.loggStoppOgRyddOpp(
     fakes: Fakes,
-    kafkaFake: KafkaFake,
     dataSource: TestDataSource
 ) {
     monitor.subscribe(ApplicationStopped) { application ->
         application.environment.log.info("TestApp har stoppet")
         fakes.close()
-        kafkaFake.close()
         dataSource.close()
         application.monitor.unsubscribe(ApplicationStopped) {}
     }

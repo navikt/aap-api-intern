@@ -114,6 +114,7 @@ class KelvinOboTest {
                         datasource = dataSource,
                         arenaService = fakes.arenaService,
                         pdlGateway = PdlGatewayEmpty(),
+                        aapHendelseProducer = fakes.aapHendelse,
                         modiaProducer = fakes.kafka,
                     )
                 }
