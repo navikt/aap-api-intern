@@ -12,18 +12,19 @@ import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import java.time.LocalDate
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
 class ArenaService(
     private val arena: IArenaoppslagGateway,
     private val arenaHistorikk: IArenaoppslagGateway
 ) {
+
 
     suspend fun eksistererIAapArena(callId: String, personIdenter: List<String>): PersonEksistererIAAPArena {
         val aapHistorikkForPerson = arenaHistorikk.hentPersonEksistererIAapContext(callId, SakerRequest(personIdenter))
@@ -113,6 +114,7 @@ class ArenaService(
     }
 
 }
+
 
 private fun SakerResponse.toResponse() = ArenaSakerResponse(
     saker = saker.map { sak ->
