@@ -91,7 +91,23 @@ class ArenaOppslagTest {
     }
 
     @Test
-    fun `kan hente saker for person`() {
+    fun `kan hente saker for person med saker`() {
+        testWithKtorApp { token ->
+            val res = jsonHttpClient.post("/arena/person/saker") {
+                bearerAuth(token.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(SakerRequestV1(personidentifikator = "01410028596"))
+            }
+            assertThat(res).isNotNull()
+            assertThat(res.status).isEqualTo(HttpStatusCode.OK)
+            val parsedBody = res.body<SakerResponse>()
+            assertThat(parsedBody).isNotNull
+            assertThat(parsedBody.saker).isNotEmpty() // forventet respons fra FakeArenaGateway
+        }
+    }
+
+    @Test
+    fun `kan hente saker for person uten saker`() {
         testWithKtorApp { token ->
             val res = jsonHttpClient.post("/arena/person/saker") {
                 bearerAuth(token.generate(isApp = true))
@@ -106,6 +122,21 @@ class ArenaOppslagTest {
         }
     }
 
+    @Test
+    fun `kan hente saker for person som ikke finnes`() {
+        testWithKtorApp { token ->
+            val res = jsonHttpClient.post("/arena/person/saker") {
+                bearerAuth(token.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(SakerRequestV1(personidentifikator = "finnes ikke"))
+            }
+            assertThat(res).isNotNull()
+            assertThat(res.status).isEqualTo(HttpStatusCode.OK)
+            val parsedBody = res.body<SakerResponse>()
+            assertThat(parsedBody).isNotNull
+            assertThat(parsedBody.saker).isEmpty() // forventet respons fra FakeArenaGateway
+        }
+    }
 
     @Test
     fun `hentSakerForPerson returnerer 400 når body mangler`() {

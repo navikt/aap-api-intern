@@ -7,42 +7,35 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.http.isSuccess
-import io.ktor.serialization.jackson.jackson
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
 import io.prometheus.metrics.core.metrics.Summary
-import java.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import no.nav.aap.api.ArenaoppslagConfig
 import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
 import no.nav.aap.api.util.findRootCause
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
+import java.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
 private val secureLog = LoggerFactory.getLogger("team-logs")
 private val log = LoggerFactory.getLogger(ArenaoppslagGateway::class.java)
@@ -57,7 +50,7 @@ private val clientLatencyStats: Summary = Summary.builder().name(ARENAOPPSLAG_CL
 private val objectMapper =
     jacksonObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(JavaTimeModule())
 
-
+@Suppress("MagicNumber")
 class ArenaoppslagGateway(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     private val slowRequestMillis: Long = 2000,
@@ -109,7 +102,15 @@ class ArenaoppslagGateway(
         callId: String, req: SakerRequestV1,
     ): SakerResponse = gjørArenaOppslag<SakerResponse, SakerRequestV1>(
         "/api/v1/person/saker", callId, req
-    ).getOrThrow()
+    ).recover { throwable ->
+        if ((throwable as? ResponseException)?.response?.status == HttpStatusCode.NotFound) {
+            // Personen ble ikke funnet i Arena – returner tom liste med saker.
+            secureLog.warn("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
+            SakerResponse(emptyList())
+        } else {
+            throw throwable
+        }
+    }.getOrThrow()
 
     override suspend fun hentMaksimum(
         callId: String, req: InternVedtakRequest,
@@ -159,7 +160,7 @@ class ArenaoppslagGateway(
                     bearerAuth(token)
                     contentType(ContentType.Application.Json)
                     setBody(req)
-                }.also { it ->
+                }.also {
                     if (it.status.isSuccess()) {
                         fikkArenaData = true
                     }

@@ -4,10 +4,16 @@ import no.nav.aap.api.arena.IArenaoppslagGateway
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakOppsummeringKontrakt
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
-import no.nav.aap.arenaoppslag.kontrakt.intern.*
+import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
+import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
+import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
+import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import java.time.LocalDate
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
 class FakeArenaGateway : IArenaoppslagGateway {
     override suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse {
@@ -58,9 +64,14 @@ class FakeArenaGateway : IArenaoppslagGateway {
                     )
                 )
             )
-            else -> SakerResponse(emptyList())
+            "12345678910" -> SakerResponse(emptyList())
+            // Gatewayens kontrakt: 404 fra Arena rekonverteres internt til tom liste.
+            // Fake-en simulerer denne kontrakten ved å returnere tomt for ukjente personer.
+            "finnes ikke" -> SakerResponse(emptyList())
+            else -> error("Ukjent personidentifikator i FakeArenaGateway: ${req.personidentifikator}")
         }
     }
+
 
     override suspend fun hentMaksimum(
         callId: String, req: InternVedtakRequest
