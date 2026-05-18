@@ -56,7 +56,8 @@ public sealed interface SakStatus {
         override val sakId: String,
         public val ytelsestatus: YtelseStatus,
         public val perioder: List<Periode>,
-        public val enhet: NåværendeEnhet? = null
+        public val enhet: NåværendeEnhet? = null,
+        public val foreløpigMaksdato: LocalDate? = null,
     ) : SakStatus {
         @StringExample("KELVIN")
         override val kilde: Kilde = Kilde.KELVIN
@@ -87,6 +88,7 @@ public data class SakStatusMeldekortbackend(
 
 public enum class OppgaveKategori {
     MEDLEMSKAP,
+    STUDENT,
     LOKALKONTOR,
     KVALITETSSIKRING,
     NAY,
@@ -100,6 +102,18 @@ public data class NåværendeEnhet(
     val oppgaveKategori: OppgaveKategori,
     @property:Description("Firesifret enhetskode.")
     val enhet: String,
+    @property:Description("true, om saken er markert som hastesak i Kelvin.") val erHasteSak: Boolean,
+    @property:Description(
+        """
+        Hvis ikke-null, så er dette venteårsaken. Mulige verdier (per 15/05-26):
+         VENTER_PÅ_OPPLYSNINGER, VENTER_PÅ_OPPLYSNINGER_FRA_UTENLANDSKE_MYNDIGHETER,
+         VENTER_PÅ_MEDISINSKE_OPPLYSNINGER, VENTER_PÅ_VURDERING_AV_ROL,
+         VENTER_PÅ_SVAR_FRA_BRUKER, VENTER_PÅ_MASKINELL_AVKLARING,
+         VENTER_PÅ_UTENLANDSK_VIDEREFORING_AVKLARING, VENTER_PÅ_KLAGE_IMPLEMENTASJON,
+         VENTER_PÅ_SVAR_PÅ_FORHÅNDSVARSEL,
+         VENTER_PÅ_FUNKSJONALITET_AVSLAG_11_27,VENTER_PÅ_FUNKSJONALITET."""
+    )
+    val venteAarsak: String?
 )
 
 public enum class Kilde {

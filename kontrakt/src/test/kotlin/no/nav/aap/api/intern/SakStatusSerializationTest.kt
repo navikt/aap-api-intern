@@ -46,6 +46,8 @@ class SakStatusSerializationTest {
             enhet = NåværendeEnhet(
                 oversendtDato = LocalDate.of(2024, 3, 1),
                 oppgaveKategori = OppgaveKategori.NAY,
+                erHasteSak = true,
+                venteAarsak = "VENTER_PA_NOE",
                 enhet = "4291"
             )
         )

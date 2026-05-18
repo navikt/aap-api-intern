@@ -68,6 +68,7 @@ class DsopServiceTest {
         nyttVedtak = false,
         stansOpphørVurdering = emptySet(),
         arenakompatibleVedtak = emptyList(),
+        foreløpigMaksdato = null,
     )
 
     @Test
@@ -94,7 +95,7 @@ class DsopServiceTest {
                             LocalDate.of(2021, 1, 1),
                             LocalDate.of(2021, 2, 1)
                         ),
-                        utfall = "JA",
+                        utfall = Utfall.JA,
                         aktivitetsfase = DsopRettighetsTypeDTO.BISTANDSBEHOV,
                         vedtaksType = DsopVedtaksTypeDTO.E,
                         vedtaksvariant = null,
@@ -106,7 +107,7 @@ class DsopServiceTest {
                             LocalDate.of(2021, 2, 2),
                             LocalDate.of(2021, 4, 1)
                         ),
-                        utfall = "JA",
+                        utfall = Utfall.JA,
                         aktivitetsfase = DsopRettighetsTypeDTO.SYKEPENGEERSTATNING,
                         vedtaksType = DsopVedtaksTypeDTO.E,
                         vedtaksvariant = null,
@@ -207,7 +208,7 @@ class DsopServiceTest {
                         vedtakId = "1",
                         vedtakStatus = DsopStatusDTO.LØPENDE,
                         virkningsperiode = PeriodeNullableTomDTO(vedtaksperiode.fom, vedtaksperiode.tom),
-                        utfall = "JA",
+                        utfall = Utfall.JA,
                         aktivitetsfase = DsopRettighetsTypeDTO.BISTANDSBEHOV,
                         vedtaksType = DsopVedtaksTypeDTO.O,
                         vedtaksvariant = DsopVedtaksvariantDTO.O_INNV_SOKNAD,
@@ -248,7 +249,7 @@ class DsopServiceTest {
                         vedtakId = "1",
                         vedtakStatus = DsopStatusDTO.AVSLUTTET,
                         virkningsperiode = PeriodeNullableTomDTO(vedtaksperiode.fom, vedtaksperiode.tom),
-                        utfall = "JA",
+                        utfall = Utfall.JA,
                         aktivitetsfase = DsopRettighetsTypeDTO.BISTANDSBEHOV,
                         vedtaksType = DsopVedtaksTypeDTO.O,
                         vedtaksvariant = DsopVedtaksvariantDTO.O_INNV_SOKNAD,
@@ -257,7 +258,7 @@ class DsopServiceTest {
                         vedtakId = "2",
                         vedtakStatus = DsopStatusDTO.LØPENDE,
                         virkningsperiode = PeriodeNullableTomDTO(vedtaksperiode.tom.plusDays(1), null),
-                        utfall = "NEI",
+                        utfall = Utfall.JA,
                         aktivitetsfase = null,
                         vedtaksType = DsopVedtaksTypeDTO.S,
                         vedtaksvariant = DsopVedtaksvariantDTO.S_STANS,
@@ -295,6 +296,7 @@ class DsopServiceTest {
             nyttVedtak = nyttVedtak,
             stansOpphørVurdering = setOf(),
             arenakompatibleVedtak = arenavedtak,
+            foreløpigMaksdato = null,
         )
     }
 }

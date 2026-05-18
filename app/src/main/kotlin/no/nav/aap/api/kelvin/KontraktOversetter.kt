@@ -26,6 +26,7 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
         vedtakId = this.vedtakId,
         beregningsgrunnlag = this.beregningsgrunnlag,
         nyttVedtak = nyttVedtak,
+        foreløpigMaksdato = this.muligMaksdato,
         stansOpphørVurdering = this.stansOpphørVurdering?.map { stansEllerOpphør ->
             GjeldendeStansEllerOpphør(
                 fom = stansEllerOpphør.fom,

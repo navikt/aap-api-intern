@@ -27,6 +27,7 @@ data class Behandling(
     val nyttVedtak: Boolean,
     val stansOpphørVurdering: Set<GjeldendeStansEllerOpphør>?,
     val arenakompatibleVedtak: List<Arenavedtak>,
+    val foreløpigMaksdato: LocalDate?,
 ) {
     val rettighetsTypeTidslinje: Tidslinje<String>
         get() = rettighetsTypePerioder.somTidslinje({ it.periode }, { it.verdi })
@@ -69,6 +70,7 @@ enum class Avslagsårsak(
     BRUDD_PÅ_OPPHOLDSKRAV_OPPHØR(StansEllerOpphør.OPPHØR),
     ORDINÆRKVOTE_BRUKT_OPP(StansEllerOpphør.OPPHØR),
     SYKEPENGEERSTATNINGKVOTE_BRUKT_OPP(StansEllerOpphør.OPPHØR),
+    IKKE_SYKDOM_SKADE_LYTE(StansEllerOpphør.OPPHØR),
 }
 
 enum class StansEllerOpphør {

@@ -57,9 +57,12 @@ class KelvinSakService(
                             oversendtDato = enhetinfo.oversendtDato,
                             oppgaveKategori = enhetinfo.oppgaveKategori,
                             enhet = enhetinfo.enhet,
+                            venteAarsak = enhetinfo.venteAarsak,
+                            erHasteSak = enhetinfo.erHasteSak
                         ) else null,
                         perioder = nyesteBehandling?.rettighetsTypeTidslinje.orEmpty().segmenter()
                             .map { it.periode }.map { Periode(it.fom, it.tom) },
+                        foreløpigMaksdato = nyesteBehandling?.foreløpigMaksdato,
                     )
                 }
         }

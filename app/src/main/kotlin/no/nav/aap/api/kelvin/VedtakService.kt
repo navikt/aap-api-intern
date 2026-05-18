@@ -34,7 +34,7 @@ class VedtakService(
                             dagsats = right?.verdi?.dagsats ?: 0,
                             dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
                                 ?: 0,
-                            status = Status.LØPENDE.toString(), // TODO
+                            status = Status.LØPENDE.name, // TODO
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
@@ -133,7 +133,7 @@ class VedtakService(
                             dagsats = right?.verdi?.dagsats ?: 0,
                             dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
                                 ?: 0,
-                            status = Status.LØPENDE.toString(), // TODO!
+                            status = Status.LØPENDE.name, // TODO!
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,

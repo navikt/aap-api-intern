@@ -6,12 +6,16 @@ import io.ktor.server.request.path
 import io.ktor.server.routing.RoutingCall
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Tag
+import io.micrometer.core.instrument.binder.logging.LogbackMetrics
 import io.micrometer.prometheusmetrics.PrometheusConfig
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.aap.komponenter.server.auth.audience
 
 object Metrics {
-    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT).also {
+        // MeterFilter fra LogbackMetrics må registreres før noen meters opprettes
+        LogbackMetrics().bindTo(it)
+    }
 
     fun httpRequestTeller(call: RoutingCall) {
         val path = call.request.path()
