@@ -42,7 +42,10 @@ fun NormalOpenAPIRoute.dsopRoutes(
 
         val kelvinVedtak = dataSource.transaction { connection ->
             val dsopService = DsopService(connection, pdlGateway, clock)
-            dsopService.hentDsopVedtak(requestBody.personIdent, uttrekksperiode)
+            if (Miljø.erProd())
+                dsopService.hentDsopVedtak(requestBody.personIdent, uttrekksperiode)
+            else
+                dsopService.hentDsopVedtakNy(requestBody.personIdent, uttrekksperiode)
         }
 
         respond(
