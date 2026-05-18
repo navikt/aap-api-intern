@@ -45,6 +45,7 @@ import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
 import no.nav.aap.motor.Motor.Companion.invoke
+import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.LoggerFactory
@@ -110,6 +111,7 @@ fun Application.api(
             apiRouting {
                 api(datasource, arenaService, pdlGateway, clock)
                 dataInsertion(datasource)
+                motorApi(datasource)
             }
         }
         actuator(prometheus, motor)

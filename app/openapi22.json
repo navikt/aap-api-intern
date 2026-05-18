@@ -1464,6 +1464,65 @@
         },
         "required" : [ "fom", "tom" ],
         "type" : "object"
+      },
+      "no.nav.aap.motor.api.JobbInfoDto" : {
+        "nullable" : false,
+        "properties" : {
+          "antallFeilendeForsøk" : {
+            "format" : "int32",
+            "nullable" : false,
+            "type" : "integer"
+          },
+          "beskrivelse" : {
+            "nullable" : false,
+            "type" : "string"
+          },
+          "feilmelding" : {
+            "nullable" : true,
+            "type" : "string"
+          },
+          "id" : {
+            "format" : "int64",
+            "nullable" : false,
+            "type" : "integer"
+          },
+          "metadata" : {
+            "additionalProperties" : {
+              "nullable" : false,
+              "type" : "string"
+            },
+            "description" : "Key type: kotlin.String",
+            "nullable" : false,
+            "type" : "object"
+          },
+          "navn" : {
+            "nullable" : false,
+            "type" : "string"
+          },
+          "opprettetTidspunkt" : {
+            "example" : "2025-04-01T12:30:00",
+            "format" : "date-time",
+            "nullable" : true,
+            "type" : "string"
+          },
+          "planlagtKjøretidspunkt" : {
+            "example" : "2025-04-01T12:30:00",
+            "format" : "date-time",
+            "nullable" : false,
+            "type" : "string"
+          },
+          "status" : {
+            "enum" : [ "AVBRUTT", "FEILET", "FERDIG", "KLAR", "PLUKKET" ],
+            "nullable" : false,
+            "type" : "string"
+          },
+          "type" : {
+            "nullable" : false,
+            "type" : "string"
+          }
+        },
+        "required" : [ "antallFeilendeForsøk", "beskrivelse", "id", "metadata", "navn", "planlagtKjøretidspunkt", "status", "type" ],
+        "type" : "object"
       }
     },
     "securitySchemes" : {
@@ -2605,6 +2664,247 @@
         "summary" : "Oppdaterer identer for en sak. Endepunktet kan kun brukes av behandlingsflyt. Kalles manuelt fra Paw Patrol.",
         "tags" : [ "Tilgangkontrollert" ]
       }
+    },
+    "/drift/api/jobb/feilende" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/no.nav.aap.motor.api.JobbInfoDto"
+                  },
+                  "nullable" : false,
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "jwtAuth" : [ "BEHANDLINGSFLYT" ]
+        } ],
+        "tags" : [ "MotorAPI" ]
+      }
+    },
+    "/drift/api/jobb/feilende/antall" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "format" : "int32",
+                  "nullable" : false,
+                  "type" : "integer"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "jwtAuth" : [ "BEHANDLINGSFLYT" ]
+        } ],
+        "tags" : [ "MotorAPI" ]
+      }
+    },
+    "/drift/api/jobb/planlagte-jobber" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/no.nav.aap.motor.api.JobbInfoDto"
+                  },
+                  "nullable" : false,
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "jwtAuth" : [ "BEHANDLINGSFLYT" ]
+        } ],
+        "tags" : [ "MotorAPI" ]
+      }
+    },
+    "/drift/api/jobb/{jobbId}/kjor" : {
+      "post" : {
+        "parameters" : [ {
+          "deprecated" : false,
+          "description" : "ID",
+          "explode" : false,
+          "in" : "path",
+          "name" : "jobbId",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "nullable" : false,
+            "type" : "integer"
+          },
+          "style" : "simple"
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "nullable" : false,
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "jwtAuth" : [ "BEHANDLINGSFLYT" ]
+        } ],
+        "tags" : [ "MotorAPI" ]
+      }
+    },
+    "/drift/api/jobb/rekjor/{jobbId}" : {
+      "get" : {
+        "parameters" : [ {
+          "deprecated" : false,
+          "description" : "ID",
+          "explode" : false,
+          "in" : "path",
+          "name" : "jobbId",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "nullable" : false,
+            "type" : "integer"
+          },
+          "style" : "simple"
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "nullable" : false,
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "jwtAuth" : [ "BEHANDLINGSFLYT" ]
+        } ],
+        "tags" : [ "MotorAPI" ]
+      }
+    },
+    "/drift/api/jobb/avbryt/{jobbId}" : {
+      "get" : {
+        "parameters" : [ {
+          "deprecated" : false,
+          "description" : "ID",
+          "explode" : false,
+          "in" : "path",
+          "name" : "jobbId",
+          "required" : true,
+          "schema" : {
+            "format" : "int64",
+            "nullable" : false,
+            "type" : "integer"
+          },
+          "style" : "simple"
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "nullable" : false,
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "jwtAuth" : [ "BEHANDLINGSFLYT" ]
+        } ],
+        "tags" : [ "MotorAPI" ]
+      }
+    },
+    "/drift/api/jobb/avbrytAlleFeilede" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "nullable" : false,
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "jwtAuth" : [ "BEHANDLINGSFLYT" ]
+        } ],
+        "tags" : [ "MotorAPI" ]
+      }
+    },
+    "/drift/api/jobb/rekjorAlleFeilede" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "nullable" : false,
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "jwtAuth" : [ "BEHANDLINGSFLYT" ]
+        } ],
+        "tags" : [ "MotorAPI" ]
+      }
+    },
+    "/drift/api/jobb/sisteKjørte" : {
+      "get" : {
+        "responses" : {
+          "200" : {
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "items" : {
+                    "$ref" : "#/components/schemas/no.nav.aap.motor.api.JobbInfoDto"
+                  },
+                  "nullable" : false,
+                  "type" : "array"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "security" : [ {
+          "jwtAuth" : [ "BEHANDLINGSFLYT" ]
+        } ],
+        "tags" : [ "MotorAPI" ]
+      }
     }
   },
   "tags" : [ {
@@ -2634,5 +2934,8 @@
   }, {
     "description" : "For DSOP-relaterte endepunkter",
     "name" : "DSOP"
+  }, {
+    "description" : "Disse endepunktene er drift-endepunkter for motoren.",
+    "name" : "MotorAPI"
   } ]
 }
