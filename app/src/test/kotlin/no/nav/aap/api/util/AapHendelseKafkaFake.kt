@@ -8,8 +8,8 @@ class AapHendelseKafkaFake : AapHendelseProducer {
 
     fun sentMessages(): List<Pair<String, Hendelse>> = messages.toList()
 
-    override fun produce(fnr: String, hendelse: Hendelse) {
-        messages.add(fnr to hendelse)
+    override fun produce(ident: String, hendelse: Hendelse) {
+        messages.add(ident to hendelse)
     }
 
     override fun close() {
