@@ -118,6 +118,7 @@ spec:
             roles:
               - "add-data"
         - application: meldekort-backend
+        - application: paw-patrol
         - application: veilarboppfolging
           namespace: poao
     outbound:
