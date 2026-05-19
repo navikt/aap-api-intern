@@ -555,7 +555,7 @@ fun NormalOpenAPIRoute.api(
                         )
                     },
                     sakstatus = sakStatus.status(),
-                    maksdato = sakStatus.foreløpigMaksdato
+                    maksdato = sakStatus.forelopigMaksdato
                 )
             )
         }
