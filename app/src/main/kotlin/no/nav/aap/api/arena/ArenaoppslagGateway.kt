@@ -9,6 +9,8 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.SocketTimeoutException
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -101,7 +103,7 @@ class ArenaoppslagGateway(
     override suspend fun hentSakerForPerson(
         callId: String, req: SakerRequestV1,
     ): SakerResponse = gjørArenaOppslag<SakerResponse, SakerRequestV1>(
-        "/api/v1/person/saker", callId, req
+        "/api/v1/person/saker", callId, req, true
     ).recover { throwable ->
         if (responseStatus(throwable) == HttpStatusCode.NotFound) {
             secureLog.warn("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
@@ -142,7 +144,7 @@ class ArenaoppslagGateway(
         ).getOrThrow()
 
     private suspend inline fun <reified T, reified V> gjørArenaOppslag(
-        endepunkt: String, callId: String, req: V,
+        endepunkt: String, callId: String, req: V, tillattMed404: Boolean = false
     ): Result<T> = clientLatencyStats.startTimer().use {
         circuitBreaker.executeSuspendFunction {
             // Vi starter en kjede av kall og prosessering, hvor hvert steg kan feile.
@@ -166,6 +168,10 @@ class ArenaoppslagGateway(
 
                 objectMapper.readValue<T>(arenaResponse.bodyAsText())
             }.onFailure { e ->
+                if (tillattMed404 && responseStatus(e) == HttpStatusCode.NotFound) {
+                    return@onFailure          // 404 håndteres av caller — ikke logg som ERROR
+                }
+
                 val årsak = e.findRootCause()
                 when {
                     !fikkToken -> log.error("Fetch av token for Arena-oppslag feilet: ${årsak.message}", e)
@@ -195,7 +201,15 @@ class ArenaoppslagGateway(
         }
 
         install(HttpRequestRetry) {
-            retryOnException(maxRetries = 3) // retry on exception during network send, other than timeout exceptions
+            // Retry på transiente nettverksfeil og 5xx – ikke på 4xx-klientfeil og ikke på timeouts.
+            // Timeouts retries ikke fordi vi heller vil feile raskt enn å akkumulere ventetid.
+            retryOnExceptionIf(maxRetries = 3) { _, cause ->
+                responseStatus(cause) != HttpStatusCode.NotFound &&
+                        cause !is HttpRequestTimeoutException &&
+                        cause !is ConnectTimeoutException &&
+                        cause !is SocketTimeoutException
+            }
+            retryOnServerErrors(maxRetries = 3) // 5xx
             exponentialDelay()
         }
 
