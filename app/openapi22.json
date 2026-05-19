@@ -616,7 +616,7 @@
           "enhet" : {
             "$ref" : "#/components/schemas/no.nav.aap.api.intern.NåværendeEnhet"
           },
-          "forelopigMaksdato" : {
+          "foreløpigMaksdato" : {
             "example" : "2025-04-01",
             "format" : "date",
             "nullable" : true,
@@ -2348,7 +2348,7 @@
                   "vedtak" : [ {
                     "status" : "LØPENDE",
                     "saksnummer" : "4MGL8LS",
-                    "vedtaksdato" : "2026-05-19",
+                    "vedtaksdato" : "2026-05-18",
                     "periode" : {
                       "fraOgMedDato" : "2021-01-01",
                       "tilOgMedDato" : "2021-01-31"
