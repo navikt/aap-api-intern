@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 
 class MeldekortDetaljerRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
+    private val sletteBatchSize = 500L
 
     fun lagre(meldekortForSammeSak: List<Meldekort>) {
         if (meldekortForSammeSak.isEmpty()) return
@@ -45,17 +46,37 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
     }
 
     private fun slettGamleMeldekort(saksnummer: String, behandlingId: Long) {
-        connection.execute(
-            """
-                    DELETE FROM MELDEKORT
-                    WHERE SAKSNUMMER = ? and BEHANDLING_ID <= ?
+        var slettedeRader: Long
+        do {
+            slettedeRader = connection.queryFirst(
+                """
+                    WITH ids AS (
+                        SELECT ID
+                        FROM MELDEKORT
+                        WHERE SAKSNUMMER = ? AND BEHANDLING_ID <= ?
+                        ORDER BY ID
+                        LIMIT ?
+                    ),
+                    deleted AS (
+                        DELETE FROM MELDEKORT
+                        WHERE ID IN (SELECT ID FROM ids)
+                        RETURNING ID
+                    )
+                    SELECT COUNT(*) AS antall
+                    FROM deleted
                 """.trimIndent()
-        ) {
-            setParams {
-                setString(1, saksnummer)
-                setLong(2, behandlingId)
+            ) {
+                setParams {
+                    setString(1, saksnummer)
+                    setLong(2, behandlingId)
+                    setLong(3, sletteBatchSize)
+                }
+
+                setRowMapper { row ->
+                    row.getLong("antall")
+                }
             }
-        }
+        } while (slettedeRader > 0)
     }
 
     private fun hentNyesteBehandlingIdLagretForSaken(saksnummer: String): Long? =
