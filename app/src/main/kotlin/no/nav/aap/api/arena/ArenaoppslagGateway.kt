@@ -161,9 +161,7 @@ class ArenaoppslagGateway(
                     contentType(ContentType.Application.Json)
                     setBody(req)
                 }.also {
-                    if (it.status.isSuccess()) {
-                        fikkArenaData = true
-                    }
+                    fikkArenaData = true
                 }
 
                 objectMapper.readValue<T>(arenaResponse.bodyAsText())
@@ -184,7 +182,7 @@ class ArenaoppslagGateway(
 
     private fun responseStatus(throwable: Throwable): HttpStatusCode? =
         generateSequence(throwable) { it.cause }
-            .filterIsInstance<ResponseException>()
+            .filterIsInstance<ClientRequestException>()
             .firstOrNull()?.response?.status
 
     private val httpClient = HttpClient(CIO) {
