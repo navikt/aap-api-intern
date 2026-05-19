@@ -103,9 +103,9 @@ class ArenaoppslagGateway(
     ): SakerResponse = gjørArenaOppslag<SakerResponse, SakerRequestV1>(
         "/api/v1/person/saker", callId, req
     ).recover { throwable ->
-        if ((throwable as? ResponseException)?.response?.status == HttpStatusCode.NotFound) {
-            // Personen ble ikke funnet i Arena – returner tom liste med saker.
+        if (responseStatus(throwable) == HttpStatusCode.NotFound) {
             secureLog.warn("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
+            // Personen ble ikke funnet i Arena – returner tom liste med saker
             SakerResponse(emptyList())
         } else {
             throw throwable
@@ -182,6 +182,10 @@ class ArenaoppslagGateway(
         }
     }
 
+    private fun responseStatus(throwable: Throwable): HttpStatusCode? =
+        generateSequence(throwable) { it.cause }
+            .filterIsInstance<ResponseException>()
+            .firstOrNull()?.response?.status
 
     private val httpClient = HttpClient(CIO) {
         expectSuccess = true // Kaster exception for 4xx og 5xx svar
