@@ -185,15 +185,15 @@ class ArenaoppslagGateway(
     private val httpClient = HttpClient(CIO) {
         expectSuccess = true // Kaster exception for 4xx og 5xx svar
 
+        install(HttpRequestRetry) {
+            retryOnException(maxRetries = 3) // retry on exception during network send, other than timeout exceptions
+            exponentialDelay()
+        }
+
         install(HttpTimeout) {
             requestTimeoutMillis = timeoutMillis
             connectTimeoutMillis = 20.seconds.inWholeMilliseconds
             socketTimeoutMillis = 20.seconds.inWholeMilliseconds
-        }
-
-        install(HttpRequestRetry) {
-            retryOnException(maxRetries = 3) // retry on exception during network send, other than timeout exceptions
-            exponentialDelay()
         }
 
         install(ContentNegotiation) {
