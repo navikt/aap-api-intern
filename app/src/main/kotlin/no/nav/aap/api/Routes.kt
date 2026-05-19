@@ -11,6 +11,7 @@ import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
+import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.dsop.dsopRoutes
@@ -531,7 +532,7 @@ fun NormalOpenAPIRoute.api(
                 val sakstatus = KelvinSakService(
                     SakStatusRepository(connection),
                     BehandlingsRepository(connection)
-                ).hentSakStatus(listOf(requestBody.personidentifikator)).first()
+                ).hentSakStatus(listOf(requestBody.personidentifikator)).firstOrNull()
 
                 Pair(
                     VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
@@ -539,6 +540,14 @@ fun NormalOpenAPIRoute.api(
                         Periode(request.fraOgMedDato, request.tilOgMedDato),
                     ).vedtak, sakstatus
                 )
+            }
+
+            if (sakStatus == null) {
+                pipeline.call.respond(
+                    HttpStatusCode.NotFound,
+                    "Fant ingen sakstatus for personen i Kelvin"
+                )
+                return@authorizedPost
             }
 
             tellKildesystem(kelvinSaker, null, "/kelvin/maksimumUtenUtbetaling")
