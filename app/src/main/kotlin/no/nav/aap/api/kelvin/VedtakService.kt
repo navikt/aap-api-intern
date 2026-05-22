@@ -77,7 +77,6 @@ class VedtakService(
                             periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
                             rettighetsType = vedtakUtenUtbetalingUtenPeriode.rettighetsType,
                             beregningsgrunnlag = vedtakUtenUtbetalingUtenPeriode.beregningsgrunnlag,
-
                             barnMedStonad = vedtakUtenUtbetalingUtenPeriode.barnMedStonad,
                             barnetillegg = vedtakUtenUtbetalingUtenPeriode.barnMedStonad * (tilkjentYtelseTidslinje.segmenter()
                                 .firstOrNull()?.verdi?.barnetilleggsats?.toInt()
@@ -90,7 +89,7 @@ class VedtakService(
                                 it.periode.tom.isBefore(LocalDate.now(clock)) || it.periode.tom.isEqual(
                                     LocalDate.now(clock)
                                 )
-                            }.segmenter().map { utbetaling ->
+                            }.komprimer().segmenter().map { utbetaling ->
                                 UtbetalingMedMer(
                                     reduksjon = null,
                                     utbetalingsgrad = utbetaling.verdi.gradering,
