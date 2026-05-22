@@ -15,6 +15,7 @@ import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
+import no.nav.aap.komponenter.tidslinje.orEmpty
 import no.nav.aap.komponenter.type.Periode
 
 class VedtakService(
@@ -59,33 +60,36 @@ class VedtakService(
             perioderMedArena.kombiner(
                 tilkjentPerioder,
                 JoinStyle.LEFT_JOIN { periode, left, right ->
-                    val vedtaksTypeKode = left.verdi.arenavedtak?.vedtaksvariant?.typeKode
-                        ?: if (behandling.nyttVedtak) "O" else "E"
+                    val vedtakUtenUtbetalingUtenPeriode = left.verdi
+                    val vedtaksTypeKode =
+                        vedtakUtenUtbetalingUtenPeriode.arenavedtak?.vedtaksvariant?.typeKode
+                            ?: if (behandling.nyttVedtak) "O" else "E"
+                    val tilkjentYtelseTidslinje = right?.verdi.orEmpty()
                     Segment(
                         periode,
                         Vedtak(
-                            vedtakId = left.verdi.vedtakId,
-                            dagsats = left.verdi.dagsats,
-                            dagsatsEtterUføreReduksjon = left.verdi.dagsatsEtterUføreReduksjon,
-                            status = left.verdi.status,
-                            saksnummer = left.verdi.saksnummer,
-                            vedtaksdato = left.verdi.vedtaksdato,
+                            vedtakId = vedtakUtenUtbetalingUtenPeriode.vedtakId,
+                            dagsats = vedtakUtenUtbetalingUtenPeriode.dagsats,
+                            dagsatsEtterUføreReduksjon = vedtakUtenUtbetalingUtenPeriode.dagsatsEtterUføreReduksjon,
+                            status = vedtakUtenUtbetalingUtenPeriode.status,
+                            saksnummer = vedtakUtenUtbetalingUtenPeriode.saksnummer,
+                            vedtaksdato = vedtakUtenUtbetalingUtenPeriode.vedtaksdato,
                             periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
-                            rettighetsType = left.verdi.rettighetsType,
-                            beregningsgrunnlag = left.verdi.beregningsgrunnlag,
-
-                            barnMedStonad = left.verdi.barnMedStonad,
-                            barnetillegg = left.verdi.barnMedStonad * (right?.verdi?.segmenter()
-                                ?.first()?.verdi?.barnetilleggsats?.toInt()
+                            rettighetsType = vedtakUtenUtbetalingUtenPeriode.rettighetsType,
+                            beregningsgrunnlag = vedtakUtenUtbetalingUtenPeriode.beregningsgrunnlag,
+                            barnMedStonad = vedtakUtenUtbetalingUtenPeriode.barnMedStonad,
+                            barnetillegg = vedtakUtenUtbetalingUtenPeriode.barnMedStonad * (tilkjentYtelseTidslinje.segmenter()
+                                .firstOrNull()?.verdi?.barnetilleggsats?.toInt()
                                 ?: 0),
-                            barnetilleggSats = left.verdi.barnetilleggSats?.toInt() ?: 0,
+                            barnetilleggSats = vedtakUtenUtbetalingUtenPeriode.barnetilleggSats?.toInt()
+                                ?: 0,
                             vedtaksTypeKode = vedtaksTypeKode,
                             vedtaksTypeNavn = null,
-                            utbetaling = right?.verdi?.filter {
+                            utbetaling = tilkjentYtelseTidslinje.filter {
                                 it.periode.tom.isBefore(LocalDate.now(clock)) || it.periode.tom.isEqual(
                                     LocalDate.now(clock)
                                 )
-                            }?.segmenter()?.map { utbetaling ->
+                            }.komprimer().segmenter().map { utbetaling ->
                                 UtbetalingMedMer(
                                     reduksjon = null,
                                     utbetalingsgrad = utbetaling.verdi.gradering,
@@ -102,10 +106,10 @@ class VedtakService(
                                     barnetillegg = utbetaling.verdi.gradertBarnetillegg()
                                         .toInt()
                                 )
-                            }.orEmpty(),
-                            kildesystem = left.verdi.kildesystem,
-                            samordningsId = left.verdi.samordningsId,
-                            opphorsAarsak = left.verdi.opphorsAarsak
+                            },
+                            kildesystem = vedtakUtenUtbetalingUtenPeriode.kildesystem,
+                            samordningsId = vedtakUtenUtbetalingUtenPeriode.samordningsId,
+                            opphorsAarsak = vedtakUtenUtbetalingUtenPeriode.opphorsAarsak
                         )
                     )
                 }
@@ -126,23 +130,24 @@ class VedtakService(
             behandling.rettighetsTypeTidslinje.kombiner(
                 behandling.tilkjent,
                 JoinStyle.LEFT_JOIN { periode, left, right ->
+                    val tilkjentYtelse = right?.verdi
                     Segment(
                         periode,
                         VedtakUtenUtbetalingUtenPeriode(
                             vedtakId = behandling.vedtakId.toString(),
-                            dagsats = right?.verdi?.dagsats ?: 0,
-                            dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
+                            dagsats = tilkjentYtelse?.dagsats ?: 0,
+                            dagsatsEtterUføreReduksjon = tilkjentYtelse?.regnUtDagsatsEtterUføreReduksjon()
                                 ?: 0,
                             status = Status.LØPENDE.name, // TODO!
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
                             beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
-                            barnMedStonad = right?.verdi?.antallBarn ?: 0,
+                            barnMedStonad = tilkjentYtelse?.antallBarn ?: 0,
                             kildesystem = Kilde.KELVIN,
                             samordningsId = behandling.samId,
                             opphorsAarsak = null,
-                            barnetilleggSats = right?.verdi?.barnetilleggsats,
+                            barnetilleggSats = tilkjentYtelse?.barnetilleggsats,
                         )
                     )
                 }
@@ -162,7 +167,8 @@ class VedtakService(
                         behandling.nyttVedtak,
                     )
                 }
-                .filter { (it.verdi.status == Status.LØPENDE.toString() || it.verdi.status == Status.AVSLUTTET.toString()) }.verdier()
+                .filter { (it.verdi.status == Status.LØPENDE.toString() || it.verdi.status == Status.AVSLUTTET.toString()) }
+                .verdier()
         }
 
         return Medium(vedtak)
@@ -227,7 +233,10 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val barnetilleggSats: BigDecimal? = null,
     val arenavedtak: Arenavedtak? = null,
 ) {
-    fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode, nyttVedtak: Boolean): VedtakUtenUtbetaling {
+    fun tilVedtakUtenUtbetaling(
+        periode: no.nav.aap.api.intern.Periode,
+        nyttVedtak: Boolean
+    ): VedtakUtenUtbetaling {
         val vedtaksTypeKode = arenavedtak?.vedtaksvariant?.typeKode
             ?: if (nyttVedtak) "O" else "E"
         return VedtakUtenUtbetaling(
