@@ -21,6 +21,7 @@ import no.nav.aap.api.kelvin.RettighetsTypePeriode
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Tid
 
@@ -125,62 +126,67 @@ class DsopService(
         fun utledDsopVedtak(
             behandling: Behandling,
             now: LocalDate,
-        ): List<DsopVedtakDTO> =
-            behandling.rettighetsTypeTidslinje.outerJoin(behandling.arenakompatibleVedtakTidslinje) { periode, rettighetsType, arenavedtak ->
-                if (arenavedtak != null) {
-                    require(
-                        (rettighetsType == null) == (
-                                arenavedtak.vedtaksvariant in setOf(
-                                    Arenavedtak.Vedtaksvariant.G_AVSLAG,
-                                    Arenavedtak.Vedtaksvariant.O_AVSLAG,
-                                    Arenavedtak.Vedtaksvariant.S_STANS,
-                                    Arenavedtak.Vedtaksvariant.S_OPPHOR,
-                                    Arenavedtak.Vedtaksvariant.S_DOD,
-                                ))
-                    ) {
-                        "Hvis vedtaksvariant er satt, så har man ikke rett til AAP (rettighetstype == null) hvis og bare hvis det er en variant som ikke gir rett til AAP"
-                    }
+        ): List<DsopVedtakDTO> = outerJoinRunningFold<DsopRettighetsTypeDTO, Arenavedtak, DsopVedtakDTO>(
+            behandling.rettighetsTypeTidslinje.map { DsopRettighetsTypeDTO.valueOf(it) },
+            behandling.arenakompatibleVedtakTidslinje,
+        ) { forrigeVedtak, periode, rettighetsType, arenavedtak ->
+            if (arenavedtak != null) {
+                require(
+                    (rettighetsType == null) == (
+                            arenavedtak.vedtaksvariant in setOf(
+                                Arenavedtak.Vedtaksvariant.G_AVSLAG,
+                                Arenavedtak.Vedtaksvariant.O_AVSLAG,
+                                Arenavedtak.Vedtaksvariant.S_STANS,
+                                Arenavedtak.Vedtaksvariant.S_OPPHOR,
+                                Arenavedtak.Vedtaksvariant.S_DOD,
+                            ))
+                ) {
+                    "Hvis vedtaksvariant er satt, så har man ikke rett til AAP (rettighetstype == null) hvis og bare hvis det er en variant som ikke gir rett til AAP"
                 }
-
-                val vedtaksvariant = arenavedtak?.vedtaksvariant
-
-                DsopVedtakDTO(
-                    vedtakId = arenavedtak?.vedtakId?.toString() ?: behandling.vedtakId.toString(),
-                    vedtakStatus = when (periode.tom >= now) {
-                        true -> DsopStatusDTO.LØPENDE
-                        else -> DsopStatusDTO.AVSLUTTET
-                    },
-                    virkningsperiode = when (vedtaksvariant) {
-                        null,
-                        Arenavedtak.Vedtaksvariant.O_INNV_NAV,
-                        Arenavedtak.Vedtaksvariant.O_INNV_SOKNAD,
-                        Arenavedtak.Vedtaksvariant.E_FORLENGE,
-                        Arenavedtak.Vedtaksvariant.E_VERDI,
-                        Arenavedtak.Vedtaksvariant.G_INNV_NAV,
-                        Arenavedtak.Vedtaksvariant.G_INNV_SOKNAD ->
-                            PeriodeNullableTomDTO(periode.fom, periode.tom)
-
-                        Arenavedtak.Vedtaksvariant.O_AVSLAG,
-                        Arenavedtak.Vedtaksvariant.G_AVSLAG,
-                        Arenavedtak.Vedtaksvariant.S_DOD,
-                        Arenavedtak.Vedtaksvariant.S_OPPHOR,
-                        Arenavedtak.Vedtaksvariant.S_STANS -> {
-                            require(periode.fom == periode.tom) {
-                                """vedtakslengde ved avslag, stans og opphør har ingen sluttdato, som skal være 
-                                            representert med fom == tom."""
-                            }
-                            PeriodeNullableTomDTO(periode.fom, null)
-                        }
-                    },
-                    utfall = utfallFraVedtaksvariant(vedtaksvariant),
-                    aktivitetsfase = rettighetsType?.let { DsopRettighetsTypeDTO.valueOf(it) },
-                    vedtaksType = vedtaksvariant?.type
-                        ?: if (behandling.nyttVedtak) DsopVedtaksTypeDTO.O else DsopVedtaksTypeDTO.E,
-                    vedtaksvariant = vedtaksvariant?.somDTO,
-                )
             }
-                .verdier()
-                .toList()
+
+            val vedtaksvariant = arenavedtak?.vedtaksvariant
+
+            DsopVedtakDTO(
+                vedtakId = arenavedtak?.vedtakId?.toString() ?: behandling.vedtakId.toString(),
+                vedtakStatus = when (periode.tom >= now) {
+                    true -> DsopStatusDTO.LØPENDE
+                    else -> DsopStatusDTO.AVSLUTTET
+                },
+                virkningsperiode = when (vedtaksvariant) {
+                    null,
+                    Arenavedtak.Vedtaksvariant.O_INNV_NAV,
+                    Arenavedtak.Vedtaksvariant.O_INNV_SOKNAD,
+                    Arenavedtak.Vedtaksvariant.E_FORLENGE,
+                    Arenavedtak.Vedtaksvariant.E_VERDI,
+                    Arenavedtak.Vedtaksvariant.G_INNV_NAV,
+                    Arenavedtak.Vedtaksvariant.G_INNV_SOKNAD ->
+                        PeriodeNullableTomDTO(periode.fom, periode.tom)
+
+                    Arenavedtak.Vedtaksvariant.O_AVSLAG,
+                    Arenavedtak.Vedtaksvariant.G_AVSLAG,
+                    Arenavedtak.Vedtaksvariant.S_DOD,
+                    Arenavedtak.Vedtaksvariant.S_OPPHOR,
+                    Arenavedtak.Vedtaksvariant.S_STANS -> {
+                        require(periode.fom == periode.tom) {
+                            """vedtakslengde ved avslag, stans og opphør har ingen sluttdato, som skal være 
+                                            representert med fom == tom."""
+                        }
+                        PeriodeNullableTomDTO(periode.fom, null)
+                    }
+                },
+                utfall = utfallFraVedtaksvariant(vedtaksvariant),
+                aktivitetsfase = rettighetsType ?: requireNotNull(forrigeVedtak?.aktivitetsfase) {
+                    """perioden $periode har ingen rettighetstype, som betyr at dette er et stansvedtak,  forrige vedtak
+                        skal da være et vedtak som gir rett, og skal derfor ha aktivetetsfase definert."""
+                },
+                vedtaksType = vedtaksvariant?.type
+                    ?: if (behandling.nyttVedtak) DsopVedtaksTypeDTO.O else DsopVedtaksTypeDTO.E,
+                vedtaksvariant = vedtaksvariant?.somDTO,
+            )
+        }
+            .verdier()
+            .toList()
     }
 }
 
@@ -220,4 +226,17 @@ fun List<DsopMeldekortDTO>.slåSammenMeldeperioder(): List<DsopMeldekortDTO> {
                     .toBigDecimal())
             }
         }
+}
+
+fun <T1, T2, R> outerJoinRunningFold(
+    t1: Tidslinje<T1>,
+    t2: Tidslinje<T2>,
+    f: (R?, Periode, T1?, T2?) -> R,
+): Tidslinje<R> {
+    var previous: R? = null
+    return t1.outerJoin(t2) { p, x1, x2 ->
+        f(previous, p, x1, x2).also {
+            previous = it
+        }
+    }
 }
