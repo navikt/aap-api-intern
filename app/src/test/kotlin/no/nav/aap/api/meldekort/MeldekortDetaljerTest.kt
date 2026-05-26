@@ -108,6 +108,10 @@ class MeldekortDetaljerTest : PostgresTestBase() {
             assertThat(meldekortListe.meldekort).isNotEmpty()
             assertThat(meldekortListe.meldekort.first().meldePeriode.fraOgMedDato).isEqualTo(testObject.meldeperiodeFom)
             assertThat(meldekortListe.meldekort.first().meldePeriode.tilOgMedDato).isEqualTo(testObject.meldeperiodeTom)
+
+            val metrics = jsonHttpClient.get("/actuator/metrics")
+            assertThat(metrics.body<String>())
+                .contains("aap_api_intern_finn_nyeste_relaterte_vedtak_antall_vedtak")
         }
 
     }

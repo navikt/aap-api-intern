@@ -15,7 +15,6 @@ import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.api.util.PostgresTestBase
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.io.File
 
 class KontraktTest : PostgresTestBase() {
     /* Det er ikke til å unngå at listen ikke er tom, siden det er behandlingsflyt sin kontrakt som styrer
@@ -50,7 +49,6 @@ class KontraktTest : PostgresTestBase() {
                 }
                 val openapi = jacksonObjectMapper().readTree(res.bodyAsText())
 
-                File("openapi22.json").writeText(openapi.toPrettyString() + "\n")
                 val schemas = openapi["components"]["schemas"]
                 for ((name, _) in schemas.properties()) {
                     if (name in unntak) {
