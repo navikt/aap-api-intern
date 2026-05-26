@@ -1,36 +1,45 @@
 package no.nav.aap.api.kelvin
 
-import no.nav.aap.api.kafka.KafkaProducer
-import no.nav.aap.api.postgres.BehandlingsRepository
-import no.nav.aap.api.postgres.MeldekortDetaljerRepository
-import no.nav.aap.api.postgres.MeldekortPerioderRepository
-import no.nav.aap.api.postgres.SakStatusRepository
 import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.micrometer.core.instrument.DistributionSummary
+import no.nav.aap.api.Metrics.prometheus
+import no.nav.aap.api.intern.behandlingsflyt.OppdaterIdenterDto
+import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
+import no.nav.aap.api.kafka.Hendelse
+import no.nav.aap.api.motor.jobber.AapHendelsePayload
+import no.nav.aap.api.motor.jobber.ModiaHendelsePayload
+import no.nav.aap.api.motor.jobber.SendAapHendelseUtfører
+import no.nav.aap.api.motor.jobber.SendModiaHendelseUtfører
+import no.nav.aap.api.postgres.BehandlingsRepository
+import no.nav.aap.api.postgres.MeldekortDetaljerRepository
+import no.nav.aap.api.postgres.MeldekortPerioderRepository
+import no.nav.aap.api.postgres.SakStatusRepository
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.json.DefaultJsonMapper
+import no.nav.aap.motor.FlytJobbRepository
+import no.nav.aap.motor.JobbInput
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 import javax.sql.DataSource
-import no.nav.aap.api.Metrics.prometheus
 
 private val logger = LoggerFactory.getLogger("App")
 
 fun NormalOpenAPIRoute.dataInsertion(
     dataSource: DataSource,
-    modiaKafkaProducer: KafkaProducer,
 ) {
-    val antallMeldekortMottattPerRequestHistogram = DistributionSummary.builder("aap_api_intern_insert_meldekort_detaljer_antall_mottatt")
-        .publishPercentileHistogram(true)
-        .register(prometheus)
+    val antallMeldekortMottattPerRequestHistogram =
+        DistributionSummary.builder("aap_api_intern_insert_meldekort_detaljer_antall_mottatt")
+            .publishPercentileHistogram(true)
+            .register(prometheus)
 
     route("/api/insert") {
         route("/meldeperioder").authorizedPost<Unit, Unit, MeldekortPerioderDTO>(
@@ -42,7 +51,7 @@ fun NormalOpenAPIRoute.dataInsertion(
             modules = listOf(
                 info(
                     "Legg inn meldekortperioder",
-                    "Legg inn meldekortperioder for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                    "Legg inn meldekortperioder for en person. Endepunktet kan kun brukes av behandlingsflyt. Kalles ved hvert stopp i behandlingen før vedtak."
                 )
             ).toTypedArray(),
         ) { _, body ->
@@ -63,13 +72,13 @@ fun NormalOpenAPIRoute.dataInsertion(
             ),
             modules = listOf(
                 info(
-                    "Legg inn sakstatus for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                    "Legg inn sakstatus for en person. Endepunktet kan kun brukes av behandlingsflyt. Kalles ved hvert stopp i behandlingen før vedtak."
                 )
             ).toTypedArray(),
         ) { _, body ->
             dataSource.transaction { connection ->
                 val sakStatusRepository = SakStatusRepository(connection)
-                sakStatusRepository.lagreSakStatus(body.ident, body.status)
+                sakStatusRepository.lagreSakStatusFraKelvin(body.ident, body.status)
             }
             pipeline.call.respond(HttpStatusCode.OK)
         }
@@ -82,30 +91,28 @@ fun NormalOpenAPIRoute.dataInsertion(
             modules = listOf(
                 info(
                     "Legg inn sak, behandling, og vedtaksdata",
-                    "Legg inn sak, behandling, og vedtaksdata for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                    "Legg inn sak, behandling, og vedtaksdata for en person. Endepunktet kan kun brukes av behandlingsflyt. Kalles etter at vedtak er fattet, men før behandlingen er avsluttet."
                 )
             ).toTypedArray(),
         ) { _, body ->
-            val nyttVedtak = dataSource.transaction { connection ->
+            dataSource.transaction { connection ->
+                val fnr = body.sak.fnr.first()
                 val behandlingsRepository = BehandlingsRepository(connection)
-                val nyttVedtak = behandlingsRepository.hentVedtaksData(
-                    body.sak.fnr.first(),
-                    no.nav.aap.komponenter.type.Periode(
-                        LocalDate.now().minusYears(100),
-                        LocalDate.now().plusYears(1000))
-                ).isEmpty()
-                behandlingsRepository.lagreBehandling(body.tilDomene(nyttVedtak))
-                nyttVedtak
-            }
+                val nyttVedtak = behandlingsRepository.erNyttVedtak(fnr)
+                behandlingsRepository.lagreBehandling(body.sak.fnr, body.tilDomene(nyttVedtak))
 
-            try {
-                modiaKafkaProducer.produce(body.sak.fnr.first(), nyttVedtak)
-            } catch (e: Exception) {
-                logger.error("Klarte ikke sende melding til kafka", e)
+                val hendelse = Hendelse.VEDTAK
+
+                val jobb = JobbInput(SendAapHendelseUtfører)
+                    .medPayload(DefaultJsonMapper.toJson(AapHendelsePayload(fnr, hendelse)))
+                val modiaJobb = JobbInput(SendModiaHendelseUtfører)
+                    .medPayload(DefaultJsonMapper.toJson(ModiaHendelsePayload(fnr, nyttVedtak)))
+                val repo = FlytJobbRepository(connection)
+                repo.leggTil(jobb)
+                repo.leggTil(modiaJobb)
             }
 
             pipeline.call.respond(HttpStatusCode.OK)
-
         }
         route("/meldekort-detaljer").authorizedPost<Unit, Unit, List<DetaljertMeldekortDTO>>(
             routeConfig = AuthorizationBodyPathConfig(
@@ -116,7 +123,7 @@ fun NormalOpenAPIRoute.dataInsertion(
             modules = listOf(
                 info(
                     "Legg inn detaljerte meldekort",
-                    "Legg inn meldekort-liste for en person. Endepunktet kan kun brukes av behandlingsflyt"
+                    "Legg inn meldekort-liste for en person. Endepunktet kan kun brukes av behandlingsflyt. Kalles ved hvert stopp i behandlingen, også før vedtak."
                 )
             ).toTypedArray()
         ) { _, meldekortPåSammeSak: List<DetaljertMeldekortDTO> ->
@@ -131,5 +138,25 @@ fun NormalOpenAPIRoute.dataInsertion(
             pipeline.call.respond(HttpStatusCode.OK)
         }
 
+        route("/oppdater-identer").authorizedPost<Unit, Unit, OppdaterIdenterDto>(
+            routeConfig = AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
+                applicationsOnly = true,
+                applicationRole = "add-data",
+            ),
+            modules = listOf(
+                info("Oppdaterer identer for en sak. Endepunktet kan kun brukes av behandlingsflyt. Kalles manuelt fra Paw Patrol.")
+            ).toTypedArray()
+        ) { _, req ->
+            dataSource.transaction { connection ->
+                val behandlingsRepository = BehandlingsRepository(connection)
+                behandlingsRepository.lagreOppdaterteIdenter(
+                    saksnummer = req.saksnummer,
+                    identer = req.identer
+                )
+            }
+
+            respondWithStatus(HttpStatusCode.OK)
+        }
     }
 }

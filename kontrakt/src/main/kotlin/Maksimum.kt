@@ -1,10 +1,28 @@
 package no.nav.aap.api.intern
 
+import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import java.time.LocalDate
 
-public data class Maksimum(val vedtak: List<Vedtak>)
+public data class Maksimum(
+    @property:Description("""En liste med "vedtak". For Arena-saker svarer hvert element til et vedtak, mens for Kelvin-saker er listen brutt opp etter type AAP (rettighetstype).""")
+    val vedtak: List<Vedtak>
+)
 
 public data class Medium(val vedtak: List<VedtakUtenUtbetaling>)
+
+public data class ResponsTilTeamObo(
+    val vedtak: List<VedtakTeamObo>,
+    val sakstatus: KelvinStatus,
+    val maksdato: LocalDate?
+)
+
+public data class VedtakTeamObo(
+    val status: String,
+    val saksnummer: String,
+    val vedtaksdato: LocalDate,
+    val periode: Periode,
+    val rettighetsType: String,
+)
 
 public data class InternVedtakRequestApiIntern(
     val personidentifikator: String,
@@ -23,14 +41,36 @@ public data class Vedtak(
     val vedtakId: String,
     val status: String,
     val saksnummer: String,
-    val vedtaksdato: LocalDate, //reg_dato
+    val vedtaksdato: LocalDate,
     val periode: Periode,
-    val rettighetsType: String, ////aktivitetsfase //Aktfasekode
+    val rettighetsType: String,
     val beregningsgrunnlag: Int,
+
+    /** Antall barn som gir rett til barnetillegg. */
     val barnMedStonad: Int,
+
+    /** Størrelsen på total, ugradert barnetillegg.
+     *
+     * Verdien er total i den forstand at den tar hensyn til antall barn.
+     *
+     * Den er ugradert i den forstand at hvis medlemmet har 2 barn, får 75 % AAP
+     * på grunn av samordning, og barnetilleggssatsen er spesifisert i AAP-forskriften § 8 til 38 kroner,
+     * så vil [barnetillegg] være 2 * 38 = 76 kroner. Altså vi har ikke redusert barnetillegget med 25% her.
+     *
+     * Spesifikasjon: [barnetillegg] = [barnetilleggSats] * [barnMedStonad].
+     */
     val barnetillegg: Int,
+
+    /** Størrelsen på ugradert barnetilleggsats.
+     *
+     * Verdien er ugradert, i den forstand at:
+     * Hvis barnetilleggsatsen er spesifisert i AAP-forskriften § 8 til 38 kroner, og medlemmet får 50% AAP,
+     * så vil [barnetilleggSats] være 38.
+     **/
+    val barnetilleggSats: Int,
     val kildesystem: Kilde,
     val samordningsId: String? = null,
+    @Deprecated("Alltid null, bør fjernes fra kontrakt.")
     val opphorsAarsak: String? = null,
     val vedtaksTypeKode: String?,
     val vedtaksTypeNavn: String?,
@@ -44,15 +84,28 @@ public data class VedtakUtenUtbetaling(
     val dagsats: Int,
     val dagsatsEtterUføreReduksjon: Int?,
     val vedtakId: String,
-    val status: String, //Hypotese, vedtaksstatuskode
+    val status: String,
     val saksnummer: String,
-    val vedtaksdato: LocalDate, //reg_dato
+    val vedtaksdato: LocalDate,
     val vedtaksTypeKode: String?,
     val vedtaksTypeNavn: String?,
     val periode: Periode,
-    val rettighetsType: String, ////aktivitetsfase //Aktfasekode
+    val rettighetsType: String,
     val beregningsgrunnlag: Int,
+
+    /** Antall barn som gir rett til barnetillegg. */
     val barnMedStonad: Int,
+
+    /** Størrelsen på total, ugradert barnetillegg.
+     *
+     * Verdien er total i den forstand at den tar hensyn til antall barn.
+     *
+     * Den er ugradert i den forstand at hvis medlemmet har 2 barn, får 75 % AAP
+     * på grunn av samordning, og barnetilleggssatsen er spesifisert i AAP-forskriften § 8 til 38 kroner,
+     * så vil [barnetillegg] være 2 * 38 = 76 kroner. Altså vi har ikke redusert barnetillegget med 25% her.
+     *
+     * Spesifikasjon: [barnetillegg] = [barnetilleggsats] * [antallBarn].
+     */
     val barnetillegg: Int,
     val kildesystem: Kilde,
     val samordningsId: String? = null,
@@ -63,15 +116,27 @@ public data class VedtakUtenUtbetaling(
  * @param barnetillegg Hvor mange kroner i barnetillegg.
  */
 public data class UtbetalingMedMer(
-    val reduksjon: Reduksjon? = null,
-    val utbetalingsgrad: Int? = null,
+    @property:Description("Reduksjon i utbetaling. Denne fås kun fra Arena,")
+    val reduksjon: Reduksjon?,
+    val utbetalingsgrad: Int?,
     val periode: Periode,
     val belop: Int,
     val dagsats: Int,
-    @Deprecated("Bruk barnetillegg")
-    val barnetilegg: Int,
+    @property:Description("Barnetillegg, _etter_ gradering.")
+
+    /** Størrelsen på total, gradert barnetillegg.
+     *
+     * Verdien er total i den forstand at den tar hensyn til antall barn.
+     *
+     * Den er gradert i den forstand at hvis medlemmet har 2 barn, får 75 % AAP
+     * på grunn av samordning, og barnetilleggssatsen er spesifisert i AAP-forskriften § 8 til 38 kroner,
+     * så vil [barnetillegg] gi 2 * 38 * 0.75 = 57 kroner.
+     */
     val barnetillegg: Int,
-)
+) {
+    @Deprecated("Bruk barnetillegg")
+    val barnetilegg: Int = barnetillegg
+}
 
 public data class Reduksjon(
     val timerArbeidet: Double,

@@ -1,4 +1,4 @@
-name: release
+name: Bygg og deploy
 
 on:
   workflow_dispatch:
@@ -20,8 +20,6 @@ on:
 
 jobs:
   gradle:
-    ## push til main eller etter branch (e.g. dependabot) er merget
-    if: github.event.pull_request.merged || github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     permissions:
       contents: write
       actions: read
@@ -43,7 +41,7 @@ jobs:
         with:
           fetch-depth: 0
         #  Ha denne tidlig, så action kan skippe raskt om ingen endringer.
-      - uses: paulhatch/semantic-version@v6.0.1
+      - uses: paulhatch/semantic-version@v6.0.2
         id: tag
         with:
           change_path: "kontrakt/"
@@ -56,7 +54,7 @@ jobs:
         with:
           java-version: 21
           distribution: 'temurin'
-      - uses: gradle/actions/setup-gradle@v5
+      - uses: gradle/actions/setup-gradle@v6
         with:
           gradle-version: wrapper
       - id: notes
@@ -67,7 +65,7 @@ jobs:
           echo 'CHANGELOG<<$randomDelimiter' >> $GITHUB_OUTPUT
           echo $text >> $GITHUB_OUTPUT
           echo '$randomDelimiter' >> $GITHUB_OUTPUT
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         if: ${{ steps.tag.outputs.changed == 'true' }}
         id: create_release
         env:
@@ -85,13 +83,24 @@ jobs:
           ./gradlew -Pversion=${{ steps.tag.outputs.version }} publish
   
 
-  dev:
-    ## push til main eller etter branch (e.g. dependabot) er merget
-    if: github.event.pull_request.merged || github.event_name == 'push' || github.event.inputs.cluster == 'dev-gcp'
+  topic-dev:
     permissions:
       contents: read
       id-token: write
     needs: gradle
+    concurrency:
+      group: deploy-topic-dev
+    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
+    secrets: inherit
+    with:
+      cluster: dev-gcp
+      manifest: .nais/topic-dev.yaml
+
+  dev:
+    permissions:
+      contents: read
+      id-token: write
+    needs: [ gradle, topic-dev ]
     concurrency:
       group: deploy-dev
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
@@ -100,13 +109,26 @@ jobs:
       cluster: dev-gcp
       manifest: .nais/app-dev.yml
 
-  prod:
-    ## push til main eller etter branch (e.g. dependabot) er merget
-    if: (github.event.pull_request.merged || github.event_name == 'push' || github.event.inputs.cluster == 'prod-gcp') && github.ref == 'refs/heads/main'
+  topic-prod:
+    if: ${{ github.ref == 'refs/heads/main' || github.event.inputs.cluster == 'prod-gcp' }}
     permissions:
       contents: read
       id-token: write
     needs: [ publiser-kontrakt, dev ]
+    concurrency:
+      group: deploy-topic-prod
+    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
+    secrets: inherit
+    with:
+      cluster: prod-gcp
+      manifest: .nais/topic-prod.yaml
+
+  prod:
+    if: ${{ github.ref == 'refs/heads/main' || github.event.inputs.cluster == 'prod-gcp' }}
+    permissions:
+      contents: read
+      id-token: write
+    needs: [ publiser-kontrakt, dev, topic-prod ]
     concurrency:
       group: deploy-prod
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main

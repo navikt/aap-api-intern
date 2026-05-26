@@ -78,14 +78,11 @@ spec:
           namespace: teamforeldrepenger
           cluster: prod-fss
         - application: saas-proxy
-          namespace: teamcrm
-          cluster: prod-gcp
-        - application: salesforce
-          namespace: teamcrm
-          cluster: prod-external
-        - application: saas-proxy
           namespace: platforce
           cluster: prod-gcp
+          permissions:
+            roles:
+              - "saker-by-fnr"
         - application: pensjon-pen
           namespace: pensjondeployer
           cluster: prod-fss
@@ -110,6 +107,10 @@ spec:
         - application: su-se-bakover
           namespace: supstonad
           cluster: prod-gcp
+        - application: k9-abakus
+          namespace: k9saksbehandling
+          cluster: prod-fss
+        - application: saksbehandling
         - application: behandlingsflyt
           namespace: aap
           cluster: prod-gcp
@@ -117,6 +118,9 @@ spec:
             roles:
               - "add-data"
         - application: meldekort-backend
+        - application: paw-patrol
+        - application: veilarboppfolging
+          namespace: poao
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
@@ -132,10 +136,6 @@ spec:
       value: https://arenaoppslag.prod-fss-pub.nais.io
     - name: ARENAOPPSLAG_SCOPE
       value: api://prod-fss.aap.arenaoppslag/.default
-    - name: KELVIN_PROXY_BASE_URL
-      value: http://behandlingsflyt
-    - name: KELVIN_SCOPE
-      value: api://prod-gcp.aap.behandlingsflyt/.default
     - name: INTEGRASJON_PDL_URL
       value: https://pdl-api.prod-fss-pub.nais.io/graphql
     - name: INTEGRASJON_PDL_SCOPE
@@ -150,5 +150,13 @@ spec:
       value: api://prod-gcp.aap.oppgave/.default
     - name: MODIA_TOPIC
       value: obo.ytelser-v1
+    - name: AAP_HENDELSE_TOPIC
+      value: aap.api-intern-hendelse-v1
     - name: AZP_MELDEKORT_BACKEND
       value: 1546a011-c525-4022-a7dc-4b7b41c82ef9
+    - name: AZP_SAAS_PROXY
+      value: 2a6c103b-75a6-4691-bd74-b62530d8d516
+    - name: AZP_TILLEGGSSTONADER_INTEGRASJONER
+      value: 1626e9aa-354f-49aa-ba99-50e33f6bd908
+    - name: AZP_VEILARBOPPFOLGING
+      value: 997264c7-13dc-4c9e-817a-90789acb35ba

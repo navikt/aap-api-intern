@@ -1,15 +1,3 @@
 package no.nav.aap.api.kafka
 
-object ProducerHolder {
-
-    private var producer: KafkaProducer? = null
-
-    fun setProducer(producer: KafkaProducer) {
-        this.producer = producer
-    }
-
-    fun producer(): KafkaProducer {
-        return requireNotNull(producer) { "Producer was not set." }
-    }
-
-}
+lateinit var modiaProducerHolder: KafkaProducer

@@ -11,18 +11,18 @@ import io.ktor.serialization.jackson.*
 import io.ktor.server.testing.*
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
-import no.nav.aap.api.intern.Kilde
+import no.nav.aap.api.intern.KelvinStatus
 import no.nav.aap.api.intern.SakStatus
-import no.nav.aap.api.kelvin.SakStatusKelvin
+import no.nav.aap.api.intern.behandlingsflyt.Periode
+import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
+import no.nav.aap.api.intern.behandlingsflyt.SakstatusFraKelvin
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
-import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -46,16 +46,15 @@ class SakStatusKelvinTest {
     companion object {
         val kelvinSak = SakStatusKelvin(
             ident = "12345678910",
-            status = no.nav.aap.api.kelvin.SakStatus(
+            status = no.nav.aap.api.intern.behandlingsflyt.SakStatus(
                 sakId = "1234",
-                statusKode = Status.IVERK,
+                statusKode = SakstatusFraKelvin.REVURDERING_UNDER_BEHANDLING,
                 periode = Periode(
                     fom = LocalDate.ofYearDay(2021, 1),
                     tom = LocalDate.ofYearDay(
                         2021, 31
                     )
                 ),
-                kilde = Kilde.KELVIN,
             )
         )
     }
@@ -63,7 +62,7 @@ class SakStatusKelvinTest {
     @Test
     fun `kan lagre ned og hente saker`() {
         Fakes().use { fakes ->
-            val config = TestConfig.default(fakes)
+            val config = TestConfig.default()
             val azure = AzureTokenGen("test", "test")
 
             testApplication {
@@ -72,8 +71,9 @@ class SakStatusKelvinTest {
                         config = config,
                         datasource = dataSource,
                         arenaService = fakes.arenaService,
+                        modiaProducer = fakes.kafka,
+                        aapHendelseProducer = fakes.aapHendelse,
                         pdlGateway = PdlGatewayEmpty(),
-                        modiaProducer = fakes.kafka
                     )
                 }
 
@@ -89,19 +89,28 @@ class SakStatusKelvinTest {
 
                 val oboResponse =
                     jsonHttpClient.post("/sakerByFnr") {
-                        bearerAuth(OidcToken(azure.generate(isApp = true)).token())
+                        bearerAuth(OidcToken(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY"))).token())
                         contentType(ContentType.Application.Json)
                         setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
                     }
                 assertEquals(HttpStatusCode.OK, oboResponse.status)
                 assertEquals(
-                    oboResponse.body<List<SakStatus>>().first().sakId,
-                    kelvinSak.status.sakId
+                    SakStatus.Kelvin(
+                        statusKode = KelvinStatus.REVURDERING_UNDER_BEHANDLING,
+                        periode = no.nav.aap.api.intern.Periode(
+                            fraOgMedDato = LocalDate.of(2021, 1, 1),
+                            tilOgMedDato = LocalDate.of(2021, 1, 31)
+                        ),
+                        sakId = "1234",
+                        perioder = emptyList(),
+                        ytelsestatus = SakStatus.YtelseStatus.FOR_VEDTAK
+                    ),
+                    oboResponse.body<List<SakStatus>>().first(),
                 )
 
                 val m2mResponse =
                     jsonHttpClient.post("/sakerByFnr") {
-                        bearerAuth(azure.generate(isApp = true))
+                        bearerAuth(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY")))
                         contentType(ContentType.Application.Json)
                         setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
                     }

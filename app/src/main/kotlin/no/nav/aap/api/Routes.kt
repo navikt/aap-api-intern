@@ -3,25 +3,31 @@ package no.nav.aap.api
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
-import com.papsign.ktor.openapigen.route.info
+import com.papsign.ktor.openapigen.route.*
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
-import com.papsign.ktor.openapigen.route.route
-import com.papsign.ktor.openapigen.route.tag
 import io.ktor.http.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
+import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import no.nav.aap.api.arena.ArenaService
+import no.nav.aap.api.dsop.dsopRoutes
 import no.nav.aap.api.intern.*
+import no.nav.aap.api.kelvin.AktivitetsfaseService
 import no.nav.aap.api.kelvin.KelvinSakService
+import no.nav.aap.api.kelvin.MeldekortService
 import no.nav.aap.api.kelvin.OppgaveGatewayConfig
+import no.nav.aap.api.kelvin.VedtakService
 import no.nav.aap.api.pdl.IPdlGateway
-import no.nav.aap.api.postgres.*
+import no.nav.aap.api.postgres.BehandlingsRepository
+import no.nav.aap.api.postgres.MeldekortPerioderRepository
+import no.nav.aap.api.postgres.SakStatusRepository
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -53,19 +59,21 @@ data class CallIdHeader(
 enum class Tag(override val description: String) : APITag {
     Perioder("For å hente perioder med AAP"),
     Saker("For å hente AAP-saker"),
+    NKS("Endepunkter brukt av NKS"),
     Meldekort("For å hente AAP-meldekort"),
     Maksimum("For å hente maksimumsløsning"),
     DSOP("For DSOP-relaterte endepunkter"),
+    OBO("Endepunkter ment for Team OBO."),
     ArenaHistorikk("For å hente informasjon om AAP historikk fra Arena"), ;
 }
 
 data class SakerRequest(
-    @param:Description("Liste med personidentifikatorer. Må svare til samme person.")
+    @property:Description("Liste med personidentifikatorer. Må svare til samme person.")
     val personidentifikatorer: List<String>,
 )
 
 data class SakerRequestMeldekortbackend(
-    @param:Description("Personidentifikator")
+    @property:Description("Personidentifikator")
     val personidentifikator: String
 )
 
@@ -122,16 +130,23 @@ fun NormalOpenAPIRoute.api(
                 )
             }
 
-            route("/aktivitetfase").post<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequestApiIntern>(
-                info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall.")
+            route("/aktivitetfase").authorizedPost<CallIdHeader, PerioderInkludert11_17Response, InternVedtakRequestApiIntern>(
+                AuthorizationMachineToMachineConfig(
+                    authorizedAzps = listOf(
+                        UUID.fromString(
+                            requiredConfigForKey("AZP_TILLEGGSSTONADER_INTEGRASJONER")
+                        )
+                    ) + azpForTokenGenHvisIkkeProd()
+                ), null, null, null,
+                info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall. Er ment for Team Tilleggstønader.")
             ) { callIdHeader, requestBody ->
                 val callId = receiveCall(callIdHeader, pipeline)
 
                 tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val vedtakRequest = requestBody.tilKontrakt()
                 val aktfaseKelvin = dataSource.transaction { connection ->
-                    val behandlingsRepository = BehandlingsRepository(connection)
-                    behandlingsRepository.hentPerioderMedAktivitetsfase(
+                    val aktivitetsfaseService = AktivitetsfaseService(connection)
+                    aktivitetsfaseService.hentPerioderMedAktivitetsfase(
                         vedtakRequest.personidentifikator,
                         Periode(vedtakRequest.fraOgMedDato, vedtakRequest.tilOgMedDato)
                     )
@@ -139,7 +154,7 @@ fun NormalOpenAPIRoute.api(
                 val aktivitetfase = arenaService.aktivitetfase(callId, vedtakRequest)
 
                 tellKildesystem(
-                    null,
+                    aktfaseKelvin,
                     aktivitetfase.perioder,
                     "/perioder/aktivitetfase"
                 )
@@ -152,6 +167,7 @@ fun NormalOpenAPIRoute.api(
             ) { _, requestBody ->
                 Metrics.httpRequestTeller(pipeline.call)
                 tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+
 
                 val perioder = dataSource.transaction { connection ->
                     val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
@@ -166,8 +182,18 @@ fun NormalOpenAPIRoute.api(
     }
 
     tag(Tag.Meldekort) {
-        route("/kelvin/meldekort-detaljer").post<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
-            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode")
+        // Begrenset til kun for NKS. Dupliser hvis nye konsumenter trenger samme data.
+        // Muligens ikke i bruk.
+        route("/kelvin/meldekort-detaljer").authorizedPost<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
+            AuthorizationMachineToMachineConfig(
+                authorizedAzps = listOf(
+                    UUID.fromString(
+                        requiredConfigForKey("AZP_SAAS_PROXY")
+                    )
+                ) + azpForTokenGenHvisIkkeProd()
+            ), null, null, null,
+            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS."),
+            tags(Tag.NKS)
         ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
             val personIdentifikator = requestBody.personidentifikator
@@ -198,8 +224,21 @@ fun NormalOpenAPIRoute.api(
     }
 
     tag(Tag.Saker) {
-        route("/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
-            info(description = "Henter saker for en person.")
+        // Begrenset til kun for NKS. Dupliser hvis nye konsumenter trenger samme data.
+        route("/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatus>, SakerRequest>(
+            AuthorizationMachineToMachineConfig(
+                authorizedAzps = listOf(
+                    UUID.fromString(
+                        requiredConfigForKey("AZP_SAAS_PROXY")
+                    )
+                ) + azpForTokenGenHvisIkkeProd()
+            ),
+            null,
+            null,
+            null,
+            info(description = "Endepunkt ment kun for NKS. Henter saker for en person."),
+            responseDescription(description = "Liste med saker, potensielt fra både Arena og Kelvin. `enhet` er alltid null fra Arena."),
+            tags(Tag.NKS)
         ) { callIdHeader, requestBody ->
             val callId = receiveCall(callIdHeader, pipeline)
 
@@ -213,7 +252,11 @@ fun NormalOpenAPIRoute.api(
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
             val kelvinSaker: List<SakStatus> =
                 dataSource.transaction { connection ->
-                    val kelvinSakService = KelvinSakService(SakStatusRepository(connection), oppgaveGatewayConfig)
+                    val kelvinSakService = KelvinSakService(
+                        SakStatusRepository(connection),
+                        oppgaveGatewayConfig,
+                        BehandlingsRepository(connection)
+                    )
 
                     kelvinSakService.hentSakStatus(personIdenter)
                 }
@@ -226,39 +269,45 @@ fun NormalOpenAPIRoute.api(
             respond(arenaSaker + kelvinSaker)
         }
 
-        route("/meldekort-backend/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatus>, SakerRequestMeldekortbackend>(
+        route("/meldekort-backend/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatusMeldekortbackend>, SakerRequestMeldekortbackend>(
             AuthorizationMachineToMachineConfig(
                 authorizedAzps = listOf(
                     UUID.fromString(
                         requiredConfigForKey("AZP_MELDEKORT_BACKEND")
                     )
-                ) + (azpForTokenGenHvisIkkeProd())
+                ) + azpForTokenGenHvisIkkeProd()
             ),
-            null,
+            null, null, null,
             info(description = "Henter saker for en person. Kan kun kalles fra meldekort-backend.")
         ) { callIdHeader, requestBody ->
             val callId = receiveCall(callIdHeader, pipeline)
 
-            val personIdent = requestBody.personidentifikator
+            val personIdenter =
+                pdlGateway.hentAlleIdenterForPerson(requestBody.personidentifikator)
+                    .map { pdlIdent -> pdlIdent.ident }
 
-            val kelvinSaker: List<SakStatus> =
+            val kelvinSaker: List<SakStatusMeldekortbackend> =
                 dataSource.transaction { connection ->
-                    val kelvinSakService = KelvinSakService(SakStatusRepository(connection), oppgaveGatewayConfig)
+                    val kelvinSakService = KelvinSakService(
+                        SakStatusRepository(connection),
+                        oppgaveGatewayConfig,
+                        BehandlingsRepository(connection)
+                    )
 
-                    kelvinSakService.hentSakStatus(personIdent)
+                    kelvinSakService.hentSakStatusUtenEnhet(personIdenter)
                 }
-            val arenaSaker: List<SakStatus> =
+            val arenaSaker: List<SakStatusMeldekortbackend> =
                 arenaService.hentSaker(callId, listOf(requestBody.personidentifikator))
+                    .map { SakStatusMeldekortbackend(it.kilde, it.periode(), it.sakId) }
 
             tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
 
             respond(arenaSaker + kelvinSaker)
         }
 
-        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatus>, SakerRequest>(
-            info(description = "Henter saker for en person")
+        route("/kelvin/sakerByFnr").post<CallIdHeader, List<SakStatusOverlappskontroll>, SakerRequest>(
+            info(description = "Henter saker for en person. Brukes av Arena for overlappskontroll. Hvis flere konsumenter ønsker dette, dupliser endepunktet.")
         ) { _, requestBody ->
-            logger.info("Henter saker for en person fra Kelvin.")
             Metrics.httpRequestTeller(pipeline.call)
 
             /*
@@ -269,21 +318,35 @@ fun NormalOpenAPIRoute.api(
             Metrics.antallIdenter("/kelvin/sakerByFnr", requestBody.personidentifikatorer.size)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
-            val kelvinSaker: List<SakStatus> =
+            val kelvinSaker: List<SakStatus.Kelvin> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
-                    val kelvinSakService = KelvinSakService(sakStatusRepository, oppgaveGatewayConfig)
+                    val kelvinSakService = KelvinSakService(
+                        sakStatusRepository,
+                        oppgaveGatewayConfig,
+                        BehandlingsRepository(connection)
+                    )
 
                     kelvinSakService.hentSakStatus(personIdenter)
                 }
             tellKildesystem(kelvinSaker, null, "/kelvin/sakerByFnr")
-            respond(kelvinSaker)
+            respond(kelvinSaker.map {
+                SakStatusOverlappskontroll(
+                    sakId = it.sakId,
+                    statusKode = it.status(),
+                    periode = it.periode,
+                    // Dette kommer fra Kelvin-periode, som alltid har ikke-null fra-dato
+                    fraDato = it.periode.fraOgMedDato!!,
+                    kilde = it.kilde,
+                    enhet = it.enhet
+                )
+            })
         }
     }
     tag(Tag.ArenaHistorikk) {
         route("/arena/person/aap/eksisterer") {
             post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
-                info(description = "Sjekker om en person eksisterer i AAP-arena")
+                info(description = "Sjekker om en person eksisterer i Arena (AAP).")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om person eksisterer i aap-arena")
                 val callId = receiveCall(callIdHeader, pipeline)
@@ -299,7 +362,7 @@ fun NormalOpenAPIRoute.api(
         }
         route("/arena/person/aap/signifikant-historikk") {
             post<CallIdHeader, SignifikanteSakerResponse, SignifikanteSakerRequest>(
-                info(description = "Sjekker om en person kan behandles i Kelvin mtp. AAP-Arena-historikken deres")
+                info(description = "Sjekker om en person kan behandles i Kelvin mtp. AAP-Arena-historikken deres.")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om personen kan behandles i Kelvin")
                 val callId = receiveCall(callIdHeader, pipeline)
@@ -314,6 +377,17 @@ fun NormalOpenAPIRoute.api(
                     requestBody.virkningstidspunkt
                 )
                 respond(harSignifikantAAPArenaHistorikk)
+            }
+        }
+        route("/arena/person/saker") {
+            post<CallIdHeader, ArenaSakerResponse, ArenaSakerRequest>(
+                info(description = "Henter saker for en person fra Arena via ny v1-kontrakt.")
+            ) { callIdHeader, requestBody ->
+                logger.info("Henter saker for person fra Arena (v1)")
+                val callId = receiveCall(callIdHeader, pipeline)
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                val saker = arenaService.hentSakerForPerson(callId, requestBody.personidentifikator)
+                respond(saker)
             }
         }
     }
@@ -397,13 +471,13 @@ fun NormalOpenAPIRoute.api(
 
                 tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
-                val tilArenaKontrakt = requestBody.tilKontrakt()
+                val request = requestBody.tilKontrakt()
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
                         requestBody.personidentifikator,
-                        Periode(tilArenaKontrakt.fraOgMedDato, tilArenaKontrakt.tilOgMedDato),
+                        Periode(request.fraOgMedDato, request.tilOgMedDato),
                     ).vedtak
                 }
                 pipeline.call.response.headers.append(
@@ -415,83 +489,95 @@ fun NormalOpenAPIRoute.api(
 
                 respond(Medium(kelvinSaker))
             }
-
         }
     }
 
-    tag(Tag.DSOP) {
-        route("/kelvin") {
-            route("/dsop") {
-                route("/vedtak").post<CallIdHeader, DsopResponse, DsopRequest>(
-                    info(
-                        description = """Henter ut vedtaks data for en person for dsop.
-                        Verdier som mangler er ikke tilgjengelige fra kelvin.
-                    """.trimMargin(),
+    route("/kelvin/") {
+        route("obo").authorizedPost<CallIdHeader, ResponsTilTeamObo, InternVedtakRequestApiIntern>(
+            AuthorizationMachineToMachineConfig(
+                authorizedAzps = listOf(
+                    UUID.fromString(
+                        requiredConfigForKey("AZP_VEILARBOPPFOLGING")
                     )
-                ) { _, requestBody ->
-                    logger.info("Henter vedtak fra DSOP")
-                    Metrics.httpRequestTeller(pipeline.call)
-                    val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
-
-                    tilgangGateway.sjekkTilgangTilPerson(requestBody.personIdent, token())
-
-                    val kelvinVedtak = dataSource.transaction { connection ->
-                        val behandlingsRepository = BehandlingsRepository(connection)
-                        behandlingsRepository.hentDsopVedtak(
-                            requestBody.personIdent,
-                            utrekksperiode
-                        )
-                    }
-
-                    respond(
-                        DsopResponse(
-                            utrekksperiode,
-                            kelvinVedtak
-                        )
+                ) + azpForTokenGenHvisIkkeProd()
+            ),
+            auditLogConfig = null,
+            exampleResponse = ResponsTilTeamObo(
+                vedtak = listOf(
+                    VedtakTeamObo(
+                        status = "LØPENDE",
+                        saksnummer = "4MGL8LS",
+                        vedtaksdato = LocalDate.now(),
+                        periode = Periode(
+                            fraOgMedDato = LocalDate.of(2021, 1, 1),
+                            tilOgMedDato = LocalDate.of(2021, 1, 31)
+                        ),
+                        rettighetsType = "BISTANDSBEHOV",
                     )
-                }
-                route("/meldekort").post<CallIdHeader, DsopMeldekortRespons, DsopRequest>(
-                    info(
-                        description = """Henter ut meldekort for bruker for DSOP api"""
-                    )
-                ) { _, requestBody ->
-                    logger.info("Henter meldekort til DSOP")
-                    Metrics.httpRequestTeller(pipeline.call)
-                    val utrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
+                ),
+                sakstatus = KelvinStatus.FERDIGBEHANDLET,
+                maksdato = LocalDate.of(2021, 2, 1)
+            ),
+            exampleRequest = null,
+            info(description = "Endepunkt Team OBO."),
+            tags(Tag.OBO),
 
-                    tilgangGateway.sjekkTilgangTilPerson(requestBody.personIdent, token())
+            ) { _, requestBody ->
+            Metrics.httpRequestTeller(pipeline.call)
 
-                    val meldekortListe = dataSource.transaction { connection ->
-                        val meldekortService = MeldekortService(connection, pdlGateway, clock)
-                        meldekortService.hentAlleMeldekort(
-                            requestBody.personIdent,
-                            requestBody.fomDato,
-                            requestBody.tomDato
-                        )
-                            .map { meldekort ->
-                                Meldekort(
-                                    Periode(meldekort.meldePeriode.fom, meldekort.meldePeriode.tom),
-                                    meldekort.arbeidPerDag.sumOf { it.timerArbeidet },
-                                    meldekort.arbeidPerDag.map {
-                                        TimerArbeidetPerDag(
-                                            it.dag,
-                                            it.timerArbeidet.toDouble()
-                                        )
-                                    },
-                                    meldekort.mottattTidspunkt
-                                )
-                            }.slåSammenMeldeperioder()
-                    }
+            tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
-                    respond(
-                        DsopMeldekortRespons(
-                            utrekksperiode,
-                            meldekortListe
-                        )
-                    )
+            val request = requestBody.tilKontrakt()
 
-                }
+            val (kelvinSaker, sakStatus) = dataSource.transaction { connection ->
+                val behandlingsRepository = BehandlingsRepository(connection)
+
+                val sakstatus = KelvinSakService(
+                    SakStatusRepository(connection),
+                    oppgaveGatewayConfig,
+                    behandlingsRepository
+                ).hentSakStatus(listOf(requestBody.personidentifikator)).firstOrNull()
+
+                Pair(
+                    VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
+                        requestBody.personidentifikator,
+                        Periode(request.fraOgMedDato, request.tilOgMedDato),
+                    ).vedtak, sakstatus
+                )
             }
+
+            if (sakStatus == null) {
+                pipeline.call.respond(
+                    HttpStatusCode.NotFound,
+                    "Fant ingen sakstatus for personen i Kelvin"
+                )
+                return@authorizedPost
+            }
+
+            tellKildesystem(kelvinSaker, null, "/kelvin/maksimumUtenUtbetaling")
+
+            respond(
+                ResponsTilTeamObo(
+                    kelvinSaker.map {
+                        VedtakTeamObo(
+                            status = it.status,
+                            saksnummer = it.saksnummer,
+                            vedtaksdato = it.vedtaksdato,
+                            periode = it.periode,
+                            rettighetsType = it.rettighetsType,
+                        )
+                    },
+                    sakstatus = sakStatus.status(),
+                    maksdato = sakStatus.forelopigMaksdato
+                )
+            )
+        }
+
+    }
+
+    tag(Tag.DSOP) {
+        route("/kelvin/dsop") {
+            dsopRoutes(dataSource, tilgangGateway, pdlGateway, clock)
         }
     }
 }
@@ -522,12 +608,15 @@ private fun tellKildesystem(
     }
 }
 
-private fun TilgangGateway.sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
+internal fun TilgangGateway.sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
     if (!token.isClientCredentials()) {
+        Metrics.tokentype("obo")
         val tilgang = this.harTilgangTilPerson(personIdent, token)
         if (!tilgang) {
             throw IngenTilgangException("Har ikke tilgang til person")
         }
+    } else {
+        Metrics.tokentype("m2m")
     }
 }
 
@@ -551,24 +640,6 @@ private fun hentAllePersonidenter(
     return identerFraPdl
 }
 
-fun utledVedtakStatus(
-    behandlingStatus: KelvinBehandlingStatus,
-    sakStatus: KelvinSakStatus,
-    periode: Periode,
-    nå: LocalDate = LocalDate.now(),
-): String =
-    if (
-        (behandlingStatus.iverksatt() && sakStatus != KelvinSakStatus.AVSLUTTET) ||
-        periode.tom.isAfter(nå) ||
-        sakStatus != KelvinSakStatus.AVSLUTTET
-    ) {
-        Status.LØPENDE.toString()
-    } else if (behandlingStatus == KelvinBehandlingStatus.AVSLUTTET) {
-        Status.AVSLUTTET.toString()
-    } else {
-        Status.UTREDES.toString()
-    }
-
 
 fun InternVedtakRequestApiIntern.tilKontrakt(): InternVedtakRequest {
     return InternVedtakRequest(
@@ -579,3 +650,5 @@ fun InternVedtakRequestApiIntern.tilKontrakt(): InternVedtakRequest {
 }
 
 class IngenTilgangException(message: String) : RuntimeException(message)
+
+val Periode.somDTO: PeriodeDTO get() = PeriodeDTO(fom, tom)

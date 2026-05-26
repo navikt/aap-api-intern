@@ -1,5 +1,6 @@
 package no.nav.aap.api.util
 
+import com.fasterxml.jackson.databind.JsonMappingException
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.statuspages.StatusPagesConfig
@@ -36,6 +37,7 @@ object StatusPagesConfigHelper {
                     call.respond(HttpStatusCode.Forbidden)
                 }
 
+                is JsonMappingException,
                 is DeserializationException -> {
                     logger.warn("Feil ved deserialisering av request til '$uri'. ", cause)
                     call.respondText(

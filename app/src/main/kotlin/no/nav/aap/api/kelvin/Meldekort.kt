@@ -1,15 +1,14 @@
 package no.nav.aap.api.kelvin
 
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalDateTime
 import no.nav.aap.api.intern.MeldekortDetalj
 import no.nav.aap.api.intern.TimerPaaDag
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.komponenter.type.Periode
 
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalDateTime
-
-data class MeldekortDTO(
+data class Meldekort(
     val personIdent: String,
     val saksnummer: String,
     val behandlingId: Long,
@@ -17,8 +16,7 @@ data class MeldekortDTO(
     val meldePeriode: Periode,
     val arbeidPerDag: List<MeldeDag>,
     val meldepliktStatusKode: String?,
-    val rettighetsTypeKode: String?,
-    val avslagsårsakKode: String?,
+    val rettighetsTypeKode: String?
 ) {
     fun tilKontrakt(vedtak: VedtakUtenUtbetaling?): MeldekortDetalj {
         return MeldekortDetalj(
@@ -35,12 +33,10 @@ data class MeldekortDTO(
             ukesats = vedtak?.dagsats?.times(5),
             vedtaksdato = vedtak?.vedtaksdato,
         )
-
     }
 
     data class MeldeDag(
         val dag: LocalDate,
         val timerArbeidet: BigDecimal,
     )
-
 }

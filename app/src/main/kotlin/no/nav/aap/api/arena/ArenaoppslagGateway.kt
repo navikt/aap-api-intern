@@ -5,30 +5,27 @@ import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.benmanes.caffeine.cache.Caffeine
 import io.github.resilience4j.kotlin.circuitbreaker.executeSuspendFunction
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.accept
-import io.ktor.client.request.bearerAuth
-import io.ktor.client.request.header
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
-import io.ktor.http.contentType
-import io.ktor.http.isSuccess
-import io.ktor.serialization.jackson.jackson
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.network.sockets.ConnectTimeoutException
+import io.ktor.client.network.sockets.SocketTimeoutException
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.serialization.jackson.*
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
 import io.prometheus.metrics.core.metrics.Summary
-import java.time.Duration
-import kotlin.time.Duration.Companion.seconds
 import no.nav.aap.api.ArenaoppslagConfig
+import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
 import no.nav.aap.api.util.findRootCause
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
@@ -37,8 +34,10 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureConfig
 import org.slf4j.LoggerFactory
+import java.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
 private val secureLog = LoggerFactory.getLogger("team-logs")
 private val log = LoggerFactory.getLogger(ArenaoppslagGateway::class.java)
@@ -53,22 +52,38 @@ private val clientLatencyStats: Summary = Summary.builder().name(ARENAOPPSLAG_CL
 private val objectMapper =
     jacksonObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(JavaTimeModule())
 
-
+@Suppress("MagicNumber")
 class ArenaoppslagGateway(
     private val arenaoppslagConfig: ArenaoppslagConfig,
-    azureConfig: AzureConfig,
     private val slowRequestMillis: Long = 2000,
     private val timeoutMillis: Long = 20_000,
+    private val cacheName: String = "arenaoppslag_maksimum_cache",
 ) : IArenaoppslagGateway {
-    private val tokenProvider = AzureAdTokenProvider(azureConfig)
+    private val tokenProvider = AzureAdTokenProvider()
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
         // Mange kall til arenaoppslag tar gjerne 300-400ms har vi sett av prometheus-metrikker.
         // Legger denne derfor litt over dette
         slowCallDurationThreshold = Duration.ofMillis(slowRequestMillis)
     }
 
+    private val maksimumCache = Caffeine.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterWrite(Duration.ofMinutes(15))
+        .recordStats()
+        .build<String, Maksimum>()
+
+    private val personEksistererCache = Caffeine.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterWrite(Duration.ofMinutes(15))
+        .recordStats()
+        .build<String, PersonEksistererIAAPArena>()
+
+    init {
+        CaffeineCacheMetrics.monitor(prometheus, maksimumCache, cacheName)
+    }
+
     override suspend fun hentPerioder(
-        callId: String, vedtakRequest: InternVedtakRequest
+        callId: String, vedtakRequest: InternVedtakRequest,
     ): PerioderResponse = gjørArenaOppslag<PerioderResponse, InternVedtakRequest>(
         "/intern/perioder", callId, vedtakRequest
     ).getOrThrow()
@@ -80,34 +95,56 @@ class ArenaoppslagGateway(
     ).getOrThrow()
 
     override suspend fun hentSakerByFnr(
-        callId: String, req: SakerRequest
+        callId: String, req: SakerRequest,
     ): List<SakStatus> = gjørArenaOppslag<List<SakStatus>, SakerRequest>(
         "/intern/saker", callId, req
     ).getOrThrow()
 
+    override suspend fun hentSakerForPerson(
+        callId: String, req: SakerRequestV1,
+    ): SakerResponse = gjørArenaOppslag<SakerResponse, SakerRequestV1>(
+        "/api/v1/person/saker", callId, req, true
+    ).recover { throwable ->
+        if (responseStatus(throwable) == HttpStatusCode.NotFound) {
+            secureLog.warn("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
+            // Personen ble ikke funnet i Arena – returner tom liste med saker
+            SakerResponse(emptyList())
+        } else {
+            throw throwable
+        }
+    }.getOrThrow()
+
     override suspend fun hentMaksimum(
-        callId: String, req: InternVedtakRequest
-    ): Maksimum = gjørArenaOppslag<Maksimum, InternVedtakRequest>(
-        "/intern/maksimum", callId, req
-    ).getOrThrow()
+        callId: String, req: InternVedtakRequest,
+    ): Maksimum {
+        val key = req.toString()
+        return maksimumCache.getIfPresent(key)
+            ?: gjørArenaOppslag<Maksimum, InternVedtakRequest>("/intern/maksimum", callId, req)
+                .getOrThrow()
+                .also { maksimumCache.put(key, it) }
+    }
 
     override suspend fun hentPersonEksistererIAapContext(
         callId: String, req: SakerRequest,
-    ): PersonEksistererIAAPArena =
-        gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
-            "/api/v1/person/eksisterer", callId, req
-        ).getOrThrow()
+    ): PersonEksistererIAAPArena {
+        val key = req.toString()
+        return personEksistererCache.getIfPresent(key)
+            ?: gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
+                "/api/v1/person/eksisterer", callId, req
+            ).getOrThrow()
+                .also { personEksistererCache.put(key, it) }
+    }
 
     override suspend fun hentPersonHarSignifikantHistorikk(
         callId: String,
-        req: SignifikanteSakerRequest
+        req: SignifikanteSakerRequest,
     ): SignifikanteSakerResponse =
         gjørArenaOppslag<SignifikanteSakerResponse, SignifikanteSakerRequest>(
             "/api/v1/person/signifikant-historikk", callId, req
         ).getOrThrow()
 
     private suspend inline fun <reified T, reified V> gjørArenaOppslag(
-        endepunkt: String, callId: String, req: V
+        endepunkt: String, callId: String, req: V, tillattMed404: Boolean = false
     ): Result<T> = clientLatencyStats.startTimer().use {
         circuitBreaker.executeSuspendFunction {
             // Vi starter en kjede av kall og prosessering, hvor hvert steg kan feile.
@@ -125,14 +162,16 @@ class ArenaoppslagGateway(
                     bearerAuth(token)
                     contentType(ContentType.Application.Json)
                     setBody(req)
-                }.also { it ->
-                    if (it.status.isSuccess()) {
-                        fikkArenaData = true
-                    }
+                }.also {
+                    fikkArenaData = true
                 }
 
                 objectMapper.readValue<T>(arenaResponse.bodyAsText())
             }.onFailure { e ->
+                if (tillattMed404 && responseStatus(e) == HttpStatusCode.NotFound) {
+                    return@onFailure          // 404 håndteres av caller — ikke logg som ERROR
+                }
+
                 val årsak = e.findRootCause()
                 when {
                     !fikkToken -> log.error("Fetch av token for Arena-oppslag feilet: ${årsak.message}", e)
@@ -147,6 +186,10 @@ class ArenaoppslagGateway(
         }
     }
 
+    private fun responseStatus(throwable: Throwable): HttpStatusCode? =
+        generateSequence(throwable) { it.cause }
+            .filterIsInstance<ClientRequestException>()
+            .firstOrNull()?.response?.status
 
     private val httpClient = HttpClient(CIO) {
         expectSuccess = true // Kaster exception for 4xx og 5xx svar
@@ -158,7 +201,15 @@ class ArenaoppslagGateway(
         }
 
         install(HttpRequestRetry) {
-            retryOnException(maxRetries = 3) // retry on exception during network send, other than timeout exceptions
+            // Retry på transiente nettverksfeil og 5xx – ikke på 4xx-klientfeil og ikke på timeouts.
+            // Timeouts retries ikke fordi vi heller vil feile raskt enn å akkumulere ventetid.
+            retryOnExceptionIf(maxRetries = 3) { _, cause ->
+                responseStatus(cause) != HttpStatusCode.NotFound &&
+                        cause !is HttpRequestTimeoutException &&
+                        cause !is ConnectTimeoutException &&
+                        cause !is SocketTimeoutException
+            }
+            retryOnServerErrors(maxRetries = 3) // 5xx
             exponentialDelay()
         }
 

@@ -16,7 +16,7 @@ class TilgangGateway(val config: TilgangGatewayConfig) {
     private val client =
         RestClient.withDefaultResponseHandler(
             config = config.config,
-            tokenProvider = AzureOBOTokenProvider(),
+            tokenProvider = AzureOBOTokenProvider,
         )
 
     private val cache = Caffeine.newBuilder()

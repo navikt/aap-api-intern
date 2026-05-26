@@ -64,7 +64,7 @@ class MeldekortDetaljerTest : PostgresTestBase() {
 
     @Test
     fun `kan lagre og hente meldekort-detaljer`() {
-        val config = TestConfig.default(fakes)
+        val config = TestConfig.default()
         val azure = AzureTokenGen("test", "test")
 
         testApplication {
@@ -73,8 +73,9 @@ class MeldekortDetaljerTest : PostgresTestBase() {
                     config = config,
                     datasource = dataSource,
                     arenaService = fakes.arenaService,
+                    modiaProducer = fakes.kafka,
+                    aapHendelseProducer = fakes.aapHendelse,
                     pdlGateway = PdlGatewayEmpty(),
-                    modiaProducer = fakes.kafka
                 )
             }
 
@@ -91,7 +92,7 @@ class MeldekortDetaljerTest : PostgresTestBase() {
             assertThat(meldekort > 0).isTrue
 
             val meldekortResponse = jsonHttpClient.post("/kelvin/meldekort-detaljer") {
-                bearerAuth(azure.generate(isApp = true))
+                bearerAuth(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY")))
                 contentType(ContentType.Application.Json)
                 setBody(
                     MeldekortDetaljerRequest(

@@ -1,6 +1,9 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.api.kelvin.MeldekortDTO
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalDateTime
+import no.nav.aap.api.kelvin.Meldekort
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.type.Periode
@@ -8,9 +11,6 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 class MeldekortDetaljerRepositoryTest {
     private lateinit var dataSource: TestDataSource
@@ -27,7 +27,7 @@ class MeldekortDetaljerRepositoryTest {
 
     @Test
     fun `lagre og hente ut`() {
-        val meldekortDTO = MeldekortDTO(
+        val meldekort = Meldekort(
             personIdent = "12345678901",
             saksnummer = "asd123",
             mottattTidspunkt = LocalDateTime.now(),
@@ -39,20 +39,19 @@ class MeldekortDetaljerRepositoryTest {
                 LocalDate.of(2025, 4, 23)
             ),
             arbeidPerDag = listOf(
-                MeldekortDTO.MeldeDag(
+                Meldekort.MeldeDag(
                     dag = LocalDate.of(2025, 4, 15),
                     timerArbeidet = 7.toBigDecimal()
                 ),
-                MeldekortDTO.MeldeDag(
+                Meldekort.MeldeDag(
                     dag = LocalDate.of(2025, 4, 23),
                     timerArbeidet = 3.toBigDecimal()
                 )
             ),
-            avslagsårsakKode = null,
         )
         dataSource.transaction {
             MeldekortDetaljerRepository(it).lagre(
-                listOf(meldekortDTO)
+                listOf(meldekort)
             )
         }
 
@@ -69,73 +68,49 @@ class MeldekortDetaljerRepositoryTest {
             .ignoringFields("mottattTidspunkt")
             .withComparatorForType({ a, b -> a.toDouble().compareTo(b.toDouble()) },
                 BigDecimal::class.java)
-            .isEqualTo(listOf(meldekortDTO))
+            .isEqualTo(listOf(meldekort))
     }
 
     @Test
-    fun `slå sammen meldekort til ett`() {
-        val periode = Periode(LocalDate.of(2025, 4, 14), LocalDate.of(2025, 4, 16))
-        val meldekort = listOf(
-            Meldekort(
-                periode = periode,
-                antallTimerArbeidet = BigDecimal.valueOf(10),
-                timerArbeidetPerDag = listOf(
-                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 14), 5.0),
-                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 15), 5.0)
-                ),
-                sistOppdatert = LocalDateTime.of(2025, 4, 17, 10, 0)
+    fun `lagre med nyere behandlingId erstatter eldre meldekort for samme sak`() {
+        val gammeltMeldekort = Meldekort(
+            personIdent = "12345678901",
+            saksnummer = "sak-1",
+            mottattTidspunkt = LocalDateTime.now().minusDays(1),
+            behandlingId = 10,
+            meldepliktStatusKode = null,
+            rettighetsTypeKode = null,
+            meldePeriode = Periode(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 14)),
+            arbeidPerDag = listOf(
+                Meldekort.MeldeDag(LocalDate.of(2025, 1, 2), 1.toBigDecimal())
             ),
-            Meldekort(
-                periode = periode,
-                antallTimerArbeidet = BigDecimal.valueOf(5),
-                timerArbeidetPerDag = listOf(
-                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 15), 2.0),
-                    TimerArbeidetPerDag(LocalDate.of(2025, 4, 16), 3.0)
-                ),
-                sistOppdatert = LocalDateTime.of(2025, 4, 18, 10, 0)
+        )
+
+        val nyttMeldekort = gammeltMeldekort.copy(
+            mottattTidspunkt = LocalDateTime.now(),
+            behandlingId = 11,
+            meldePeriode = Periode(LocalDate.of(2025, 1, 15), LocalDate.of(2025, 1, 28)),
+            arbeidPerDag = listOf(
+                Meldekort.MeldeDag(LocalDate.of(2025, 1, 16), 2.toBigDecimal())
             )
         )
 
-        val res = meldekort.slåSammenMeldeperioder()
+        dataSource.transaction {
+            val repository = MeldekortDetaljerRepository(it)
+            repository.lagre(listOf(gammeltMeldekort))
+            repository.lagre(listOf(nyttMeldekort))
+        }
 
-        assertThat(res).hasSize(1)
-        val sammenslått = res.first()
-        assertThat(sammenslått.periode).isEqualTo(periode)
-
-        // Meldekort nr 2 er korrigert. Så den 15de er det 2 timer arbeidet. 5+2+3=10
-        assertThat(sammenslått.timerArbeidetPerDag.sumOf { it.timerArbeidet }).isEqualByComparingTo(10.0)
-        assertThat(sammenslått.timerArbeidetPerDag).containsExactlyInAnyOrder(
-            TimerArbeidetPerDag(LocalDate.of(2025, 4, 14), 5.0),
-            TimerArbeidetPerDag(LocalDate.of(2025, 4, 15), 2.0),
-            TimerArbeidetPerDag(LocalDate.of(2025, 4, 16), 3.0)
-        )
-        assertThat(sammenslått.sistOppdatert).isEqualTo(LocalDateTime.of(2025, 4, 18, 10, 0))
-    }
-
-    @Test
-    fun `slå sammen meldekort med ulike perioder`() {
-        val periode1 = Periode(LocalDate.of(2025, 4, 1), LocalDate.of(2025, 4, 5))
-        val periode2 = Periode(LocalDate.of(2025, 4, 6), LocalDate.of(2025, 4, 10))
-
-        val meldekort = listOf(
-            Meldekort(
-                periode = periode1,
-                antallTimerArbeidet = BigDecimal.valueOf(5),
-                timerArbeidetPerDag = listOf(TimerArbeidetPerDag(LocalDate.of(2025, 4, 1), 5.0)),
-                sistOppdatert = LocalDateTime.now()
-            ),
-            Meldekort(
-                periode = periode2,
-                antallTimerArbeidet = BigDecimal.valueOf(10),
-                timerArbeidetPerDag = listOf(TimerArbeidetPerDag(LocalDate.of(2025, 4, 6), 10.0)),
-                sistOppdatert = LocalDateTime.now()
+        val resultater = dataSource.transaction {
+            MeldekortDetaljerRepository(it).hentAlle(
+                personIdentifikatorer = listOf("12345678901"),
+                fom = LocalDate.of(2025, 1, 1),
+                tom = LocalDate.of(2025, 12, 31)
             )
-        )
+        }
 
-        val res = meldekort.slåSammenMeldeperioder()
-
-        assertThat(res).hasSize(2)
-        assertThat(res.map { it.periode }).containsExactlyInAnyOrder(periode1, periode2)
+        assertThat(resultater).hasSize(1)
+        assertThat(resultater.single().behandlingId).isEqualTo(11)
+        assertThat(resultater.single().meldePeriode.fom).isEqualTo(LocalDate.of(2025, 1, 15))
     }
-
 }

@@ -1,0 +1,187 @@
+package no.nav.aap.api.kelvin
+
+import java.math.BigDecimal
+import java.math.RoundingMode
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import kotlin.math.roundToInt
+import no.nav.aap.api.intern.DsopVedtaksTypeDTO
+import no.nav.aap.api.intern.DsopVedtaksvariantDTO
+import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.komponenter.tidslinje.somTidslinje
+import no.nav.aap.komponenter.type.Periode
+
+data class Behandling(
+    val behandlingsReferanse: String,
+    @Deprecated("Ikke del denne utad.")
+    val rettighetsperiode: Periode,
+    val behandlingStatus: KelvinBehandlingStatus,
+    val vedtaksDato: LocalDate,
+    val sak: Sak,
+    val tilkjent: Tidslinje<TilkjentYtelse>,
+    val rettighetsTypePerioder: List<RettighetsTypePeriode>,
+    val samId: String?,
+    val vedtakId: Long,
+    val beregningsgrunnlag: BigDecimal?,
+    val nyttVedtak: Boolean,
+    val stansOpphørVurdering: Set<GjeldendeStansEllerOpphør>?,
+    val arenakompatibleVedtak: List<Arenavedtak>,
+    val foreløpigMaksdato: LocalDate?,
+) {
+    val rettighetsTypeTidslinje: Tidslinje<String>
+        get() = rettighetsTypePerioder.somTidslinje({ it.periode }, { it.verdi })
+            .komprimer()
+
+    val arenakompatibleVedtakTidslinje: Tidslinje<Arenavedtak>
+        get() = arenakompatibleVedtak.somTidslinje { it.periode }
+}
+
+data class GjeldendeStansEllerOpphør(
+    val fom: LocalDate,
+    val opprettet: Instant,
+    val vurdering: StansEllerOpphør,
+    val avslagsårsaker: Set<Avslagsårsak>,
+)
+
+enum class Avslagsårsak(
+    val type: StansEllerOpphør,
+) {
+    BRUKER_OVER_67(StansEllerOpphør.OPPHØR),
+    IKKE_RETT_PA_SYKEPENGEERSTATNING(StansEllerOpphør.OPPHØR),
+    IKKE_RETT_PA_STUDENT(StansEllerOpphør.OPPHØR),
+    VARIGHET_OVERSKREDET_STUDENT(StansEllerOpphør.OPPHØR),
+    IKKE_SYKDOM_AV_VISS_VARIGHET(StansEllerOpphør.OPPHØR),
+    IKKE_SYKDOM_SKADE_LYTE_VESENTLIGDEL(StansEllerOpphør.OPPHØR),
+    IKKE_NOK_REDUSERT_ARBEIDSEVNE(StansEllerOpphør.OPPHØR),
+    IKKE_BEHOV_FOR_OPPFOLGING(StansEllerOpphør.OPPHØR),
+    IKKE_MEDLEM(StansEllerOpphør.OPPHØR),
+    IKKE_OPPFYLT_OPPHOLDSKRAV_EØS(StansEllerOpphør.STANS),
+    ANNEN_FULL_YTELSE(StansEllerOpphør.OPPHØR),
+    INNTEKTSTAP_DEKKES_ETTER_ANNEN_LOVGIVNING(StansEllerOpphør.OPPHØR),
+    IKKE_RETT_PA_AAP_UNDER_BEHANDLING_AV_UFORE(StansEllerOpphør.OPPHØR),
+    VARIGHET_OVERSKREDET_OVERGANG_UFORE(StansEllerOpphør.OPPHØR),
+    VARIGHET_OVERSKREDET_ARBEIDSSØKER(StansEllerOpphør.OPPHØR),
+    IKKE_RETT_PA_AAP_I_PERIODE_SOM_ARBEIDSSOKER(StansEllerOpphør.STANS),
+    IKKE_RETT_UNDER_STRAFFEGJENNOMFØRING(StansEllerOpphør.STANS),
+    BRUDD_PÅ_AKTIVITETSPLIKT_STANS(StansEllerOpphør.STANS),
+    BRUDD_PÅ_AKTIVITETSPLIKT_OPPHØR(StansEllerOpphør.OPPHØR),
+    BRUDD_PÅ_OPPHOLDSKRAV_STANS(StansEllerOpphør.STANS),
+    BRUDD_PÅ_OPPHOLDSKRAV_OPPHØR(StansEllerOpphør.OPPHØR),
+    ORDINÆRKVOTE_BRUKT_OPP(StansEllerOpphør.OPPHØR),
+    SYKEPENGEERSTATNINGKVOTE_BRUKT_OPP(StansEllerOpphør.OPPHØR),
+    IKKE_SYKDOM_SKADE_LYTE(StansEllerOpphør.OPPHØR),
+}
+
+enum class StansEllerOpphør {
+    STANS,
+    OPPHØR
+}
+
+data class RettighetsTypePeriode(
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val verdi: String
+) {
+    val periode: Periode
+        get() = Periode(fom, tom)
+}
+
+data class Sak(
+    val saksnummer: String,
+    val opprettetTidspunkt: LocalDateTime,
+)
+
+/**
+ * @param samordningUføregradering Svarer til prosent uføre.
+ */
+data class TilkjentYtelse(
+    val dagsats: Int,
+    val gradering: Int,
+    val samordningUføregradering: Int?,
+    val grunnlagsfaktor: BigDecimal,
+    val grunnbeløp: BigDecimal,
+
+    /** Antall barn som gir rett til barnetillegg. */
+    val antallBarn: Int,
+
+    /** Størrelsen på ugradert barnetilleggsats.
+     *
+     * Verdien er ugradert, i den forstand at:
+     * Hvis barnetilleggsatsen er spesifisert i AAP-forskriften § 8 til 38 kroner, og medlemmet får 50% AAP,
+     * så vil [barnetilleggsats] være 38.
+     **/
+    val barnetilleggsats: BigDecimal,
+
+    /** Størrelsen på total, ugradert barnetillegg.
+     *
+     * Verdien er total i den forstand at den tar hensyn til antall barn.
+     *
+     * Den er ugradert i den forstand at hvis medlemmet har 2 barn, får 75 % AAP
+     * på grunn av samordning, og barnetilleggssatsen er spesifisert i AAP-forskriften § 8 til 38 kroner,
+     * så vil [barnetillegg] være 2 * 38 = 76 kroner. Altså vi har ikke redusert barnetillegget med 25% her.
+     *
+     * Spesifikasjon: [barnetillegg] = [barnetilleggsats] * [antallBarn].
+     */
+    val barnetillegg: BigDecimal,
+) {
+
+    /** Størrelsen på total, gradert barnetillegg.
+     *
+     * Verdien er total i den forstand at den tar hensyn til antall barn.
+     *
+     * Den er gradert i den forstand at hvis medlemmet har 2 barn, får 75 % AAP
+     * på grunn av samordning, og barnetilleggssatsen er spesifisert i AAP-forskriften § 8 til 38 kroner,
+     * så vil [gradertBarnetillegg] gi 2 * 38 * 0.75 = 57 kroner. I motsetning til [barnetillegg] som ikke
+     * tar hensyn til gradering, og dermed gir 76 kroner.
+     */
+    fun gradertBarnetillegg(): BigDecimal =
+        /* TODO: denne utregningen burde flyttes til behandlingsflyt. Ønsker ikke at vi f.eks. får forskjellig avrunding i vedtaket og dette API-et.  */
+        this.barnetillegg.multiply(
+            this.gradering.toBigDecimal()
+                .divide(100.toBigDecimal())
+        ).setScale(0, RoundingMode.HALF_UP)
+
+    fun regnUtDagsatsEtterUføreReduksjon(): Int =
+        this.dagsats.times(
+            (100 - (this.samordningUføregradering ?: 0)) / 100.0
+        ).roundToInt()
+}
+
+
+enum class KelvinBehandlingStatus {
+    OPPRETTET,
+    UTREDES,
+    IVERKSETTES,
+    AVSLUTTET;
+
+}
+
+data class Arenavedtak(
+    val vedtakId: Long,
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val vedtaksvariant: Vedtaksvariant,
+) {
+    val periode = Periode(fom, tom)
+
+    enum class Vedtaksvariant(
+        val type: DsopVedtaksTypeDTO,
+        val somDTO: DsopVedtaksvariantDTO,
+    ) {
+        O_AVSLAG(DsopVedtaksTypeDTO.O, DsopVedtaksvariantDTO.O_AVSLAG),
+        O_INNV_NAV(DsopVedtaksTypeDTO.O, DsopVedtaksvariantDTO.O_INNV_NAV),
+        O_INNV_SOKNAD(DsopVedtaksTypeDTO.O, DsopVedtaksvariantDTO.O_INNV_SOKNAD),
+        E_FORLENGE(DsopVedtaksTypeDTO.E, DsopVedtaksvariantDTO.E_FORLENGE),
+        E_VERDI(DsopVedtaksTypeDTO.E, DsopVedtaksvariantDTO.E_VERDI),
+        G_AVSLAG(DsopVedtaksTypeDTO.G, DsopVedtaksvariantDTO.G_AVSLAG),
+        G_INNV_NAV(DsopVedtaksTypeDTO.G, DsopVedtaksvariantDTO.G_INNV_NAV),
+        G_INNV_SOKNAD(DsopVedtaksTypeDTO.G, DsopVedtaksvariantDTO.G_INNV_SOKNAD),
+        S_DOD(DsopVedtaksTypeDTO.S, DsopVedtaksvariantDTO.S_DOD),
+        S_OPPHOR(DsopVedtaksTypeDTO.S, DsopVedtaksvariantDTO.S_OPPHOR),
+        S_STANS(DsopVedtaksTypeDTO.S, DsopVedtaksvariantDTO.S_STANS),
+        ;
+
+        val typeKode: String get() = type.name
+    }
+}

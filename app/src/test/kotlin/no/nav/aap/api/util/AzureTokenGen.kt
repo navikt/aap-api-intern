@@ -21,7 +21,7 @@ class AzureTokenGen(private val issuer: String, private val audience: String) {
         return SignedJWT(header, claims).apply { sign(signer) }
     }
 
-    private fun claims(isApp: Boolean, now: Date = Date()): JWTClaimsSet {
+    private fun claims(isApp: Boolean, now: Date = Date(), azp: String? = null): JWTClaimsSet {
         val claims = JWTClaimsSet.Builder()
         .subject(UUID.randomUUID().toString())
         .issuer(issuer)
@@ -34,10 +34,13 @@ class AzureTokenGen(private val issuer: String, private val audience: String) {
             claims.claim("idtyp", "app")
             claims.claim("roles", listOf("add-data"))
         }
+        if (azp != null) {
+            claims.claim("azp", azp)
+        }
         return claims.build()
     }
 
-    fun generate(isApp: Boolean): String = signed(claims(isApp)).serialize()
+    fun generate(isApp: Boolean, azp: String? = null): String = signed(claims(isApp, azp = azp)).serialize()
 }
 
 @Language("JSON")

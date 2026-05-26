@@ -1,10 +1,11 @@
-package no.nav.aap.api.postgres
+package no.nav.aap.api.kelvin
 
 import java.time.Clock
 import java.time.LocalDate
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.api.kelvin.MeldekortDTO
 import no.nav.aap.api.pdl.IPdlGateway
+import no.nav.aap.api.postgres.BehandlingsRepository
+import no.nav.aap.api.postgres.MeldekortDetaljerRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 
 class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, clock: Clock) {
@@ -15,20 +16,24 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         personIdentifikator: String,
         fraDato: LocalDate? = null,
         tilDato: LocalDate? = null
-    ): List<MeldekortDTO> {
+    ): List<Meldekort> {
         val personIdenter =
-            pdlGateway.hentAlleIdenterForPerson(personIdentifikator).map { personIdentifikator }
+            pdlGateway.hentAlleIdenterForPerson(personIdentifikator).map { it.ident }
 
         if (personIdenter.isEmpty()) return emptyList()
 
         return meldekortDetaljerRepository.hentAlle(personIdenter, fraDato, tilDato)
     }
 
+    /**
+     * Henter alle meldekort for en person. Merk at denne også returnerer meldekort
+     * for perioder uten rett (ennå). F.eks mens førstegangsbehandlingen er under behandling.
+     */
     fun hentAlle(
         personIdentifikator: String,
         fom: LocalDate? = null,
         tom: LocalDate? = null
-    ): List<Pair<MeldekortDTO, VedtakUtenUtbetaling?>> {
+    ): List<Pair<Meldekort, VedtakUtenUtbetaling?>> {
         val meldekortDetaljListe = hentAlleMeldekort(personIdentifikator, fom, tom)
 
         return meldekortDetaljListe.map { meldekort ->
@@ -39,7 +44,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
 
 
     private fun finnNyesteRelaterteVedtak(
-        meldekort: MeldekortDTO, personIdentifikator: String
+        meldekort: Meldekort, personIdentifikator: String
     ): VedtakUtenUtbetaling? {
         val meldePeriode = meldekort.meldePeriode
         // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info:
@@ -48,4 +53,3 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         return vedtak.firstOrNull()
     }
 }
-

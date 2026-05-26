@@ -1,25 +1,19 @@
 package no.nav.aap.api.postgres
 
-import com.papsign.ktor.openapigen.annotations.properties.description.Description
-import no.nav.aap.api.intern.Kilde
-import no.nav.aap.api.intern.PeriodeInkludert11_17
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
+import no.nav.aap.api.kelvin.*
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.tidslinje.somTidslinje
+import no.nav.aap.komponenter.tidslinje.Segment
+import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.type.Periode
 import org.slf4j.LoggerFactory
 import java.math.BigDecimal
-import java.math.RoundingMode
-import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.LocalDateTime
-import kotlin.math.roundToInt
+import java.time.ZoneOffset
 
 class BehandlingsRepository(private val connection: DBConnection) {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    fun lagreBehandling(behandling: DatadelingDTO) {
+    fun lagreBehandling(fnr: List<String>, behandling: Behandling) {
         val gammelSak = connection.queryFirstOrNull(
             """SELECT ID FROM SAK WHERE SAKSNUMMER = ?""".trimIndent()
         ) {
@@ -33,25 +27,36 @@ class BehandlingsRepository(private val connection: DBConnection) {
 
         log.info("Lagrer behandling for sak: ${behandling.sak.saksnummer}, gammel sak id: $gammelSak")
 
-        val sakId = gammelSak ?: connection.executeReturnKey(
-            """
-                INSERT INTO SAK (STATUS, RETTIGHETSPERIODE, SAKSNUMMER)
-                VALUES (?, ?::daterange, ?)
-            """.trimIndent()
-        ) {
-            setParams {
-                setString(1, behandling.sak.status.toString())
-                setPeriode(
-                    2,
-                    Periode(behandling.rettighetsPeriodeFom, behandling.rettighetsPeriodeTom)
-                )
-                setString(3, behandling.sak.saksnummer)
+        val sakId = if (gammelSak != null) {
+            connection.execute(
+                """
+                    UPDATE SAK SET FORELOPIG_MAKSDATO = ? WHERE ID = ?
+                """.trimIndent()
+            ) {
+                setParams {
+                    setLocalDate(1, behandling.foreløpigMaksdato)
+                    setLong(2, gammelSak)
+                }
+            }
+            gammelSak
+        } else {
+            connection.executeReturnKey(
+                """
+                    INSERT INTO SAK (RETTIGHETSPERIODE, SAKSNUMMER, FORELOPIG_MAKSDATO)
+                    VALUES (?::daterange, ?, ?)
+                """.trimIndent()
+            ) {
+                setParams {
+                    setPeriode(1, behandling.rettighetsperiode)
+                    setString(2, behandling.sak.saksnummer)
+                    setLocalDate(3, behandling.foreløpigMaksdato)
+                }
             }
         }
 
         connection.executeBatch(
             """DELETE FROM SAK_PERSON WHERE SAK_ID = ? AND PERSON_IDENT = ?""".trimIndent(),
-            behandling.sak.fnr
+            fnr
         ) {
             setParams {
                 setLong(1, sakId)
@@ -64,7 +69,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 INSERT INTO SAK_PERSON (SAK_ID, PERSON_IDENT)
                 VALUES (?, ?)
             """.trimIndent(),
-            behandling.sak.fnr
+            fnr
         ) {
             setParams { fnr ->
                 setLong(1, sakId)
@@ -108,38 +113,60 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
+        connection.execute(
+            """
+                DELETE FROM stans_opphor_grunnlag WHERE behandling_id = ?
+            """.trimIndent(),
+        ) {
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+
+        val stansGrunnlagId = connection.executeReturnKey(
+            """INSERT INTO stans_opphor_grunnlag (behandling_id, opprettet_tid)
+       VALUES (?, now())""".trimIndent()
+        ) {
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+
+        behandling.stansOpphørVurdering?.forEach { vurdering ->
+            val vurderingId = connection.executeReturnKey(
+                """INSERT INTO stans_opphor_vurdering (stans_opphor_grunnlag_id, fom, vedtakstype, opprettet_tid) VALUES (?, ?, ?, ?)""".trimIndent()
+            ) {
+                setParams {
+                    setLong(1, stansGrunnlagId)
+                    setLocalDate(2, vurdering.fom)
+                    setString(3, vurdering.vurdering.name)
+                    setInstant(4, vurdering.opprettet)
+                }
+            }
+            connection.executeBatch(
+                """INSERT INTO avslagsarsak (stans_opphor_vurdering_id, avslagsarsak) VALUES (?, ?)""".trimIndent(),
+                vurdering.avslagsårsaker
+            ) {
+                setParams {
+                    setLong(1, vurderingId)
+                    setEnumName(2, it)
+                }
+            }
+        }
+
         connection.executeBatch(
             """
                 INSERT INTO RETTIGHETSTYPE (BEHANDLING_ID, PERIODE, RETTIGHETSTYPE)
                 VALUES (?, ?::daterange, ?)
             """.trimIndent(),
-            behandling.rettighetsTypeTidsLinje
+            behandling.rettighetsTypePerioder
         ) {
             setParams {
                 setLong(1, nyBehandlingId)
-                setPeriode(2, Periode(it.fom, it.tom))
+                setPeriode(2, it.periode)
                 setString(3, it.verdi)
             }
         }
-
-
-        connection.executeBatch(
-            """
-                INSERT INTO UNDERVEIS (BEHANDLING_ID, PERIODE, MELDEPERIODE, UTFALL, RETTIGHETS_TYPE, OPPRETTET_TID)
-                VALUES (?, ?::daterange, ?::daterange, ?, ?, ?)
-            """.trimIndent(),
-            behandling.underveisperiode
-        ) {
-            setParams {
-                setLong(1, nyBehandlingId)
-                setPeriode(2, Periode(it.underveisFom, it.underveisTom))
-                setPeriode(3, Periode(it.meldeperiodeFom, it.meldeperiodeTom))
-                setString(4, it.utfall)
-                setString(5, it.rettighetsType ?: "")
-                setLocalDateTime(6, LocalDateTime.now())
-            }
-        }
-
 
         connection.execute(
             """DELETE FROM TILKJENT_YTELSE WHERE BEHANDLING_ID = ?""".trimIndent()
@@ -166,19 +193,19 @@ class BehandlingsRepository(private val connection: DBConnection) {
                                               BARNETILLEGG, UFOREGRADERING)
                 VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
-            behandling.tilkjent
+            behandling.tilkjent.segmenter()
         ) {
             setParams {
                 setLong(1, nytilkjentId)
-                setPeriode(2, Periode(it.tilkjentFom, it.tilkjentTom))
-                setBigDecimal(3, it.dagsats.toBigDecimal())
-                setInt(4, it.gradering)
-                setBigDecimal(5, it.grunnlagsfaktor)
-                setBigDecimal(6, it.grunnbeløp)
-                setInt(7, it.antallBarn)
-                setBigDecimal(8, it.barnetilleggsats)
-                setBigDecimal(9, it.barnetillegg)
-                setInt(10, it.samordningUføregradering)
+                setPeriode(2, it.periode)
+                setBigDecimal(3, it.verdi.dagsats.toBigDecimal())
+                setInt(4, it.verdi.gradering)
+                setBigDecimal(5, it.verdi.grunnlagsfaktor)
+                setBigDecimal(6, it.verdi.grunnbeløp)
+                setInt(7, it.verdi.antallBarn)
+                setBigDecimal(8, it.verdi.barnetilleggsats)
+                setBigDecimal(9, it.verdi.barnetillegg)
+                setInt(10, it.verdi.samordningUføregradering)
             }
         }
         if (behandling.beregningsgrunnlag != null) {
@@ -197,61 +224,29 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 }
             }
         }
-    }
 
-    fun hentDsopVedtak(fnr: String, uttrekksperiode: Periode): List<DsopVedtak> {
-        val vedtaksdata = hentVedtaksData(fnr, uttrekksperiode)
-
-        return vedtaksdata.flatMap {
-            it.rettighetsTypeTidsLinje
-                .somTidslinje({ rettighetsTypePeriode ->
-                    Periode(
-                        rettighetsTypePeriode.fom,
-                        rettighetsTypePeriode.tom
-                    )
-                }, { rettighetstype -> rettighetstype.verdi })
-                .komprimer()
-                .segmenter()
-                .map { (periode, verdi) -> RettighetsTypePeriode(periode.fom, periode.tom, verdi) }
-                .map { rettighetsTypePeriode ->
-                    DsopVedtak(
-                        vedtakId = it.behandlingsId,
-                        vedtakStatus = when (rettighetsTypePeriode.tom >= LocalDate.now()) {
-                            true -> DsopStatus.LØPENDE
-                            else -> DsopStatus.AVSLUTTET
-                        },
-                        virkningsperiode = Periode(
-                            rettighetsTypePeriode.fom,
-                            rettighetsTypePeriode.tom
-                        ),
-                        utfall = "JA",
-                        aktivitetsfase = RettighetsType.valueOf(rettighetsTypePeriode.verdi),
-                        vedtaksType = if (it.nyttVedtak) VedtaksType.O else VedtaksType.E,
-                    )
-                }
+        connection.execute("DELETE FROM ARENAVEDTAK WHERE behandling_id = ?") {
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+        connection.executeBatch(
+            """
+            INSERT INTO ARENAVEDTAK(behandling_id, vedtak_id, vedtaksvariant, fom, tom) VALUES (?, ?, ?, ?, ?)
+        """,
+           behandling.arenakompatibleVedtak,
+        ) {
+            setParams {
+                setLong(1, nyBehandlingId)
+                setLong(2, it.vedtakId)
+                setEnumName(3, it.vedtaksvariant)
+                setLocalDate(4, it.fom)
+                setLocalDate(5, it.tom)
+            }
         }
     }
 
-    fun hentPerioderMedAktivitetsfase(fnr: String, periode: Periode): List<PeriodeInkludert11_17> {
-        val vedtaksdata = hentVedtaksData(fnr, periode)
-
-        return vedtaksdata.flatMap {
-            it.rettighetsTypeTidsLinje
-                .somTidslinje({ rettighetsTypePeriode ->
-                    Periode(
-                        rettighetsTypePeriode.fom,
-                        rettighetsTypePeriode.tom
-                    )
-                }, { rettighetstype -> rettighetstype.verdi })
-                .komprimer()
-                .segmenter()
-                .map { (periode, verdi) -> PeriodeInkludert11_17(no.nav.aap.api.intern.Periode(periode.fom, periode.tom), aktivitetsfaseNavn = verdi, aktivitetsfaseKode = verdi) }
-        }
-    }
-
-    // TODO: ikke returner DTO fra behandlingsflyt her, heller dupliser i kode her
-    // Kommer til å bli kronglete ved modellendringer
-    fun hentVedtaksData(fnr: String, periode: Periode): List<DatadelingDTO> {
+    fun hentVedtaksData(fnr: String, periode: Periode): List<Behandling> {
         val sakerIder = connection.queryList(
             """
                 SELECT SAK_ID FROM SAK_PERSON
@@ -280,46 +275,37 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setRowMapper { row ->
                     SakDB(
                         saksnummer = row.getString("SAKSNUMMER"),
-                        status = KelvinSakStatus.valueOf(row.getString("STATUS")),
                         rettighetsPeriode = row.getPeriode("RETTIGHETSPERIODE"),
-                        id = it
+                        id = it,
+                        foreløpigMaksdato = row.getLocalDateOrNull("FORELOPIG_MAKSDATO"),
                     )
                 }
             }
         }
 
         return saker.flatMap { sak ->
-            val behandlinger = hentBehandlinger(sak.id)
-            behandlinger.map { behandling ->
-
-                DatadelingDTO(
-                    behandlingsId = behandling.id.toString(),
-                    behandlingsReferanse = behandling.behandlingReferanse,
-                    underveisperiode = hentUnderveis(behandling.id),
-                    rettighetsPeriodeFom = sak.rettighetsPeriode.fom,
-                    rettighetsPeriodeTom = sak.rettighetsPeriode.tom,
-                    behandlingStatus = behandling.behandlingStatus,
-                    vedtaksDato = behandling.vedtaksDato,
-                    sak = SakDTO(
-                        saksnummer = sak.saksnummer,
-                        status = sak.status,
-                        fnr = emptyList()
-                    ),
-                    tilkjent = hentTilkjentYtelse(behandling.id),
-                    rettighetsTypeTidsLinje = hentRettighetsTypeTidslinje(behandling.id),
-                    samId = behandling.samid,
-                    vedtakId = behandling.vedtakId ?: 0L,
-                    beregningsgrunnlag = hentBeregningsGrunnlag(behandling.id)
-                        ?: BigDecimal.ZERO, // TODO!!!
-                    nyttVedtak = behandling.førstegangsbehandling
-                )
-            }
+            hentBehandlinger(sak)
         }
-
-
     }
 
-    fun hentBeregningsGrunnlag(behandlingId: Long): BigDecimal? {
+    private fun hentArenavedtak(behandlingId: Long): List<Arenavedtak> {
+        return connection.queryList("""
+            SELECT * FROM ARENAVEDTAK WHERE behandling_id = ?
+        """.trimIndent()) {
+            setParams {
+                setLong(1, behandlingId)
+            }
+            setRowMapper {
+                Arenavedtak(
+                    vedtakId = it.getLong("vedtak_id"),
+                    fom = it.getLocalDate("fom"),
+                    tom = it.getLocalDate("tom"),
+                    vedtaksvariant = it.getEnum("vedtaksvariant"),
+                )
+            }
+        }.sortedBy { it.fom }
+    }
+    private fun hentBeregningsGrunnlag(behandlingId: Long): BigDecimal? {
         return connection.queryFirstOrNull(
             """
                 SELECT BELOP FROM BEREGNINGSGRUNNLAG
@@ -335,7 +321,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentRettighetsTypeTidslinje(behandlingId: Long): List<RettighetsTypePeriode> {
+    private fun hentRettighetsTypePerioder(behandlingId: Long): List<RettighetsTypePeriode> {
         return connection.queryList(
             """
                 SELECT * FROM RETTIGHETSTYPE
@@ -356,7 +342,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentBehandlinger(sakId: Long): List<BehandlingDB> {
+    private fun hentBehandlinger(sak: SakDB): List<Behandling> {
         return connection.queryList(
             """
                 SELECT * FROM BEHANDLING
@@ -364,50 +350,68 @@ class BehandlingsRepository(private val connection: DBConnection) {
             """.trimIndent()
         ) {
             setParams {
-                setLong(1, sakId)
+                setLong(1, sak.id)
             }
             setRowMapper { row ->
-                BehandlingDB(
-                    id = row.getLong("ID"),
+                val behandlingId = row.getLong("ID")
+                Behandling(
                     behandlingStatus = row.getEnum("STATUS"),
                     vedtaksDato = row.getLocalDate("VEDTAKS_DATO"),
-                    opprettetTidspunkt = row.getLocalDate("OPPRETTET_TID"),
-                    behandlingReferanse = row.getString("BEHANDLING_REFERANSE"),
-                    samid = row.getStringOrNull("SAMID"),
-                    vedtakId = row.getLongOrNull("VEDTAKID"),
-                    førstegangsbehandling = row.getBoolean("NYTT_VEDTAK")
+                    sak = Sak(
+                        saksnummer = sak.saksnummer,
+                        opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
+                    ),
+                    behandlingsReferanse = row.getString("BEHANDLING_REFERANSE"),
+                    samId = row.getStringOrNull("SAMID"),
+                    vedtakId = row.getLongOrNull("VEDTAKID") ?: 0L,
+                    nyttVedtak = row.getBoolean("NYTT_VEDTAK"),
+                    tilkjent = hentTilkjentYtelse(behandlingId),
+                    rettighetsTypePerioder = hentRettighetsTypePerioder(behandlingId),
+                    beregningsgrunnlag = hentBeregningsGrunnlag(behandlingId)
+                        ?: BigDecimal.ZERO, // TODO!!!
+                    stansOpphørVurdering = hentStansOpphør(behandlingId),
+                    rettighetsperiode = sak.rettighetsPeriode,
+                    arenakompatibleVedtak = hentArenavedtak(behandlingId),
+                    foreløpigMaksdato = sak.foreløpigMaksdato,
                 )
             }
         }
     }
 
-    fun hentUnderveis(behandlingId: Long): List<UnderveisDTO> {
+    private fun hentStansOpphør(behandlingId: Long): Set<GjeldendeStansEllerOpphør> {
         return connection.queryList(
-            """
-                SELECT * FROM UNDERVEIS
-                WHERE BEHANDLING_ID = ?
-            """.trimIndent()
+            """SELECT * FROM stans_opphor_vurdering WHERE stans_opphor_grunnlag_id IN (SELECT id FROM stans_opphor_grunnlag WHERE behandling_id = ?)""".trimIndent()
         ) {
             setParams {
                 setLong(1, behandlingId)
             }
-            setRowMapper { row ->
-                val periode = row.getPeriode("PERIODE")
-                val meldePeriode = row.getPeriode("MELDEPERIODE")
-                UnderveisDTO(
-                    underveisFom = periode.fom,
-                    underveisTom = periode.tom,
-                    meldeperiodeFom = meldePeriode.fom,
-                    meldeperiodeTom = meldePeriode.tom,
-                    utfall = row.getString("UTFALL"),
-                    rettighetsType = row.getString("RETTIGHETS_TYPE"),
-                    avslagsårsak = null
+            setRowMapper {
+
+                GjeldendeStansEllerOpphør(
+                    fom = it.getLocalDate("fom"),
+                    opprettet = it.getLocalDateTime("opprettet_tid")
+                        .toInstant(ZoneOffset.UTC),
+                    vurdering = StansEllerOpphør.valueOf(it.getString("vedtakstype")),
+                    avslagsårsaker = hentAvslagsårsaker(it.getLong("id"))
                 )
             }
-        }
+        }.toSet()
     }
 
-    fun hentTilkjentYtelse(behandlingId: Long): List<TilkjentDTO> {
+    private fun hentAvslagsårsaker(stansOpphørVurderingId: Long): Set<Avslagsårsak> {
+        return connection.queryList(
+            """SELECT * FROM avslagsarsak WHERE stans_opphor_vurdering_id = ?""".trimIndent()
+        ) {
+            setParams {
+                setLong(1, stansOpphørVurderingId)
+            }
+            setRowMapper { row ->
+                row.getEnum<Avslagsårsak>("avslagsarsak")
+            }
+        }.toSet()
+    }
+
+    private fun hentTilkjentYtelse(behandlingId: Long): Tidslinje<TilkjentYtelse> {
         return connection.queryList(
             """
                 SELECT * FROM TILKJENT_PERIODE
@@ -419,153 +423,68 @@ class BehandlingsRepository(private val connection: DBConnection) {
         ) {
             setParams { setLong(1, behandlingId) }
             setRowMapper {
-                TilkjentDTO(
-                    tilkjentFom = it.getPeriode("PERIODE").fom,
-                    tilkjentTom = it.getPeriode("PERIODE").tom,
-                    dagsats = it.getBigDecimal("DAGSATS").toInt(),
-                    gradering = it.getInt("GRADERING"),
-                    grunnlagsfaktor = it.getBigDecimal("GRUNNLAGSFAKTOR"),
-                    grunnbeløp = it.getBigDecimal("GRUNNBELOP"),
-                    antallBarn = it.getInt("ANTALL_BARN"),
-                    barnetilleggsats = it.getBigDecimal("BARNETILLEGGSATS"),
-                    barnetillegg = it.getBigDecimal("BARNETILLEGG"),
-                    samordningUføregradering = it.getIntOrNull("UFOREGRADERING")
+                Segment(
+                    it.getPeriode("PERIODE"),
+                    TilkjentYtelse(
+                        dagsats = it.getBigDecimal("DAGSATS").toInt(),
+                        gradering = it.getInt("GRADERING"),
+                        grunnlagsfaktor = it.getBigDecimal("GRUNNLAGSFAKTOR"),
+                        grunnbeløp = it.getBigDecimal("GRUNNBELOP"),
+                        antallBarn = it.getInt("ANTALL_BARN"),
+                        barnetilleggsats = it.getBigDecimal("BARNETILLEGGSATS"),
+                        barnetillegg = it.getBigDecimal("BARNETILLEGG"),
+                        samordningUføregradering = it.getIntOrNull("UFOREGRADERING")
+                    )
                 )
+            }
+        }.let { Tidslinje(it) }
+    }
+
+    fun erNyttVedtak(fnr: String): Boolean {
+        return connection.queryList(
+            """
+                SELECT SAK_ID FROM SAK_PERSON
+                WHERE PERSON_IDENT = ?
+            """.trimIndent()
+        ) {
+            setParams { setString(1, fnr) }
+            setRowMapper { row -> row.getLong("SAK_ID") }
+        }.isEmpty()
+    }
+
+    fun lagreOppdaterteIdenter(saksnummer: String, identer: List<String>) {
+        val saker = connection.queryList("SELECT * FROM SAK WHERE saksnummer = ?") {
+            setParams { setString(1, saksnummer) }
+            setRowMapper { it.getLong("id") }
+        }
+
+        if (saker.isEmpty()) {
+            log.warn("Fant ingen saker med saksnummer $saksnummer, kan ikke oppdatere identer. Dette er forventet om det ikke finnes vedtak på sak.")
+            return
+        }
+        require(saker.size == 1) { "Fant flere saker med saksnummer $saksnummer, kan ikke oppdatere identer" }
+
+        val sakId = saker.single()
+
+        connection.executeBatch(
+            """
+                INSERT INTO SAK_PERSON (SAK_ID, PERSON_IDENT)
+                VALUES (?, ?)
+                ON CONFLICT (SAK_ID, PERSON_IDENT) DO NOTHING 
+            """.trimIndent(),
+            identer
+        ) {
+            setParams {
+                setLong(1, sakId)
+                setString(2, it)
             }
         }
     }
 }
 
-data class SakDB(
+private data class SakDB(
     val id: Long,
-    val status: KelvinSakStatus,
     val rettighetsPeriode: Periode,
     val saksnummer: String,
+    val foreløpigMaksdato: LocalDate?,
 )
-
-data class BehandlingDB(
-    val id: Long,
-    val behandlingStatus: KelvinBehandlingStatus,
-    val vedtaksDato: LocalDate,
-    val opprettetTidspunkt: LocalDate,
-    val behandlingReferanse: String,
-    val samid: String? = null,
-    val vedtakId: Long? = null,
-    val førstegangsbehandling: Boolean
-)
-
-/**
- * @param uføregrad Svarer til prosent uføre.
- */
-data class TilkjentDB(
-    val dagsats: Int,
-    val gradering: Int,
-    val grunnlagsfaktor: BigDecimal,
-    val grunnbeløp: BigDecimal,
-    val antallBarn: Int,
-    val barnetilleggsats: BigDecimal,
-    val barnetillegg: BigDecimal,
-    val uføregrad: Int? = 0,
-) {
-    fun gradertBarnetillegg(): BigDecimal =
-        this.barnetillegg.multiply(
-            this.gradering.toBigDecimal()
-                .divide(100.toBigDecimal())
-        ).setScale(0, RoundingMode.HALF_UP)
-
-    fun regnUtDagsatsEtterUføreReduksjon(): Int =
-        this.dagsats.times(
-            (100 - (this.uføregrad ?: 0)) / 100.0
-        ).roundToInt()
-}
-
-fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
-    var count = 0
-    var date = startDate
-
-    while (!date.isAfter(endDate)) {
-        if (date.dayOfWeek != DayOfWeek.SATURDAY && date.dayOfWeek != DayOfWeek.SUNDAY) {
-            count++
-        }
-        date = date.plusDays(1)
-    }
-
-    return count
-}
-
-/**
- * @param vedtakId Svarer til ID til vedtak-tabellen i behandlingsflyt.
- */
-data class VedtakUtenUtbetalingUtenPeriode(
-    val vedtakId: String,
-    @param:Description("Full dagsats før reduksjoner.")
-    val dagsats: Int,
-    @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin). Ved manglende data er denne null.")
-    val dagsatsEtterUføreReduksjon: Int,
-    @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
-    val status: String, //Hypotese, vedtaksstatuskode
-    val saksnummer: String,
-    val vedtaksdato: LocalDate, //reg_dato
-    @param:Description("Rettighetsgruppe. For data fra Arena er dette aktivitetsfasekode.")
-    val rettighetsType: String, ////aktivitetsfase //Aktfasekode
-    val beregningsgrunnlag: Int,
-    val barnMedStonad: Int,
-    @param:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
-    val kildesystem: Kilde,
-    val samordningsId: String? = null,
-    val opphorsAarsak: String? = null,
-    val barnetilleggSats: BigDecimal? = null
-) {
-    fun tilVedtakUtenUtbetaling(periode: no.nav.aap.api.intern.Periode): VedtakUtenUtbetaling {
-        return VedtakUtenUtbetaling(
-            vedtakId = this.vedtakId,
-            dagsats = this.dagsats,
-            dagsatsEtterUføreReduksjon = this.dagsatsEtterUføreReduksjon,
-            status = this.status,
-            saksnummer = this.saksnummer,
-            vedtaksdato = this.vedtaksdato,
-            vedtaksTypeKode = null,
-            vedtaksTypeNavn = null,
-            periode = periode,
-            rettighetsType = this.rettighetsType,
-            beregningsgrunnlag = this.beregningsgrunnlag,
-            barnMedStonad = this.barnMedStonad,
-            barnetillegg = barnMedStonad * (this.barnetilleggSats?.toInt() ?: 0),
-            kildesystem = this.kildesystem,
-            samordningsId = this.samordningsId,
-            opphorsAarsak = this.opphorsAarsak
-        )
-    }
-}
-
-data class DsopRequest(
-    val personIdent: String,
-    val fomDato: LocalDate,
-    val tomDato: LocalDate,
-)
-
-data class DsopResponse(
-    val uttrekksperiode: Periode,
-    val vedtak: List<DsopVedtak>
-)
-
-data class DsopVedtak(
-    val vedtakId: String,
-    val vedtakStatus: DsopStatus,
-    val virkningsperiode: Periode,
-    val rettighetsType: String = "AAP",
-    val utfall: String = "JA",
-    val aktivitetsfase: RettighetsType,
-    val vedtaksType: VedtaksType
-)
-
-enum class VedtaksType(description: String) {
-    O("NY RETTIGHET"),
-    E("ENDRING I RETTIGHET")
-}
-
-enum class DsopStatus {
-    LØPENDE,
-    AVSLUTTET
-}
-
