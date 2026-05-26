@@ -1,7 +1,9 @@
 package no.nav.aap.api.kelvin
 
+import io.micrometer.core.instrument.DistributionSummary
 import java.time.Clock
 import java.time.LocalDate
+import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
@@ -11,6 +13,10 @@ import no.nav.aap.komponenter.dbconnect.DBConnection
 class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, clock: Clock) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), clock)
+    private val antallVedtakFunnetHistogram =
+        DistributionSummary.builder("aap_api_intern_finn_nyeste_relaterte_vedtak_antall_vedtak")
+            .publishPercentileHistogram(true)
+            .register(prometheus)
 
     fun hentAlleMeldekort(
         personIdentifikator: String,
@@ -50,6 +56,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info:
         val medium = vedtakService.hentMediumFraKelvin(personIdentifikator, meldePeriode).vedtak
         val vedtak = medium.filter { it.status == "LØPENDE" }
+        antallVedtakFunnetHistogram.record(vedtak.size.toDouble())
         return vedtak.firstOrNull()
     }
 }
