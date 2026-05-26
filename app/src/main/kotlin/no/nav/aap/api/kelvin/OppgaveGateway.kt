@@ -7,8 +7,6 @@ import java.time.Duration
 import no.nav.aap.api.Metrics
 import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.intern.NåværendeEnhet
-import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.retryablePost
@@ -17,13 +15,11 @@ import no.nav.aap.oppgave.enhet.EnhetOgOversendelse
 import no.nav.aap.oppgave.enhet.OppgaveKategori
 import no.nav.aap.oppgave.enhet.PersonRequest
 
-object OppgaveGateway {
-    private val baseUrl = URI.create(requiredConfigForKey("INTEGRASJON_OPPGAVE_URL"))
-    private val config = ClientConfig(scope = requiredConfigForKey("INTEGRASJON_OPPGAVE_SCOPE"))
+class OppgaveGateway(val config: OppgaveGatewayConfig) {
 
     private val client =
         RestClient.withDefaultResponseHandler(
-            config = config,
+            config = config.config,
             tokenProvider = AzureM2MTokenProvider,
         )
 
@@ -44,7 +40,7 @@ object OppgaveGateway {
 
         val respons = requireNotNull(
             client.retryablePost<_, EnhetOgOversendelse>(
-                uri = baseUrl.resolve("/enhet/status/person"),
+                uri = config.baseUrl.resolve("/enhet/status/person"),
                 request = httpRequest,
             )
         )

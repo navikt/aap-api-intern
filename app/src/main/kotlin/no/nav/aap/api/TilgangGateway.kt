@@ -2,10 +2,6 @@ package no.nav.aap.api
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
-import java.net.URI
-import java.time.Duration
-import no.nav.aap.komponenter.config.requiredConfigForKey
-import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
 import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.retryablePost
@@ -13,14 +9,13 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureOBOTokenProvider
 import no.nav.aap.tilgang.PersonTilgangRequest
 import no.nav.aap.tilgang.TilgangResponse
+import java.time.Duration
 
-object TilgangGateway {
-    private val baseUrl = URI.create(requiredConfigForKey("INTEGRASJON_TILGANG_URL"))
-    private val config = ClientConfig(scope = requiredConfigForKey("INTEGRASJON_TILGANG_SCOPE"))
+class TilgangGateway(val config: TilgangGatewayConfig) {
 
     private val client =
         RestClient.withDefaultResponseHandler(
-            config = config,
+            config = config.config,
             tokenProvider = AzureOBOTokenProvider,
         )
 
@@ -48,12 +43,13 @@ object TilgangGateway {
                 currentToken = token,
             )
 
-            val respons = requireNotNull(
-                client.retryablePost<_, TilgangResponse>(
-                    uri = baseUrl.resolve("/tilgang/person"),
-                    request = httpRequest,
-                )
+
+        val respons = requireNotNull(
+            client.retryablePost<_, TilgangResponse>(
+                uri = config.baseUrl.resolve("/tilgang/person"),
+                request = httpRequest,
             )
+        )
 
         respons.tilgang
     }

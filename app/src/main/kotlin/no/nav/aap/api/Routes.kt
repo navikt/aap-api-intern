@@ -19,6 +19,7 @@ import no.nav.aap.api.intern.*
 import no.nav.aap.api.kelvin.AktivitetsfaseService
 import no.nav.aap.api.kelvin.KelvinSakService
 import no.nav.aap.api.kelvin.MeldekortService
+import no.nav.aap.api.kelvin.OppgaveGatewayConfig
 import no.nav.aap.api.kelvin.VedtakService
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
@@ -92,6 +93,8 @@ fun NormalOpenAPIRoute.api(
     dataSource: DataSource,
     arenaService: ArenaService,
     pdlGateway: IPdlGateway,
+    tilgangGateway: TilgangGateway,
+    oppgaveGatewayConfig: OppgaveGatewayConfig,
     clock: Clock = Clock.systemDefaultZone(),
 ) {
 
@@ -102,7 +105,7 @@ fun NormalOpenAPIRoute.api(
             ) { callIdHeader, requestBody ->
                 val callId = receiveCall(callIdHeader, pipeline)
 
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val vedtakRequest = requestBody.tilKontrakt()
 
@@ -139,7 +142,7 @@ fun NormalOpenAPIRoute.api(
             ) { callIdHeader, requestBody ->
                 val callId = receiveCall(callIdHeader, pipeline)
 
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val vedtakRequest = requestBody.tilKontrakt()
                 val aktfaseKelvin = dataSource.transaction { connection ->
                     val aktivitetsfaseService = AktivitetsfaseService(connection)
@@ -163,11 +166,9 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Henter meldekort perioder for en person innen gitte datointerval")
             ) { _, requestBody ->
                 Metrics.httpRequestTeller(pipeline.call)
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
-                val konsument = pipeline.call.principal<JWTPrincipal>()?.let {
-                    it.payload.claims["azp_name"]?.asString()
-                } ?: ""
-                logger.info("Kaller /perioder/meldekort. Konsument: $konsument")
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+
+
                 val perioder = dataSource.transaction { connection ->
                     val meldekortPerioderRepository = MeldekortPerioderRepository(connection)
                     meldekortPerioderRepository.hentMeldekortPerioder(requestBody.personidentifikator)
@@ -196,7 +197,7 @@ fun NormalOpenAPIRoute.api(
         ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
             val personIdentifikator = requestBody.personidentifikator
-            sjekkTilgangTilPerson(personIdentifikator, token())
+            tilgangGateway.sjekkTilgangTilPerson(personIdentifikator, token())
 
             val meldekortListe = dataSource.transaction { connection ->
                 val meldekortService = MeldekortService(connection, pdlGateway, clock)
@@ -245,17 +246,15 @@ fun NormalOpenAPIRoute.api(
             * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
             * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
             */
-            sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
+            tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
             Metrics.antallIdenter("/sakerByFnr", requestBody.personidentifikatorer.size)
-            if (!token().isClientCredentials()) {
-                logger.info("Token er client credentials, sjekker ikke tilgang.")
-            }
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
             val kelvinSaker: List<SakStatus> =
                 dataSource.transaction { connection ->
                     val kelvinSakService = KelvinSakService(
                         SakStatusRepository(connection),
+                        oppgaveGatewayConfig,
                         BehandlingsRepository(connection)
                     )
 
@@ -291,6 +290,7 @@ fun NormalOpenAPIRoute.api(
                 dataSource.transaction { connection ->
                     val kelvinSakService = KelvinSakService(
                         SakStatusRepository(connection),
+                        oppgaveGatewayConfig,
                         BehandlingsRepository(connection)
                     )
 
@@ -314,15 +314,18 @@ fun NormalOpenAPIRoute.api(
             * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
             * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
             */
-            sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
+            tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
             Metrics.antallIdenter("/kelvin/sakerByFnr", requestBody.personidentifikatorer.size)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
             val kelvinSaker: List<SakStatus.Kelvin> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
-                    val kelvinSakService =
-                        KelvinSakService(sakStatusRepository, BehandlingsRepository(connection))
+                    val kelvinSakService = KelvinSakService(
+                        sakStatusRepository,
+                        oppgaveGatewayConfig,
+                        BehandlingsRepository(connection)
+                    )
 
                     kelvinSakService.hentSakStatus(personIdenter)
                 }
@@ -382,7 +385,7 @@ fun NormalOpenAPIRoute.api(
             ) { callIdHeader, requestBody ->
                 logger.info("Henter saker for person fra Arena (v1)")
                 val callId = receiveCall(callIdHeader, pipeline)
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val saker = arenaService.hentSakerForPerson(callId, requestBody.personidentifikator)
                 respond(saker)
             }
@@ -401,7 +404,7 @@ fun NormalOpenAPIRoute.api(
             ) { callIdHeader, requestBody ->
                 val callId = receiveCall(callIdHeader, pipeline)
                 val body = requestBody.tilKontrakt()
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -434,7 +437,7 @@ fun NormalOpenAPIRoute.api(
                 val callId = receiveCall(callIdHeader, pipeline)
 
                 val body = requestBody.tilKontrakt()
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
@@ -466,7 +469,7 @@ fun NormalOpenAPIRoute.api(
                 logger.info("Henter maksimum uten utbetalinger fra kelvin")
                 Metrics.httpRequestTeller(pipeline.call)
 
-                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+                tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val request = requestBody.tilKontrakt()
 
@@ -522,7 +525,7 @@ fun NormalOpenAPIRoute.api(
             ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
 
-            sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+            tilgangGateway.sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
             val request = requestBody.tilKontrakt()
 
@@ -531,7 +534,8 @@ fun NormalOpenAPIRoute.api(
 
                 val sakstatus = KelvinSakService(
                     SakStatusRepository(connection),
-                    BehandlingsRepository(connection)
+                    oppgaveGatewayConfig,
+                    behandlingsRepository
                 ).hentSakStatus(listOf(requestBody.personidentifikator)).firstOrNull()
 
                 Pair(
@@ -573,7 +577,7 @@ fun NormalOpenAPIRoute.api(
 
     tag(Tag.DSOP) {
         route("/kelvin/dsop") {
-            dsopRoutes(dataSource, pdlGateway, clock)
+            dsopRoutes(dataSource, tilgangGateway, pdlGateway, clock)
         }
     }
 }
@@ -604,10 +608,10 @@ private fun tellKildesystem(
     }
 }
 
-fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
+internal fun TilgangGateway.sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
     if (!token.isClientCredentials()) {
         Metrics.tokentype("obo")
-        val tilgang = TilgangGateway.harTilgangTilPerson(personIdent, token)
+        val tilgang = this.harTilgangTilPerson(personIdent, token)
         if (!tilgang) {
             throw IngenTilgangException("Har ikke tilgang til person")
         }

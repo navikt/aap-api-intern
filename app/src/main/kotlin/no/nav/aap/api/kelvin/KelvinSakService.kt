@@ -10,6 +10,7 @@ import java.time.LocalDate
 
 class KelvinSakService(
     private val sakStatusRepository: SakStatusRepository,
+    private val oppgaveGatewayConfig: OppgaveGatewayConfig,
     private val behandlingsRepository: BehandlingsRepository
 ) {
 
@@ -19,7 +20,7 @@ class KelvinSakService(
     fun hentSakStatus(identer: List<String>): List<SakStatus.Kelvin> {
 
         return identer.flatMap { ident ->
-            val (enhetinfo, saksnummer) = OppgaveGateway.hentEnhetForPerson(ident)
+            val (enhetinfo, saksnummer) = OppgaveGateway(oppgaveGatewayConfig).hentEnhetForPerson(ident)
 
             val nyesteBehandling = behandlingsRepository.hentVedtaksData(
                 ident,

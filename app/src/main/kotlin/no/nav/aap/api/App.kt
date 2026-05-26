@@ -4,23 +4,13 @@ import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopPreparing
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.ApplicationStopping
-import io.ktor.server.application.install
-import io.ktor.server.application.log
-import io.ktor.server.auth.authenticate
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.routing.routing
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import java.time.Clock
-import javax.sql.DataSource
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.aap.api.actuator.actuator
@@ -32,6 +22,7 @@ import no.nav.aap.api.kafka.aapHendelseProducerHolder
 import no.nav.aap.api.kafka.KafkaProducer
 import no.nav.aap.api.kafka.ModiaKafkaProducer
 import no.nav.aap.api.kafka.modiaProducerHolder
+import no.nav.aap.api.kelvin.OppgaveGatewayConfig
 import no.nav.aap.api.kelvin.dataInsertion
 import no.nav.aap.api.motor.ProsesseringsJobber
 import no.nav.aap.api.pdl.IPdlGateway
@@ -49,13 +40,20 @@ import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.LoggerFactory
-import kotlin.time.Duration.Companion.seconds
+import java.time.Clock
+import javax.sql.DataSource
+import kotlin.time.Duration.Companion.minutes
 
 private val logger = LoggerFactory.getLogger("App")
 
 
 fun main() {
-    Thread.currentThread().setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.javaClass}", e) }
+    Thread.currentThread().setUncaughtExceptionHandler { _, e ->
+        logger.error(
+            "Uhåndtert feil. Type: ${e.javaClass}",
+            e
+        )
+    }
 
     embeddedServer(Netty, configure = {
         // Vi følger ktor sin metodikk for å regne ut tuning parametre som funksjon av parallellitet
@@ -79,6 +77,8 @@ fun Application.api(
     datasource: DataSource = initDatasource(config.dbConfig, prometheus),
     arenaService: ArenaService = opprettArenaService(config),
     pdlGateway: IPdlGateway = PdlGateway(),
+    tilgangGateway: TilgangGateway = TilgangGateway(TilgangGatewayConfig()),
+    oppgaveGatewayConfig: OppgaveGatewayConfig = OppgaveGatewayConfig(),
     clock: Clock = Clock.systemDefaultZone(),
     aapHendelseProducer: AapHendelseProducer = AapHendelseKafkaProducer(config.kafka, config.aapHendelse, AppConfig.shutdownGracePeriod),
     modiaProducer: KafkaProducer = ModiaKafkaProducer(config.kafka, config.modia, AppConfig.shutdownGracePeriod),
@@ -109,7 +109,14 @@ fun Application.api(
     routing {
         authenticate(IdentityProvider.ENTRA_ID.value) {
             apiRouting {
-                api(datasource, arenaService, pdlGateway, clock)
+                api(
+                    datasource,
+                    arenaService,
+                    pdlGateway,
+                    tilgangGateway,
+                    oppgaveGatewayConfig,
+                    clock
+                )
                 dataInsertion(datasource)
                 motorApi(datasource)
             }
