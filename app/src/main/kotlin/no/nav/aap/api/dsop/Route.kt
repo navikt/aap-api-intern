@@ -13,6 +13,7 @@ import no.nav.aap.api.intern.DsopMeldekortRespons
 import no.nav.aap.api.intern.DsopRequest
 import no.nav.aap.api.intern.DsopResponse
 import no.nav.aap.api.pdl.IPdlGateway
+import no.nav.aap.api.TilgangGateway
 import no.nav.aap.api.sjekkTilgangTilPerson
 import no.nav.aap.api.somDTO
 import no.nav.aap.komponenter.dbconnect.transaction
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory
 
 fun NormalOpenAPIRoute.dsopRoutes(
     dataSource: DataSource,
+    tilgangGateway: TilgangGateway,
     pdlGateway: IPdlGateway,
     clock: Clock = Clock.systemDefaultZone(),
 ) {
@@ -38,7 +40,7 @@ fun NormalOpenAPIRoute.dsopRoutes(
         Metrics.httpRequestTeller(pipeline.call)
         val uttrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
-        sjekkTilgangTilPerson(requestBody.personIdent, token())
+        tilgangGateway.sjekkTilgangTilPerson(requestBody.personIdent, token())
 
         val kelvinVedtak = dataSource.transaction { connection ->
             val dsopService = DsopService(connection, pdlGateway, clock)
@@ -66,7 +68,7 @@ fun NormalOpenAPIRoute.dsopRoutes(
         Metrics.httpRequestTeller(pipeline.call)
         val uttrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
-        sjekkTilgangTilPerson(requestBody.personIdent, token())
+        tilgangGateway.sjekkTilgangTilPerson(requestBody.personIdent, token())
 
         val kelvinVedtak = dataSource.transaction { connection ->
             val dsopService = DsopService(connection, pdlGateway, clock)
@@ -88,7 +90,7 @@ fun NormalOpenAPIRoute.dsopRoutes(
         Metrics.httpRequestTeller(pipeline.call)
         val uttrekksperiode = Periode(requestBody.fomDato, requestBody.tomDato)
 
-        sjekkTilgangTilPerson(requestBody.personIdent, token())
+        tilgangGateway.sjekkTilgangTilPerson(requestBody.personIdent, token())
 
         val meldekortListe = dataSource.transaction { connection ->
             val dsopService = DsopService(connection, pdlGateway, clock)
