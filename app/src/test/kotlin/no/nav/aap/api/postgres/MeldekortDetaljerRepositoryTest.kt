@@ -32,8 +32,6 @@ class MeldekortDetaljerRepositoryTest {
             saksnummer = "asd123",
             mottattTidspunkt = LocalDateTime.now(),
             behandlingId = 1234,
-            meldepliktStatusKode = null,
-            rettighetsTypeKode = null,
             meldePeriode = Periode(
                 LocalDate.of(2025, 4, 14),
                 LocalDate.of(2025, 4, 23)
@@ -78,8 +76,6 @@ class MeldekortDetaljerRepositoryTest {
             saksnummer = "sak-1",
             mottattTidspunkt = LocalDateTime.now().minusDays(1),
             behandlingId = 10,
-            meldepliktStatusKode = null,
-            rettighetsTypeKode = null,
             meldePeriode = Periode(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 1, 14)),
             arbeidPerDag = listOf(
                 Meldekort.MeldeDag(LocalDate.of(2025, 1, 2), 1.toBigDecimal())

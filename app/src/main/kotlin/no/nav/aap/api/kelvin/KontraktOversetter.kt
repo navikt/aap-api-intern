@@ -114,7 +114,5 @@ fun DetaljertMeldekortDTO.tilDomene(): Meldekort {
         mottattTidspunkt = this.mottattTidspunkt,
         meldePeriode = Periode(this.meldeperiodeFom, this.meldeperiodeTom),
         arbeidPerDag = this.timerArbeidPerPeriode.map { it.tilDomene() },
-        meldepliktStatusKode = this.meldepliktStatusKode,
-        rettighetsTypeKode = this.rettighetsTypeKode,
     )
 }
