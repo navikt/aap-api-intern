@@ -259,7 +259,7 @@ class DsopServiceTest {
                         vedtakStatus = DsopStatusDTO.LØPENDE,
                         virkningsperiode = PeriodeNullableTomDTO(vedtaksperiode.tom.plusDays(1), null),
                         utfall = Utfall.JA,
-                        aktivitetsfase = null,
+                        aktivitetsfase = DsopRettighetsTypeDTO.BISTANDSBEHOV,
                         vedtaksType = DsopVedtaksTypeDTO.S,
                         vedtaksvariant = DsopVedtaksvariantDTO.S_STANS,
                     ),

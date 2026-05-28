@@ -43,7 +43,7 @@ public data class DsopVedtakDTO(
      * Utfall er altså IKKE om det er et positivt vedtak for bruker eller om bruker får rett.
      * */
     val utfall: Utfall,
-    val aktivitetsfase: DsopRettighetsTypeDTO?,
+    val aktivitetsfase: DsopRettighetsTypeDTO,
     val vedtaksType: DsopVedtaksTypeDTO,
     val vedtaksvariant: DsopVedtaksvariantDTO?,
 ) {
