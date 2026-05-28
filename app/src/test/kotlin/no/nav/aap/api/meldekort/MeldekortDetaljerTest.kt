@@ -48,9 +48,6 @@ class MeldekortDetaljerTest : PostgresTestBase() {
                     2.5.toBigDecimal()
                 )
             ),
-            meldepliktStatusKode = null,
-            rettighetsTypeKode = null,
-            avslagsårsakKode = null,
         )
 
         private val fakes = Fakes()
