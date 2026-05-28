@@ -80,7 +80,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
                 INSERT INTO MELDEKORT(
                    PERSON_IDENT, MOTTATT_TIDSPUNKT, SAKSNUMMER, BEHANDLING_ID, 
                    PERIODE, MELDEPLIKTSTATUSKODE, RETTIGHETSTYPEKODE) 
-                   VALUES (?, ?, ?, ?, ?::daterange, ?, ?)
+                   VALUES (?, ?, ?, ?, ?::daterange, null, null)
                 """.trimIndent()
         ) {
             setParams {
@@ -89,8 +89,6 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
                 setString(3, meldekort.saksnummer)
                 setLong(4, meldekort.behandlingId)
                 setPeriode(5, meldekort.meldePeriode)
-                setString(6, meldekort.meldepliktStatusKode)
-                setString(7, meldekort.rettighetsTypeKode)
             }
         }
     }
@@ -151,8 +149,6 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
             mottattTidspunkt = row.getLocalDateTime("MOTTATT_TIDSPUNKT"),
             meldePeriode = row.getPeriode("PERIODE"), // midlertidig, overskrives under mapping
             arbeidPerDag = hentArbeidPerDag(row.getLong("ID")), // midlertidig, overskrives under mapping
-            meldepliktStatusKode = row.getStringOrNull("MELDEPLIKTSTATUSKODE"),
-            rettighetsTypeKode = row.getStringOrNull("RETTIGHETSTYPEKODE"),
         )
     }
 
