@@ -32,7 +32,7 @@ class Fakes : AutoCloseable {
     val oppgave = embeddedServer(Netty, port = 0, module = Application::oppgaveFake).start()
     val kafka = KafkaFake()
     val aapHendelse = AapHendelseKafkaFake()
-    val arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway())
+    val arenaService = ArenaService(FakeArenaGateway())
 
     override fun close() {
         texas.stop(0L, 0L)

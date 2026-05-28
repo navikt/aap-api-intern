@@ -44,12 +44,10 @@ import no.nav.aap.komponenter.dbmigrering.Migrering
 import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
-import no.nav.aap.motor.Motor.Companion.invoke
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.LoggerFactory
-import kotlin.time.Duration.Companion.seconds
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -173,14 +171,7 @@ fun Application.module(dataSource: DataSource): Motor {
 
 private fun opprettArenaService(config: AppConfig): ArenaService {
     val arenaRestGateway = ArenaoppslagGateway(config.arenaoppslag)
-    val arenaHistorikkGateway = ArenaoppslagGateway(
-        arenaoppslagConfig = config.arenaoppslag,
-        // Vi øker timeouts fordi disse db-queries er tunge
-        timeoutMillis = 2.minutes.inWholeMilliseconds,
-        slowRequestMillis = 1.minutes.inWholeMilliseconds,
-        cacheName = "arenaoppslag_historikk_maksimum_cache",
-    )
 
-    return ArenaService(arenaRestGateway, arenaHistorikkGateway)
+    return ArenaService(arenaRestGateway)
 }
 

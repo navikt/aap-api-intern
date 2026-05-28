@@ -31,7 +31,7 @@ fun main() {
             prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
             config = config,
             datasource = dataSource,
-            arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway()),
+            arenaService = ArenaService(FakeArenaGateway()),
             pdlGateway = PdlGatewayEmpty(),
             modiaProducer = fakes.kafka,
             aapHendelseProducer = fakes.aapHendelse,
