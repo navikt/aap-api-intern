@@ -17,3 +17,6 @@ spec:
     - application: dp-andre-ytelser
       team: teamdagpenger
       access: read
+    - application: arena-hendelse-proxy
+      team: aap
+      access: readwrite

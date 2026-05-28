@@ -54,9 +54,8 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
     ): VedtakUtenUtbetaling? {
         val meldePeriode = meldekort.meldePeriode
         // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info:
-        val medium = vedtakService.hentMediumFraKelvin(personIdentifikator, meldePeriode).vedtak
-        val vedtak = medium.filter { it.status == "LØPENDE" }
+        val vedtak = vedtakService.hentMediumFraKelvin(personIdentifikator, meldePeriode).vedtak
         antallVedtakFunnetHistogram.record(vedtak.size.toDouble())
-        return vedtak.firstOrNull()
+        return vedtak.lastOrNull()
     }
 }
