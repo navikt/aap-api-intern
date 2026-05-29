@@ -79,8 +79,8 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
             """
                 INSERT INTO MELDEKORT(
                    PERSON_IDENT, MOTTATT_TIDSPUNKT, SAKSNUMMER, BEHANDLING_ID, 
-                   PERIODE, MELDEPLIKTSTATUSKODE, RETTIGHETSTYPEKODE) 
-                   VALUES (?, ?, ?, ?, ?::daterange, null, null)
+                   PERIODE) 
+                   VALUES (?, ?, ?, ?, ?::daterange)
                 """.trimIndent()
         ) {
             setParams {
