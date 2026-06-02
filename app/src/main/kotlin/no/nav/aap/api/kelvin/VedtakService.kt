@@ -17,6 +17,7 @@ import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
 import no.nav.aap.komponenter.tidslinje.orEmpty
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.komponenter.verdityper.Tid
 
 class VedtakService(
     private val behandlingsRepository: BehandlingsRepository,
@@ -87,7 +88,7 @@ class VedtakService(
                             vedtaksTypeNavn = null,
                             utbetaling = tilkjentYtelseTidslinje.begrensetTil(
                                 Periode(
-                                    interval.fom,
+                                    Tid.MIN,
                                     LocalDate.now(clock)
                                 )
                             ).komprimer().segmenter().map { utbetaling ->
