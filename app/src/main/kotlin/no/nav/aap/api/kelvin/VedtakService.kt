@@ -85,11 +85,12 @@ class VedtakService(
                                 ?: 0,
                             vedtaksTypeKode = vedtaksTypeKode,
                             vedtaksTypeNavn = null,
-                            utbetaling = tilkjentYtelseTidslinje.filter {
-                                it.periode.tom.isBefore(LocalDate.now(clock)) || it.periode.tom.isEqual(
+                            utbetaling = tilkjentYtelseTidslinje.begrensetTil(
+                                Periode(
+                                    interval.fom,
                                     LocalDate.now(clock)
                                 )
-                            }.komprimer().segmenter().map { utbetaling ->
+                            ).komprimer().segmenter().map { utbetaling ->
                                 UtbetalingMedMer(
                                     reduksjon = null,
                                     utbetalingsgrad = utbetaling.verdi.gradering,
