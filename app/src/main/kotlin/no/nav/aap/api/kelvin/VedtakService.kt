@@ -15,9 +15,9 @@ import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
+import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.tidslinje.orEmpty
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.komponenter.verdityper.Tid
 
 class VedtakService(
     private val behandlingsRepository: BehandlingsRepository,
@@ -86,9 +86,11 @@ class VedtakService(
                                 ?: 0,
                             vedtaksTypeKode = vedtaksTypeKode,
                             vedtaksTypeNavn = null,
-                            utbetaling = tilkjentYtelseTidslinje.begrensetTil(
+                            utbetaling = if (LocalDate.now(clock)
+                                    .isBefore(periode.fom)
+                            ) emptyList() else tilkjentYtelseTidslinje.begrensetTil(
                                 Periode(
-                                    Tid.MIN,
+                                    periode.fom,
                                     LocalDate.now(clock)
                                 )
                             ).komprimer().segmenter().map { utbetaling ->

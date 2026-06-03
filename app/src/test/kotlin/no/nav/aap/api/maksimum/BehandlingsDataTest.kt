@@ -500,6 +500,12 @@ class BehandlingsDataTest : PostgresTestBase() {
             javaClass.getResource("/forstegangsvedtak_fra_behandlingsflyt.json")!!.readText()
         val testData = DefaultJsonMapper.fromJson<DatadelingDTO>(testfil)
 
+        val clock = Clock.fixed(
+            Instant.from(
+                LocalDate.of(2025, 12, 13).atStartOfDay().toInstant(ZoneOffset.UTC)
+            ),
+            ZoneId.of("UTC")
+        )
         testApplication {
             application {
                 api(
@@ -509,12 +515,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     modiaProducer = fakes.kafka,
                     aapHendelseProducer = fakes.aapHendelse,
                     // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
-                    clock = Clock.fixed(
-                        Instant.from(
-                            LocalDate.of(2025, 12, 13).atStartOfDay().toInstant(ZoneOffset.UTC)
-                        ),
-                        ZoneId.of("UTC")
-                    )
+                    clock = clock
                 )
             }
 
@@ -530,8 +531,8 @@ class BehandlingsDataTest : PostgresTestBase() {
                 setBody(
                     InternVedtakRequest(
                         "01410026747",
-                        LocalDate.now().minusYears(0),
-                        LocalDate.now().plusMonths(1)
+                        LocalDate.now(clock).minusYears(0),
+                        LocalDate.now(clock).plusMonths(1)
                     )
                 )
             }
