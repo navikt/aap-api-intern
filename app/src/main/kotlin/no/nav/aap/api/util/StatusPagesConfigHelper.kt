@@ -21,12 +21,12 @@ object StatusPagesConfigHelper {
             when (cause) {
                 is UhåndtertHttpResponsException -> {
                     if (cause.message?.contains("408") == true) {
-                        logger.info("Timeout ved kall til '$uri': ", cause)
+                        logger.info("Timeout ved kall til '$uri'")
                         call.respond(HttpStatusCode.RequestTimeout)
                     } else {
-                        logger.error("Uhåndtert feil ved kall til '$uri'. ", cause)
+                        logger.error("Uhåndtert feil ved HTTP-kall til '$uri'", cause)
                         call.respondText(
-                            "Ukjent feil i tjeneste: ${cause.message}",
+                            text = "En feil oppstod under behandling av forespørselen",
                             status = HttpStatusCode.InternalServerError
                         )
                     }
@@ -39,32 +39,36 @@ object StatusPagesConfigHelper {
 
                 is JsonMappingException,
                 is DeserializationException -> {
-                    logger.warn("Feil ved deserialisering av request til '$uri'. ", cause)
+                    logger.warn("Feil ved deserialisering av request til '$uri'", cause)
                     call.respondText(
-                        text = "Feil i mottatte data: ${cause.message}",
+                        text = "Forespørselen inneholder ugyldige data",
                         status = HttpStatusCode.BadRequest
                     )
                 }
 
                 is IllegalArgumentException -> {
-                    logger.warn("Valideringsfeil ved kall til '$uri'. ", cause)
+                    logger.warn("Valideringsfeil ved kall til '$uri'", cause)
                     call.respondText(
-                        "Valideringsfeil. ${cause.message}", status = HttpStatusCode.BadRequest
+                        text = "Forespørselen inneholder ugyldige verdier",
+                        status = HttpStatusCode.BadRequest
                     )
                 }
 
                 is CallNotPermittedException -> {
-                    logger.error("Circuit-breaker åpen ved kall til '$uri'. ", cause)
+                    logger.error("Circuit-breaker åpen ved kall til '$uri'", cause)
                     call.respondText(
-                        text = "Feil i upstream-tjeneste: ${cause.message}",
+                        text = "Tjenesten er midlertidig utilgjengelig",
                         status = HttpStatusCode.ServiceUnavailable
                     )
                 }
 
                 else -> {
-                    logger.error("Uhåndtert feil ved kall til '$uri' av type ${cause.javaClass}", cause)
+                    logger.error(
+                        "Uhåndtert feil ved kall til '$uri' av type ${cause.javaClass.simpleName}",
+                        cause
+                    )
                     call.respondText(
-                        text = "Feil i tjeneste: ${cause.message}",
+                        text = "En feil oppstod under behandling av forespørselen",
                         status = HttpStatusCode.InternalServerError
                     )
                 }
