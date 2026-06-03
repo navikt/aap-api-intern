@@ -26,7 +26,6 @@ import no.nav.aap.api.postgres.MeldekortPerioderRepository
 import no.nav.aap.api.postgres.SakStatusRepository
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -341,41 +340,6 @@ fun NormalOpenAPIRoute.api(
         }
     }
     tag(Tag.ArenaHistorikk) {
-        route("/arena/person/aap/eksisterer") {
-            post<CallIdHeader, PersonEksistererIAAPArena, SakerRequest>(
-                info(description = "Sjekker om en person eksisterer i Arena (AAP).")
-            ) { callIdHeader, requestBody ->
-                logger.info("Sjekker om person eksisterer i aap-arena")
-                val callId = receiveCall(callIdHeader, pipeline)
-
-                pipeline.call.response.headers.append(
-                    HttpHeaders.ContentType,
-                    ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
-                )
-                val eksistererIAAPArena =
-                    arenaService.eksistererIAapArena(callId, requestBody.personidentifikatorer)
-                respond(eksistererIAAPArena)
-            }
-        }
-        route("/arena/person/aap/signifikant-historikk") {
-            post<CallIdHeader, SignifikanteSakerResponse, SignifikanteSakerRequest>(
-                info(description = "Sjekker om en person kan behandles i Kelvin mtp. AAP-Arena-historikken deres.")
-            ) { callIdHeader, requestBody ->
-                logger.info("Sjekker om personen kan behandles i Kelvin")
-                val callId = receiveCall(callIdHeader, pipeline)
-                pipeline.call.response.headers.append(
-                    HttpHeaders.ContentType,
-                    ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
-                )
-
-                val harSignifikantAAPArenaHistorikk = arenaService.harSignifikantAAPArenaHistorikk(
-                    callId,
-                    requestBody.personidentifikatorer,
-                    requestBody.virkningstidspunkt
-                )
-                respond(harSignifikantAAPArenaHistorikk)
-            }
-        }
         route("/arena/person/saker") {
             post<CallIdHeader, ArenaSakerResponse, ArenaSakerRequest>(
                 info(description = "Henter saker for en person fra Arena via ny v1-kontrakt.")

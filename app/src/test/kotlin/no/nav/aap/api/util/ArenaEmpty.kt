@@ -6,11 +6,8 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakOppsummeringKontrakt
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import java.time.LocalDate
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
@@ -24,19 +21,6 @@ class FakeArenaGateway : IArenaoppslagGateway {
         callId: String, req: InternVedtakRequest
     ): PerioderMed11_17Response {
         return PerioderMed11_17Response(emptyList())
-    }
-
-    override suspend fun hentPersonEksistererIAapContext(
-        callId: String, req: SakerRequest
-    ): PersonEksistererIAAPArena {
-        return PersonEksistererIAAPArena(false)
-    }
-
-    override suspend fun hentPersonHarSignifikantHistorikk(
-        callId: String,
-        req: SignifikanteSakerRequest
-    ): SignifikanteSakerResponse {
-        return SignifikanteSakerResponse(false, emptyList())
     }
 
     override suspend fun hentSakerByFnr(
@@ -71,7 +55,6 @@ class FakeArenaGateway : IArenaoppslagGateway {
             else -> error("Ukjent personidentifikator i FakeArenaGateway: ${req.personidentifikator}")
         }
     }
-
 
     override suspend fun hentMaksimum(
         callId: String, req: InternVedtakRequest

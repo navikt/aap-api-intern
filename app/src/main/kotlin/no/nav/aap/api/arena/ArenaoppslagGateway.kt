@@ -28,11 +28,8 @@ import no.nav.aap.api.util.findRootCause
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -71,12 +68,6 @@ class ArenaoppslagGateway(
         .expireAfterWrite(Duration.ofMinutes(15))
         .recordStats()
         .build<String, Maksimum>()
-
-    private val personEksistererCache = Caffeine.newBuilder()
-        .maximumSize(10_000)
-        .expireAfterWrite(Duration.ofMinutes(15))
-        .recordStats()
-        .build<String, PersonEksistererIAAPArena>()
 
     init {
         CaffeineCacheMetrics.monitor(prometheus, maksimumCache, cacheName)
@@ -123,25 +114,6 @@ class ArenaoppslagGateway(
                 .getOrThrow()
                 .also { maksimumCache.put(key, it) }
     }
-
-    override suspend fun hentPersonEksistererIAapContext(
-        callId: String, req: SakerRequest,
-    ): PersonEksistererIAAPArena {
-        val key = req.toString()
-        return personEksistererCache.getIfPresent(key)
-            ?: gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
-                "/api/v1/person/eksisterer", callId, req
-            ).getOrThrow()
-                .also { personEksistererCache.put(key, it) }
-    }
-
-    override suspend fun hentPersonHarSignifikantHistorikk(
-        callId: String,
-        req: SignifikanteSakerRequest,
-    ): SignifikanteSakerResponse =
-        gjørArenaOppslag<SignifikanteSakerResponse, SignifikanteSakerRequest>(
-            "/api/v1/person/signifikant-historikk", callId, req
-        ).getOrThrow()
 
     private suspend inline fun <reified T, reified V> gjørArenaOppslag(
         endepunkt: String, callId: String, req: V, tillattMed404: Boolean = false

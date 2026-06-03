@@ -3,10 +3,7 @@ package no.nav.aap.api.arena
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
@@ -17,16 +14,6 @@ interface IArenaoppslagGateway {
         callId: String,
         req: InternVedtakRequest
     ): PerioderMed11_17Response
-
-    suspend fun hentPersonEksistererIAapContext(
-        callId: String,
-        req: SakerRequest
-    ): PersonEksistererIAAPArena
-
-    suspend fun hentPersonHarSignifikantHistorikk(
-        callId: String,
-        req: SignifikanteSakerRequest
-    ): SignifikanteSakerResponse
 
     suspend fun hentSakerByFnr(
         callId: String,
