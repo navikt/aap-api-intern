@@ -1,23 +1,17 @@
 package no.nav.aap.api.kelvin
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
-import java.math.BigDecimal
-import java.time.Clock
-import java.time.DayOfWeek
-import java.time.LocalDate
-import no.nav.aap.api.intern.Kilde
-import no.nav.aap.api.intern.Maksimum
-import no.nav.aap.api.intern.Medium
-import no.nav.aap.api.intern.UtbetalingMedMer
-import no.nav.aap.api.intern.Vedtak
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.api.intern.*
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.tidslinje.JoinStyle
 import no.nav.aap.komponenter.tidslinje.Segment
-import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.tidslinje.orEmpty
 import no.nav.aap.komponenter.type.Periode
+import java.math.BigDecimal
+import java.time.Clock
+import java.time.DayOfWeek
+import java.time.LocalDate
 
 class VedtakService(
     private val behandlingsRepository: BehandlingsRepository,
@@ -66,7 +60,7 @@ class VedtakService(
                         vedtakUtenUtbetalingUtenPeriode.arenavedtak?.vedtaksvariant?.typeKode
                             ?: if (behandling.nyttVedtak) "O" else "E"
                     val tilkjentYtelseTidslinje = right?.verdi.orEmpty()
-                    Segment(
+                    val segment = Segment(
                         periode,
                         Vedtak(
                             vedtakId = vedtakUtenUtbetalingUtenPeriode.vedtakId,
@@ -86,36 +80,37 @@ class VedtakService(
                                 ?: 0,
                             vedtaksTypeKode = vedtaksTypeKode,
                             vedtaksTypeNavn = null,
-                            utbetaling = if (LocalDate.now(clock)
-                                    .isBefore(periode.fom)
-                            ) emptyList() else tilkjentYtelseTidslinje.begrensetTil(
-                                Periode(
-                                    periode.fom,
-                                    LocalDate.now(clock)
-                                )
-                            ).komprimer().segmenter().map { utbetaling ->
-                                UtbetalingMedMer(
-                                    reduksjon = null,
-                                    utbetalingsgrad = utbetaling.verdi.gradering,
-                                    periode = no.nav.aap.api.intern.Periode(
-                                        utbetaling.periode.fom,
-                                        utbetaling.periode.tom
-                                    ),
-                                    // TODO: bør hente korrekt beløp på samme måte som i behandlingsflyt
-                                    belop = ((utbetaling.verdi.dagsats + utbetaling.verdi.barnetillegg.toInt()) * utbetaling.verdi.gradering) / 100 * weekdaysBetween(
-                                        utbetaling.periode.fom,
-                                        utbetaling.periode.tom
-                                    ),
-                                    dagsats = utbetaling.verdi.dagsats * utbetaling.verdi.gradering / 100,
-                                    barnetillegg = utbetaling.verdi.gradertBarnetillegg()
-                                        .toInt()
-                                )
-                            },
+                            utbetaling = tilkjentYtelseTidslinje
+                                .takeUnless { LocalDate.now(clock) < periode.fom }
+                                ?.begrensetTil(Periode(periode.fom, LocalDate.now(clock)))
+                                .orEmpty()
+                                .komprimer()
+                                .segmenter()
+                                .map { utbetaling ->
+                                    UtbetalingMedMer(
+                                        reduksjon = null,
+                                        utbetalingsgrad = utbetaling.verdi.gradering,
+                                        periode = no.nav.aap.api.intern.Periode(
+                                            utbetaling.periode.fom,
+                                            utbetaling.periode.tom
+                                        ),
+                                        // TODO: bør hente korrekt beløp på samme måte som i behandlingsflyt
+                                        belop = ((utbetaling.verdi.dagsats + utbetaling.verdi.barnetillegg.toInt()) * utbetaling.verdi.gradering) / 100 * weekdaysBetween(
+                                            utbetaling.periode.fom,
+                                            utbetaling.periode.tom
+                                        ),
+                                        dagsats = utbetaling.verdi.dagsats * utbetaling.verdi.gradering / 100,
+                                        barnetillegg = utbetaling.verdi.gradertBarnetillegg()
+                                            .toInt()
+                                    )
+                                }
+                                ?: emptyList(),
                             kildesystem = vedtakUtenUtbetalingUtenPeriode.kildesystem,
                             samordningsId = vedtakUtenUtbetalingUtenPeriode.samordningsId,
                             opphorsAarsak = vedtakUtenUtbetalingUtenPeriode.opphorsAarsak
                         )
                     )
+                    segment
                 }
             ).komprimer().segmenter().map { it.verdi }
                 .filter { it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString() }
