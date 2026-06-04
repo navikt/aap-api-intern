@@ -122,7 +122,7 @@ spec:
         - application: veilarboppfolging
           namespace: poao
         - application: padm2
-          namespace: teamsykefravr # Syfo
+          namespace: teamsykefravr
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
@@ -151,6 +151,10 @@ spec:
       value: http://oppgave
     - name: INTEGRASJON_OPPGAVE_SCOPE
       value: api://prod-gcp.aap.oppgave/.default
+    - name: INTEGRASJON_DOKUMENTINNHENTING_URL
+      value: http://dokumentinnhenting
+    - name: INTEGRASJON_DOKUMENTINNHENTING_SCOPE
+      value: api://prod-gcp.aap.dokumentinnhenting/.default
     - name: MODIA_TOPIC
       value: obo.ytelser-v1
     - name: AAP_HENDELSE_TOPIC

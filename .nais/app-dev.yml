@@ -167,6 +167,10 @@ spec:
       value: http://oppgave
     - name: INTEGRASJON_OPPGAVE_SCOPE
       value: api://dev-gcp.aap.oppgave/.default
+    - name: INTEGRASJON_DOKUMENTINNHENTING_URL
+      value: http://dokumentinnhenting
+    - name: INTEGRASJON_DOKUMENTINNHENTING_SCOPE
+      value: api://dev-gcp.aap.dokumentinnhenting/.default
     - name: MODIA_TOPIC
       value: obo.ytelser-v1
     - name: AAP_HENDELSE_TOPIC
