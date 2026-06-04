@@ -43,6 +43,7 @@ class Fakes : AutoCloseable {
         oppgave.stop(0L, 0L)
         pdl.stop(0L, 0L)
         tilgang.stop(0L, 0L)
+        dokumentinnhenting.stop(0L, 0L)
         kafka.close()
         aapHendelse.close()
     }
