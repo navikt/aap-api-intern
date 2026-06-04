@@ -121,6 +121,8 @@ spec:
         - application: paw-patrol
         - application: veilarboppfolging
           namespace: poao
+        - application: padm2
+          namespace: teamsykefravr
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
@@ -129,6 +131,7 @@ spec:
         - application: behandlingsflyt
         - application: tilgang
         - application: oppgave
+        - application: dokumentinnhenting
         - application: logging
           namespace: nais-system
   env:
@@ -148,6 +151,10 @@ spec:
       value: http://oppgave
     - name: INTEGRASJON_OPPGAVE_SCOPE
       value: api://prod-gcp.aap.oppgave/.default
+    - name: INTEGRASJON_DOKUMENTINNHENTING_URL
+      value: http://dokumentinnhenting
+    - name: INTEGRASJON_DOKUMENTINNHENTING_SCOPE
+      value: api://prod-gcp.aap.dokumentinnhenting/.default
     - name: MODIA_TOPIC
       value: obo.ytelser-v1
     - name: AAP_HENDELSE_TOPIC
@@ -160,3 +167,5 @@ spec:
       value: 1626e9aa-354f-49aa-ba99-50e33f6bd908
     - name: AZP_VEILARBOPPFOLGING
       value: 997264c7-13dc-4c9e-817a-90789acb35ba
+    - name: AZP_PADM2
+      value: 5dc2db90-da0b-42a5-850c-522ea0b6160c

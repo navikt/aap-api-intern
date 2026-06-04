@@ -3,6 +3,8 @@ package no.nav.aap.api
 import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
 import com.papsign.ktor.openapigen.route.apiRouting
+import com.papsign.ktor.openapigen.route.route
+import com.papsign.ktor.openapigen.route.tag
 import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStarted
@@ -45,12 +47,11 @@ import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
-import no.nav.aap.motor.Motor.Companion.invoke
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.LoggerFactory
-import kotlin.time.Duration.Companion.seconds
+import no.nav.aap.api.kelvin.DokumentinnhentingGateway
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -127,6 +128,11 @@ fun Application.api(
     routing {
         authenticate(IdentityProvider.ENTRA_ID.value) {
             apiRouting {
+                tag(Tag.Syfo) {
+                    route("/syfo/v1") {
+                        dialogmeldingApi(DokumentinnhentingGateway())
+                    }
+                }
                 api(datasource, arenaService, pdlGateway, clock)
                 dataInsertion(datasource)
                 motorApi(datasource)
@@ -209,4 +215,3 @@ private fun opprettArenaService(config: AppConfig): ArenaService {
 
     return ArenaService(arenaRestGateway, arenaHistorikkGateway)
 }
-

@@ -1,10 +1,27 @@
 package no.nav.aap.api.dsop
 
-import no.nav.aap.api.intern.*
-import no.nav.aap.api.kelvin.*
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
+import no.nav.aap.api.intern.DsopMeldekortDTO
+import no.nav.aap.api.intern.DsopRettighetsTypeDTO
+import no.nav.aap.api.intern.DsopStatusDTO
+import no.nav.aap.api.intern.DsopTimerArbeidetPerDagDTO
+import no.nav.aap.api.intern.DsopVedtakDTO
+import no.nav.aap.api.intern.DsopVedtaksTypeDTO
+import no.nav.aap.api.intern.DsopVedtaksvariantDTO
+import no.nav.aap.api.intern.PeriodeNullableTomDTO
+import no.nav.aap.api.intern.Utfall
+import no.nav.aap.api.kelvin.Arenavedtak
+import no.nav.aap.api.kelvin.Behandling
+import no.nav.aap.api.kelvin.KelvinBehandlingStatus
+import no.nav.aap.api.kelvin.RettighetsTypePeriode
+import no.nav.aap.api.kelvin.Sak
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.somDTO
 import no.nav.aap.api.util.PdlGatewayEmpty
+import no.nav.aap.api.util.WithFakes
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
@@ -12,23 +29,22 @@ import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.tidslinje.tidslinjeOf
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
+import org.junit.jupiter.api.TestInstance
 
+@WithFakes
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DsopServiceTest {
     private lateinit var dataSource: TestDataSource
 
-    @BeforeEach
+    @BeforeAll
     fun setUp() {
         dataSource = TestDataSource()
     }
 
-    @AfterEach
+    @AfterAll
     fun tearDown() {
         dataSource.close()
     }

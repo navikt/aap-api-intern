@@ -11,39 +11,36 @@ import no.nav.aap.api.kafka.KafkaConfig
 import no.nav.aap.api.util.FakeArenaGateway
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.PdlGatewayEmpty
-import no.nav.aap.api.util.port
 import no.nav.aap.komponenter.dbtest.TestDataSource
 
 fun main() {
-    val fakes = Fakes()
+    Fakes.start()
     val dataSource = TestDataSource()
-
-    val config = byggAppConfig(fakes)
 
     println("===========================================")
     println("  TestApp kjører på http://localhost:8084")
-    println("  Fake Texas kjører på http://localhost:${fakes.texas.port()}")
-    println("  Hent token: POST http://localhost:${fakes.texas.port()}/token")
+    println("  Fake Texas kjører på http://localhost:${Fakes.getTexasPort()}")
+    println("  Hent token: POST http://localhost:${Fakes.getTexasPort()}/token")
     println("===========================================")
 
     embeddedServer(Netty, port = 8084) {
         api(
             prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
-            config = config,
+            config = byggAppConfig(),
             datasource = dataSource,
             arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway()),
             pdlGateway = PdlGatewayEmpty(),
-            modiaProducer = fakes.kafka,
-            aapHendelseProducer = fakes.aapHendelse,
+            modiaProducer = Fakes.getKafka(),
+            aapHendelseProducer = Fakes.getAapHendelse(),
         )
-        loggStoppOgRyddOpp(fakes, dataSource)
+        loggStoppOgRyddOpp(Fakes, dataSource)
     }.start(wait = true)
 }
 
-private fun byggAppConfig(fakes: Fakes): AppConfig {
+private fun byggAppConfig(): AppConfig {
     return AppConfig(
         arenaoppslag = ArenaoppslagConfig(
-            proxyBaseUrl = "http://localhost:${fakes.arena.port()}",
+            proxyBaseUrl = "http://localhost:${Fakes.getArenaPort()}",
             scope = "test"
         ),
         dbConfig = DbConfig(

@@ -24,12 +24,13 @@ import no.nav.aap.komponenter.type.Periode
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import no.nav.aap.api.util.WithFakes
 
+@WithFakes
 class MeldekortPeriodeTest : PostgresTestBase() {
 
     @Test
     fun `kan lagre ned og hente meldekortperioder`() {
-        Fakes().use { fakes ->
             val config = TestConfig.default()
             val azure = AzureTokenGen("test", "test")
 
@@ -38,9 +39,9 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                     api(
                         config = config,
                         datasource = dataSource,
-                        arenaService = fakes.arenaService,
-                        modiaProducer = fakes.kafka,
-                        aapHendelseProducer = fakes.aapHendelse,
+                        arenaService = Fakes.getArenaService(),
+                        modiaProducer = Fakes.getKafka(),
+                        aapHendelseProducer = Fakes.getAapHendelse(),
                         pdlGateway = PdlGatewayEmpty(),
                     )
                 }
@@ -92,11 +93,9 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                 assert(meldekortPerioderResObo.status.isSuccess())
             }
         }
-    }
 
     @Test
     fun `kan lagre ned og hente aktivitetfase`() {
-        Fakes().use { fakes ->
 
             val config = TestConfig.default()
             val azure = AzureTokenGen("test", "test")
@@ -106,9 +105,9 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                     api(
                         config = config,
                         datasource = dataSource,
-                        arenaService = fakes.arenaService,
-                        modiaProducer = fakes.kafka,
-                        aapHendelseProducer = fakes.aapHendelse,
+                        arenaService = Fakes.getArenaService(),
+                        modiaProducer = Fakes.getKafka(),
+                        aapHendelseProducer = Fakes.getAapHendelse(),
                         pdlGateway = PdlGatewayEmpty(),
                     )
                 }
@@ -155,7 +154,6 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                 }
                 assert(aktivitetsfaseResM2m.status.isSuccess())
             }
-        }
     }
 
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient

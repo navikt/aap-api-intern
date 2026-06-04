@@ -3,32 +3,37 @@ package no.nav.aap.api.postgres
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.random.Random
 import no.nav.aap.api.kelvin.Meldekort
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MeldekortDetaljerRepositoryTest {
     private lateinit var dataSource: TestDataSource
 
-    @BeforeEach
+    @BeforeAll
     fun setUp() {
         dataSource = TestDataSource()
     }
 
-    @AfterEach
+    @AfterAll
     fun tearDown() {
         dataSource.close()
     }
 
     @Test
     fun `lagre og hente ut`() {
+        val ident = Random.nextLong(99999999999).toString()
+
         val meldekort = Meldekort(
-            personIdent = "12345678901",
+            personIdent = ident,
             saksnummer = "asd123",
             mottattTidspunkt = LocalDateTime.now(),
             behandlingId = 1234,
@@ -55,7 +60,7 @@ class MeldekortDetaljerRepositoryTest {
 
         val res = dataSource.transaction {
             MeldekortDetaljerRepository(it).hentAlle(
-                personIdentifikatorer = listOf("12345678901"),
+                personIdentifikatorer = listOf(ident),
                 fom = LocalDate.of(2025, 1, 1),
                 tom = LocalDate.of(2025, 12, 31)
             )
@@ -71,8 +76,10 @@ class MeldekortDetaljerRepositoryTest {
 
     @Test
     fun `lagre med nyere behandlingId erstatter eldre meldekort for samme sak`() {
+        val ident = Random.nextLong(99999999999).toString()
+
         val gammeltMeldekort = Meldekort(
-            personIdent = "12345678901",
+            personIdent = ident,
             saksnummer = "sak-1",
             mottattTidspunkt = LocalDateTime.now().minusDays(1),
             behandlingId = 10,
@@ -99,7 +106,7 @@ class MeldekortDetaljerRepositoryTest {
 
         val resultater = dataSource.transaction {
             MeldekortDetaljerRepository(it).hentAlle(
-                personIdentifikatorer = listOf("12345678901"),
+                personIdentifikatorer = listOf(ident),
                 fom = LocalDate.of(2025, 1, 1),
                 tom = LocalDate.of(2025, 12, 31)
             )
