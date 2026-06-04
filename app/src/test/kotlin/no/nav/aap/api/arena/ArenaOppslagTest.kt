@@ -2,40 +2,44 @@ package no.nav.aap.api.arena
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.testing.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.testApplication
+import java.time.LocalDate
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.intern.SignifikanteSakerResponse
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
+import no.nav.aap.api.util.WithFakes
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 
-
+@WithFakes
 class ArenaOppslagTest {
     companion object {
 
-        private val fakes = Fakes()
         private val dataSource = TestDataSource()
 
         @AfterAll
         @JvmStatic
         fun afterAll() {
-            Fakes().close()
             dataSource.close()
         }
     }
@@ -49,9 +53,9 @@ class ArenaOppslagTest {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    aapHendelseProducer = fakes.aapHendelse,
+                    arenaService = Fakes.getArenaService(),
+                    modiaProducer = Fakes.getKafka(),
+                    aapHendelseProducer = Fakes.getAapHendelse(),
                 )
             }
             testBlock(token)

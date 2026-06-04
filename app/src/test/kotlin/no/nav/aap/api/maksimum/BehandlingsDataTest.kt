@@ -32,14 +32,14 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.*
 import java.util.*
 import kotlin.test.assertEquals
+import no.nav.aap.api.util.WithFakes
 
-
+@WithFakes
 class BehandlingsDataTest : PostgresTestBase() {
     companion object {
 
@@ -114,14 +114,6 @@ class BehandlingsDataTest : PostgresTestBase() {
             arenavedtak = emptyList(),
             muligMaksdato = null,
         )
-
-        private val fakes = Fakes()
-
-        @AfterAll
-        @JvmStatic
-        fun afterAll() {
-            Fakes().close()
-        }
     }
 
     @Test
@@ -134,9 +126,9 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    aapHendelseProducer = fakes.aapHendelse,
+                    arenaService = Fakes.getArenaService(),
+                    modiaProducer = Fakes.getKafka(),
+                    aapHendelseProducer = Fakes.getAapHendelse(),
                 )
             }
 
@@ -192,9 +184,9 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    aapHendelseProducer = fakes.aapHendelse,
+                    arenaService = Fakes.getArenaService(),
+                    modiaProducer = Fakes.getKafka(),
+                    aapHendelseProducer = Fakes.getAapHendelse(),
                 )
             }
 
@@ -242,9 +234,9 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    aapHendelseProducer = fakes.aapHendelse,
+                    arenaService = Fakes.getArenaService(),
+                    modiaProducer = Fakes.getKafka(),
+                    aapHendelseProducer = Fakes.getAapHendelse(),
                 )
             }
 
@@ -292,7 +284,7 @@ class BehandlingsDataTest : PostgresTestBase() {
     private suspend fun ApplicationTestBuilder.settInnVedtak(
         azure: AzureTokenGen,
         periode: Periode,
-        fnr: String
+        fnr: String,
     ): HttpResponse {
         val fraOgMed = periode.fom
         return jsonHttpClient.post("/api/insert/vedtak") {
@@ -353,9 +345,9 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    aapHendelseProducer = fakes.aapHendelse,
+                    arenaService = Fakes.getArenaService(),
+                    modiaProducer = Fakes.getKafka(),
+                    aapHendelseProducer = Fakes.getAapHendelse(),
                 )
             }
 
@@ -410,9 +402,9 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    aapHendelseProducer = fakes.aapHendelse,
+                    arenaService = Fakes.getArenaService(),
+                    modiaProducer = Fakes.getKafka(),
+                    aapHendelseProducer = Fakes.getAapHendelse(),
                 )
             }
 
@@ -511,9 +503,9 @@ class BehandlingsDataTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    aapHendelseProducer = fakes.aapHendelse,
+                    arenaService = Fakes.getArenaService(),
+                    modiaProducer = Fakes.getKafka(),
+                    aapHendelseProducer = Fakes.getAapHendelse(),
                     // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
                     clock = clock
                 )
@@ -548,7 +540,6 @@ class BehandlingsDataTest : PostgresTestBase() {
             assertThat(uthentetFraApi).usingRecursiveComparison().isEqualTo(forventet)
         }
     }
-
 
 
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient

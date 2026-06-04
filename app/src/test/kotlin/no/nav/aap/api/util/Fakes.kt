@@ -26,16 +26,28 @@ import no.nav.aap.oppgave.enhet.EnhetOgOversendelse
 import no.nav.aap.oppgave.enhet.PersonRequest
 import no.nav.aap.tilgang.TilgangResponse
 
-class Fakes : AutoCloseable {
-    val texas = embeddedServer(Netty, port = 0, module = Application::texas).start()
-    val arena = embeddedServer(Netty, port = 0, module = Application::arena).start()
-    val pdl = embeddedServer(Netty, port = 0, module = Application::pdlFake).start()
-    val tilgang = embeddedServer(Netty, port = 0, module = Application::tilgangFake).start()
-    val oppgave = embeddedServer(Netty, port = 0, module = Application::oppgaveFake).start()
-    val dokumentinnhenting = embeddedServer(Netty, port = 0, module = Application::dokumentinnhentingFake).start()
-    val kafka = KafkaFake()
-    val aapHendelse = AapHendelseKafkaFake()
-    val arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway())
+object Fakes : AutoCloseable {
+    private val texas = embeddedServer(Netty, port = 0, module = Application::texas)
+    private val arena = embeddedServer(Netty, port = 0, module = Application::arena)
+    private val pdl = embeddedServer(Netty, port = 0, module = Application::pdlFake)
+    private val tilgang = embeddedServer(Netty, port = 0, module = Application::tilgangFake)
+    private val oppgave = embeddedServer(Netty, port = 0, module = Application::oppgaveFake)
+    private val dokumentinnhenting = embeddedServer(Netty, port = 0, module = Application::dokumentinnhentingFake)
+
+    private val kafka = KafkaFake()
+    private val aapHendelse = AapHendelseKafkaFake()
+    private val arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway())
+
+    fun start() {
+        texas.start()
+        arena.start()
+        pdl.start()
+        tilgang.start()
+        oppgave.start()
+        dokumentinnhenting.start()
+
+        setProperties()
+    }
 
     override fun close() {
         texas.stop(0L, 0L)
@@ -48,7 +60,17 @@ class Fakes : AutoCloseable {
         aapHendelse.close()
     }
 
-    init {
+    fun getArenaService() = arenaService
+
+    fun getArenaPort() = arena.port()
+
+    fun getKafka() = kafka
+
+    fun getAapHendelse() = aapHendelse
+
+    fun getTexasPort() = texas.port()
+
+    private fun setProperties() {
         // Texas
         System.setProperty("nais.token.endpoint", "http://localhost:${texas.port()}/token")
         System.setProperty("nais.token.exchange.endpoint", "http://localhost:${texas.port()}/token/exchange")

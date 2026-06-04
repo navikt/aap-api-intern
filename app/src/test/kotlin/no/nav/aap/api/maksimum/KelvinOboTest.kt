@@ -2,13 +2,22 @@ package no.nav.aap.api.maksimum
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.testing.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.testApplication
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
 import no.nav.aap.api.intern.InternVedtakRequestApiIntern
@@ -21,6 +30,7 @@ import no.nav.aap.api.intern.behandlingsflyt.SakstatusFraKelvin
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.PdlGatewayEmpty
+import no.nav.aap.api.util.WithFakes
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.RettighetsTypePeriode
@@ -29,24 +39,23 @@ import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
+import org.junit.jupiter.api.TestInstance
 
+@WithFakes
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class KelvinOboTest {
 
     private lateinit var dataSource: TestDataSource
 
-    @BeforeEach
+    @BeforeAll
     fun setup() {
         dataSource = TestDataSource()
     }
 
-    @AfterEach
+    @AfterAll
     fun tearDown() = dataSource.close()
 
     private val fnr = "12345678910"
@@ -104,7 +113,6 @@ class KelvinOboTest {
 
     @Test
     fun `kan hente vedtak og sakstatus fra obo-endepunktet`() {
-        Fakes().use { fakes ->
             val azure = AzureTokenGen("test", "test")
 
             testApplication {
@@ -112,10 +120,10 @@ class KelvinOboTest {
                     api(
                         config = TestConfig.default(),
                         datasource = dataSource,
-                        arenaService = fakes.arenaService,
+                        arenaService = Fakes.getArenaService(),
                         pdlGateway = PdlGatewayEmpty(),
-                        aapHendelseProducer = fakes.aapHendelse,
-                        modiaProducer = fakes.kafka,
+                        aapHendelseProducer = Fakes.getAapHendelse(),
+                        modiaProducer = Fakes.getKafka(),
                     )
                 }
 
@@ -152,7 +160,6 @@ class KelvinOboTest {
                 assertThat(respons.vedtak.first().saksnummer).isEqualTo(saksnummer)
                 assertThat(respons.vedtak.first().rettighetsType).isEqualTo(RettighetsType.BISTANDSBEHOV.name)
             }
-        }
     }
 
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient

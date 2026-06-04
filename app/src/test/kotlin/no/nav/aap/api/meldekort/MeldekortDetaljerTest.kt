@@ -23,11 +23,12 @@ import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArbeidIPeriodeDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import no.nav.aap.api.util.WithFakes
 
+@WithFakes
 class MeldekortDetaljerTest : PostgresTestBase() {
     companion object {
         val testMottatTidspunkt = localDateTime("2024-01-01 12:34:00")!!
@@ -49,14 +50,6 @@ class MeldekortDetaljerTest : PostgresTestBase() {
                 )
             ),
         )
-
-        private val fakes = Fakes()
-
-        @AfterAll
-        @JvmStatic
-        fun afterAll() {
-            Fakes().close()
-        }
     }
 
     @Test
@@ -69,9 +62,9 @@ class MeldekortDetaljerTest : PostgresTestBase() {
                 api(
                     config = config,
                     datasource = dataSource,
-                    arenaService = fakes.arenaService,
-                    modiaProducer = fakes.kafka,
-                    aapHendelseProducer = fakes.aapHendelse,
+                    arenaService = Fakes.getArenaService(),
+                    modiaProducer = Fakes.getKafka(),
+                    aapHendelseProducer = Fakes.getAapHendelse(),
                     pdlGateway = PdlGatewayEmpty(),
                 )
             }

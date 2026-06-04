@@ -2,13 +2,19 @@ package no.nav.aap.api.meldekortperioder
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.http.*
-import io.ktor.serialization.jackson.*
-import io.ktor.server.testing.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.serialization.jackson.jackson
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.ktor.server.testing.testApplication
+import java.time.LocalDate
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
 import no.nav.aap.api.intern.KelvinStatus
@@ -19,27 +25,30 @@ import no.nav.aap.api.intern.behandlingsflyt.SakstatusFraKelvin
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.PdlGatewayEmpty
+import no.nav.aap.api.util.WithFakes
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
+import org.junit.jupiter.api.TestInstance
 
+@WithFakes
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SakStatusKelvinTest {
 
     private lateinit var dataSource: TestDataSource
 
-    @BeforeEach
+    @BeforeAll
     fun setup() {
         dataSource = TestDataSource()
     }
 
-    @AfterEach
+    @AfterAll
     fun tearDown() = dataSource.close()
 
 
@@ -61,7 +70,6 @@ class SakStatusKelvinTest {
 
     @Test
     fun `kan lagre ned og hente saker`() {
-        Fakes().use { fakes ->
             val config = TestConfig.default()
             val azure = AzureTokenGen("test", "test")
 
@@ -70,9 +78,9 @@ class SakStatusKelvinTest {
                     api(
                         config = config,
                         datasource = dataSource,
-                        arenaService = fakes.arenaService,
-                        modiaProducer = fakes.kafka,
-                        aapHendelseProducer = fakes.aapHendelse,
+                        arenaService = Fakes.getArenaService(),
+                        modiaProducer = Fakes.getKafka(),
+                        aapHendelseProducer = Fakes.getAapHendelse(),
                         pdlGateway = PdlGatewayEmpty(),
                     )
                 }
@@ -116,7 +124,6 @@ class SakStatusKelvinTest {
                     }
                 assertEquals(HttpStatusCode.OK, m2mResponse.status)
             }
-        }
     }
 
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient

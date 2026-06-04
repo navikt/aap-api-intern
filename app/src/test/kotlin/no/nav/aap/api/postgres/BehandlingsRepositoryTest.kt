@@ -1,30 +1,40 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.api.kelvin.*
+import java.math.BigDecimal
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
+import no.nav.aap.api.kelvin.Arenavedtak
+import no.nav.aap.api.kelvin.Behandling
+import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
+import no.nav.aap.api.kelvin.KelvinBehandlingStatus
+import no.nav.aap.api.kelvin.RettighetsTypePeriode
+import no.nav.aap.api.kelvin.Sak
+import no.nav.aap.api.kelvin.StansEllerOpphør
+import no.nav.aap.api.util.WithFakes
 import no.nav.aap.behandlingsflyt.kontrakt.statistikk.RettighetsType
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import no.nav.aap.komponenter.tidslinje.tidslinjeOf
 import no.nav.aap.komponenter.type.Periode
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
+import org.junit.jupiter.api.TestInstance
 
+@WithFakes
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class BehandlingsRepositoryTest {
     private lateinit var dataSource: TestDataSource
 
-    @BeforeEach
+    @BeforeAll
     fun setUp() {
         dataSource = TestDataSource()
     }
 
-    @AfterEach
+    @AfterAll
     fun tearDown() {
         dataSource.close()
     }
