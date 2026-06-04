@@ -63,7 +63,9 @@ enum class Tag(override val description: String) : APITag {
     Maksimum("For å hente maksimumsløsning"),
     DSOP("For DSOP-relaterte endepunkter"),
     OBO("Endepunkter ment for Team OBO."),
-    ArenaHistorikk("For å hente informasjon om AAP historikk fra Arena"), ;
+    ArenaHistorikk("For å hente informasjon om AAP historikk fra Arena"),
+    Syfo("Endepunkter brukt av Syfo"),
+    ;
 }
 
 data class SakerRequest(

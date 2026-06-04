@@ -137,6 +137,8 @@ spec:
         - application: paw-patrol
         - application: veilarboppfolging
           namespace: poao
+        - application: padm2
+          namespace: teamsykefravr
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io
@@ -145,6 +147,7 @@ spec:
         - application: behandlingsflyt
         - application: tilgang
         - application: oppgave
+        - application: dokumentinnhenting
         - application: logging
           namespace: nais-system
   env:
@@ -178,3 +181,5 @@ spec:
       value: d476981c-d129-4402-a74d-ea35a03cac5c
     - name: AZP_VEILARBOPPFOLGING
       value: 52106802-f42e-4587-8547-6289d1df6cac
+    - name: AZP_PADM2
+      value: 37e3a2ac-c5f3-4c65-a245-59c04a41f6d4
