@@ -41,6 +41,7 @@ import no.nav.aap.api.util.StatusPagesConfigHelper
 import no.nav.aap.api.util.registerCircuitBreakerMetrics
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbmigrering.Migrering
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.auth.IdentityProvider
 import no.nav.aap.komponenter.server.commonKtorModule
 import no.nav.aap.motor.Motor
@@ -55,7 +56,12 @@ private val logger = LoggerFactory.getLogger("App")
 
 
 fun main() {
-    Thread.currentThread().setUncaughtExceptionHandler { _, e -> logger.error("Uhåndtert feil. Type: ${e.javaClass}", e) }
+    Thread.currentThread().setUncaughtExceptionHandler { _, e ->
+        logger.error(
+            "Uhåndtert feil. Type: ${e.javaClass}",
+            e
+        )
+    }
 
     embeddedServer(Netty, configure = {
         // Vi følger ktor sin metodikk for å regne ut tuning parametre som funksjon av parallellitet
@@ -80,8 +86,16 @@ fun Application.api(
     arenaService: ArenaService = opprettArenaService(config),
     pdlGateway: IPdlGateway = PdlGateway(),
     clock: Clock = Clock.systemDefaultZone(),
-    aapHendelseProducer: AapHendelseProducer = AapHendelseKafkaProducer(config.kafka, config.aapHendelse, AppConfig.shutdownGracePeriod),
-    modiaProducer: KafkaProducer = ModiaKafkaProducer(config.kafka, config.modia, AppConfig.shutdownGracePeriod),
+    aapHendelseProducer: AapHendelseProducer = AapHendelseKafkaProducer(
+        config.kafka,
+        config.aapHendelse,
+        AppConfig.shutdownGracePeriod
+    ),
+    modiaProducer: KafkaProducer = ModiaKafkaProducer(
+        config.kafka,
+        config.modia,
+        AppConfig.shutdownGracePeriod
+    ),
 ) {
 
     Migrering.migrate(datasource)
@@ -93,11 +107,15 @@ fun Application.api(
 
     install(StatusPages, StatusPagesConfigHelper.setup())
 
+    val helperTextIfDev = if (!Miljø.erProd()) {
+        " Bruk https://azure-token-generator.intern.dev.nav.no/api/m2m?aud=dev-gcp:aap:api-intern for å få test-token."
+    } else ""
+
     commonKtorModule(
         prometheus = prometheus,
         infoModel = InfoModel(
             title = "aap-api-intern",
-            description = "aap-intern-api tilbyr et internt API for henting av aap-data.\nBruker Azure til autentisering.",
+            description = "aap-intern-api tilbyr et internt API for henting av aap-data.\nBruker Azure til autentisering." + helperTextIfDev,
             contact = ContactModel(
                 name = "Team AAP",
                 url = "https://github.com/navikt/aap-api-intern",
@@ -128,8 +146,16 @@ fun Application.api(
         try {
             // ktor sine eventer kjøres synkront, så vi må kjøre dette asynkront for ikke å blokkere nedstengings-sekvensen
             env.launch(Dispatchers.IO) {
-                try { aapHendelseProducer.close() } catch (e: Exception) { logger.warn("Feil ved lukking av aapHendelseProducer", e) }
-                try { modiaProducer.close() } catch (e: Exception) { logger.warn("Feil ved lukking av modiaProducer", e) }
+                try {
+                    aapHendelseProducer.close()
+                } catch (e: Exception) {
+                    logger.warn("Feil ved lukking av aapHendelseProducer", e)
+                }
+                try {
+                    modiaProducer.close()
+                } catch (e: Exception) {
+                    logger.warn("Feil ved lukking av modiaProducer", e)
+                }
             }
         } catch (_: Exception) {
             // Ignorert
