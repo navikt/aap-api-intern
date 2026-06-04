@@ -1,5 +1,6 @@
 package no.nav.aap.api.util
 
+import behandlingsflyt.DialogmeldingEksistererDto
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -10,6 +11,7 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import java.util.UUID
@@ -30,6 +32,7 @@ class Fakes : AutoCloseable {
     val pdl = embeddedServer(Netty, port = 0, module = Application::pdlFake).start()
     val tilgang = embeddedServer(Netty, port = 0, module = Application::tilgangFake).start()
     val oppgave = embeddedServer(Netty, port = 0, module = Application::oppgaveFake).start()
+    val dokumentinnhenting = embeddedServer(Netty, port = 0, module = Application::dokumentinnhentingFake).start()
     val kafka = KafkaFake()
     val aapHendelse = AapHendelseKafkaFake()
     val arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway())
@@ -67,12 +70,17 @@ class Fakes : AutoCloseable {
         System.setProperty("INTEGRASJON_OPPGAVE_URL", "http://localhost:${oppgave.port()}")
         System.setProperty("INTEGRASJON_OPPGAVE_SCOPE", "scope")
 
+        // Dokumentinnhenting
+        System.setProperty("INTEGRASJON_DOKUMENTINNHENTING_URL", "http://localhost:${dokumentinnhenting.port()}")
+        System.setProperty("INTEGRASJON_DOKUMENTINNHENTING_SCOPE", "scope")
+
         // Meldekortbackend
         System.setProperty("AZP_MELDEKORT_BACKEND", UUID.randomUUID().toString())
         System.setProperty("AZP_SAAS_PROXY", UUID.randomUUID().toString())
         System.setProperty("AZP_TOKEN_GEN", UUID.randomUUID().toString())
         System.setProperty("AZP_TILLEGGSSTONADER_INTEGRASJONER", UUID.randomUUID().toString())
         System.setProperty("AZP_VEILARBOPPFOLGING", UUID.randomUUID().toString())
+        System.setProperty("AZP_PADM2", UUID.randomUUID().toString())
     }
 }
 
@@ -122,6 +130,17 @@ fun Application.oppgaveFake() {
                 EnhetOgOversendelse(
                     tilstand = null
                 )
+            )
+        }
+    }
+}
+
+fun Application.dokumentinnhentingFake() {
+    install(ContentNegotiation) { jackson() }
+    routing {
+        get("/dialogmelding/{dialogmeldingId}/eksisterer") {
+            call.respond(
+                DialogmeldingEksistererDto(eksisterer = true)
             )
         }
     }
