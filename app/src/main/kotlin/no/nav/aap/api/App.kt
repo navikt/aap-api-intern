@@ -1,12 +1,8 @@
 package no.nav.aap.api
 
-import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.model.info.ContactModel
 import com.papsign.ktor.openapigen.model.info.InfoModel
-import com.papsign.ktor.openapigen.model.operation.ParameterLocation
-import com.papsign.ktor.openapigen.route.OpenAPIRoute
 import com.papsign.ktor.openapigen.route.apiRouting
-import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
 import com.zaxxer.hikari.HikariDataSource
@@ -22,7 +18,6 @@ import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import java.time.Clock
