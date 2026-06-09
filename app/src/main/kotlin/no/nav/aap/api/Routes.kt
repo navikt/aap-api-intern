@@ -429,7 +429,8 @@ fun NormalOpenAPIRoute.api(
                 info(
                     description = """
                     Henter maksimumsløsning for en person innen gitte datointervall. Behandlinger før 18/8 inneholder ikke beregningsgrunnlag.
-                    dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin""".trimIndent()
+                    dagsatsEtterUføreReduksjon er kun tilgjengelig fra Kelvin.
+                    """.trimIndent()
                 )
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")

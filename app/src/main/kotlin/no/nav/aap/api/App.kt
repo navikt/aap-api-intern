@@ -116,7 +116,7 @@ fun Application.api(
         prometheus = prometheus,
         infoModel = InfoModel(
             title = "aap-api-intern",
-            description = "aap-intern-api tilbyr et internt API for henting av aap-data.\nBruker Azure til autentisering." + helperTextIfDev,
+            description = "aap-intern-api tilbyr et internt API for henting av aap-data.\nBruker Azure til autentisering.$helperTextIfDev",
             contact = ContactModel(
                 name = "Team AAP",
                 url = "https://github.com/navikt/aap-api-intern",

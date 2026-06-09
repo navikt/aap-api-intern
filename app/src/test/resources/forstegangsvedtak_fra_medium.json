@@ -3,46 +3,65 @@
     {
       "dagsats": 1022,
       "dagsatsEtterUføreReduksjon": 1022,
-      "vedtakId": "2",
+      "vedtakId": "59866",
       "status": "LØPENDE",
-      "saksnummer": "4LDQPDS",
-      "vedtaksdato": "2025-11-19",
+      "saksnummer": "LoCAL_4LHHPQ0",
+      "vedtaksdato": "2026-06-09",
+      "vedtaksTypeKode": "O",
+      "vedtaksTypeNavn": null,
       "periode": {
-        "fraOgMedDato": "2025-11-19",
+        "fraOgMedDato": "2025-08-01",
         "tilOgMedDato": "2025-12-31"
       },
       "rettighetsType": "SYKEPENGEERSTATNING",
-      "beregningsgrunnlag": 212984,
+      "beregningsgrunnlag": 213375,
       "barnMedStonad": 2,
-      "barnetillegg": 76,
-      "barnetilleggSats": 38,
+      "barnetillegg": 74,
       "kildesystem": "KELVIN",
       "samordningsId": null,
-      "opphorsAarsak": null,
-      "vedtaksTypeKode": "E",
-      "vedtaksTypeNavn": null
+      "opphorsAarsak": null
     },
     {
       "dagsats": 1022,
       "dagsatsEtterUføreReduksjon": 1022,
-      "vedtakId": "2",
+      "vedtakId": "59866",
       "status": "LØPENDE",
-      "saksnummer": "4LDQPDS",
-      "vedtaksdato": "2025-11-19",
+      "saksnummer": "LoCAL_4LHHPQ0",
+      "vedtaksdato": "2026-06-09",
+      "vedtaksTypeKode": "O",
+      "vedtaksTypeNavn": null,
       "periode": {
         "fraOgMedDato": "2026-01-01",
-        "tilOgMedDato": "2026-11-18"
+        "tilOgMedDato": "2026-04-30"
       },
       "rettighetsType": "BISTANDSBEHOV",
-      "beregningsgrunnlag": 212984,
+      "beregningsgrunnlag": 213375,
       "barnMedStonad": 2,
       "barnetillegg": 76,
-      "barnetilleggSats": 38,
       "kildesystem": "KELVIN",
       "samordningsId": null,
-      "opphorsAarsak": null,
-      "vedtaksTypeKode": "E",
-      "vedtaksTypeNavn": null
+      "opphorsAarsak": null
+    },
+    {
+      "dagsats": 1072,
+      "dagsatsEtterUføreReduksjon": 1072,
+      "vedtakId": "59866",
+      "status": "LØPENDE",
+      "saksnummer": "LoCAL_4LHHPQ0",
+      "vedtaksdato": "2026-06-09",
+      "vedtaksTypeKode": "O",
+      "vedtaksTypeNavn": null,
+      "periode": {
+        "fraOgMedDato": "2026-05-01",
+        "tilOgMedDato": "2026-07-31"
+      },
+      "rettighetsType": "BISTANDSBEHOV",
+      "beregningsgrunnlag": 213375,
+      "barnMedStonad": 2,
+      "barnetillegg": 76,
+      "kildesystem": "KELVIN",
+      "samordningsId": null,
+      "opphorsAarsak": null
     }
   ]
 }
