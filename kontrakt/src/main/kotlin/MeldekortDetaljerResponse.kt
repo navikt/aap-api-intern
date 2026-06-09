@@ -1,5 +1,6 @@
 package no.nav.aap.api.intern
 
+import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -12,6 +13,7 @@ public data class MeldekortDetaljerResponse(
 public data class MeldekortDetalj(
     val saksnummer: String,
     val mottattTidspunkt: LocalDateTime,
+    @property:Description("Hvilken periode det skrives timer for. Dette vil være to uker før nyeste utbetaling.")
     val meldePeriode: Periode,
     val arbeidPerDag: List<TimerPaaDag>,
     @property:Deprecated("Ikke i bruk, vil fjernes.")
