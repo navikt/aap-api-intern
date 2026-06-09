@@ -14,7 +14,9 @@ public data class MeldekortDetalj(
     val mottattTidspunkt: LocalDateTime,
     val meldePeriode: Periode,
     val arbeidPerDag: List<TimerPaaDag>,
+    @property:Deprecated("Ikke i bruk, vil fjernes.")
     val dagsats: Int?,
+    @property:Deprecated("Ikke i bruk, vil fjernes.")
     val ukesats: Int?,
     val vedtaksdato: LocalDate?,
 )

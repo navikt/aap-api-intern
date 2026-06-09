@@ -197,12 +197,13 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
  * @param vedtakId Svarer til ID til vedtak-tabellen i behandlingsflyt.
  */
 data class VedtakUtenUtbetalingUtenPeriode(
+    @param:Description("ID som deles i forbindelse med samordning.")
     val vedtakId: String,
     @param:Description("Full dagsats før reduksjoner.")
     val dagsats: Int,
     @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin). Ved manglende data er denne null.")
     val dagsatsEtterUføreReduksjon: Int,
-    @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
+    @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES. Per i dag konstant lik LØPENDE.")
     val status: String,
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
