@@ -74,6 +74,7 @@ public data class Vedtak(
     val opphorsAarsak: String? = null,
     val vedtaksTypeKode: String?,
     val vedtaksTypeNavn: String?,
+    @property:Description("Liste med dagsats (og andre satser/reduksjon) over tid. Til-fra-periodene svarer ikke til _når_ utbetalingen skjedde, men svarer til en periode med samme dagsats.")
     val utbetaling: List<UtbetalingMedMer>,
 )
 
