@@ -123,7 +123,7 @@ public data class UtbetalingMedMer(
     val reduksjon: Reduksjon?,
     val utbetalingsgrad: Int?,
     val periode: Periode,
-    @property:Description("Totalt belop i perioden. Er lik antall hverdager * dagsats * utbetalingsgrad / 100.")
+    @property:Description("Totalt beløp i perioden. Er lik antall hverdager * dagsats * utbetalingsgrad / 100.")
     val belop: Int,
     val dagsats: Int,
     @property:Description("Barnetillegg, _etter_ gradering.")

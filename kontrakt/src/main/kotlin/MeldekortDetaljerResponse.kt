@@ -18,7 +18,9 @@ public data class MeldekortDetalj(
     @property:Deprecated("Ikke i bruk, vil fjernes.") val dagsats: Int?,
     @property:Deprecated("Ikke i bruk, vil fjernes.") val ukesats: Int?,
     val vedtaksdato: LocalDate?,
+    @property:Description("Beregnet totalt beløp i meldeperioden.")
     val belop: Int,
+    @property:Description("Liste med beregnede utbetalinger. Vil ha flere elementer om noen av verdiene er endrede i meldeperioden.")
     val utbetalinger: List<Utbetaling>,
 )
 
