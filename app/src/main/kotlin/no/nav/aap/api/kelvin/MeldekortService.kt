@@ -1,7 +1,5 @@
 package no.nav.aap.api.kelvin
 
-import io.micrometer.core.instrument.DistributionSummary
-import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortDetaljerRepository
@@ -13,10 +11,6 @@ import java.time.LocalDate
 class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, clock: Clock) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), clock)
-    private val antallVedtakFunnetHistogram =
-        DistributionSummary.builder("aap_api_intern_finn_nyeste_relaterte_vedtak_antall_vedtak")
-            .publishPercentileHistogram(true)
-            .register(prometheus)
 
     fun hentAlleMeldekort(
         personIdentifikator: String,
@@ -52,6 +46,5 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         return vedtakService.tilkjentYtelseForPeriode(meldekort.personIdent, meldekort.meldePeriode)
             .map { it.periode to it.verdi }
     }
-
 
 }
