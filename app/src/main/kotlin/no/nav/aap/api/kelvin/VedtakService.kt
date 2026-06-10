@@ -4,10 +4,7 @@ import com.papsign.ktor.openapigen.annotations.properties.description.Descriptio
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
-import no.nav.aap.komponenter.tidslinje.JoinStyle
-import no.nav.aap.komponenter.tidslinje.Segment
-import no.nav.aap.komponenter.tidslinje.Tidslinje
-import no.nav.aap.komponenter.tidslinje.orEmpty
+import no.nav.aap.komponenter.tidslinje.*
 import no.nav.aap.komponenter.type.Periode
 import java.math.BigDecimal
 import java.time.Clock
@@ -81,7 +78,10 @@ class VedtakService(
                                 ?: 0,
                             vedtaksTypeKode = vedtaksTypeKode,
                             vedtaksTypeNavn = null,
-                            utbetaling = hentTilkjentYtelseForPeriode(tilkjentYtelseTidslinje, periode),
+                            utbetaling = hentTilkjentYtelseForPeriode(
+                                tilkjentYtelseTidslinje,
+                                periode
+                            ),
                             kildesystem = vedtakUtenUtbetalingUtenPeriode.kildesystem,
                             samordningsId = vedtakUtenUtbetalingUtenPeriode.samordningsId,
                             opphorsAarsak = vedtakUtenUtbetalingUtenPeriode.opphorsAarsak
@@ -94,6 +94,16 @@ class VedtakService(
         }
 
         return Maksimum(vedtak)
+    }
+
+    fun tilkjentYtelseForPeriode(fnr: String, periode: Periode): List<Segment<TilkjentYtelse>> {
+        return behandlingsRepository.hentVedtaksData(fnr, periode)
+            // Antar høyeste vedtak-id er nyeste behandling.
+            .maxByOrNull { it.vedtakId }
+            ?.tilkjent.orEmpty()
+            .begrensetTil(periode)
+            .segmenter()
+            .toList()
     }
 
     private fun hentTilkjentYtelseForPeriode(
