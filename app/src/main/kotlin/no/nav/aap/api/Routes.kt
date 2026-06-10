@@ -207,8 +207,8 @@ fun NormalOpenAPIRoute.api(
                     requestBody.fraOgMedDato,
                     requestBody.tilOgMedDato
                 )
-                    .map { (meldekort, vedtak) ->
-                        meldekort.tilKontrakt(vedtak)
+                    .map { (meldekort, tilkjentYtelsePerioder) ->
+                        meldekort.tilKontrakt(tilkjentYtelsePerioder)
                     }
             }
 

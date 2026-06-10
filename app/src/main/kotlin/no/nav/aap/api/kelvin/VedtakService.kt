@@ -4,10 +4,7 @@ import com.papsign.ktor.openapigen.annotations.properties.description.Descriptio
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
-import no.nav.aap.komponenter.tidslinje.JoinStyle
-import no.nav.aap.komponenter.tidslinje.Segment
-import no.nav.aap.komponenter.tidslinje.Tidslinje
-import no.nav.aap.komponenter.tidslinje.orEmpty
+import no.nav.aap.komponenter.tidslinje.*
 import no.nav.aap.komponenter.type.Periode
 import java.math.BigDecimal
 import java.time.Clock
@@ -81,7 +78,10 @@ class VedtakService(
                                 ?: 0,
                             vedtaksTypeKode = vedtaksTypeKode,
                             vedtaksTypeNavn = null,
-                            utbetaling = hentTilkjentYtelseForPeriode(tilkjentYtelseTidslinje, periode),
+                            utbetaling = hentTilkjentYtelseForPeriode(
+                                tilkjentYtelseTidslinje,
+                                periode
+                            ),
                             kildesystem = vedtakUtenUtbetalingUtenPeriode.kildesystem,
                             samordningsId = vedtakUtenUtbetalingUtenPeriode.samordningsId,
                             opphorsAarsak = vedtakUtenUtbetalingUtenPeriode.opphorsAarsak
@@ -94,6 +94,16 @@ class VedtakService(
         }
 
         return Maksimum(vedtak)
+    }
+
+    fun tilkjentYtelseForPeriode(fnr: String, periode: Periode): List<Segment<TilkjentYtelse>> {
+        return behandlingsRepository.hentVedtaksData(fnr, periode)
+            // Antar høyeste vedtak-id er nyeste behandling.
+            .maxByOrNull { it.vedtakId }
+            ?.tilkjent.orEmpty()
+            .begrensetTil(periode)
+            .segmenter()
+            .toList()
     }
 
     private fun hentTilkjentYtelseForPeriode(
@@ -197,12 +207,13 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
  * @param vedtakId Svarer til ID til vedtak-tabellen i behandlingsflyt.
  */
 data class VedtakUtenUtbetalingUtenPeriode(
+    @param:Description("ID som deles i forbindelse med samordning.")
     val vedtakId: String,
     @param:Description("Full dagsats før reduksjoner.")
     val dagsats: Int,
     @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin). Ved manglende data er denne null.")
     val dagsatsEtterUføreReduksjon: Int,
-    @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES.")
+    @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES. Per i dag konstant lik LØPENDE.")
     val status: String,
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato

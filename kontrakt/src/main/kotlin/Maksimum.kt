@@ -38,7 +38,9 @@ public data class InternVedtakRequestApiIntern(
 public data class Vedtak(
     val dagsats: Int,
     val dagsatsEtterUføreReduksjon: Int?,
+    @param:Description("Fra Kelvin: ID som deles i forbindelse med samordning. Fra Arena er dette løpenummer til vedtakene.")
     val vedtakId: String,
+    @param:Description("Status på et vedtak. Mulige verdier fra Kelvin er LØPENDE, AVSLUTTET, UTREDES. Fra Kelvin per i dag konstant lik LØPENDE.")
     val status: String,
     val saksnummer: String,
     val vedtaksdato: LocalDate,
@@ -117,10 +119,11 @@ public data class VedtakUtenUtbetaling(
  * @param barnetillegg Hvor mange kroner i barnetillegg.
  */
 public data class UtbetalingMedMer(
-    @property:Description("Reduksjon i utbetaling. Denne fås kun fra Arena,")
+    @property:Description("Reduksjon i utbetaling. Denne fås kun fra Arena, er null fra Kelvin.")
     val reduksjon: Reduksjon?,
     val utbetalingsgrad: Int?,
     val periode: Periode,
+    @property:Description("Totalt beløp i perioden. Er lik antall hverdager * dagsats * utbetalingsgrad / 100.")
     val belop: Int,
     val dagsats: Int,
     @property:Description("Barnetillegg, _etter_ gradering.")

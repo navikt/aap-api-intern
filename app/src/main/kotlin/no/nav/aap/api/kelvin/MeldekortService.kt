@@ -1,22 +1,16 @@
 package no.nav.aap.api.kelvin
 
-import io.micrometer.core.instrument.DistributionSummary
-import java.time.Clock
-import java.time.LocalDate
-import no.nav.aap.api.Metrics.prometheus
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortDetaljerRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
+import no.nav.aap.komponenter.type.Periode
+import java.time.Clock
+import java.time.LocalDate
 
 class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, clock: Clock) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), clock)
-    private val antallVedtakFunnetHistogram =
-        DistributionSummary.builder("aap_api_intern_finn_nyeste_relaterte_vedtak_antall_vedtak")
-            .publishPercentileHistogram(true)
-            .register(prometheus)
 
     fun hentAlleMeldekort(
         personIdentifikator: String,
@@ -39,23 +33,18 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
         personIdentifikator: String,
         fom: LocalDate? = null,
         tom: LocalDate? = null
-    ): List<Pair<Meldekort, VedtakUtenUtbetaling?>> {
+    ): List<Pair<Meldekort, List<Pair<Periode, TilkjentYtelse>>>> {
         val meldekortDetaljListe = hentAlleMeldekort(personIdentifikator, fom, tom)
 
         return meldekortDetaljListe.map { meldekort ->
-            val vedtak = finnNyesteRelaterteVedtak(meldekort, personIdentifikator)
+            val vedtak = utbetalingForMeldekort(meldekort)
             Pair(meldekort, vedtak)
         }
     }
 
-
-    private fun finnNyesteRelaterteVedtak(
-        meldekort: Meldekort, personIdentifikator: String
-    ): VedtakUtenUtbetaling? {
-        val meldePeriode = meldekort.meldePeriode
-        // TODO finn ut hvordan man henter riktig vedtak og vedtaks-info:
-        val vedtak = vedtakService.hentMediumFraKelvin(personIdentifikator, meldePeriode).vedtak
-        antallVedtakFunnetHistogram.record(vedtak.size.toDouble())
-        return vedtak.lastOrNull()
+    private fun utbetalingForMeldekort(meldekort: Meldekort): List<Pair<Periode, TilkjentYtelse>> {
+        return vedtakService.tilkjentYtelseForPeriode(meldekort.personIdent, meldekort.meldePeriode)
+            .map { it.periode to it.verdi }
     }
+
 }
