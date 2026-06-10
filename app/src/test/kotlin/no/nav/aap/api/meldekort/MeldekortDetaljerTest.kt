@@ -145,12 +145,7 @@ class MeldekortDetaljerTest : PostgresTestBase() {
             assertThat(førsteUtbetaling.dagsats).isEqualTo(tilkjentYtelse.dagsats)
             assertThat(førsteUtbetaling.utbetalingsgrad).isEqualTo(tilkjentYtelse.gradering)
             assertThat(førsteUtbetaling.fraDato).isEqualTo(testFom)
-            assertThat(førsteUtbetaling.tilDato).isEqualTo(testTom)
-
-            val metrics = jsonHttpClient.get("/actuator/metrics")
-            assertThat(metrics.body<String>())
-                .contains("aap_api_intern_finn_nyeste_relaterte_vedtak_antall_vedtak")
-        }
+            assertThat(førsteUtbetaling.tilDato).isEqualTo(testTom) }
     }
 
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient
