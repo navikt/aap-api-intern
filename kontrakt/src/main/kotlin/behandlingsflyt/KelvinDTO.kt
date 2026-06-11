@@ -21,6 +21,7 @@ public data class OppdaterIdenterDto(
  */
 public data class SakStatus(
     val sakId: String,
+    val søknadsdatoer: List<LocalDate>? = emptyList(),
     val statusKode: SakstatusFraKelvin,
     @Deprecated("Ikke del denne ut. Dette er rettighetsperiode, som ikke betyr det vi tror den betyr.")
     val periode: Periode,
