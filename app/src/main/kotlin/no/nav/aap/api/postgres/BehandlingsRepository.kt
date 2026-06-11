@@ -30,12 +30,13 @@ class BehandlingsRepository(private val connection: DBConnection) {
         val sakId = if (gammelSak != null) {
             connection.execute(
                 """
-                    UPDATE SAK SET FORELOPIG_MAKSDATO = ? WHERE ID = ?
+                    UPDATE SAK SET FORELOPIG_MAKSDATO = ?, rettighetsperiode = ?::daterange WHERE ID = ?
                 """.trimIndent()
             ) {
                 setParams {
                     setLocalDate(1, behandling.foreløpigMaksdato)
-                    setLong(2, gammelSak)
+                    setPeriode(2, behandling.rettighetsperiode)
+                    setLong(3, gammelSak)
                 }
             }
             gammelSak

@@ -114,6 +114,41 @@ class BehandlingsRepositoryTest {
     }
 
     @Test
+    fun `lagring av eksisterende sak oppdaterer rettighetsperiode`() {
+        val saksnummer = "ABCDE-oppdatering"
+        val ident = listOf("99999999998")
+        val gammelPeriode = Periode(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 6, 30))
+        val nyPeriode = Periode(LocalDate.of(2021, 7, 1), LocalDate.of(2021, 12, 31))
+
+        val førsteBehandling = testVedtak.copy(
+            sak = Sak(
+                saksnummer = saksnummer,
+                opprettetTidspunkt = testVedtak.sak.opprettetTidspunkt
+            ),
+            rettighetsperiode = gammelPeriode
+        )
+        val oppdatertBehandling = førsteBehandling.copy(rettighetsperiode = nyPeriode)
+
+        dataSource.transaction {
+            val repo = BehandlingsRepository(it)
+            repo.lagreBehandling(ident, førsteBehandling)
+            repo.lagreBehandling(ident, oppdatertBehandling)
+        }
+
+        val uthentetVedtak = dataSource.transaction {
+            BehandlingsRepository(it).hentVedtaksData(
+                ident.single(),
+                Periode(LocalDate.of(2021, 7, 1), LocalDate.of(2021, 7, 31))
+            )
+        }
+
+        assertThat(uthentetVedtak).hasSize(1)
+        @Suppress("DEPRECATION")
+        val faktiskPeriode = uthentetVedtak.single().rettighetsperiode
+        assertThat(faktiskPeriode).isEqualTo(nyPeriode)
+    }
+
+    @Test
     fun `oppdater identer fungerer som forventet`() {
         val saksnummer = "ABC123"
         val originalIdent = "55555555555"
