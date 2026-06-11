@@ -34,4 +34,5 @@ public data class Utbetaling(
     val tilDato: LocalDate,
     val utbetalingsgrad: Int,
     val dagsats: Int,
+    val belop: Int
 )

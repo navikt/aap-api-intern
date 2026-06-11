@@ -63,6 +63,7 @@ class KelvinSakService(
                         perioder = nyesteBehandling?.rettighetsTypeTidslinje.orEmpty().segmenter()
                             .map { it.periode }.map { Periode(it.fom, it.tom) },
                         forelopigMaksdato = nyesteBehandling?.foreløpigMaksdato,
+                        soknadsdatoer = kelvinSakStatus.søknadsdatoer.orEmpty()
                     )
                 }
         }

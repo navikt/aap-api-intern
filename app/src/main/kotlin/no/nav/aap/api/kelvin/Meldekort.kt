@@ -33,18 +33,19 @@ data class Meldekort(
             dagsats = null,
             ukesats = null,
             vedtaksdato = null,
-            belop = tilkjentYtelsePerioder.map { (periode, tilkjentYtelse) ->
+            belop = tilkjentYtelsePerioder.sumOf { (periode, tilkjentYtelse) ->
                 tilkjentYtelse.dagsats * weekdaysBetween(
                     periode.fom,
                     periode.tom
                 )
-            }.sum(),
+            },
             utbetalinger = tilkjentYtelsePerioder.map { (periode, tilkjentYtelse) ->
                 Utbetaling(
                     fraDato = periode.fom,
                     tilDato = periode.tom,
                     utbetalingsgrad = tilkjentYtelse.gradering,
                     dagsats = tilkjentYtelse.dagsats,
+                    belop = weekdaysBetween(periode.fom, periode.tom) * tilkjentYtelse.dagsats,
                 )
             }
         )
