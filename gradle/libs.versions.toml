@@ -1,9 +1,9 @@
 [versions]
 ktor = "3.4.3"
-komponenter = "2.0.75"
+komponenter = "2.0.77"
 tilgang = "1.0.226"
-behandlingsflyt = "0.0.623"
-oppgave = "0.0.182"
+behandlingsflyt = "0.0.624"
+oppgave = "0.0.183"
 arenaoppslag = "0.5.23"
 resilience4j = "2.4.0"
 kafka = "4.2.0"
