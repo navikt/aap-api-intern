@@ -19,6 +19,22 @@ on:
       - 'CODEOWNERS'
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      topic-dev: ${{ steps.filter.outputs.topic-dev }}
+      topic-prod: ${{ steps.filter.outputs.topic-prod }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            topic-dev:
+              - '.nais/topic-dev.yaml'
+            topic-prod:
+              - '.nais/topic-prod.yaml'
+
   gradle:
     permissions:
       contents: write
@@ -84,10 +100,11 @@ jobs:
   
 
   topic-dev:
+    if: ${{ needs.changes.outputs.topic-dev == 'true' || github.event_name == 'workflow_dispatch' }}
     permissions:
       contents: read
       id-token: write
-    needs: gradle
+    needs: [gradle, changes]
     concurrency:
       group: deploy-topic-dev
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
@@ -97,6 +114,7 @@ jobs:
       manifest: .nais/topic-dev.yaml
 
   dev:
+    if: ${{ always() && needs.gradle.result == 'success' && (needs.topic-dev.result == 'success' || needs.topic-dev.result == 'skipped') }}
     permissions:
       contents: read
       id-token: write
@@ -110,11 +128,11 @@ jobs:
       manifest: .nais/app-dev.yml
 
   topic-prod:
-    if: ${{ github.ref == 'refs/heads/main' || github.event.inputs.cluster == 'prod-gcp' }}
+    if: ${{ (github.ref == 'refs/heads/main' || github.event.inputs.cluster == 'prod-gcp') && (needs.changes.outputs.topic-prod == 'true' || github.event_name == 'workflow_dispatch') }}
     permissions:
       contents: read
       id-token: write
-    needs: [ publiser-kontrakt, dev ]
+    needs: [ publiser-kontrakt, dev, changes ]
     concurrency:
       group: deploy-topic-prod
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
@@ -124,7 +142,7 @@ jobs:
       manifest: .nais/topic-prod.yaml
 
   prod:
-    if: ${{ github.ref == 'refs/heads/main' || github.event.inputs.cluster == 'prod-gcp' }}
+    if: ${{ always() && (github.ref == 'refs/heads/main' || github.event.inputs.cluster == 'prod-gcp') && needs.publiser-kontrakt.result == 'success' && needs.dev.result == 'success' && (needs.topic-prod.result == 'success' || needs.topic-prod.result == 'skipped') }}
     permissions:
       contents: read
       id-token: write
