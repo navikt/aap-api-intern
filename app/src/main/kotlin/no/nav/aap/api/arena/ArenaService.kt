@@ -12,10 +12,10 @@ import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SignifikantHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import java.time.LocalDate
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
@@ -36,14 +36,15 @@ class ArenaService(
         personIdenter: List<String>,
         virkningstidspunkt: LocalDate
     ): SignifikanteSakerResponse {
+        val personidentifikator = personIdenter.firstOrNull() ?: return SignifikanteSakerResponse(false, emptyList())
         val harSignifikantAAPArenaHistorikk =
             arenaHistorikk.hentPersonHarSignifikantHistorikk(
                 callId,
-                SignifikanteSakerRequest(personIdenter, virkningstidspunkt)
+                SignifikantHistorikkRequest(personidentifikator, virkningstidspunkt)
             )
         return SignifikanteSakerResponse(
             harSignifikantAAPArenaHistorikk.harSignifikantHistorikk,
-            harSignifikantAAPArenaHistorikk.signifikanteSaker
+            harSignifikantAAPArenaHistorikk.saker().map(Int::toString)
         )
     }
 
