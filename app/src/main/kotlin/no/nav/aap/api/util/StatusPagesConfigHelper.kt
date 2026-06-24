@@ -2,6 +2,7 @@ package no.nav.aap.api.util
 
 import com.fasterxml.jackson.databind.JsonMappingException
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
+import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.response.respond
@@ -59,6 +60,14 @@ object StatusPagesConfigHelper {
                     call.respondText(
                         text = "Tjenesten er midlertidig utilgjengelig",
                         status = HttpStatusCode.ServiceUnavailable
+                    )
+                }
+
+                is HttpRequestTimeoutException -> {
+                    logger.warn("Timeout mot $uri: ", cause)
+                    call.respondText(
+                        text = "Forespørselen tok for lang tid. Prøv igjen om litt.",
+                        status = HttpStatusCode.RequestTimeout
                     )
                 }
 
