@@ -9,8 +9,6 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import java.time.LocalDate
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
@@ -30,13 +28,6 @@ class FakeArenaGateway : IArenaoppslagGateway {
         callId: String, req: SakerRequest
     ): PersonEksistererIAAPArena {
         return PersonEksistererIAAPArena(false)
-    }
-
-    override suspend fun hentPersonHarSignifikantHistorikk(
-        callId: String,
-        req: SignifikanteSakerRequest
-    ): SignifikanteSakerResponse {
-        return SignifikanteSakerResponse(false, emptyList())
     }
 
     override suspend fun hentSakerByFnr(

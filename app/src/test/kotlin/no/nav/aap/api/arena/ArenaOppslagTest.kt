@@ -14,18 +14,15 @@ import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
-import java.time.LocalDate
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
-import no.nav.aap.api.intern.SignifikanteSakerResponse
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.WithFakes
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -75,22 +72,6 @@ class ArenaOppslagTest {
             val parsedBody = res.body<PersonEksistererIAAPArena>()
             assertThat(parsedBody).isNotNull
             assertThat(parsedBody.eksisterer).isFalse // forventet respons fra MockedArenaClient
-        }
-    }
-
-    @Test
-    fun `kan kalle på kan behandles i Kelvin`() {
-        testWithKtorApp { token ->
-            val res = jsonHttpClient.post("/arena/person/aap/signifikant-historikk") {
-                bearerAuth(token.generate(isApp = true))
-                contentType(ContentType.Application.Json)
-                setBody(SignifikanteSakerRequest(listOf("12345678910"), LocalDate.now()))
-            }
-            assertThat(res).isNotNull()
-            assertThat(res.status).isEqualTo(HttpStatusCode.OK)
-            val parsedBody = res.body<SignifikanteSakerResponse>()
-            assertThat(parsedBody).isNotNull
-            assertThat(parsedBody.harSignifikantHistorikk).isFalse // forventet respons fra MockedArenaClient
         }
     }
 
