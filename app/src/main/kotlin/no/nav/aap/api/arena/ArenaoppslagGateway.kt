@@ -31,8 +31,6 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.intern.SignifikanteSakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
 import java.time.Duration
@@ -134,14 +132,6 @@ class ArenaoppslagGateway(
             ).getOrThrow()
                 .also { personEksistererCache.put(key, it) }
     }
-
-    override suspend fun hentPersonHarSignifikantHistorikk(
-        callId: String,
-        req: SignifikanteSakerRequest,
-    ): SignifikanteSakerResponse =
-        gjørArenaOppslag<SignifikanteSakerResponse, SignifikanteSakerRequest>(
-            "/api/v1/person/signifikant-historikk", callId, req
-        ).getOrThrow()
 
     private suspend inline fun <reified T, reified V> gjørArenaOppslag(
         endepunkt: String, callId: String, req: V, tillattMed404: Boolean = false
