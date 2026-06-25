@@ -17,7 +17,6 @@ import no.nav.aap.api.kelvin.Arenavedtak
 import no.nav.aap.api.kelvin.Behandling
 import no.nav.aap.api.kelvin.Meldekort
 import no.nav.aap.api.kelvin.MeldekortService
-import no.nav.aap.api.kelvin.RettighetsTypePeriode
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -41,33 +40,6 @@ class DsopService(
     )
 
     fun hentDsopVedtak(fnr: String, uttrekksperiode: Periode): List<DsopVedtakDTO> {
-        val behandlinger = behandlingsRepository.hentVedtaksData(fnr, uttrekksperiode)
-
-        return behandlinger.flatMap {
-            it.rettighetsTypeTidslinje
-                .segmenter()
-                .map { (periode, verdi) -> RettighetsTypePeriode(periode.fom, periode.tom, verdi) }
-                .map { rettighetsTypePeriode ->
-                    DsopVedtakDTO(
-                        vedtakId = it.vedtakId.toString(),
-                        vedtakStatus = when (rettighetsTypePeriode.tom >= LocalDate.now()) {
-                            true -> DsopStatusDTO.LØPENDE
-                            else -> DsopStatusDTO.AVSLUTTET
-                        },
-                        virkningsperiode = PeriodeNullableTomDTO(
-                            rettighetsTypePeriode.fom,
-                            rettighetsTypePeriode.tom
-                        ),
-                        utfall = Utfall.JA,
-                        aktivitetsfase = DsopRettighetsTypeDTO.valueOf(rettighetsTypePeriode.verdi),
-                        vedtaksType = if (it.nyttVedtak) DsopVedtaksTypeDTO.O else DsopVedtaksTypeDTO.E,
-                        vedtaksvariant = null,
-                    )
-                }
-        }
-    }
-
-    fun hentDsopVedtakNy(fnr: String, uttrekksperiode: Periode): List<DsopVedtakDTO> {
         val behandlinger = behandlingsRepository.hentVedtaksData(fnr, uttrekksperiode)
 
         return behandlinger.flatMap { behandling ->
