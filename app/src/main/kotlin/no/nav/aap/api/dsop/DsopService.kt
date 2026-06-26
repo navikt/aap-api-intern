@@ -113,7 +113,7 @@ class DsopService(
                                 Arenavedtak.Vedtaksvariant.S_DOD,
                             ))
                 ) {
-                    "Hvis vedtaksvariant er satt, så har man ikke rett til AAP (rettighetstype == null) hvis og bare hvis det er en variant som ikke gir rett til AAP"
+                    "sak ${behandling.sak.saksnummer}: Hvis vedtaksvariant er satt, så har man ikke rett til AAP (rettighetstype == null) hvis og bare hvis det er en variant som ikke gir rett til AAP"
                 }
             }
 
