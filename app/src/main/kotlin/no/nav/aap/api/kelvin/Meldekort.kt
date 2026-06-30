@@ -12,6 +12,7 @@ data class Meldekort(
     val personIdent: String,
     val saksnummer: String,
     val behandlingId: Long,
+    val journalpostId: String? = null,
     val mottattTidspunkt: LocalDateTime,
     val meldePeriode: Periode,
     val arbeidPerDag: List<MeldeDag>,

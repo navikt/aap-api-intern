@@ -28,10 +28,14 @@ data class Behandling(
     val stansOpphørVurdering: Set<GjeldendeStansEllerOpphør>?,
     val arenakompatibleVedtak: List<Arenavedtak>,
     val foreløpigMaksdato: LocalDate?,
+    val perioderMedFritakMeldeplikt: List<Periode> = emptyList(),
+    val underveisperioder: List<Underveisperiode> = emptyList(),
 ) {
     val rettighetsTypeTidslinje: Tidslinje<String>
         get() = rettighetsTypePerioder.somTidslinje({ it.periode }, { it.verdi })
             .komprimer()
+
+    val underveisTidslinje get() = underveisperioder.somTidslinje({ it.periode }, { it })
 
     val arenakompatibleVedtakTidslinje: Tidslinje<Arenavedtak>
         get() = arenakompatibleVedtak.somTidslinje { it.periode }
@@ -92,12 +96,21 @@ data class Sak(
     val opprettetTidspunkt: LocalDateTime,
 )
 
+data class Underveisperiode(
+    val periode: Periode,
+    val meldepliktstatus: String?,
+    val arbeidsgrad: Int,
+    val overgrenseVerdi: Boolean,
+    val timerArbeidet: BigDecimal,
+)
+
 /**
  * @param samordningUføregradering Svarer til prosent uføre.
  */
 data class TilkjentYtelse(
     val dagsats: Int,
     val gradering: Int,
+    val effektivDagsats: Int? = null,
     val samordningUføregradering: Int?,
     val grunnlagsfaktor: BigDecimal,
     val grunnbeløp: BigDecimal,

@@ -114,6 +114,48 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
 
+        connection.execute("DELETE FROM FRITAK_MELDEPLIKT WHERE BEHANDLING_ID = ?") {
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+        connection.executeBatch(
+            """
+                INSERT INTO FRITAK_MELDEPLIKT (BEHANDLING_ID, PERIODE)
+                VALUES (?, ?::daterange)
+            """.trimIndent(),
+            behandling.perioderMedFritakMeldeplikt
+        ) {
+            setParams {
+                setLong(1, nyBehandlingId)
+                setPeriode(2, it)
+            }
+        }
+
+        connection.execute("DELETE FROM UNDERVEISPERIODE WHERE BEHANDLING_ID = ?") {
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+        connection.executeBatch(
+            """
+                INSERT INTO UNDERVEISPERIODE (
+                    BEHANDLING_ID, PERIODE, MELDEPLIKTSTATUS, ARBEIDSGRAD, OVERGRENSE_VERDI, TIMER_ARBEIDET
+                )
+                VALUES (?, ?::daterange, ?, ?, ?, ?)
+            """.trimIndent(),
+            behandling.underveisperioder
+        ) {
+            setParams {
+                setLong(1, nyBehandlingId)
+                setPeriode(2, it.periode)
+                setString(3, it.meldepliktstatus)
+                setInt(4, it.arbeidsgrad)
+                setBoolean(5, it.overgrenseVerdi)
+                setBigDecimal(6, it.timerArbeidet)
+            }
+        }
+
         connection.execute(
             """
                 DELETE FROM stans_opphor_grunnlag WHERE behandling_id = ?
@@ -191,8 +233,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
             """
                 INSERT INTO TILKJENT_PERIODE (TILKJENT_YTELSE_ID, PERIODE, DAGSATS, GRADERING,
                                               GRUNNLAGSFAKTOR, GRUNNBELOP, ANTALL_BARN, BARNETILLEGGSATS,
-                                              BARNETILLEGG, UFOREGRADERING)
-                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?)
+                                              BARNETILLEGG, UFOREGRADERING, EFFEKTIV_DAGSATS)
+                VALUES (?, ?::daterange, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent(),
             behandling.tilkjent.segmenter()
         ) {
@@ -207,6 +249,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setBigDecimal(8, it.verdi.barnetilleggsats)
                 setBigDecimal(9, it.verdi.barnetillegg)
                 setInt(10, it.verdi.samordningUføregradering)
+                setInt(11, it.verdi.effektivDagsats)
             }
         }
         if (behandling.beregningsgrunnlag != null) {
@@ -374,9 +417,49 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     rettighetsperiode = sak.rettighetsPeriode,
                     arenakompatibleVedtak = hentArenavedtak(behandlingId),
                     foreløpigMaksdato = sak.foreløpigMaksdato,
+                    perioderMedFritakMeldeplikt = hentPerioderMedFritakMeldeplikt(behandlingId),
+                    underveisperioder = hentUnderveisperioder(behandlingId),
                 )
             }
         }
+    }
+
+    private fun hentPerioderMedFritakMeldeplikt(behandlingId: Long): List<Periode> {
+       return connection.queryList(
+           """
+               SELECT PERIODE FROM FRITAK_MELDEPLIKT
+               WHERE BEHANDLING_ID = ?
+           """.trimIndent()
+       ) {
+           setParams {
+               setLong(1, behandlingId)
+           }
+           setRowMapper { row ->
+               row.getPeriode("PERIODE")
+           }
+       }
+    }
+
+    private fun hentUnderveisperioder(behandlingId: Long): List<Underveisperiode> {
+       return connection.queryList(
+           """
+               SELECT * FROM UNDERVEISPERIODE
+               WHERE BEHANDLING_ID = ?
+           """.trimIndent()
+       ) {
+           setParams {
+               setLong(1, behandlingId)
+           }
+           setRowMapper { row ->
+               Underveisperiode(
+                   periode = row.getPeriode("PERIODE"),
+                   meldepliktstatus = row.getStringOrNull("MELDEPLIKTSTATUS"),
+                   arbeidsgrad = row.getInt("ARBEIDSGRAD"),
+                   overgrenseVerdi = row.getBoolean("OVERGRENSE_VERDI"),
+                   timerArbeidet = row.getBigDecimal("TIMER_ARBEIDET"),
+               )
+           }
+       }
     }
 
     private fun hentStansOpphør(behandlingId: Long): Set<GjeldendeStansEllerOpphør> {
@@ -429,6 +512,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     TilkjentYtelse(
                         dagsats = it.getBigDecimal("DAGSATS").toInt(),
                         gradering = it.getInt("GRADERING"),
+                        effektivDagsats = it.getIntOrNull("EFFEKTIV_DAGSATS"),
                         grunnlagsfaktor = it.getBigDecimal("GRUNNLAGSFAKTOR"),
                         grunnbeløp = it.getBigDecimal("GRUNNBELOP"),
                         antallBarn = it.getInt("ANTALL_BARN"),
