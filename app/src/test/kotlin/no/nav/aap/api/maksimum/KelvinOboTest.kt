@@ -86,6 +86,7 @@ class KelvinOboTest {
                 antallBarn = 0,
                 barnetilleggsats = BigDecimal.ZERO,
                 barnetillegg = BigDecimal.ZERO,
+                effektivDagsats = 200,
             )
         ),
         rettighetsTypeTidsLinje = listOf(
@@ -100,6 +101,8 @@ class KelvinOboTest {
         stansOpphørVurdering = null,
         arenavedtak = emptyList(),
         muligMaksdato = rettighetsTom.plusDays(1),
+        perioderMedFritakMeldeplikt = emptyList(),
+        underveisperioder = emptyList(),
     )
 
     private val testSakStatus = SakStatusKelvin(
