@@ -112,7 +112,8 @@ fun ArbeidIPeriodeDTO.tilDomene(): Meldekort.MeldeDag {
 
 fun UnderveisperiodeDatadelingDTO.tilDomene(): Underveisperiode {
     return Underveisperiode(
-        periode = Periode(this.fom, this.tom),
+        periode = Periode(this.periode.fom, this.periode.tom),
+        meldeperiode = Periode(this.meldeperiode.fom, this.meldeperiode.tom),
         meldepliktstatus = this.meldepliktstatus,
         arbeidsgrad = this.arbeidsgrad,
         overgrenseVerdi = this.overgrenseVerdi,

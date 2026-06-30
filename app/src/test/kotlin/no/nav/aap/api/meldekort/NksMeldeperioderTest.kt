@@ -151,39 +151,29 @@ class NksMeldeperioderTest : PostgresTestBase() {
                 ),
             ),
             NksMeldeperiode(
-                fraDato = andreMeldeperiodeFom,
-                tilDato = andreMeldeperiodeTom,
+                fraDato = andreMeldeperiodeFom.plusDays(1),
+                tilDato = andreMeldeperiodeTom.minusDays(1),
                 fritakMeldeplikt = listOf(
                     NksDatoperiode(
                         LocalDate.of(2026, 7, 5),
                         LocalDate.of(2026, 7, 6)
                     )
                 ),
-                meldekortMedTimer = listOf(
-                    NksMeldekortMedTimer(
-                        journalPostId = "54321",
-                        mottattDato = LocalDate.of(2026, 7, 13)
-                    )
-                ),
-                meldekortLevertIMeldeperioden = listOf(
-                    NksMeldekortMedTimer(
-                        "12345",
-                        LocalDate.of(2026, 6, 29)
-                    )
-                ),
+                meldekortMedTimer = emptyList(),
+                meldekortLevertIMeldeperioden = emptyList(),
                 timerArbeid = listOf(
                     NksTimerArbeid(
-                        andreMeldeperiodeFom,
-                        andreMeldeperiodeTom,
+                        andreMeldeperiodeFom.plusDays(1),
+                        andreMeldeperiodeTom.minusDays(1),
                         BigDecimal.ZERO
                     )
                 ),
                 arbeidsgrad = NksArbeidsgrad(20, false),
-                dagsatser = listOf(NksDagsats(andreMeldeperiodeFom, 900, 900, 100)),
+                dagsatser = listOf(NksDagsats(andreMeldeperiodeFom.plusDays(1), 900, 900, 100)),
                 meldeplikt = listOf(
                     Meldeplikt(
-                        andreMeldeperiodeFom,
-                        andreMeldeperiodeTom,
+                        andreMeldeperiodeFom.plusDays(1),
+                        andreMeldeperiodeTom.minusDays(1),
                         "IKKE_MELDT_SEG"
                     )
                 ),
@@ -262,14 +252,18 @@ class NksMeldeperioderTest : PostgresTestBase() {
                 arbeidsgrad = 70,
                 overgrenseVerdi = true,
                 timerArbeidet = BigDecimal("14.5"),
+                periode = PeriodeDTO(førsteMeldeperiodeFom, førsteMeldeperiodeTom),
+                meldeperiode = PeriodeDTO(førsteMeldeperiodeFom, førsteMeldeperiodeTom),
             ),
             UnderveisperiodeDatadelingDTO(
-                fom = andreMeldeperiodeFom,
-                tom = andreMeldeperiodeTom,
+                fom = andreMeldeperiodeFom.plusDays(1),
+                tom = andreMeldeperiodeTom.minusDays(1),
                 meldepliktstatus = "IKKE_MELDT_SEG",
                 arbeidsgrad = 20,
                 overgrenseVerdi = false,
                 timerArbeidet = BigDecimal.ZERO,
+                periode = PeriodeDTO(andreMeldeperiodeFom.plusDays(1), andreMeldeperiodeTom.minusDays(1)),
+                meldeperiode = PeriodeDTO(andreMeldeperiodeFom, andreMeldeperiodeTom)
             )
         ),
     )

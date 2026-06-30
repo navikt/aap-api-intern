@@ -4,7 +4,8 @@ import no.nav.aap.api.intern.*
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
-import no.nav.aap.komponenter.tidslinje.somTidslinje
+import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.komponenter.tidslinje.orEmpty
 import no.nav.aap.komponenter.type.Periode
 import java.time.Clock
 import java.time.LocalDate
@@ -30,37 +31,49 @@ class NksMeldeperioderService(
             fom ?: LocalDate.of(1900, 1, 1),
             tom ?: LocalDate.of(9999, 12, 31),
         )
-        val behandlinger =
+        val behandling =
             personIdenter.flatMap { behandlingsRepository.hentVedtaksData(it, søkeperiode) }
-                .distinctBy { it.vedtakId }
+                .maxByOrNull { it.vedtakId }
 
         val meldekort = meldekortService.hentAlleMeldekortMedMeldeperiodeEllerMottattIPeriode(
             personIdentifikator, fom, tom
         )
 
-        val meldeperioder = behandlinger.flatMap { behandling ->
-                behandling.underveisTidslinje.begrensetTil(søkeperiode).map { underveisperiode ->
-                        underveisperiode.tilNksMeldeperiode(
-                            behandling = behandling,
-                            meldekort = meldekort,
-                        )
-                    }.segmenter().map { it.verdi }
-            }.sortedWith(compareBy<NksMeldeperiode> { it.fraDato }.thenBy { it.tilDato })
+        val underveistidslinje = behandling?.underveisTidslinje.orEmpty().komprimer()
 
-        return NksMeldeperioderResponse(meldeperioder)
+        val fritakMeldepliktTidslinje = behandling?.fritakMeldepliktTidslinje.orEmpty().komprimer()
+
+        val tilkjentYtelseTidslinje = behandling?.tilkjent.orEmpty()
+
+        val meldeperioder = underveistidslinje.map { it.meldeperiode }.perioder()
+
+        val meldeperioderÅReturnere =
+            underveistidslinje.splittOppIPerioder(meldeperioder.toList())
+                .map { periode, underveisperiode ->
+                    underveisperiode.tilNksMeldeperiode(
+                        meldeperiode = periode,
+                        fritakMeldepliktTidslinje = fritakMeldepliktTidslinje,
+                        meldekort = meldekort,
+                        tilkjentYtelseTidslinje = tilkjentYtelseTidslinje
+                    )
+                }
+                .segmenter().map { it.verdi }
+
+        return NksMeldeperioderResponse(meldeperioderÅReturnere)
     }
 
-    private fun Underveisperiode.tilNksMeldeperiode(
-        behandling: Behandling,
+    private fun Tidslinje<Underveisperiode>.tilNksMeldeperiode(
         meldekort: List<Meldekort>,
+        fritakMeldepliktTidslinje: Tidslinje<Boolean>,
+        tilkjentYtelseTidslinje: Tidslinje<TilkjentYtelse>,
+        meldeperiode: Periode,
     ): NksMeldeperiode {
         return NksMeldeperiode(
-            fraDato = periode.fom,
-            tilDato = periode.tom,
-            fritakMeldeplikt = behandling.perioderMedFritakMeldeplikt.somTidslinje { it }
-                .begrensetTil(periode).komprimer().segmenter()
-                .map { NksDatoperiode(it.periode.fom, it.periode.tom) },
-            meldekortMedTimer = meldekort.filter { it.harArbeidsregistreringIPeriode(periode) }
+            fraDato = meldeperiode.fom,
+            tilDato = meldeperiode.tom,
+            fritakMeldeplikt = fritakMeldepliktTidslinje.begrensetTil(meldeperiode).komprimer()
+                .segmenter().map { NksDatoperiode(it.periode.fom, it.periode.tom) },
+            meldekortMedTimer = meldekort.filter { it.harArbeidsregistreringIPeriode(meldeperiode) }
                 .map { meldekort ->
                     NksMeldekortMedTimer(
                         journalPostId = meldekort.journalpostId,
@@ -68,25 +81,31 @@ class NksMeldeperioderService(
                     )
 
                 },
-            meldekortLevertIMeldeperioden = meldekort.filter { it.mottattTidspunkt.toLocalDate() in periode.fom..periode.tom }
-                .map { meldekort ->
-                    NksMeldekortMedTimer(
-                        journalPostId = meldekort.journalpostId,
-                        mottattDato = meldekort.mottattTidspunkt.toLocalDate(),
+            meldekortLevertIMeldeperioden = meldekort.filter {
+                it.mottattTidspunkt.toLocalDate() in meldeperiode.fom..meldeperiode.tom
+            }.map { meldekort ->
+                NksMeldekortMedTimer(
+                    journalPostId = meldekort.journalpostId,
+                    mottattDato = meldekort.mottattTidspunkt.toLocalDate(),
+                )
+            },
+            timerArbeid = map { it.timerArbeidet }.komprimer().segmenter().map {
+                NksTimerArbeid(
+                    periodeFom = it.periode.fom,
+                    periodeTom = it.periode.tom,
+                    timerArbeidet = it.verdi
+                )
+            },
+            arbeidsgrad = map { Pair(it.arbeidsgrad, it.overgrenseVerdi) }.komprimer().segmenter()
+                .first()
+                .let {
+                    NksArbeidsgrad(
+                        grad = it.verdi.first,
+                        overGrenseVerdi = it.verdi.second,
                     )
                 },
-            timerArbeid = listOf(
-                NksTimerArbeid(
-                    periodeFom = periode.fom,
-                    periodeTom = periode.tom,
-                    timerArbeidet = timerArbeidet,
-                )
-            ),
-            arbeidsgrad = NksArbeidsgrad(
-                grad = arbeidsgrad,
-                overGrenseVerdi = overgrenseVerdi,
-            ),
-            dagsatser = behandling.tilkjent.begrensetTil(periode).segmenter().map {
+            dagsatser = tilkjentYtelseTidslinje.begrensetTil(meldeperiode).komprimer().segmenter()
+                .map {
                     NksDagsats(
                         dato = it.periode.fom,
                         dagsats = it.verdi.dagsats,
@@ -95,15 +114,13 @@ class NksMeldeperioderService(
                         gradering = it.verdi.gradering,
                     )
                 },
-            meldeplikt = meldepliktstatus?.let {
-                listOf(
-                    Meldeplikt(
-                        fraDato = periode.fom,
-                        tilDato = periode.tom,
-                        status = it,
-                    )
+            meldeplikt = mapNotNull { it.meldepliktstatus }.komprimer().segmenter().map {
+                Meldeplikt(
+                    fraDato = it.periode.fom,
+                    tilDato = it.periode.tom,
+                    status = it.verdi,
                 )
-            }.orEmpty(),
+            },
         )
     }
 

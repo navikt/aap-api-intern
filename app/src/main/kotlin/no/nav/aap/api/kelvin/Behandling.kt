@@ -37,6 +37,8 @@ data class Behandling(
 
     val underveisTidslinje get() = underveisperioder.somTidslinje({ it.periode }, { it })
 
+    val fritakMeldepliktTidslinje get() = perioderMedFritakMeldeplikt.somTidslinje({ it }, { true })
+
     val arenakompatibleVedtakTidslinje: Tidslinje<Arenavedtak>
         get() = arenakompatibleVedtak.somTidslinje { it.periode }
 }
@@ -98,6 +100,7 @@ data class Sak(
 
 data class Underveisperiode(
     val periode: Periode,
+    val meldeperiode: Periode,
     val meldepliktstatus: String?,
     val arbeidsgrad: Int,
     val overgrenseVerdi: Boolean,

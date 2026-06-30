@@ -140,19 +140,20 @@ class BehandlingsRepository(private val connection: DBConnection) {
         connection.executeBatch(
             """
                 INSERT INTO UNDERVEISPERIODE (
-                    BEHANDLING_ID, PERIODE, MELDEPLIKTSTATUS, ARBEIDSGRAD, OVERGRENSE_VERDI, TIMER_ARBEIDET
+                    BEHANDLING_ID, PERIODE, MELDEPERIODE, MELDEPLIKTSTATUS, ARBEIDSGRAD, OVERGRENSE_VERDI, TIMER_ARBEIDET
                 )
-                VALUES (?, ?::daterange, ?, ?, ?, ?)
+                VALUES (?, ?::daterange, ?::daterange, ?, ?, ?, ?)
             """.trimIndent(),
             behandling.underveisperioder
         ) {
             setParams {
                 setLong(1, nyBehandlingId)
                 setPeriode(2, it.periode)
-                setString(3, it.meldepliktstatus)
-                setInt(4, it.arbeidsgrad)
-                setBoolean(5, it.overgrenseVerdi)
-                setBigDecimal(6, it.timerArbeidet)
+                setPeriode(3, it.meldeperiode)
+                setString(4, it.meldepliktstatus)
+                setInt(5, it.arbeidsgrad)
+                setBoolean(6, it.overgrenseVerdi)
+                setBigDecimal(7, it.timerArbeidet)
             }
         }
 
@@ -453,6 +454,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
            setRowMapper { row ->
                Underveisperiode(
                    periode = row.getPeriode("PERIODE"),
+                   meldeperiode = row.getPeriode("MELDEPERIODE"),
                    meldepliktstatus = row.getStringOrNull("MELDEPLIKTSTATUS"),
                    arbeidsgrad = row.getInt("ARBEIDSGRAD"),
                    overgrenseVerdi = row.getBoolean("OVERGRENSE_VERDI"),
