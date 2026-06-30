@@ -65,12 +65,14 @@ class BehandlingsDataTest : PostgresTestBase() {
                     grunnbeløp = 123321.toBigDecimal(),
                     antallBarn = 2,
                     barnetilleggsats = 36.toBigDecimal(),
-                    barnetillegg = (36 * 2).toBigDecimal()
+                    barnetillegg = (36 * 2).toBigDecimal(),
+                    effektivDagsats = 200
                 ),
                 TilkjentDTO(
                     tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(2),
                     tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(4).minusDays(1),
                     dagsats = 200,
+                    effektivDagsats = 200,
                     gradering = 100,
                     grunnlagsfaktor = 2.4.toBigDecimal(),
                     grunnbeløp = 123321.toBigDecimal(),
@@ -81,6 +83,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(4),
                     tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(6).minusDays(1),
                     dagsats = 300,
+                    effektivDagsats = 0,
                     gradering = 0,
                     grunnlagsfaktor = 2.4.toBigDecimal(),
                     grunnbeløp = 123321.toBigDecimal(),
@@ -92,6 +95,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     tilkjentFom = LocalDate.now().minusYears(2).plusWeeks(6),
                     tilkjentTom = LocalDate.now().minusYears(2).plusWeeks(8).minusDays(1),
                     dagsats = 300,
+                    effektivDagsats = 300,
                     gradering = 100,
                     grunnlagsfaktor = 2.4.toBigDecimal(),
                     grunnbeløp = 123321.toBigDecimal(),
@@ -113,6 +117,8 @@ class BehandlingsDataTest : PostgresTestBase() {
             stansOpphørVurdering = null,
             arenavedtak = emptyList(),
             muligMaksdato = null,
+            perioderMedFritakMeldeplikt = emptyList(),
+            underveisperioder = emptyList(),
         )
     }
 
@@ -308,6 +314,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                             tilkjentFom = fraOgMed,
                             tilkjentTom = fraOgMed.plusYears(2).plusWeeks(2).minusDays(1),
                             dagsats = 200,
+                            effektivDagsats = 200,
                             gradering = 100,
                             grunnlagsfaktor = 2.4.toBigDecimal(),
                             grunnbeløp = 123321.toBigDecimal(),
@@ -329,6 +336,8 @@ class BehandlingsDataTest : PostgresTestBase() {
                     stansOpphørVurdering = null,
                     arenavedtak = emptyList(),
                     muligMaksdato = null,
+                    perioderMedFritakMeldeplikt = emptyList(),
+                    underveisperioder = emptyList(),
                 )
             )
         }
