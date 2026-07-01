@@ -28,8 +28,8 @@ data class Behandling(
     val stansOpphørVurdering: Set<GjeldendeStansEllerOpphør>?,
     val arenakompatibleVedtak: List<Arenavedtak>,
     val foreløpigMaksdato: LocalDate?,
-    val perioderMedFritakMeldeplikt: List<Periode> = emptyList(),
-    val underveisperioder: List<Underveisperiode> = emptyList(),
+    val perioderMedFritakMeldeplikt: List<Periode>,
+    val underveisperioder: List<Underveisperiode>,
 ) {
     val rettighetsTypeTidslinje: Tidslinje<String>
         get() = rettighetsTypePerioder.somTidslinje({ it.periode }, { it.verdi })
@@ -113,7 +113,7 @@ data class Underveisperiode(
 data class TilkjentYtelse(
     val dagsats: Int,
     val gradering: Int,
-    val effektivDagsats: Int? = null,
+    val effektivDagsats: Int?,
     val samordningUføregradering: Int?,
     val grunnlagsfaktor: BigDecimal,
     val grunnbeløp: BigDecimal,

@@ -85,6 +85,8 @@ class DsopServiceTest {
         stansOpphørVurdering = emptySet(),
         arenakompatibleVedtak = emptyList(),
         foreløpigMaksdato = null,
+        perioderMedFritakMeldeplikt = emptyList(),
+        underveisperioder = emptyList(),
     )
 
     @Test
@@ -313,6 +315,8 @@ class DsopServiceTest {
             stansOpphørVurdering = setOf(),
             arenakompatibleVedtak = arenavedtak,
             foreløpigMaksdato = null,
+            perioderMedFritakMeldeplikt = emptyList(),
+            underveisperioder = emptyList(),
         )
     }
 }

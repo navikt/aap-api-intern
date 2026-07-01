@@ -67,6 +67,7 @@ class MeldekortDetaljerTest : PostgresTestBase() {
         // Sett inn behandling med tilkjent ytelse slik at utbetalinger-listen populeres
         val tilkjentYtelse = TilkjentYtelse(
             dagsats = 1000,
+            effektivDagsats = 1000,
             gradering = 100,
             samordningUføregradering = null,
             grunnlagsfaktor = BigDecimal("3.5"),
@@ -81,7 +82,13 @@ class MeldekortDetaljerTest : PostgresTestBase() {
             vedtaksDato = testFom,
             sak = Sak(saksnummer = "asd123", opprettetTidspunkt = testMottatTidspunkt),
             tilkjent = tidslinjeOf(Periode(testFom, testTom) to tilkjentYtelse),
-            rettighetsTypePerioder = listOf(RettighetsTypePeriode(testFom, testTom, "SYKEPENGEERSTATNING")),
+            rettighetsTypePerioder = listOf(
+                RettighetsTypePeriode(
+                    testFom,
+                    testTom,
+                    "SYKEPENGEERSTATNING"
+                )
+            ),
             behandlingsReferanse = "test-ref-1234",
             samId = null,
             vedtakId = 1234L,
@@ -90,6 +97,8 @@ class MeldekortDetaljerTest : PostgresTestBase() {
             stansOpphørVurdering = emptySet(),
             arenakompatibleVedtak = emptyList(),
             foreløpigMaksdato = null,
+            perioderMedFritakMeldeplikt = emptyList(),
+            underveisperioder = emptyList(),
         )
         dataSource.transaction { connection ->
             BehandlingsRepository(connection).lagreBehandling(listOf("12345678901"), behandling)
