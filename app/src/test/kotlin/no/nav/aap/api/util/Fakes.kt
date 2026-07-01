@@ -38,6 +38,17 @@ object Fakes : AutoCloseable {
     private val aapHendelse = AapHendelseKafkaFake()
     private val arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway())
 
+    var tilgangResponse: TilgangResponse = TilgangResponse(true)
+
+    fun withTilgangNektet(block: () -> Unit) {
+        tilgangResponse = TilgangResponse(false)
+        try {
+            block()
+        } finally {
+            tilgangResponse = TilgangResponse(true)
+        }
+    }
+
     fun start() {
         texas.start()
         arena.start()
@@ -189,7 +200,7 @@ fun Application.tilgangFake() = runBlocking {
     }
     routing {
         post("/tilgang/person") {
-            call.respond(TilgangResponse(true))
+            call.respond(Fakes.tilgangResponse)
         }
     }
 }

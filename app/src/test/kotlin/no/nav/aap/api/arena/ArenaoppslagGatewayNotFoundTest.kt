@@ -2,13 +2,13 @@ package no.nav.aap.api.arena
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.jackson
-import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.runBlocking
@@ -16,13 +16,18 @@ import no.nav.aap.api.ArenaoppslagConfig
 import no.nav.aap.api.util.TestToken
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.port
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakPerson
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.assertThrows
+import java.time.LocalDateTime
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -30,6 +35,22 @@ class ArenaoppslagGatewayNotFoundTest {
 
     private var arenaResponse: (suspend (call: io.ktor.server.application.ApplicationCall) -> Unit) = { call ->
         call.respond(SakerResponse(emptyList()))
+    }
+
+    private var arenaGetResponse: (suspend (call: io.ktor.server.application.ApplicationCall) -> Unit) = { call ->
+        call.respond(
+            ArenaSakMedVedtakResponse(
+                sakId = "1",
+                opprettetAar = 2022,
+                lopenr = 1,
+                person = ArenaSakPerson(personId = 1, fodselsnummer = "01410028596", fornavn = "Test", etternavn = "Testesen"),
+                statuskode = "AKTIV",
+                statusnavn = "Aktiv",
+                registrertDato = LocalDateTime.of(2022, 1, 1, 0, 0),
+                avsluttetDato = null,
+                vedtak = emptyList(),
+            )
+        )
     }
 
     private val texas = embeddedServer(Netty, port = 0) {
@@ -42,9 +63,15 @@ class ArenaoppslagGatewayNotFoundTest {
     }.start()
 
     private val arena = embeddedServer(Netty, port = 0) {
-        install(ContentNegotiation) { jackson() }
+        install(ContentNegotiation) {
+            jackson {
+                registerModule(JavaTimeModule())
+                disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+            }
+        }
         routing {
             post("/api/v1/person/saker") { arenaResponse(call) }
+            get("/api/v1/sak/{sakId}") { arenaGetResponse(call) }
         }
     }.start()
 
@@ -116,6 +143,31 @@ class ArenaoppslagGatewayNotFoundTest {
         )
 
         assertThat(response.saker).isEmpty()
+    }
+
+    @Test
+    fun `hentArenaSakMedVedtak returnerer null når Arena svarer 404`() = runBlocking {
+        arenaGetResponse = { call ->
+            call.respondText(
+                text = "\"Fant ikke saken i Arena\"",
+                contentType = io.ktor.http.ContentType.Application.Json,
+                status = HttpStatusCode.NotFound,
+            )
+        }
+
+        val response = gateway().hentArenaSakMedVedtak(callId = "test-call-id", sakId = "1")
+
+        assertThat(response).isNull()
+    }
+
+    @Test
+    fun `hentArenaSakMedVedtak returnerer sak når Arena svarer 200`() = runBlocking {
+        val response = gateway().hentArenaSakMedVedtak(callId = "test-call-id", sakId = "1")
+
+        assertThat(response).isNotNull
+        assertThat(response!!.sakId).isEqualTo("1")
+        assertThat(response.person.fodselsnummer).isEqualTo("01410028596")
+        Unit
     }
 }
 

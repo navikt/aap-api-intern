@@ -4,6 +4,7 @@ import no.nav.aap.api.arena.IArenaoppslagGateway
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakOppsummeringKontrakt
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakPerson
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
@@ -12,6 +13,7 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import java.time.LocalDate
+import java.time.LocalDateTime
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
 class FakeArenaGateway : IArenaoppslagGateway {
@@ -73,5 +75,23 @@ class FakeArenaGateway : IArenaoppslagGateway {
 
     override suspend fun hentArenaSakMedVedtak(
         callId: String, sakId: String
-    ): ArenaSakMedVedtakResponseV1? = null
+    ): ArenaSakMedVedtakResponseV1? = when (sakId) {
+        "1" -> ArenaSakMedVedtakResponseV1(
+            sakId = "1",
+            opprettetAar = 2022,
+            lopenr = 1,
+            person = ArenaSakPerson(
+                personId = 1,
+                fodselsnummer = "01410028596",
+                fornavn = "Test",
+                etternavn = "Testesen",
+            ),
+            statuskode = "AKTIV",
+            statusnavn = "Aktiv",
+            registrertDato = LocalDateTime.of(2022, 1, 1, 0, 0),
+            avsluttetDato = null,
+            vedtak = emptyList(),
+        )
+        else -> null
+    }
 }

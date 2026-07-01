@@ -6,6 +6,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.bearerAuth
+import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
@@ -16,6 +17,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.testApplication
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
+import no.nav.aap.api.intern.ArenaSakMedVedtakResponse
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
@@ -142,6 +144,49 @@ class ArenaOppslagTest {
                 setBody(SakerRequestV1(personidentifikator = "12345678910"))
             }
             assertThat(res.status).isEqualTo(HttpStatusCode.Unauthorized)
+        }
+    }
+
+    @Test
+    fun `kan hente Arena-sak med vedtak`() {
+        testWithKtorApp { token ->
+            val res = jsonHttpClient.get("/arena/sak/1") {
+                bearerAuth(token.generate(isApp = true))
+            }
+            assertThat(res.status).isEqualTo(HttpStatusCode.OK)
+            val parsedBody = res.body<ArenaSakMedVedtakResponse>()
+            assertThat(parsedBody.sakId).isEqualTo("1")
+            assertThat(parsedBody.person.fodselsnummer).isEqualTo("01410028596")
+        }
+    }
+
+    @Test
+    fun `hentArenaSakMedVedtak returnerer 404 når sak ikke finnes`() {
+        testWithKtorApp { token ->
+            val res = jsonHttpClient.get("/arena/sak/finnes-ikke") {
+                bearerAuth(token.generate(isApp = true))
+            }
+            assertThat(res.status).isEqualTo(HttpStatusCode.NotFound)
+        }
+    }
+
+    @Test
+    fun `hentArenaSakMedVedtak returnerer 401 uten token`() {
+        testWithKtorApp { _ ->
+            val res = jsonHttpClient.get("/arena/sak/1")
+            assertThat(res.status).isEqualTo(HttpStatusCode.Unauthorized)
+        }
+    }
+
+    @Test
+    fun `hentArenaSakMedVedtak returnerer 403 når OBO-token ikke har tilgang til person`() {
+        Fakes.withTilgangNektet {
+            testWithKtorApp { token ->
+                val res = jsonHttpClient.get("/arena/sak/1") {
+                    bearerAuth(token.generate(isApp = false))
+                }
+                assertThat(res.status).isEqualTo(HttpStatusCode.Forbidden)
+            }
         }
     }
 
