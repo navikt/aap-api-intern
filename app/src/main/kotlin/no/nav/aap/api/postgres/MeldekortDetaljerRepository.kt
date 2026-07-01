@@ -79,8 +79,8 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
             """
                 INSERT INTO MELDEKORT(
                    PERSON_IDENT, MOTTATT_TIDSPUNKT, SAKSNUMMER, BEHANDLING_ID, 
-                   PERIODE) 
-                   VALUES (?, ?, ?, ?, ?::daterange)
+                   PERIODE, JOURNALPOST_ID)
+                   VALUES (?, ?, ?, ?, ?::daterange, ?)
                 """.trimIndent()
         ) {
             setParams {
@@ -89,6 +89,7 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
                 setString(3, meldekort.saksnummer)
                 setLong(4, meldekort.behandlingId)
                 setPeriode(5, meldekort.meldePeriode)
+                setString(6, meldekort.journalpostId)
             }
         }
     }
@@ -141,11 +142,44 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
         }
     }
 
+    fun hentAlleMedMeldeperiodeEllerMottattIPeriode(
+        personIdentifikatorer: List<String>,
+        fom: LocalDate? = null,
+        tom: LocalDate? = null
+    ): List<Meldekort> {
+        return connection.queryList(
+            """SELECT * FROM MELDEKORT WHERE PERSON_IDENT = ANY(?)
+                 AND (
+                    periode && daterange(
+                        COALESCE(CAST(? AS DATE), '-infinity'::date),
+                        COALESCE(CAST(? AS DATE), 'infinity'::date),
+                        '[]'
+                    )
+                    OR MOTTATT_TIDSPUNKT::date BETWEEN
+                        COALESCE(CAST(? AS DATE), '-infinity'::date)
+                        AND COALESCE(CAST(? AS DATE), 'infinity'::date)
+                )
+                """.trimIndent()
+        ) {
+            setParams {
+                setArray(1, personIdentifikatorer)
+                setLocalDate(2, fom)
+                setLocalDate(3, tom)
+                setLocalDate(4, fom)
+                setLocalDate(5, tom)
+            }
+            setRowMapper { row ->
+                rowToMeldekortDTO(row)
+            }
+        }
+    }
+
     private fun rowToMeldekortDTO(row: Row): Meldekort {
         return Meldekort(
             personIdent = row.getString("PERSON_IDENT"),
             saksnummer = row.getString("SAKSNUMMER"),
             behandlingId = row.getLong("BEHANDLING_ID"),
+            journalpostId = row.getStringOrNull("JOURNALPOST_ID"),
             mottattTidspunkt = row.getLocalDateTime("MOTTATT_TIDSPUNKT"),
             meldePeriode = row.getPeriode("PERIODE"), // midlertidig, overskrives under mapping
             arbeidPerDag = hentArbeidPerDag(row.getLong("ID")), // midlertidig, overskrives under mapping
@@ -165,11 +199,10 @@ class MeldekortDetaljerRepository(private val connection: DBConnection) {
             setRowMapper { row ->
                 Meldekort.MeldeDag(
                     dag = row.getLocalDate("DATO"),
-                    timerArbeidet = row.getBigDecimal("TIMER_ARBEIDET")
+                    timerArbeidet = row.getBigDecimal("TIMER_ARBEIDET"),
                 )
             }
         }
     }
 
 }
-

@@ -93,6 +93,8 @@ class BehandlingsRepositoryTest {
             ),
         ),
         foreløpigMaksdato = null,
+        perioderMedFritakMeldeplikt = emptyList(),
+        underveisperioder = emptyList(),
     )
 
     @Test

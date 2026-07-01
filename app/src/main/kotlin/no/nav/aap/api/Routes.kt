@@ -19,6 +19,7 @@ import no.nav.aap.api.intern.*
 import no.nav.aap.api.kelvin.AktivitetsfaseService
 import no.nav.aap.api.kelvin.KelvinSakService
 import no.nav.aap.api.kelvin.MeldekortService
+import no.nav.aap.api.kelvin.NksMeldeperioderService
 import no.nav.aap.api.kelvin.VedtakService
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
@@ -218,6 +219,33 @@ fun NormalOpenAPIRoute.api(
             }
 
             val responseBody = MeldekortDetaljerResponse(personIdentifikator, meldekortListe)
+            respond(responseBody, HttpStatusCode.OK)
+        }
+
+        route("/nks/meldeperioder").authorizedPost<CallIdHeader, NksMeldeperioderResponse, MeldekortDetaljerRequest>(
+            AuthorizationMachineToMachineConfig(
+                authorizedAzps = listOf(
+                    UUID.fromString(
+                        requiredConfigForKey("AZP_SAAS_PROXY")
+                    )
+                ) + azpForTokenGenHvisIkkeProd()
+            ), null, null, null,
+            info(description = "Henter meldeperioder med meldeplikt, arbeid, meldekort og dagsatser for NKS."),
+            tags(Tag.NKS)
+        ) { _, requestBody ->
+            Metrics.httpRequestTeller(pipeline.call)
+            val personIdentifikator = requestBody.personidentifikator
+            sjekkTilgangTilPerson(personIdentifikator, token())
+
+            val responseBody = dataSource.transaction { connection ->
+                NksMeldeperioderService(connection, pdlGateway, clock).hent(
+                    personIdentifikator,
+                    requestBody.fraOgMedDato,
+                    requestBody.tilOgMedDato,
+                )
+            }
+
+            tellKelvinKall(pipeline.call.request)
             respond(responseBody, HttpStatusCode.OK)
         }
 
