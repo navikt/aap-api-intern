@@ -97,7 +97,7 @@ class NksMeldeperioderService(
                 )
             },
             arbeidsgrad = map { Pair(it.arbeidsgrad, it.overgrenseVerdi) }.komprimer().segmenter()
-                .also { require(it.size == 1) { "Forventet én arbeidsgrad per meldeperiode, men fant ${it.size}" } }
+                .also { require(it.toList().size == 1) { "Forventet én arbeidsgrad per meldeperiode, men fant ${it.toList().size}" } }
                 .single()
                 .let {
                     NksArbeidsgrad(
