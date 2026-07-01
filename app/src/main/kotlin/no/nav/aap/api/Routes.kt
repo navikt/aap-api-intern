@@ -2,9 +2,11 @@ package no.nav.aap.api
 
 import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
+import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import com.papsign.ktor.openapigen.route.*
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
+import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
 import io.ktor.http.*
@@ -76,6 +78,14 @@ data class SakerRequestMeldekortbackend(
     @property:Description("Personidentifikator")
     val personidentifikator: String
 )
+
+data class ArenaSakParameter(
+    @param:PathParam("sakId") val sakId: String,
+    @param:HeaderParam("Nav-CallId") val `Nav-CallId`: String? = null,
+    @param:HeaderParam("X-Correlation-Id") val `X-Correlation-Id`: String? = null,
+) {
+    fun callId(): String? = listOfNotNull(`Nav-CallId`, `X-Correlation-Id`).firstOrNull()
+}
 
 private fun receiveCall(
     callIdHeader: CallIdHeader,
@@ -367,6 +377,23 @@ fun NormalOpenAPIRoute.api(
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val saker = arenaService.hentSakerForPerson(callId, requestBody.personidentifikator)
                 respond(saker)
+            }
+        }
+        route("/arena/sak/{sakId}") {
+            get<ArenaSakParameter, ArenaSakMedVedtakResponse>(
+                info(description = "Henter en Arena-sak med tilhørende vedtak.")
+            ) { params ->
+                val callId = params.callId() ?: UUID.randomUUID().toString().also {
+                    logger.info("CallID ble ikke gitt på kall mot: ${pipeline.call.request.path()}")
+                }
+                Metrics.httpRequestTeller(pipeline.call)
+
+                val sak = arenaService.hentArenaSakMedVedtak(callId, params.sakId)
+                    ?: return@get pipeline.call.respond(HttpStatusCode.NotFound)
+
+                sjekkTilgangTilPerson(sak.person.fodselsnummer, token())
+
+                respond(sak)
             }
         }
     }

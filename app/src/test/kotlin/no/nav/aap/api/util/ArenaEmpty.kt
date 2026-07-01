@@ -3,6 +3,7 @@ package no.nav.aap.api.util
 import no.nav.aap.api.arena.IArenaoppslagGateway
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakOppsummeringKontrakt
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
@@ -69,4 +70,8 @@ class FakeArenaGateway : IArenaoppslagGateway {
     ): Maksimum {
         return Maksimum(emptyList())
     }
+
+    override suspend fun hentArenaSakMedVedtak(
+        callId: String, sakId: String
+    ): ArenaSakMedVedtakResponseV1? = null
 }

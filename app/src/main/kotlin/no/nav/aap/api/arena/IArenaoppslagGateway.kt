@@ -1,6 +1,7 @@
 package no.nav.aap.api.arena
 
 import no.nav.aap.api.intern.PerioderResponse
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
@@ -31,6 +32,11 @@ interface IArenaoppslagGateway {
         callId: String,
         req: SakerRequestV1
     ): SakerResponse
+
+    suspend fun hentArenaSakMedVedtak(
+        callId: String,
+        sakId: String
+    ): ArenaSakMedVedtakResponseV1?
 
     suspend fun hentMaksimum(callId: String, req: InternVedtakRequest): Maksimum
 }
