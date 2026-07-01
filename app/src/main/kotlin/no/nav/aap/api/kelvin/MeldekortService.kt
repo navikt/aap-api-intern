@@ -8,7 +8,11 @@ import no.nav.aap.komponenter.type.Periode
 import java.time.Clock
 import java.time.LocalDate
 
-class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, clock: Clock) {
+class MeldekortService(
+    connection: DBConnection,
+    val pdlGateway: IPdlGateway,
+    clock: Clock = Clock.systemDefaultZone()
+) {
     val meldekortDetaljerRepository = MeldekortDetaljerRepository(connection)
     val vedtakService = VedtakService(BehandlingsRepository(connection), clock)
 
@@ -32,8 +36,7 @@ class MeldekortService(connection: DBConnection, val pdlGateway: IPdlGateway, cl
     ): List<Meldekort> {
         val personIdenter =
             pdlGateway.hentAlleIdenterForPerson(personIdentifikator).map { it.ident }
-
-        if (personIdenter.isEmpty()) return emptyList()
+                .ifEmpty { return emptyList() }
 
         return meldekortDetaljerRepository.hentAlleMedMeldeperiodeEllerMottattIPeriode(
             personIdenter,

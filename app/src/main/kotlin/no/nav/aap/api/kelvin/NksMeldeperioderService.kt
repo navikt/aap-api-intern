@@ -25,7 +25,7 @@ class NksMeldeperioderService(
     ): NksMeldeperioderResponse {
         val personIdenter =
             pdlGateway.hentAlleIdenterForPerson(personIdentifikator).map { it.ident }
-        if (personIdenter.isEmpty()) return NksMeldeperioderResponse(emptyList())
+                .ifEmpty { return NksMeldeperioderResponse(emptyList()) }
 
         val søkeperiode = Periode(
             fom ?: LocalDate.of(1900, 1, 1),
@@ -97,7 +97,8 @@ class NksMeldeperioderService(
                 )
             },
             arbeidsgrad = map { Pair(it.arbeidsgrad, it.overgrenseVerdi) }.komprimer().segmenter()
-                .first()
+                .also { require(it.size == 1) { "Forventet én arbeidsgrad per meldeperiode, men fant ${it.size}" } }
+                .single()
                 .let {
                     NksArbeidsgrad(
                         grad = it.verdi.first,
