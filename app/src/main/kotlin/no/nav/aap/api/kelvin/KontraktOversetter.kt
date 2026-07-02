@@ -8,6 +8,7 @@ import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.StansEllerOpphørEnumDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.UnderveisperiodeDatadelingDTO
 import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
 
@@ -59,6 +60,8 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
                 },
             )
         },
+        perioderMedFritakMeldeplikt = this.perioderMedFritakMeldeplikt.map { Periode(it.fom, it.tom) },
+        underveisperioder = this.underveisperioder.map { it.tilDomene() },
     )
 }
 
@@ -82,6 +85,7 @@ fun TilkjentDTO.tilDomene(): TilkjentYtelse {
     return TilkjentYtelse(
         dagsats = this.dagsats,
         gradering = this.gradering,
+        effektivDagsats = this.effektivDagsats,
         samordningUføregradering = this.samordningUføregradering,
         grunnlagsfaktor = this.grunnlagsfaktor,
         grunnbeløp = this.grunnbeløp,
@@ -102,7 +106,18 @@ fun no.nav.aap.behandlingsflyt.kontrakt.datadeling.RettighetsTypePeriode.tilDome
 fun ArbeidIPeriodeDTO.tilDomene(): Meldekort.MeldeDag {
     return Meldekort.MeldeDag(
         timerArbeidet = this.timerArbeidet,
-        dag = this.periodeFom // antar at periodeFom og periodeTom er samme
+        dag = this.periodeFom,
+    )
+}
+
+fun UnderveisperiodeDatadelingDTO.tilDomene(): Underveisperiode {
+    return Underveisperiode(
+        periode = Periode(this.periode.fom, this.periode.tom),
+        meldeperiode = Periode(this.meldeperiode.fom, this.meldeperiode.tom),
+        meldepliktstatus = this.meldepliktstatus,
+        arbeidsgrad = this.arbeidsgrad,
+        overgrenseVerdi = this.overgrenseVerdi,
+        timerArbeidet = this.timerArbeidet,
     )
 }
 
@@ -111,6 +126,7 @@ fun DetaljertMeldekortDTO.tilDomene(): Meldekort {
         personIdent = this.personIdent,
         saksnummer = this.saksnummer.toString(),
         behandlingId = this.behandlingId,
+        journalpostId = this.journalpostId,
         mottattTidspunkt = this.mottattTidspunkt,
         meldePeriode = Periode(this.meldeperiodeFom, this.meldeperiodeTom),
         arbeidPerDag = this.timerArbeidPerPeriode.map { it.tilDomene() },

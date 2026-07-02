@@ -9,6 +9,7 @@ class TilkjentYtelseTest {
     fun `gradering etter uføre`() {
         val tilkjent = TilkjentYtelse(
             dagsats = 1000,
+            effektivDagsats = 50,
             gradering = 50,
             grunnlagsfaktor = 2.4.toBigDecimal(),
             grunnbeløp = 123321.toBigDecimal(),
