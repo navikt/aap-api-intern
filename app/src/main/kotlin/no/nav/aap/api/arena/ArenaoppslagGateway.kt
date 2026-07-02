@@ -25,6 +25,7 @@ import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
 import no.nav.aap.api.util.findRootCause
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
@@ -82,26 +83,26 @@ class ArenaoppslagGateway(
 
     override suspend fun hentPerioder(
         callId: String, vedtakRequest: InternVedtakRequest,
-    ): PerioderResponse = gjørArenaOppslag<PerioderResponse, InternVedtakRequest>(
+    ): PerioderResponse = gjørArenaPostOppslag<PerioderResponse, InternVedtakRequest>(
         "/intern/perioder", callId, vedtakRequest
     ).getOrThrow()
 
     override suspend fun hentPerioderInkludert11_17(
         callId: String, req: InternVedtakRequest,
-    ): PerioderMed11_17Response = gjørArenaOppslag<PerioderMed11_17Response, InternVedtakRequest>(
+    ): PerioderMed11_17Response = gjørArenaPostOppslag<PerioderMed11_17Response, InternVedtakRequest>(
         "/intern/perioder/11-17", callId, req
     ).getOrThrow()
 
     override suspend fun hentSakerByFnr(
         callId: String, req: SakerRequest,
-    ): List<SakStatus> = gjørArenaOppslag<List<SakStatus>, SakerRequest>(
+    ): List<SakStatus> = gjørArenaPostOppslag<List<SakStatus>, SakerRequest>(
         "/intern/saker", callId, req
     ).getOrThrow()
 
     override suspend fun hentSakerForPerson(
         callId: String, req: SakerRequestV1,
-    ): SakerResponse = gjørArenaOppslag<SakerResponse, SakerRequestV1>(
-        "/api/v1/person/saker", callId, req, true
+    ): SakerResponse = gjørArenaPostOppslag<SakerResponse, SakerRequestV1>(
+        "/api/v1/person/saker", callId, req, tillattMed404 = true
     ).recover { throwable ->
         if (responseStatus(throwable) == HttpStatusCode.NotFound) {
             secureLog.warn("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
@@ -117,7 +118,7 @@ class ArenaoppslagGateway(
     ): Maksimum {
         val key = req.toString()
         return maksimumCache.getIfPresent(key)
-            ?: gjørArenaOppslag<Maksimum, InternVedtakRequest>("/intern/maksimum", callId, req)
+            ?: gjørArenaPostOppslag<Maksimum, InternVedtakRequest>("/intern/maksimum", callId, req)
                 .getOrThrow()
                 .also { maksimumCache.put(key, it) }
     }
@@ -127,52 +128,82 @@ class ArenaoppslagGateway(
     ): PersonEksistererIAAPArena {
         val key = req.toString()
         return personEksistererCache.getIfPresent(key)
-            ?: gjørArenaOppslag<PersonEksistererIAAPArena, SakerRequest>(
+            ?: gjørArenaPostOppslag<PersonEksistererIAAPArena, SakerRequest>(
                 "/api/v1/person/eksisterer", callId, req
             ).getOrThrow()
                 .also { personEksistererCache.put(key, it) }
     }
 
-    private suspend inline fun <reified T, reified V> gjørArenaOppslag(
+    override suspend fun hentArenaSakMedVedtak(
+        callId: String, sakId: String
+    ): ArenaSakMedVedtakResponseV1? =
+        gjørArenaGetOppslag<ArenaSakMedVedtakResponseV1>("/api/v1/sak/$sakId", callId, tillattMed404 = true)
+            .recover { throwable ->
+                if (responseStatus(throwable) == HttpStatusCode.NotFound) null
+                else throw throwable
+            }
+            .getOrThrow()
+
+    private suspend inline fun <reified T, reified V> gjørArenaPostOppslag(
         endepunkt: String, callId: String, req: V, tillattMed404: Boolean = false
     ): Result<T> = clientLatencyStats.startTimer().use {
         circuitBreaker.executeSuspendFunction {
-            // Vi starter en kjede av kall og prosessering, hvor hvert steg kan feile.
             var fikkToken = false
             var fikkArenaData = false
 
-            val parsedResult = runCatching {
-                val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope).also {
-                    fikkToken = true
-                }
+            runCatching {
+                val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope)
+                    .also { fikkToken = true }
 
-                val arenaResponse = httpClient.post("${arenaoppslagConfig.proxyBaseUrl}$endepunkt") {
+                val response = httpClient.post("${arenaoppslagConfig.proxyBaseUrl}$endepunkt") {
                     accept(ContentType.Application.Json)
                     header("Nav-Call-Id", callId)
                     bearerAuth(token)
                     contentType(ContentType.Application.Json)
                     setBody(req)
-                }.also {
-                    fikkArenaData = true
-                }
+                }.also { fikkArenaData = true }
 
-                objectMapper.readValue<T>(arenaResponse.bodyAsText())
-            }.onFailure { e ->
-                if (tillattMed404 && responseStatus(e) == HttpStatusCode.NotFound) {
-                    return@onFailure          // 404 håndteres av caller — ikke logg som ERROR
-                }
+                objectMapper.readValue<T>(response.bodyAsText())
+            }.onFailure { e -> logArenaFeil(e, endepunkt, tillattMed404, fikkToken, fikkArenaData) }
+        }
+    }
 
-                val årsak = e.findRootCause()
-                when {
-                    !fikkToken -> log.error("Fetch av token for Arena-oppslag feilet: ${årsak.message}", e)
-                    !fikkArenaData -> log.error("Fetch av Arena-data feilet for '$endepunkt': ${årsak.message}", e)
-                    else -> {
-                        log.error("Parsefeil for '$endepunkt'. Se securelog for stacktrace.")
-                        secureLog.error("Parsefeil for '$endepunkt': ${årsak.message}", e)
-                    }
-                }
+    private suspend inline fun <reified T> gjørArenaGetOppslag(
+        endepunkt: String, callId: String, tillattMed404: Boolean = false
+    ): Result<T> = clientLatencyStats.startTimer().use {
+        circuitBreaker.executeSuspendFunction {
+            var fikkToken = false
+            var fikkArenaData = false
+
+            runCatching {
+                val token = tokenProvider.getClientCredentialToken(arenaoppslagConfig.scope)
+                    .also { fikkToken = true }
+
+                val response = httpClient.get("${arenaoppslagConfig.proxyBaseUrl}$endepunkt") {
+                    accept(ContentType.Application.Json)
+                    header("Nav-Call-Id", callId)
+                    bearerAuth(token)
+                }.also { fikkArenaData = true }
+
+                objectMapper.readValue<T>(response.bodyAsText())
+            }.onFailure { e -> logArenaFeil(e, endepunkt, tillattMed404, fikkToken, fikkArenaData) }
+        }
+    }
+
+    private fun logArenaFeil(
+        e: Throwable, endepunkt: String,
+        tillattMed404: Boolean, fikkToken: Boolean, fikkArenaData: Boolean
+    ) {
+        if (tillattMed404 && responseStatus(e) == HttpStatusCode.NotFound) return
+
+        val årsak = e.findRootCause()
+        when {
+            !fikkToken -> log.error("Fetch av token for Arena-oppslag feilet: ${årsak.message}", e)
+            !fikkArenaData -> log.error("Fetch av Arena-data feilet for '$endepunkt': ${årsak.message}", e)
+            else -> {
+                log.error("Parsefeil for '$endepunkt'. Se securelog for stacktrace.")
+                secureLog.error("Parsefeil for '$endepunkt': ${årsak.message}", e)
             }
-            parsedResult
         }
     }
 

@@ -1,7 +1,11 @@
 package no.nav.aap.api.arena
 
+import no.nav.aap.api.intern.ArenaSakMedVedtakResponse
 import no.nav.aap.api.intern.ArenaSakOppsummering
 import no.nav.aap.api.intern.ArenaSakerResponse
+import no.nav.aap.api.intern.ArenaSakPerson
+import no.nav.aap.api.intern.ArenaVedtakDetaljer
+import no.nav.aap.api.intern.ArenaVedtakfakta
 import no.nav.aap.api.intern.Periode
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.PerioderInkludert11_17Response
@@ -11,6 +15,7 @@ import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
@@ -94,6 +99,9 @@ class ArenaService(
         return arena.hentMaksimum(callId, vedtakRequest).fraKontrakt().vedtak
     }
 
+    suspend fun hentArenaSakMedVedtak(callId: String, sakId: String): ArenaSakMedVedtakResponse? =
+        arena.hentArenaSakMedVedtak(callId, sakId)?.toInternResponse()
+
 }
 
 
@@ -111,4 +119,49 @@ private fun SakerResponse.toResponse() = ArenaSakerResponse(
             avsluttetDato = sak.avsluttetDato,
         )
     }
+)
+
+private fun ArenaSakMedVedtakResponseV1.toInternResponse() = ArenaSakMedVedtakResponse(
+    sakId = sakId,
+    opprettetAar = opprettetAar,
+    lopenr = lopenr,
+    person = ArenaSakPerson(
+        personId = person.personId,
+        fodselsnummer = person.fodselsnummer,
+        fornavn = person.fornavn,
+        etternavn = person.etternavn,
+    ),
+    statuskode = statuskode,
+    statusnavn = statusnavn,
+    registrertDato = registrertDato,
+    avsluttetDato = avsluttetDato,
+    vedtak = vedtak.map { v ->
+        ArenaVedtakDetaljer(
+            vedtakId = v.vedtakId,
+            lopenrvedtak = v.lopenrvedtak,
+            statusKode = v.statusKode,
+            statusNavn = v.statusNavn,
+            vedtaktypeKode = v.vedtaktypeKode,
+            vedtaktypeNavn = v.vedtaktypeNavn,
+            aktivitetsfaseKode = v.aktivitetsfaseKode,
+            aktivitetsfaseNavn = v.aktivitetsfaseNavn,
+            fraOgMed = v.fraOgMed,
+            tilDato = v.tilDato,
+            rettighetkode = v.rettighetkode,
+            rettighetnavn = v.rettighetnavn,
+            utfallkode = v.utfallkode,
+            begrunnelse = v.begrunnelse,
+            saksbehandler = v.saksbehandler,
+            beslutter = v.beslutter,
+            relatertVedtak = v.relatertVedtak,
+            fakta = v.fakta.map { f ->
+                ArenaVedtakfakta(
+                    kode = f.kode,
+                    navn = f.navn,
+                    verdi = f.verdi,
+                    registrertDato = f.registrertDato,
+                )
+            },
+        )
+    },
 )
