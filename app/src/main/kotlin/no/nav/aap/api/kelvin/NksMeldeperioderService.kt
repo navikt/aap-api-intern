@@ -1,19 +1,27 @@
 package no.nav.aap.api.kelvin
 
-import no.nav.aap.api.intern.*
+import no.nav.aap.api.intern.Meldeplikt
+import no.nav.aap.api.intern.NksArbeidsgrad
+import no.nav.aap.api.intern.NksDagsats
+import no.nav.aap.api.intern.NksDatoperiode
+import no.nav.aap.api.intern.NksMeldekortMedTimer
+import no.nav.aap.api.intern.NksMeldeperiode
+import no.nav.aap.api.intern.NksMeldeperioderResponse
+import no.nav.aap.api.intern.NksTimerArbeid
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.tidslinje.orEmpty
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.komponenter.verdityper.Tid
 import java.time.Clock
 import java.time.LocalDate
 
 class NksMeldeperioderService(
     connection: DBConnection,
     private val pdlGateway: IPdlGateway,
-    clock: Clock,
+    private val clock: Clock,
 ) {
     private val behandlingsRepository = BehandlingsRepository(connection)
     private val meldekortService = MeldekortService(connection, pdlGateway, clock)
@@ -28,8 +36,8 @@ class NksMeldeperioderService(
                 .ifEmpty { return NksMeldeperioderResponse(emptyList()) }
 
         val søkeperiode = Periode(
-            fom ?: LocalDate.of(1900, 1, 1),
-            tom ?: LocalDate.of(9999, 12, 31),
+            fom ?: Tid.MIN,
+            maxOf(tom ?: LocalDate.now(clock), LocalDate.now(clock))
         )
         val behandling =
             personIdenter.flatMap { behandlingsRepository.hentVedtaksData(it, søkeperiode) }
@@ -40,6 +48,7 @@ class NksMeldeperioderService(
         )
 
         val underveistidslinje = behandling?.underveisTidslinje.orEmpty().komprimer()
+            .begrensetTil(søkeperiode)
 
         val fritakMeldepliktTidslinje = behandling?.fritakMeldepliktTidslinje.orEmpty().komprimer()
 
