@@ -111,7 +111,7 @@ class NksMeldeperioderService(
                 .let {
                     NksArbeidsgrad(
                         grad = it.verdi.first,
-                        overGrenseVerdi = it.verdi.second,
+                        overGrenseverdi = it.verdi.second,
                     )
                 },
             dagsatser = tilkjentYtelseTidslinje.begrensetTil(meldeperiode).komprimer().segmenter()

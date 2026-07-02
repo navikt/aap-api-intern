@@ -235,7 +235,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
                         BigDecimal.ZERO
                     )
                 ),
-                arbeidsgrad = NksArbeidsgrad(grad = 20, overGrenseVerdi = false),
+                arbeidsgrad = NksArbeidsgrad(grad = 20, overGrenseverdi = false),
                 dagsatser = listOf(NksDagsats(
                     dagsats = 900,
                     effektivDagsats = 900,
