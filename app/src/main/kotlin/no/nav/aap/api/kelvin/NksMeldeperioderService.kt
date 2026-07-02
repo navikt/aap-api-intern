@@ -37,7 +37,7 @@ class NksMeldeperioderService(
 
         val søkeperiode = Periode(
             fom ?: Tid.MIN,
-            maxOf(tom ?: LocalDate.now(clock), LocalDate.now(clock))
+            minOf(tom ?: LocalDate.now(clock), LocalDate.now(clock))
         )
         val behandling =
             personIdenter.flatMap { behandlingsRepository.hentVedtaksData(it, søkeperiode) }

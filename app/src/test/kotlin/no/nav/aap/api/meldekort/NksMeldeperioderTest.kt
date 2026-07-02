@@ -43,8 +43,11 @@ import no.nav.aap.behandlingsflyt.kontrakt.sak.Saksnummer
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
+import java.time.Clock
+import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 
 @WithFakes
 class NksMeldeperioderTest : PostgresTestBase() {
@@ -58,6 +61,11 @@ class NksMeldeperioderTest : PostgresTestBase() {
     @Test
     fun `henter nks meldeperioder fra datadeling og detaljerte meldekort`() {
         val azure = AzureTokenGen("test", "test")
+        // Klokken settes etter siste meldeperiode for å sikre at all testdata inkluderes
+        val clock = Clock.fixed(
+            Instant.from(andreMeldeperiodeTom.plusDays(1).atStartOfDay().toInstant(java.time.ZoneOffset.UTC)),
+            ZoneId.of("UTC")
+        )
 
         testApplication {
             application {
@@ -68,6 +76,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
                     pdlGateway = PdlGatewayEmpty(),
+                    clock = clock,
                 )
             }
 
@@ -107,6 +116,56 @@ class NksMeldeperioderTest : PostgresTestBase() {
                     BigDecimal::class.java
                 )
                 .isEqualTo(expectedResponse())
+        }
+    }
+
+    @Test
+    fun `søkeperiode begrenses til i dag selv om tilOgMedDato er i fremtiden`() {
+        val azure = AzureTokenGen("test", "test")
+        // Klokken settes til første dag i første meldeperiode — før andre meldeperiode starter
+        val clock = Clock.fixed(
+            Instant.from(førsteMeldeperiodeFom.atStartOfDay().toInstant(java.time.ZoneOffset.UTC)),
+            ZoneId.of("UTC")
+        )
+
+        testApplication {
+            application {
+                api(
+                    config = TestConfig.default(),
+                    datasource = dataSource,
+                    arenaService = Fakes.getArenaService(),
+                    modiaProducer = Fakes.getKafka(),
+                    aapHendelseProducer = Fakes.getAapHendelse(),
+                    pdlGateway = PdlGatewayEmpty(),
+                    clock = clock,
+                )
+            }
+
+            jsonHttpClient.post("/api/insert/vedtak") {
+                bearerAuth(azure.generate(isApp = true))
+                contentType(ContentType.Application.Json)
+                setBody(testVedtak())
+            }
+
+            // Spør med tilOgMedDato langt frem i tid
+            val response = jsonHttpClient.post("/nks/meldeperioder") {
+                bearerAuth(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY")))
+                contentType(ContentType.Application.Json)
+                setBody(
+                    MeldekortDetaljerRequest(
+                        personidentifikator = personIdent,
+                        fraOgMedDato = førsteMeldeperiodeFom.minusDays(1),
+                        tilOgMedDato = andreMeldeperiodeTom.plusDays(10),
+                    )
+                )
+            }
+
+            assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+            val body = response.body<NksMeldeperioderResponse>()
+
+            // Kun data frem til klokkedato skal returneres — ikke fremtidige meldeperioder
+            assertThat(body.meldeperioder).hasSize(1)
+            assertThat(body.meldeperioder.first().fraDato).isEqualTo(førsteMeldeperiodeFom)
         }
     }
 
