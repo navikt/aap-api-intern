@@ -117,7 +117,8 @@ class NksMeldeperioderService(
             dagsatser = tilkjentYtelseTidslinje.begrensetTil(meldeperiode).komprimer().segmenter()
                 .map {
                     NksDagsats(
-                        dato = it.periode.fom,
+                        periodeFom = it.periode.fom,
+                        periodeTom = it.periode.tom,
                         dagsats = it.verdi.dagsats,
                         effektivDagsats = it.verdi.effektivDagsats
                             ?: (it.verdi.dagsats * it.verdi.gradering / 100),

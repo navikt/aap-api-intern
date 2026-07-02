@@ -141,7 +141,15 @@ class NksMeldeperioderTest : PostgresTestBase() {
                     )
                 ),
                 arbeidsgrad = NksArbeidsgrad(70, true),
-                dagsatser = listOf(NksDagsats(førsteMeldeperiodeFom, 1000, 650, 70)),
+                dagsatser = listOf(
+                    NksDagsats(
+                        dagsats = 1000,
+                        effektivDagsats = 650,
+                        gradering = 70,
+                        periodeFom = førsteMeldeperiodeFom,
+                        periodeTom = førsteMeldeperiodeTom,
+                    )
+                ),
                 meldeplikt = listOf(
                     Meldeplikt(
                         førsteMeldeperiodeFom,
@@ -168,13 +176,19 @@ class NksMeldeperioderTest : PostgresTestBase() {
                         BigDecimal.ZERO
                     )
                 ),
-                arbeidsgrad = NksArbeidsgrad(20, false),
-                dagsatser = listOf(NksDagsats(andreMeldeperiodeFom.plusDays(1), 900, 900, 100)),
+                arbeidsgrad = NksArbeidsgrad(grad = 20, overGrenseVerdi = false),
+                dagsatser = listOf(NksDagsats(
+                    dagsats = 900,
+                    effektivDagsats = 900,
+                    gradering = 100,
+                    periodeFom = andreMeldeperiodeFom.plusDays(1),
+                    periodeTom = andreMeldeperiodeTom.minusDays(1),
+                )),
                 meldeplikt = listOf(
                     Meldeplikt(
-                        andreMeldeperiodeFom.plusDays(1),
-                        andreMeldeperiodeTom.minusDays(1),
-                        "IKKE_MELDT_SEG"
+                        fraDato = andreMeldeperiodeFom.plusDays(1),
+                        tilDato = andreMeldeperiodeTom.minusDays(1),
+                        status = "IKKE_MELDT_SEG"
                     )
                 ),
             )
@@ -262,7 +276,10 @@ class NksMeldeperioderTest : PostgresTestBase() {
                 arbeidsgrad = 20,
                 overgrenseVerdi = false,
                 timerArbeidet = BigDecimal.ZERO,
-                periode = PeriodeDTO(andreMeldeperiodeFom.plusDays(1), andreMeldeperiodeTom.minusDays(1)),
+                periode = PeriodeDTO(
+                    andreMeldeperiodeFom.plusDays(1),
+                    andreMeldeperiodeTom.minusDays(1)
+                ),
                 meldeperiode = PeriodeDTO(andreMeldeperiodeFom, andreMeldeperiodeTom)
             )
         ),

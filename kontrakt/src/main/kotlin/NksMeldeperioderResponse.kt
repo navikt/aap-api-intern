@@ -41,10 +41,11 @@ public data class NksArbeidsgrad(
 )
 
 public data class NksDagsats(
-    val dato: LocalDate,
     val dagsats: Int,
     val effektivDagsats: Int,
     val gradering: Int,
+    val periodeFom: LocalDate,
+    val periodeTom: LocalDate,
 )
 
 public data class Meldeplikt(
