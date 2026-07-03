@@ -29,7 +29,6 @@ import no.nav.aap.api.util.WithFakes
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
-import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -95,13 +94,13 @@ class SakStatusKelvinTest {
                 assertThat(countSaker()).isEqualTo(1)
 
 
-                val oboResponse =
+                val response =
                     jsonHttpClient.post("/sakerByFnr") {
-                        bearerAuth(OidcToken(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY"))).token())
+                        bearerAuth(azure.generate(isApp = false, azp = System.getProperty("AZP_SAAS_PROXY")))
                         contentType(ContentType.Application.Json)
                         setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
                     }
-                assertEquals(HttpStatusCode.OK, oboResponse.status)
+                assertEquals(HttpStatusCode.OK, response.status)
                 assertEquals(
                     SakStatus.Kelvin(
                         statusKode = KelvinStatus.REVURDERING_UNDER_BEHANDLING,
@@ -113,16 +112,8 @@ class SakStatusKelvinTest {
                         perioder = emptyList(),
                         ytelsestatus = SakStatus.YtelseStatus.FOR_VEDTAK
                     ),
-                    oboResponse.body<List<SakStatus>>().first(),
+                    response.body<List<SakStatus>>().first(),
                 )
-
-                val m2mResponse =
-                    jsonHttpClient.post("/sakerByFnr") {
-                        bearerAuth(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY")))
-                        contentType(ContentType.Application.Json)
-                        setBody(SakerRequest(personidentifikatorer = listOf("12345678910")))
-                    }
-                assertEquals(HttpStatusCode.OK, m2mResponse.status)
             }
     }
 

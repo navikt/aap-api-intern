@@ -95,7 +95,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
             assertThat(meldekortResponse.status).isEqualTo(HttpStatusCode.OK)
 
             val response = jsonHttpClient.post("/nks/meldeperioder") {
-                bearerAuth(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY")))
+                bearerAuth(azure.generate(isApp = false, azp = System.getProperty("AZP_SAAS_PROXY")))
                 contentType(ContentType.Application.Json)
                 setBody(
                     MeldekortDetaljerRequest(
@@ -149,7 +149,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
 
             // Spør med tilOgMedDato langt frem i tid
             val response = jsonHttpClient.post("/nks/meldeperioder") {
-                bearerAuth(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY")))
+                bearerAuth(azure.generate(isApp = false, azp = System.getProperty("AZP_SAAS_PROXY")))
                 contentType(ContentType.Application.Json)
                 setBody(
                     MeldekortDetaljerRequest(

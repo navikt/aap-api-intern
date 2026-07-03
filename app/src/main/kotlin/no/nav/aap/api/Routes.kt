@@ -35,8 +35,11 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.komponenter.type.Periode
+import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
+import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
+import no.nav.aap.tilgang.plugin.kontrakt.Personreferanse
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.time.LocalDate
@@ -73,7 +76,9 @@ enum class Tag(override val description: String) : APITag {
 data class SakerRequest(
     @property:Description("Liste med personidentifikatorer. Må svare til samme person.")
     val personidentifikatorer: List<String>,
-)
+) : Personreferanse {
+    override fun hentPersonreferanse() = personidentifikatorer.first()
+}
 
 data class SakerRequestMeldekortbackend(
     @property:Description("Personidentifikator")
@@ -82,8 +87,8 @@ data class SakerRequestMeldekortbackend(
 
 data class ArenaSakParameter(
     @param:PathParam("sakId") val sakId: String,
-    @param:HeaderParam("Nav-CallId") val `Nav-CallId`: String? = null,
-    @param:HeaderParam("X-Correlation-Id") val `X-Correlation-Id`: String? = null,
+    @Suppress("PropertyName") @param:HeaderParam("Nav-CallId") val `Nav-CallId`: String? = null,
+    @Suppress("PropertyName") @param:HeaderParam("X-Correlation-Id") val `X-Correlation-Id`: String? = null,
 ) {
     fun callId(): String? = listOfNotNull(`Nav-CallId`, `X-Correlation-Id`).firstOrNull()
 }
@@ -196,19 +201,17 @@ fun NormalOpenAPIRoute.api(
         // Begrenset til kun for NKS. Dupliser hvis nye konsumenter trenger samme data.
         // Muligens ikke i bruk.
         route("/kelvin/meldekort-detaljer").authorizedPost<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
-            AuthorizationMachineToMachineConfig(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
                 authorizedAzps = listOf(
-                    UUID.fromString(
-                        requiredConfigForKey("AZP_SAAS_PROXY")
-                    )
-                ) + azpForTokenGenHvisIkkeProd()
+                    UUID.fromString(requiredConfigForKey("AZP_SAAS_PROXY"))
+                ) + azpForTokenGenHvisIkkeProd(),
             ), null, null, null,
             info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS."),
             tags(Tag.NKS)
         ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
             val personIdentifikator = requestBody.personidentifikator
-            sjekkTilgangTilPerson(personIdentifikator, token())
 
             val meldekortListe = dataSource.transaction { connection ->
                 val meldekortService = MeldekortService(connection, pdlGateway, clock)
@@ -233,19 +236,17 @@ fun NormalOpenAPIRoute.api(
         }
 
         route("/nks/meldeperioder").authorizedPost<CallIdHeader, NksMeldeperioderResponse, MeldekortDetaljerRequest>(
-            AuthorizationMachineToMachineConfig(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
                 authorizedAzps = listOf(
-                    UUID.fromString(
-                        requiredConfigForKey("AZP_SAAS_PROXY")
-                    )
-                ) + azpForTokenGenHvisIkkeProd()
+                    UUID.fromString(requiredConfigForKey("AZP_SAAS_PROXY"))
+                ) + azpForTokenGenHvisIkkeProd(),
             ), null, null, null,
             info(description = "Henter meldeperioder med meldeplikt, arbeid, meldekort og dagsatser for NKS."),
             tags(Tag.NKS)
         ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
             val personIdentifikator = requestBody.personidentifikator
-            sjekkTilgangTilPerson(personIdentifikator, token())
 
             val responseBody = dataSource.transaction { connection ->
                 NksMeldeperioderService(connection, pdlGateway, clock).hent(
@@ -264,12 +265,11 @@ fun NormalOpenAPIRoute.api(
     tag(Tag.Saker) {
         // Begrenset til kun for NKS. Dupliser hvis nye konsumenter trenger samme data.
         route("/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatus>, SakerRequest>(
-            AuthorizationMachineToMachineConfig(
+            AuthorizationBodyPathConfig(
+                operasjon = Operasjon.SE,
                 authorizedAzps = listOf(
-                    UUID.fromString(
-                        requiredConfigForKey("AZP_SAAS_PROXY")
-                    )
-                ) + azpForTokenGenHvisIkkeProd()
+                    UUID.fromString(requiredConfigForKey("AZP_SAAS_PROXY"))
+                ) + azpForTokenGenHvisIkkeProd(),
             ),
             null,
             null,
@@ -284,11 +284,7 @@ fun NormalOpenAPIRoute.api(
             * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
             * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
             */
-            sjekkTilgangTilPerson(requestBody.personidentifikatorer.first(), token())
             Metrics.antallIdenter("/sakerByFnr", requestBody.personidentifikatorer.size)
-            if (!token().isClientCredentials()) {
-                logger.info("Token er client credentials, sjekker ikke tilgang.")
-            }
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
             val kelvinSaker: List<SakStatus> =
