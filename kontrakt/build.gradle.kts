@@ -10,6 +10,7 @@ dependencies {
     implementation(libs.kelvinKtorOpenapiGenerator)
     implementation(libs.json)
     api(libs.jacksonAnnotations)
+    api(libs.tilgangPluginKontrakt)
 
     testImplementation(libs.assertj)
     testImplementation(platform("org.junit:junit-bom:6.1.1"))

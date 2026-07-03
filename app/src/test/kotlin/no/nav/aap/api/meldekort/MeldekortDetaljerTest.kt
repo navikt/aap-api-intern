@@ -130,7 +130,7 @@ class MeldekortDetaljerTest : PostgresTestBase() {
             assertThat(meldekort > 0).isTrue
 
             val meldekortResponse = jsonHttpClient.post("/kelvin/meldekort-detaljer") {
-                bearerAuth(azure.generate(isApp = true, azp = System.getProperty("AZP_SAAS_PROXY")))
+                bearerAuth(azure.generate(isApp = false, azp = System.getProperty("AZP_SAAS_PROXY")))
                 contentType(ContentType.Application.Json)
                 setBody(
                     MeldekortDetaljerRequest(

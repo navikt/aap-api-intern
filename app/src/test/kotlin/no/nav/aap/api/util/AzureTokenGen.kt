@@ -33,6 +33,8 @@ class AzureTokenGen(private val issuer: String, private val audience: String) {
         if (isApp) {
             claims.claim("idtyp", "app")
             claims.claim("roles", listOf("add-data"))
+        } else {
+            claims.claim("NAVident", "Z999999")
         }
         if (azp != null) {
             claims.claim("azp", azp)

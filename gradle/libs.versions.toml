@@ -32,6 +32,7 @@ motor = { module = "no.nav.aap.kelvin:motor", version.ref = "komponenter" }
 motorApi = { module = "no.nav.aap.kelvin:motor-api", version.ref = "komponenter" }
 
 tilgangPlugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
+tilgangPluginKontrakt = { module = "no.nav.aap.tilgang:plugin-kontrakt", version.ref = "tilgang" }
 
 behandlingsflytKontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version.ref = "behandlingsflyt" }
 
