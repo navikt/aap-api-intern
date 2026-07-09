@@ -25,6 +25,7 @@ import no.nav.aap.api.intern.NksMeldekortMedTimer
 import no.nav.aap.api.intern.NksMeldeperiode
 import no.nav.aap.api.intern.NksMeldeperioderResponse
 import no.nav.aap.api.intern.NksTimerArbeid
+import no.nav.aap.api.intern.ÅrsakTilReduksjon
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
 import no.nav.aap.api.util.PdlGatewayEmpty
@@ -48,6 +49,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 
 @WithFakes
 class NksMeldeperioderTest : PostgresTestBase() {
@@ -63,7 +65,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
         val azure = AzureTokenGen("test", "test")
         // Klokken settes etter siste meldeperiode for å sikre at all testdata inkluderes
         val clock = Clock.fixed(
-            Instant.from(andreMeldeperiodeTom.plusDays(1).atStartOfDay().toInstant(java.time.ZoneOffset.UTC)),
+            Instant.from(andreMeldeperiodeTom.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC)),
             ZoneId.of("UTC")
         )
 
@@ -124,7 +126,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
         val azure = AzureTokenGen("test", "test")
         // Klokken settes til første dag i første meldeperiode — før andre meldeperiode starter
         val clock = Clock.fixed(
-            Instant.from(førsteMeldeperiodeFom.atStartOfDay().toInstant(java.time.ZoneOffset.UTC)),
+            Instant.from(førsteMeldeperiodeFom.atStartOfDay().toInstant(ZoneOffset.UTC)),
             ZoneId.of("UTC")
         )
 
@@ -216,6 +218,10 @@ class NksMeldeperioderTest : PostgresTestBase() {
                         "MELDT_SEG"
                     )
                 ),
+                årsakerTilReduksjon = listOf(
+                    ÅrsakTilReduksjon.ARBEID_OVER_GRENSEVERDI,
+                    ÅrsakTilReduksjon.ARBEID,
+                ),
             ),
             NksMeldeperiode(
                 fraDato = andreMeldeperiodeFom.plusDays(1),
@@ -236,19 +242,25 @@ class NksMeldeperioderTest : PostgresTestBase() {
                     )
                 ),
                 arbeidsgrad = NksArbeidsgrad(grad = 20, overGrenseverdi = false),
-                dagsatser = listOf(NksDagsats(
-                    dagsats = 900,
-                    effektivDagsats = 900,
-                    gradering = 100,
-                    periodeFom = andreMeldeperiodeFom.plusDays(1),
-                    periodeTom = andreMeldeperiodeTom.minusDays(1),
-                )),
+                dagsatser = listOf(
+                    NksDagsats(
+                        dagsats = 900,
+                        effektivDagsats = 900,
+                        gradering = 100,
+                        periodeFom = andreMeldeperiodeFom.plusDays(1),
+                        periodeTom = andreMeldeperiodeTom.minusDays(1),
+                    )
+                ),
                 meldeplikt = listOf(
                     Meldeplikt(
                         fraDato = andreMeldeperiodeFom.plusDays(1),
                         tilDato = andreMeldeperiodeTom.minusDays(1),
                         status = "IKKE_MELDT_SEG"
                     )
+                ),
+                årsakerTilReduksjon = listOf(
+                    ÅrsakTilReduksjon.BRUDD_PAA_MELDEPLIKT,
+                    ÅrsakTilReduksjon.ARBEID,
                 ),
             )
         )

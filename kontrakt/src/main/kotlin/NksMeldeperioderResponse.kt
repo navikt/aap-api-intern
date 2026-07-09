@@ -28,7 +28,26 @@ public data class NksMeldeperiode(
     val dagsatser: List<NksDagsats>,
     @param:Description("Meldepliktstatuser innenfor denne meldeperioden.")
     val meldeplikt: List<Meldeplikt>,
+    @property:Description("Årsaker til redusert utbetaling (ikke inkludert samordning). BRUDD_PAA_MELDEPLIKT: en av dagene i meldeperioden inneholder brudd på meldeplikten. ARBEID_OVER_GRENSEVERDI: arbeidet mer enn 60% (unntak for arbeidsopptrapping). ARBEID: personen har arbeidet mer enn 0%.")
+    val årsakerTilReduksjon: List<ÅrsakTilReduksjon>,
 )
+
+public enum class ÅrsakTilReduksjon {
+    /**
+     * Hvis en av dagene i denne meldeperioden inneholder brudd på meldeplikten.
+     */
+    BRUDD_PAA_MELDEPLIKT,
+
+    /**
+     * Hvis det er arbeidet mer enn 60% i denne meldeperioden (unntak hvis mottaker er på arbeidsopptrapping).
+     */
+    ARBEID_OVER_GRENSEVERDI,
+
+    /**
+     * Hvis personen har arbeidet mer enn 0%.
+     */
+    ARBEID,
+}
 
 public data class NksDatoperiode(
     val fraDato: LocalDate,

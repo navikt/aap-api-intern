@@ -8,6 +8,7 @@ import no.nav.aap.api.intern.NksMeldekortMedTimer
 import no.nav.aap.api.intern.NksMeldeperiode
 import no.nav.aap.api.intern.NksMeldeperioderResponse
 import no.nav.aap.api.intern.NksTimerArbeid
+import no.nav.aap.api.intern.ÅrsakTilReduksjon
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
@@ -131,6 +132,17 @@ class NksMeldeperioderService(
                     tilDato = it.periode.tom,
                     status = it.verdi,
                 )
+            },
+            årsakerTilReduksjon = buildList {
+                if (segmenter().any { it.verdi.meldepliktstatus == "IKKE_MELDT_SEG" }) {
+                    add(ÅrsakTilReduksjon.BRUDD_PAA_MELDEPLIKT)
+                }
+                if (segmenter().any { it.verdi.overgrenseVerdi }) {
+                    add(ÅrsakTilReduksjon.ARBEID_OVER_GRENSEVERDI)
+                }
+                if (segmenter().any { it.verdi.arbeidsgrad > 0 }) {
+                    add(ÅrsakTilReduksjon.ARBEID)
+                }
             },
         )
     }
