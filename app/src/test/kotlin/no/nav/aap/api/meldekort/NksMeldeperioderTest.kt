@@ -218,7 +218,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
                         "MELDT_SEG"
                     )
                 ),
-                årsakerTilReduksjon = listOf(
+                aarsakerTilReduksjon = listOf(
                     ÅrsakTilReduksjon.ARBEID_OVER_GRENSEVERDI,
                     ÅrsakTilReduksjon.ARBEID,
                 ),
@@ -258,7 +258,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
                         status = "IKKE_MELDT_SEG"
                     )
                 ),
-                årsakerTilReduksjon = listOf(
+                aarsakerTilReduksjon = listOf(
                     ÅrsakTilReduksjon.BRUDD_PAA_MELDEPLIKT,
                     ÅrsakTilReduksjon.ARBEID,
                 ),

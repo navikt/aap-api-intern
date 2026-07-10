@@ -133,7 +133,7 @@ class NksMeldeperioderService(
                     status = it.verdi,
                 )
             },
-            årsakerTilReduksjon = buildList {
+            aarsakerTilReduksjon = buildList {
                 if (segmenter().any { it.verdi.meldepliktstatus == "IKKE_MELDT_SEG" }) {
                     add(ÅrsakTilReduksjon.BRUDD_PAA_MELDEPLIKT)
                 }
