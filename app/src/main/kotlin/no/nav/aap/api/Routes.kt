@@ -93,7 +93,7 @@ data class ArenaSakParameter(
     fun callId(): String? = listOfNotNull(`Nav-CallId`, `X-Correlation-Id`).firstOrNull()
 }
 
-private fun receiveCall(
+internal fun receiveCall(
     callIdHeader: CallIdHeader,
     pipeline: RoutingContext,
 ): String {
@@ -197,114 +197,9 @@ fun NormalOpenAPIRoute.api(
         }
     }
 
-    tag(Tag.Meldekort) {
-        // Begrenset til kun for NKS. Dupliser hvis nye konsumenter trenger samme data.
-        // Muligens ikke i bruk.
-        route("/kelvin/meldekort-detaljer").authorizedPost<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
-            AuthorizationBodyPathConfig(
-                operasjon = Operasjon.SE,
-                authorizedAzps = listOf(
-                    UUID.fromString(requiredConfigForKey("AZP_SAAS_PROXY"))
-                ) + azpForTokenGenHvisIkkeProd(),
-            ), null, null, null,
-            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS."),
-            tags(Tag.NKS)
-        ) { _, requestBody ->
-            Metrics.httpRequestTeller(pipeline.call)
-            val personIdentifikator = requestBody.personidentifikator
-
-            val meldekortListe = dataSource.transaction { connection ->
-                val meldekortService = MeldekortService(connection, pdlGateway, clock)
-                meldekortService.hentAlle(
-                    personIdentifikator,
-                    requestBody.fraOgMedDato,
-                    requestBody.tilOgMedDato
-                )
-                    .map { (meldekort, tilkjentYtelsePerioder) ->
-                        meldekort.tilKontrakt(tilkjentYtelsePerioder)
-                    }
-            }
-
-            tellKelvinKall(pipeline.call.request)
-
-            if (meldekortListe.isEmpty()) {
-                logger.info("Fant ingen meldekort for person $personIdentifikator i den angitte perioden")
-            }
-
-            val responseBody = MeldekortDetaljerResponse(personIdentifikator, meldekortListe)
-            respond(responseBody, HttpStatusCode.OK)
-        }
-
-        route("/nks/meldeperioder").authorizedPost<CallIdHeader, NksMeldeperioderResponse, MeldekortDetaljerRequest>(
-            AuthorizationBodyPathConfig(
-                operasjon = Operasjon.SE,
-                authorizedAzps = listOf(
-                    UUID.fromString(requiredConfigForKey("AZP_SAAS_PROXY"))
-                ) + azpForTokenGenHvisIkkeProd(),
-            ), null, null, null,
-            info(description = "Henter meldeperioder med meldeplikt, arbeid, meldekort og dagsatser for NKS."),
-            tags(Tag.NKS)
-        ) { _, requestBody ->
-            Metrics.httpRequestTeller(pipeline.call)
-            val personIdentifikator = requestBody.personidentifikator
-
-            val responseBody = dataSource.transaction { connection ->
-                NksMeldeperioderService(connection, pdlGateway, clock).hent(
-                    personIdentifikator,
-                    requestBody.fraOgMedDato,
-                    requestBody.tilOgMedDato,
-                )
-            }
-
-            tellKelvinKall(pipeline.call.request)
-            respond(responseBody, HttpStatusCode.OK)
-        }
-
-    }
+    nksRoutes(dataSource, arenaService, pdlGateway, clock)
 
     tag(Tag.Saker) {
-        // Begrenset til kun for NKS. Dupliser hvis nye konsumenter trenger samme data.
-        route("/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatus>, SakerRequest>(
-            AuthorizationBodyPathConfig(
-                operasjon = Operasjon.SE,
-                authorizedAzps = listOf(
-                    UUID.fromString(requiredConfigForKey("AZP_SAAS_PROXY"))
-                ) + azpForTokenGenHvisIkkeProd(),
-            ),
-            null,
-            null,
-            null,
-            info(description = "Endepunkt ment kun for NKS. Henter saker for en person."),
-            responseDescription(description = "Liste med saker, potensielt fra både Arena og Kelvin. `enhet` er alltid null fra Arena."),
-            tags(Tag.NKS)
-        ) { callIdHeader, requestBody ->
-            val callId = receiveCall(callIdHeader, pipeline)
-
-            /*
-            * Listen skal kun bestå av ulike identer på samme person. Dette kontrolleres mot PDL i [hentAllePersonidenter].
-            * Burde på sikt forbedre kontrollen slik at det er mindre rom for feilbruk.
-            */
-            Metrics.antallIdenter("/sakerByFnr", requestBody.personidentifikatorer.size)
-
-            val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
-            val kelvinSaker: List<SakStatus> =
-                dataSource.transaction { connection ->
-                    val kelvinSakService = KelvinSakService(
-                        SakStatusRepository(connection),
-                        BehandlingsRepository(connection)
-                    )
-
-                    kelvinSakService.hentSakStatus(personIdenter)
-                }
-            val arenaSaker: List<SakStatus> =
-                arenaService.hentSaker(callId, requestBody.personidentifikatorer)
-
-
-            tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
-
-            respond(arenaSaker + kelvinSaker)
-        }
-
         route("/meldekort-backend/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatusMeldekortbackend>, SakerRequestMeldekortbackend>(
             AuthorizationMachineToMachineConfig(
                 authorizedAzps = listOf(
@@ -612,14 +507,14 @@ fun NormalOpenAPIRoute.api(
     }
 }
 
-private fun azpForTokenGenHvisIkkeProd(): List<UUID> =
+internal fun azpForTokenGenHvisIkkeProd(): List<UUID> =
     if (!Miljø.erProd()) listOf(UUID.fromString(requiredConfigForKey("AZP_TOKEN_GEN"))) else emptyList()
 
-private fun tellKelvinKall(request: ApplicationRequest) {
+internal fun tellKelvinKall(request: ApplicationRequest) {
     Metrics.kildesystemTeller("kelvin", request.path()).increment()
 }
 
-private fun tellKildesystem(
+internal fun tellKildesystem(
     kelvinData: List<*>?,
     arenaData: List<*>?,
     path: String,
@@ -651,7 +546,7 @@ fun sjekkTilgangTilPerson(personIdent: String, token: OidcToken) {
 }
 
 
-private fun hentAllePersonidenter(
+internal fun hentAllePersonidenter(
     identerFraRequest: List<String>,
     pdlClient: IPdlGateway,
 ): List<String> {
