@@ -83,24 +83,11 @@ jobs:
           ./gradlew -Pversion=${{ steps.tag.outputs.version }} publish
   
 
-  topic-dev:
-    permissions:
-      contents: read
-      id-token: write
-    needs: gradle
-    concurrency:
-      group: deploy-topic-dev
-    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
-    secrets: inherit
-    with:
-      cluster: dev-gcp
-      manifest: .nais/topic-dev.yaml
-
   dev:
     permissions:
       contents: read
       id-token: write
-    needs: [ gradle, topic-dev ]
+    needs: gradle
     concurrency:
       group: deploy-dev
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
@@ -109,26 +96,12 @@ jobs:
       cluster: dev-gcp
       manifest: .nais/app-dev.yml
 
-  topic-prod:
-    if: ${{ github.ref == 'refs/heads/main' || github.event.inputs.cluster == 'prod-gcp' }}
-    permissions:
-      contents: read
-      id-token: write
-    needs: [ publiser-kontrakt, dev ]
-    concurrency:
-      group: deploy-topic-prod
-    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
-    secrets: inherit
-    with:
-      cluster: prod-gcp
-      manifest: .nais/topic-prod.yaml
-
   prod:
     if: ${{ github.ref == 'refs/heads/main' || github.event.inputs.cluster == 'prod-gcp' }}
     permissions:
       contents: read
       id-token: write
-    needs: [ publiser-kontrakt, dev, topic-prod ]
+    needs: [ publiser-kontrakt, dev ]
     concurrency:
       group: deploy-prod
     uses: navikt/aap-workflows/.github/workflows/deploy.yml@main

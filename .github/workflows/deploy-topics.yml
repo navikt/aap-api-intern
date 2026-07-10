@@ -1,0 +1,34 @@
+name: Deploy topics
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.nais/topic-dev.yaml'
+      - '.nais/topic-prod.yaml'
+
+jobs:
+  topic-dev:
+    permissions:
+      contents: read
+      id-token: write
+    concurrency:
+      group: deploy-topic-dev
+    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
+    secrets: inherit
+    with:
+      cluster: dev-gcp
+      manifest: .nais/topic-dev.yaml
+
+  topic-prod:
+    permissions:
+      contents: read
+      id-token: write
+    needs: topic-dev
+    concurrency:
+      group: deploy-topic-prod
+    uses: navikt/aap-workflows/.github/workflows/deploy.yml@main
+    secrets: inherit
+    with:
+      cluster: prod-gcp
+      manifest: .nais/topic-prod.yaml
