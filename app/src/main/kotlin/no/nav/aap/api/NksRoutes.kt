@@ -3,11 +3,11 @@ package no.nav.aap.api
 import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respond
+import com.papsign.ktor.openapigen.route.responseDescription
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
 import com.papsign.ktor.openapigen.route.tags
-import com.papsign.ktor.openapigen.route.responseDescription
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.intern.MeldekortDetaljerRequest
 import no.nav.aap.api.intern.MeldekortDetaljerResponse
