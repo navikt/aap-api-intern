@@ -120,6 +120,9 @@ class ArenaoppslagGateway(
         return maksimumCache.getIfPresent(key)
             ?: gjørArenaPostOppslag<Maksimum, InternVedtakRequest>("/intern/maksimum", callId, req)
                 .getOrThrow()
+                .also {
+                    log.info("Barnetilleggsats: ${it.vedtak.map { it.barnetilleggsats }}")
+                }
                 .also { maksimumCache.put(key, it) }
     }
 

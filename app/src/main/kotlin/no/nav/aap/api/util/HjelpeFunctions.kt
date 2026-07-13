@@ -1,6 +1,5 @@
 package no.nav.aap.api.util
 
-import no.nav.aap.api.intern.*
 import no.nav.aap.api.maksimum.InternAnnenReduksjon
 import no.nav.aap.api.maksimum.InternKilde
 import no.nav.aap.api.maksimum.InternMaksimum
