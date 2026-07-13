@@ -1,6 +1,14 @@
 package no.nav.aap.api.util
 
 import no.nav.aap.api.intern.*
+import no.nav.aap.api.maksimum.InternAnnenReduksjon
+import no.nav.aap.api.maksimum.InternKilde
+import no.nav.aap.api.maksimum.InternMaksimum
+import no.nav.aap.api.maksimum.InternPeriode
+import no.nav.aap.api.maksimum.InternReduksjon
+import no.nav.aap.api.maksimum.InternUtbetalingMedMer
+import no.nav.aap.api.maksimum.InternVedtak
+import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -9,13 +17,13 @@ import java.time.format.DateTimeFormatterBuilder
 import java.time.format.DateTimeParseException
 
 
-fun no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum.fraKontrakt(): Maksimum {
-    return Maksimum(
+fun no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum.fraKontrakt(): InternMaksimum {
+    return InternMaksimum(
         vedtak = this.vedtak.map { it.fraKontrakt() })
 }
 
-fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
-    return Vedtak(
+fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): InternVedtak {
+    return InternVedtak(
         this.dagsats,
         null,
         this.vedtaksId,
@@ -29,16 +37,18 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): Vedtak {
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
         utbetaling = this.utbetaling.map { it.fraKontrakt() },
-        kildesystem = Kilde.ARENA,
+        kildesystem = InternKilde.ARENA,
         barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0,
         barnetilleggSats = 0, // Hva skal dette være? Kanskje (this.utbetaling.lastOrNull()?.barnetillegg ?: 0) / this.barnMedStonad,
         samordningsId = null,
-        opphorsAarsak = null
+        opphorsAarsak = null,
+        lopenrvedtak = this.lopenrvedtak,
+        relatertVedtak = this.relatertVedtak,
     )
 }
 
-fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling(): VedtakUtenUtbetaling {
-    return VedtakUtenUtbetaling(
+fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling(): InternVedtakUtenUtbetaling {
+    return InternVedtakUtenUtbetaling(
         dagsats = this.dagsats,
         dagsatsEtterUføreReduksjon = null,
         vedtakId = this.vedtaksId,
@@ -52,7 +62,11 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling()
         vedtaksTypeKode = this.vedtaksTypeKode,
         vedtaksTypeNavn = this.vedtaksTypeNavn,
         barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0,
-        kildesystem = Kilde.ARENA,
+        kildesystem = InternKilde.ARENA,
+        samordningsId = null,
+        opphorsAarsak = null,
+        lopenrvedtak = this.lopenrvedtak,
+        relatertVedtak = this.relatertVedtak,
     )
 }
 
@@ -91,8 +105,8 @@ fun localDateTime(s: String): LocalDateTime? {
 }
 
 
-fun no.nav.aap.arenaoppslag.kontrakt.modeller.UtbetalingMedMer.fraKontrakt(): UtbetalingMedMer {
-    return UtbetalingMedMer(
+fun no.nav.aap.arenaoppslag.kontrakt.modeller.UtbetalingMedMer.fraKontrakt(): InternUtbetalingMedMer {
+    return InternUtbetalingMedMer(
         this.reduksjon?.fraKontrakt(),
         this.utbetalingsgrad,
         this.periode.fraKontrakt(),
@@ -102,20 +116,20 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.UtbetalingMedMer.fraKontrakt(): Ut
     )
 }
 
-fun no.nav.aap.arenaoppslag.kontrakt.modeller.Reduksjon.fraKontrakt(): Reduksjon {
-    return Reduksjon(
+fun no.nav.aap.arenaoppslag.kontrakt.modeller.Reduksjon.fraKontrakt(): InternReduksjon {
+    return InternReduksjon(
         this.timerArbeidet,
         this.annenReduksjon.fraKontrakt()
-            .let { (it.fraver ?: 0F) + (it.sykedager ?: 0F) + it.sentMeldekort })
+    )
 }
 
-fun no.nav.aap.arenaoppslag.kontrakt.modeller.AnnenReduksjon.fraKontrakt(): AnnenReduksjon {
-    return AnnenReduksjon(
+fun no.nav.aap.arenaoppslag.kontrakt.modeller.AnnenReduksjon.fraKontrakt(): InternAnnenReduksjon {
+    return InternAnnenReduksjon(
         this.sykedager, if (this.sentMeldekort == true) 1 else 0, this.fraver
     )
 }
 
 
-fun no.nav.aap.arenaoppslag.kontrakt.modeller.Periode.fraKontrakt(): Periode {
-    return Periode(fraOgMedDato, tilOgMedDato)
+fun no.nav.aap.arenaoppslag.kontrakt.modeller.Periode.fraKontrakt(): InternPeriode {
+    return InternPeriode(fraOgMedDato, tilOgMedDato)
 }

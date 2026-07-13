@@ -11,8 +11,8 @@ import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.PerioderInkludert11_17Response
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.intern.SakStatus
-import no.nav.aap.api.intern.Vedtak
-import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
+import no.nav.aap.api.maksimum.InternVedtak
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
@@ -91,11 +91,11 @@ class ArenaService(
     suspend fun hentVedtakUtenUtbetaling(
         callId: String,
         vedtakRequest: InternVedtakRequest
-    ): List<VedtakUtenUtbetaling> {
+    ): List<InternVedtakUtenUtbetaling> {
         return arena.hentMaksimum(callId, vedtakRequest).vedtak.map { it.fraKontraktUtenUtbetaling() }
     }
 
-    suspend fun hentVedtak(callId: String, vedtakRequest: InternVedtakRequest): List<Vedtak> {
+    suspend fun hentVedtak(callId: String, vedtakRequest: InternVedtakRequest): List<InternVedtak> {
         return arena.hentMaksimum(callId, vedtakRequest).fraKontrakt().vedtak
     }
 

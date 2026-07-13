@@ -2,6 +2,13 @@ package no.nav.aap.api.kelvin
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import no.nav.aap.api.intern.*
+import no.nav.aap.api.maksimum.InternKilde
+import no.nav.aap.api.maksimum.InternMedium
+import no.nav.aap.api.maksimum.InternMaksimum
+import no.nav.aap.api.maksimum.InternPeriode
+import no.nav.aap.api.maksimum.InternUtbetalingMedMer
+import no.nav.aap.api.maksimum.InternVedtak
+import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
 import no.nav.aap.komponenter.tidslinje.*
@@ -15,7 +22,7 @@ class VedtakService(
     private val behandlingsRepository: BehandlingsRepository,
     private val clock: Clock = Clock.systemDefaultZone()
 ) {
-    fun hentMaksimum(fnr: String, interval: Periode): Maksimum {
+    fun hentMaksimum(fnr: String, interval: Periode): InternMaksimum {
         val kelvinData = behandlingsRepository.hentVedtaksData(fnr, interval)
         val vedtak = kelvinData.flatMap { behandling ->
             val perioderTidslinje = behandling.rettighetsTypeTidslinje.kombiner(
@@ -35,7 +42,7 @@ class VedtakService(
                             beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
                             barnetilleggSats = right?.verdi?.barnetilleggsats,
-                            kildesystem = Kilde.KELVIN,
+                            kildesystem = InternKilde.KELVIN,
                             samordningsId = behandling.samId,
                             opphorsAarsak = null,
                         )
@@ -60,14 +67,14 @@ class VedtakService(
                     val tilkjentYtelseTidslinje = right?.verdi.orEmpty()
                     val segment = Segment(
                         periode,
-                        Vedtak(
+                        InternVedtak(
                             vedtakId = vedtakUtenUtbetalingUtenPeriode.vedtakId,
                             dagsats = vedtakUtenUtbetalingUtenPeriode.dagsats,
                             dagsatsEtterUføreReduksjon = vedtakUtenUtbetalingUtenPeriode.dagsatsEtterUføreReduksjon,
                             status = vedtakUtenUtbetalingUtenPeriode.status,
                             saksnummer = vedtakUtenUtbetalingUtenPeriode.saksnummer,
                             vedtaksdato = vedtakUtenUtbetalingUtenPeriode.vedtaksdato,
-                            periode = no.nav.aap.api.intern.Periode(periode.fom, periode.tom),
+                            periode = InternPeriode(periode.fom, periode.tom),
                             rettighetsType = vedtakUtenUtbetalingUtenPeriode.rettighetsType,
                             beregningsgrunnlag = vedtakUtenUtbetalingUtenPeriode.beregningsgrunnlag,
                             barnMedStonad = vedtakUtenUtbetalingUtenPeriode.barnMedStonad,
@@ -84,7 +91,7 @@ class VedtakService(
                             ),
                             kildesystem = vedtakUtenUtbetalingUtenPeriode.kildesystem,
                             samordningsId = vedtakUtenUtbetalingUtenPeriode.samordningsId,
-                            opphorsAarsak = vedtakUtenUtbetalingUtenPeriode.opphorsAarsak
+                            opphorsAarsak = vedtakUtenUtbetalingUtenPeriode.opphorsAarsak,
                         )
                     )
                     segment
@@ -93,7 +100,7 @@ class VedtakService(
                 .filter { it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString() }
         }
 
-        return Maksimum(vedtak)
+        return InternMaksimum(vedtak)
     }
 
     fun tilkjentYtelseForPeriode(fnr: String, periode: Periode): List<Segment<TilkjentYtelse>> {
@@ -109,17 +116,17 @@ class VedtakService(
     private fun hentTilkjentYtelseForPeriode(
         tilkjentYtelseTidslinje: Tidslinje<TilkjentYtelse>,
         periode: Periode
-    ): List<UtbetalingMedMer> = tilkjentYtelseTidslinje
+    ): List<InternUtbetalingMedMer> = tilkjentYtelseTidslinje
         .takeUnless { LocalDate.now(clock) < periode.fom }
         ?.begrensetTil(Periode(periode.fom, LocalDate.now(clock)))
         .orEmpty()
         .komprimer()
         .segmenter()
         .map { utbetaling ->
-            UtbetalingMedMer(
+            InternUtbetalingMedMer(
                 reduksjon = null,
                 utbetalingsgrad = utbetaling.verdi.gradering,
-                periode = no.nav.aap.api.intern.Periode(
+                periode = InternPeriode(
                     utbetaling.periode.fom,
                     utbetaling.periode.tom
                 ),
@@ -138,9 +145,9 @@ class VedtakService(
     fun hentMediumFraKelvin(
         fnr: String,
         periode: Periode
-    ): Medium {
+    ): InternMedium {
         val kelvinData = behandlingsRepository.hentVedtaksData(fnr, periode)
-        val vedtak: List<VedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
+        val vedtak: List<InternVedtakUtenUtbetaling> = kelvinData.flatMap { behandling ->
             behandling.rettighetsTypeTidslinje.kombiner(
                 behandling.tilkjent,
                 JoinStyle.LEFT_JOIN { periode, left, right ->
@@ -158,7 +165,7 @@ class VedtakService(
                             rettighetsType = left.verdi,
                             beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
                             barnMedStonad = tilkjentYtelse?.antallBarn ?: 0,
-                            kildesystem = Kilde.KELVIN,
+                            kildesystem = InternKilde.KELVIN,
                             samordningsId = behandling.samId,
                             opphorsAarsak = null,
                             barnetilleggSats = tilkjentYtelse?.barnetilleggsats,
@@ -174,7 +181,7 @@ class VedtakService(
                 }
                 .map {
                     it.verdi.tilVedtakUtenUtbetaling(
-                        no.nav.aap.api.intern.Periode(
+                        InternPeriode(
                             it.periode.fom,
                             it.periode.tom
                         ),
@@ -185,7 +192,7 @@ class VedtakService(
                 .verdier()
         }
 
-        return Medium(vedtak)
+        return InternMedium(vedtak)
     }
 }
 
@@ -226,9 +233,11 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val barnMedStonad: Int,
 
     @param:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
-    val kildesystem: Kilde,
+    val kildesystem: InternKilde,
     val samordningsId: String? = null,
     val opphorsAarsak: String? = null,
+    val lopenrvedtak: Int? = null,
+    val relatertVedtak: Int? = null,
 
     @param:Description(
         """
@@ -249,15 +258,15 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val arenavedtak: Arenavedtak? = null,
 ) {
     fun tilVedtakUtenUtbetaling(
-        periode: no.nav.aap.api.intern.Periode,
+        periode: InternPeriode,
         nyttVedtak: Boolean
-    ): VedtakUtenUtbetaling {
+    ): InternVedtakUtenUtbetaling {
         val vedtaksTypeKode = arenavedtak?.vedtaksvariant?.typeKode
             ?: if (nyttVedtak) "O" else "E"
-        return VedtakUtenUtbetaling(
-            vedtakId = this.vedtakId,
+        return InternVedtakUtenUtbetaling(
             dagsats = this.dagsats,
             dagsatsEtterUføreReduksjon = this.dagsatsEtterUføreReduksjon,
+            vedtakId = this.vedtakId,
             status = this.status,
             saksnummer = this.saksnummer,
             vedtaksdato = this.vedtaksdato,
@@ -270,7 +279,9 @@ data class VedtakUtenUtbetalingUtenPeriode(
             barnetillegg = barnMedStonad * (this.barnetilleggSats?.toInt() ?: 0),
             kildesystem = this.kildesystem,
             samordningsId = this.samordningsId,
-            opphorsAarsak = this.opphorsAarsak
+            opphorsAarsak = this.opphorsAarsak,
+            lopenrvedtak = this.lopenrvedtak,
+            relatertVedtak = this.relatertVedtak,
         )
     }
 }

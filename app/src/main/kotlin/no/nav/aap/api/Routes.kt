@@ -4,25 +4,33 @@ import com.papsign.ktor.openapigen.APITag
 import com.papsign.ktor.openapigen.annotations.parameters.HeaderParam
 import com.papsign.ktor.openapigen.annotations.parameters.PathParam
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
-import com.papsign.ktor.openapigen.route.*
+import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
 import com.papsign.ktor.openapigen.route.response.respond
-import io.ktor.http.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
-import io.ktor.server.request.*
+import com.papsign.ktor.openapigen.route.route
+import com.papsign.ktor.openapigen.route.tag
+import com.papsign.ktor.openapigen.route.tags
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.withCharset
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.principal
+import io.ktor.server.request.ApplicationRequest
+import io.ktor.server.request.path
 import io.ktor.server.response.respond
-import io.ktor.server.routing.*
+import io.ktor.server.routing.RoutingContext
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.dsop.dsopRoutes
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.kelvin.AktivitetsfaseService
 import no.nav.aap.api.kelvin.KelvinSakService
-import no.nav.aap.api.kelvin.MeldekortService
-import no.nav.aap.api.kelvin.NksMeldeperioderService
 import no.nav.aap.api.kelvin.VedtakService
+import no.nav.aap.api.maksimum.InternVedtak
+import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
+import no.nav.aap.api.maksimum.tilKontrakt
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortPerioderRepository
@@ -35,9 +43,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
 import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.auth.token
 import no.nav.aap.komponenter.type.Periode
-import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.AuthorizationMachineToMachineConfig
-import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
 import no.nav.aap.tilgang.plugin.kontrakt.Personreferanse
 import org.slf4j.LoggerFactory
@@ -331,7 +337,7 @@ fun NormalOpenAPIRoute.api(
                 val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
-                val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
+                val kelvinSaker: List<InternVedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
                         requestBody.personidentifikator,
@@ -347,7 +353,7 @@ fun NormalOpenAPIRoute.api(
 
                 tellKildesystem(kelvinSaker, arenaSaker, "/maksimumUtenUtbetaling")
 
-                respond(Medium(arenaSaker + kelvinSaker))
+                respond(Medium((arenaSaker + kelvinSaker).map { it.tilKontrakt() }))
             }
         }
         route("/maksimum") {
@@ -365,7 +371,7 @@ fun NormalOpenAPIRoute.api(
                 val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
-                val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
+                val kelvinSaker: List<InternVedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     VedtakService(behandlingsRepository, clock = clock).hentMaksimum(
                         requestBody.personidentifikator,
@@ -382,9 +388,7 @@ fun NormalOpenAPIRoute.api(
                 )
 
                 respond(
-                    Maksimum(
-                        arenaVedtak + kelvinSaker
-                    )
+                    Maksimum((arenaVedtak + kelvinSaker).map { it.tilKontrakt() })
                 )
             }
         }
@@ -399,7 +403,7 @@ fun NormalOpenAPIRoute.api(
 
                 val request = requestBody.tilKontrakt()
 
-                val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
+                val kelvinSaker: List<InternVedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
                         requestBody.personidentifikator,
@@ -413,7 +417,7 @@ fun NormalOpenAPIRoute.api(
 
                 tellKildesystem(kelvinSaker, null, "/kelvin/maksimumUtenUtbetaling")
 
-                respond(Medium(kelvinSaker))
+                respond(Medium(kelvinSaker.map { it.tilKontrakt() }))
             }
         }
     }
@@ -488,7 +492,7 @@ fun NormalOpenAPIRoute.api(
                             status = it.status,
                             saksnummer = it.saksnummer,
                             vedtaksdato = it.vedtaksdato,
-                            periode = it.periode,
+                            periode = it.periode.tilKontrakt(),
                             rettighetsType = it.rettighetsType,
                         )
                     },
