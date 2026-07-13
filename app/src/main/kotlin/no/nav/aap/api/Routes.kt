@@ -23,6 +23,9 @@ import no.nav.aap.api.kelvin.KelvinSakService
 import no.nav.aap.api.kelvin.MeldekortService
 import no.nav.aap.api.kelvin.NksMeldeperioderService
 import no.nav.aap.api.kelvin.VedtakService
+import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
+import no.nav.aap.api.maksimum.InternVedtak
+import no.nav.aap.api.maksimum.tilKontrakt
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortPerioderRepository
@@ -331,7 +334,7 @@ fun NormalOpenAPIRoute.api(
                 val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
-                val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
+                val kelvinSaker: List<InternVedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
                         requestBody.personidentifikator,
@@ -347,7 +350,7 @@ fun NormalOpenAPIRoute.api(
 
                 tellKildesystem(kelvinSaker, arenaSaker, "/maksimumUtenUtbetaling")
 
-                respond(Medium(arenaSaker + kelvinSaker))
+                respond(Medium((arenaSaker + kelvinSaker).map { it.tilKontrakt() }))
             }
         }
         route("/maksimum") {
@@ -365,7 +368,7 @@ fun NormalOpenAPIRoute.api(
                 val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
-                val kelvinSaker: List<Vedtak> = dataSource.transaction { connection ->
+                val kelvinSaker: List<InternVedtak> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     VedtakService(behandlingsRepository, clock = clock).hentMaksimum(
                         requestBody.personidentifikator,
@@ -382,9 +385,7 @@ fun NormalOpenAPIRoute.api(
                 )
 
                 respond(
-                    Maksimum(
-                        arenaVedtak + kelvinSaker
-                    )
+                    Maksimum((arenaVedtak + kelvinSaker).map { it.tilKontrakt() })
                 )
             }
         }
@@ -399,7 +400,7 @@ fun NormalOpenAPIRoute.api(
 
                 val request = requestBody.tilKontrakt()
 
-                val kelvinSaker: List<VedtakUtenUtbetaling> = dataSource.transaction { connection ->
+                val kelvinSaker: List<InternVedtakUtenUtbetaling> = dataSource.transaction { connection ->
                     val behandlingsRepository = BehandlingsRepository(connection)
                     VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
                         requestBody.personidentifikator,
@@ -413,7 +414,7 @@ fun NormalOpenAPIRoute.api(
 
                 tellKildesystem(kelvinSaker, null, "/kelvin/maksimumUtenUtbetaling")
 
-                respond(Medium(kelvinSaker))
+                respond(Medium(kelvinSaker.map { it.tilKontrakt() }))
             }
         }
     }
@@ -488,7 +489,7 @@ fun NormalOpenAPIRoute.api(
                             status = it.status,
                             saksnummer = it.saksnummer,
                             vedtaksdato = it.vedtaksdato,
-                            periode = it.periode,
+                            periode = it.periode.tilKontrakt(),
                             rettighetsType = it.rettighetsType,
                         )
                     },
