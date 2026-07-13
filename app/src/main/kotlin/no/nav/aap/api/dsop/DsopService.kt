@@ -128,7 +128,12 @@ class DsopService(
             now: LocalDate,
         ): List<DsopVedtakDTO> = outerJoinRunningFold<DsopRettighetsTypeDTO, Arenavedtak, DsopVedtakDTO>(
             behandling.rettighetsTypeTidslinje.map { DsopRettighetsTypeDTO.valueOf(it) },
-            behandling.arenakompatibleVedtakTidslinje,
+            behandling.arenakompatibleVedtakTidslinje.filter { (_, arenavedtak) ->
+                /* Foreløpig ikke støtte for O_AVSLAG. arena-dsop-api krever at aktivitetsfase er ikke-null, og
+                 * vi vet ikke hva aktivitetsfase skal være ved avslag. Må avklares om noe, og eventuelt hva, som skal gjøres der.
+                 */
+                arenavedtak.vedtaksvariant != Arenavedtak.Vedtaksvariant.O_AVSLAG
+            },
         ) { forrigeVedtak, periode, rettighetsType, arenavedtak ->
             if (arenavedtak != null) {
                 require(
@@ -170,15 +175,14 @@ class DsopService(
                     Arenavedtak.Vedtaksvariant.S_STANS -> {
                         require(periode.fom == periode.tom) {
                             """vedtakslengde ved avslag, stans og opphør har ingen sluttdato, som skal være 
-                                            representert med fom == tom."""
+                                                representert med fom == tom."""
                         }
                         PeriodeNullableTomDTO(periode.fom, null)
                     }
                 },
                 utfall = utfallFraVedtaksvariant(vedtaksvariant),
                 aktivitetsfase = rettighetsType ?: requireNotNull(forrigeVedtak?.aktivitetsfase) {
-                    """perioden $periode har ingen rettighetstype, som betyr at dette er et stansvedtak,  forrige vedtak
-                        skal da være et vedtak som gir rett, og skal derfor ha aktivetetsfase definert."""
+                    """Finner ikke aktivitetsfase for $periode. Vedtaksvariant er ${arenavedtak?.vedtaksvariant}."""
                 },
                 vedtaksType = vedtaksvariant?.type
                     ?: if (behandling.nyttVedtak) DsopVedtaksTypeDTO.O else DsopVedtaksTypeDTO.E,
