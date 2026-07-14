@@ -1,0 +1,11 @@
+-- Indeks på beregningsgrunnlag for oppslag per behandling
+CREATE INDEX IF NOT EXISTS IDX_BEREGNINGSGRUNNLAG_BEHANDLING_ID
+    ON BEREGNINGSGRUNNLAG (BEHANDLING_ID);
+
+-- Indeks på meldekort for oppslag per person
+CREATE INDEX IF NOT EXISTS IDX_MELDEKORT_PERSON_IDENT
+    ON MELDEKORT (PERSON_IDENT);
+
+-- Indeks på arenavedtak for oppslag per behandling
+CREATE INDEX IF NOT EXISTS IDX_ARENAVEDTAK_BEHANDLING_ID
+    ON ARENAVEDTAK (BEHANDLING_ID);
