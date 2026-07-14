@@ -7,9 +7,10 @@ import io.ktor.server.routing.Routing
 import io.ktor.server.routing.get
 import io.ktor.server.routing.route
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
+import javax.sql.DataSource
 import no.nav.aap.motor.Motor
 
-fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor) {
+fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor, datasource: DataSource) {
     route("/actuator") {
         get("/metrics") {
             call.respondText(prometheus.scrape())
@@ -18,12 +19,21 @@ fun Routing.actuator(prometheus: PrometheusMeterRegistry, motor: Motor) {
             call.respond(HttpStatusCode.OK, "api")
         }
         get("/ready") {
-            if (motor.kjører()) {
-                val status = HttpStatusCode.OK
-                call.respond(status, "Oppe!")
-            } else {
-                call.respond(HttpStatusCode.ServiceUnavailable, "Kjører ikke")
+            val databaseOk = databaseErOppe(datasource)
+            val motorOk = motor.kjører()
+
+            when {
+                !motorOk -> call.respond(HttpStatusCode.ServiceUnavailable, "Motor kjører ikke")
+                !databaseOk -> call.respond(HttpStatusCode.ServiceUnavailable, "Database ikke tilgjengelig")
+                else -> call.respond(HttpStatusCode.OK, "Oppe!")
             }
         }
     }
 }
+
+private fun databaseErOppe(datasource: DataSource): Boolean =
+    try {
+        datasource.connection.use { it.isValid(1) }
+    } catch (e: Exception) {
+        false
+    }

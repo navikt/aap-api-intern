@@ -23,6 +23,7 @@ import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import java.time.Clock
 import javax.sql.DataSource
 import kotlin.time.Duration.Companion.minutes
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.aap.api.actuator.actuator
@@ -102,6 +103,7 @@ fun Application.api(
     Migrering.migrate(datasource)
     registerCircuitBreakerMetrics(prometheus)
     val motor = module(datasource)
+    val motorStartet = CompletableDeferred<Unit>()
 
     aapHendelseProducerHolder = aapHendelseProducer
     modiaProducerHolder = modiaProducer
@@ -138,33 +140,38 @@ fun Application.api(
                 motorApi(datasource)
             }
         }
-        actuator(prometheus, motor)
+        actuator(prometheus, motor, datasource)
     }
 
-    monitor.subscribe(ApplicationStarted) { environment ->
-        environment.log.info("ktor har startet opp.")
+    monitor.subscribe(ApplicationStarted) { env ->
+        env.log.info("ktor har startet opp.")
+        // Start motor asynkront så vi ikke blokkerer ApplicationStarted-handleren
+        env.launch(Dispatchers.IO) {
+            motor.start()
+            motorStartet.complete(Unit)
+        }
     }
     monitor.subscribe(ApplicationStopPreparing) { env ->
         env.log.info("ktor forbereder seg på å stoppe.")
     }
     monitor.subscribe(ApplicationStopping) { env ->
         env.log.info("ktor stopper nå å ta imot nye requester, og lar mottatte requester kjøre frem til timeout.")
-        try {
-            // ktor sine eventer kjøres synkront, så vi må kjøre dette asynkront for ikke å blokkere nedstengings-sekvensen
-            env.launch(Dispatchers.IO) {
-                try {
-                    aapHendelseProducer.close()
-                } catch (e: Exception) {
-                    logger.warn("Feil ved lukking av aapHendelseProducer", e)
-                }
-                try {
-                    modiaProducer.close()
-                } catch (e: Exception) {
-                    logger.warn("Feil ved lukking av modiaProducer", e)
-                }
+        // Ktor sine eventer kjøres synkront, så vi kjører asynkront for ikke å blokkere nedstengings-sekvensen.
+        // Motor stoppes først slik at pågående jobber rekker å avslutte før Kafka-produsentene lukkes.
+        // motorStartet.await() sikrer at vi ikke kaller stop() før start() er ferdig.
+        env.launch(Dispatchers.IO) {
+            motorStartet.await()
+            motor.stop(AppConfig.stansArbeidTimeout)
+            try {
+                aapHendelseProducer.close()
+            } catch (e: Exception) {
+                logger.warn("Feil ved lukking av aapHendelseProducer", e)
             }
-        } catch (_: Exception) {
-            // Ignorert
+            try {
+                modiaProducer.close()
+            } catch (e: Exception) {
+                logger.warn("Feil ved lukking av modiaProducer", e)
+            }
         }
     }
     monitor.subscribe(ApplicationStopped) { env ->
@@ -177,7 +184,7 @@ fun Application.api(
     }
 }
 
-fun Application.module(dataSource: DataSource): Motor {
+fun module(dataSource: DataSource): Motor {
     val motor = Motor(
         dataSource = dataSource,
         antallKammer = AppConfig.ANTALL_WORKERS,
@@ -188,16 +195,6 @@ fun Application.module(dataSource: DataSource): Motor {
 
     dataSource.transaction { dbConnection ->
         RetryService(dbConnection).enable()
-    }
-
-    monitor.subscribe(ApplicationStarted) {
-        motor.start()
-    }
-    monitor.subscribe(ApplicationStopping) { env ->
-        // ktor sine eventer kjøres synkront, så vi må kjøre dette asynkront for ikke å blokkere nedstengings-sekvensen
-        env.launch(Dispatchers.IO) {
-            motor.stop(AppConfig.stansArbeidTimeout)
-        }
     }
 
     return motor
