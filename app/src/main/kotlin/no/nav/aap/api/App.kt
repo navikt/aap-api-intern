@@ -83,7 +83,9 @@ fun main() {
 fun Application.api(
     prometheus: PrometheusMeterRegistry = Metrics.prometheus,
     config: AppConfig = AppConfig(),
-    datasource: DataSource = initDatasource(config.dbConfig, prometheus),
+    // null betyr at datasource opprettes fra config inne i funksjonen, etter at
+    // commonKtorModule har registrert LogbackMetrics MeterFilter
+    datasource: DataSource? = null,
     arenaService: ArenaService = opprettArenaService(config),
     pdlGateway: IPdlGateway = PdlGateway(),
     clock: Clock = Clock.systemDefaultZone(),
@@ -98,20 +100,14 @@ fun Application.api(
         AppConfig.shutdownGracePeriod
     ),
 ) {
-
-    Migrering.migrate(datasource)
-    registerCircuitBreakerMetrics(prometheus)
-    val motor = module(datasource)
-
-    aapHendelseProducerHolder = aapHendelseProducer
-    modiaProducerHolder = modiaProducer
-
     install(StatusPages, StatusPagesConfigHelper.setup())
 
     val helperTextIfDev = if (!Miljø.erProd()) {
         " Bruk https://azure-token-generator.intern.dev.nav.no/api/m2m?aud=dev-gcp:aap:api-intern for å få test-token."
     } else ""
 
+    // commonKtorModule registrerer LogbackMetrics som MeterFilter — må kalles før
+    // noe annet registrerer meters (HikariCP, circuit breakers, Motor)
     commonKtorModule(
         prometheus = prometheus,
         infoModel = InfoModel(
@@ -125,6 +121,14 @@ fun Application.api(
         identityProvider = IdentityProvider.ENTRA_ID
     )
 
+    val ds = datasource ?: initDatasource(config.dbConfig, prometheus)
+    Migrering.migrate(ds)
+    registerCircuitBreakerMetrics(prometheus)
+    val motor = module(ds)
+
+    aapHendelseProducerHolder = aapHendelseProducer
+    modiaProducerHolder = modiaProducer
+
     routing {
         authenticate(IdentityProvider.ENTRA_ID.value) {
             apiRouting {
@@ -133,9 +137,9 @@ fun Application.api(
                         dialogmeldingApi(DokumentinnhentingGateway())
                     }
                 }
-                api(datasource, arenaService, pdlGateway, clock)
-                dataInsertion(datasource)
-                motorApi(datasource)
+                api(ds, arenaService, pdlGateway, clock)
+                dataInsertion(ds)
+                motorApi(ds)
             }
         }
         actuator(prometheus, motor)
@@ -170,7 +174,7 @@ fun Application.api(
     monitor.subscribe(ApplicationStopped) { env ->
         env.log.info("ktor har fullført nedstoppingen sin. Eventuelle requester og annet arbeid som ikke ble fullført innen timeout ble avbrutt.")
         try {
-            (datasource as? HikariDataSource)?.close()
+            (ds as? HikariDataSource)?.close()
         } catch (_: Exception) {
             // Ignorert
         }
