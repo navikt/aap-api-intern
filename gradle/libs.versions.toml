@@ -1,10 +1,10 @@
 [versions]
 ktor = "3.5.1"
-komponenter = "2.0.94"
+komponenter = "2.0.95"
 tilgang = "1.0.231"
 behandlingsflyt = "0.0.633"
 oppgave = "0.0.186"
-arenaoppslag = "0.5.31"
+arenaoppslag = "0.5.33"
 resilience4j = "2.4.0"
 kafka = "4.3.1"
 logback = "1.5.37"
