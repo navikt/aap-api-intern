@@ -109,7 +109,11 @@ class ArenaService(
         vedtakRequest: InternVedtakRequest
     ): List<InternVedtakUtenUtbetaling> {
         return arena.hentMaksimum(callId, vedtakRequest).vedtak
-            .filter { it.periode.fraOgMedDato == null || it.periode.fraOgMedDato!! <= it.periode.tilOgMedDato }
+            .filter {
+                it.periode.fraOgMedDato == null ||
+                it.periode.tilOgMedDato == null ||
+                it.periode.fraOgMedDato!! <= it.periode.tilOgMedDato
+            }
             .map { it.fraKontraktUtenUtbetaling() }
     }
 
