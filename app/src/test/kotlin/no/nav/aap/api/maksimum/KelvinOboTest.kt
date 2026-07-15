@@ -122,7 +122,7 @@ class KelvinOboTest {
                 application {
                     api(
                         config = TestConfig.default(),
-                        datasource = dataSource,
+                        datasourceFactory = { dataSource },
                         arenaService = Fakes.getArenaService(),
                         pdlGateway = PdlGatewayEmpty(),
                         aapHendelseProducer = Fakes.getAapHendelse(),

@@ -58,7 +58,8 @@ class NksMeldeperioderService(
         val meldeperioder = underveistidslinje.map { it.meldeperiode }.perioder()
 
         val meldeperioderÅReturnere =
-            underveistidslinje.splittOppIPerioder(meldeperioder.toList())
+            underveistidslinje.splittOppIPerioder(
+                meldeperioder.toList().filter { !it.inneholder(LocalDate.now(clock)) })
                 .map { periode, underveisperiode ->
                     underveisperiode.tilNksMeldeperiode(
                         meldeperiode = periode,

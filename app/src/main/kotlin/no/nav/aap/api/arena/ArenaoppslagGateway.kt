@@ -27,10 +27,11 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.jackson.jackson
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
 import io.prometheus.metrics.core.metrics.Summary
 import no.nav.aap.api.ArenaoppslagConfig
-import no.nav.aap.api.Metrics.prometheus
+import no.nav.aap.api.WithMetrics
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
@@ -66,8 +67,8 @@ class ArenaoppslagGateway(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     private val slowRequestMillis: Long = 2000,
     private val timeoutMillis: Long = 20_000,
-    cacheName: String = "arenaoppslag_maksimum_cache",
-) : IArenaoppslagGateway {
+    private val cacheName: String = "arenaoppslag_maksimum_cache",
+) : IArenaoppslagGateway, WithMetrics {
     private val tokenProvider = AzureAdTokenProvider()
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
         // Mange kall til arenaoppslag tar gjerne 300-400ms har vi sett av prometheus-metrikker.
@@ -87,8 +88,8 @@ class ArenaoppslagGateway(
         .recordStats()
         .build<String, PersonEksistererIAAPArena>()
 
-    init {
-        CaffeineCacheMetrics.monitor(prometheus, maksimumCache, cacheName)
+    override fun registrerMetrics(registry: MeterRegistry) {
+        CaffeineCacheMetrics.monitor(registry, maksimumCache, cacheName)
     }
 
     override suspend fun hentPerioder(

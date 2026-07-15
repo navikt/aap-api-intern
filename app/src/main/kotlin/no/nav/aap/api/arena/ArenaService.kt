@@ -1,5 +1,7 @@
 package no.nav.aap.api.arena
 
+import io.micrometer.core.instrument.MeterRegistry
+import no.nav.aap.api.WithMetrics
 import no.nav.aap.api.intern.ArenaSakMedVedtakResponse
 import no.nav.aap.api.intern.ArenaSakOppsummering
 import no.nav.aap.api.intern.ArenaSakerResponse
@@ -25,15 +27,26 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 class ArenaService(
     private val arena: IArenaoppslagGateway,
     private val arenaHistorikk: IArenaoppslagGateway
-) {
+) : WithMetrics {
 
+    override fun registrerMetrics(registry: MeterRegistry) {
+        (arena as? WithMetrics)?.registrerMetrics(registry)
+        (arenaHistorikk as? WithMetrics)?.registrerMetrics(registry)
+    }
 
-    suspend fun eksistererIAapArena(callId: String, personIdenter: List<String>): PersonEksistererIAAPArena {
-        val aapHistorikkForPerson = arenaHistorikk.hentPersonEksistererIAapContext(callId, SakerRequest(personIdenter))
+    suspend fun eksistererIAapArena(
+        callId: String,
+        personIdenter: List<String>
+    ): PersonEksistererIAAPArena {
+        val aapHistorikkForPerson =
+            arenaHistorikk.hentPersonEksistererIAapContext(callId, SakerRequest(personIdenter))
         return PersonEksistererIAAPArena(aapHistorikkForPerson.eksisterer)
     }
 
-    suspend fun aktivitetfase(callId: String, vedtakRequest: InternVedtakRequest): PerioderInkludert11_17Response {
+    suspend fun aktivitetfase(
+        callId: String,
+        vedtakRequest: InternVedtakRequest
+    ): PerioderInkludert11_17Response {
         val arenaSvar = arena.hentPerioderInkludert11_17(callId, vedtakRequest)
 
         return PerioderInkludert11_17Response(
@@ -84,7 +97,10 @@ class ArenaService(
         return arena.hentPerioder(callId, vedtakRequest).perioder
     }
 
-    suspend fun hentSakerForPerson(callId: String, personidentifikator: String): ArenaSakerResponse {
+    suspend fun hentSakerForPerson(
+        callId: String,
+        personidentifikator: String
+    ): ArenaSakerResponse {
         return arena.hentSakerForPerson(callId, SakerRequestV1(personidentifikator)).toResponse()
     }
 
@@ -92,7 +108,9 @@ class ArenaService(
         callId: String,
         vedtakRequest: InternVedtakRequest
     ): List<InternVedtakUtenUtbetaling> {
-        return arena.hentMaksimum(callId, vedtakRequest).vedtak.map { it.fraKontraktUtenUtbetaling() }
+        return arena.hentMaksimum(callId, vedtakRequest).vedtak
+            .filter { it.periode.fraOgMedDato == null || it.periode.fraOgMedDato!! <= it.periode.tilOgMedDato }
+            .map { it.fraKontraktUtenUtbetaling() }
     }
 
     suspend fun hentVedtak(callId: String, vedtakRequest: InternVedtakRequest): List<InternVedtak> {

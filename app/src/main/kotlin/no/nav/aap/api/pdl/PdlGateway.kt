@@ -1,10 +1,11 @@
 package no.nav.aap.api.pdl
 
 import com.github.benmanes.caffeine.cache.Caffeine
+import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
 import java.net.URI
 import java.time.Duration
-import no.nav.aap.api.Metrics
+import no.nav.aap.api.WithMetrics
 import no.nav.aap.api.util.graphql.GraphQLQueryException
 import no.nav.aap.api.util.graphql.GraphQLRequest
 import no.nav.aap.api.util.graphql.GraphQLResponse
@@ -22,7 +23,7 @@ interface IPdlGateway {
     fun hentAlleIdenterForPerson(personIdent: String): List<PdlIdent>
 }
 
-class PdlGateway : IPdlGateway {
+class PdlGateway : IPdlGateway, WithMetrics {
     private val graphqlUrl = URI.create(requiredConfigForKey("INTEGRASJON_PDL_URL"))
     private val config =
         ClientConfig(
@@ -65,16 +66,16 @@ class PdlGateway : IPdlGateway {
 
     }
 
+    override fun registrerMetrics(registry: MeterRegistry) {
+        CaffeineCacheMetrics.monitor(registry, cache, "pdl_identer_cache")
+    }
+
     companion object {
         private val cache = Caffeine.newBuilder()
             .maximumSize(10_000)
             .expireAfterWrite(Duration.ofMinutes(15))
             .recordStats()
             .build<String, List<PdlIdent>>()
-
-        init {
-            CaffeineCacheMetrics.monitor(Metrics.prometheus, cache, "pdl_identer_cache")
-        }
     }
 }
 

@@ -27,7 +27,7 @@ fun main() {
         api(
             prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT),
             config = byggAppConfig(),
-            datasource = dataSource,
+            datasourceFactory = { dataSource },
             arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway()),
             pdlGateway = PdlGatewayEmpty(),
             modiaProducer = Fakes.getKafka(),

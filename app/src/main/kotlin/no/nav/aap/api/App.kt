@@ -83,9 +83,7 @@ fun main() {
 fun Application.api(
     prometheus: PrometheusMeterRegistry = Metrics.prometheus,
     config: AppConfig = AppConfig(),
-    // null betyr at datasource opprettes fra config inne i funksjonen, etter at
-    // commonKtorModule har registrert LogbackMetrics MeterFilter
-    datasource: DataSource? = null,
+    datasourceFactory: () -> DataSource = { initDatasource(config.dbConfig, prometheus) },
     arenaService: ArenaService = opprettArenaService(config),
     pdlGateway: IPdlGateway = PdlGateway(),
     clock: Clock = Clock.systemDefaultZone(),
@@ -121,10 +119,13 @@ fun Application.api(
         identityProvider = IdentityProvider.ENTRA_ID
     )
 
-    val ds = datasource ?: initDatasource(config.dbConfig, prometheus)
+    val ds = datasourceFactory()
     Migrering.migrate(ds)
     registerCircuitBreakerMetrics(prometheus)
     val motor = module(ds)
+    for (r in listOf(arenaService, pdlGateway).filterIsInstance<WithMetrics>()) {
+        r.registrerMetrics(prometheus)
+    }
 
     aapHendelseProducerHolder = aapHendelseProducer
     modiaProducerHolder = modiaProducer

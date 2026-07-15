@@ -111,7 +111,7 @@ class MeldekortDetaljerTest : PostgresTestBase() {
             application {
                 api(
                     config = config,
-                    datasource = dataSource,
+                    datasourceFactory = { dataSource },
                     arenaService = Fakes.getArenaService(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),

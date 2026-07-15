@@ -73,7 +73,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
             application {
                 api(
                     config = TestConfig.default(),
-                    datasource = dataSource,
+                    datasourceFactory = { dataSource },
                     arenaService = Fakes.getArenaService(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
@@ -124,9 +124,9 @@ class NksMeldeperioderTest : PostgresTestBase() {
     @Test
     fun `søkeperiode begrenses til i dag selv om tilOgMedDato er i fremtiden`() {
         val azure = AzureTokenGen("test", "test")
-        // Klokken settes til første dag i første meldeperiode — før andre meldeperiode starter
+        // Klokken settes til første dag i andre meldeperiode — første meldeperiode er fortid, andre er nåværende
         val clock = Clock.fixed(
-            Instant.from(førsteMeldeperiodeFom.atStartOfDay().toInstant(ZoneOffset.UTC)),
+            Instant.from(andreMeldeperiodeFom.atStartOfDay().toInstant(ZoneOffset.UTC)),
             ZoneId.of("UTC")
         )
 
@@ -134,7 +134,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
             application {
                 api(
                     config = TestConfig.default(),
-                    datasource = dataSource,
+                    datasourceFactory = { dataSource },
                     arenaService = Fakes.getArenaService(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
@@ -165,7 +165,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
             assertThat(response.status).isEqualTo(HttpStatusCode.OK)
             val body = response.body<NksMeldeperioderResponse>()
 
-            // Kun data frem til klokkedato skal returneres — ikke fremtidige meldeperioder
+            // Kun avsluttede meldeperioder skal returneres — nåværende og fremtidige ekskluderes
             assertThat(body.meldeperioder).hasSize(1)
             assertThat(body.meldeperioder.first().fraDato).isEqualTo(førsteMeldeperiodeFom)
         }
