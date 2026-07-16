@@ -3,6 +3,7 @@ package no.nav.aap.api.pdl
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.micrometer.core.instrument.MeterRegistry
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
+import no.nav.aap.api.Metrics
 import java.net.URI
 import java.time.Duration
 import no.nav.aap.api.WithMetrics
@@ -35,6 +36,7 @@ class PdlGateway : IPdlGateway, WithMetrics {
 
     private val client =
         RestClient(
+            prometheus = Metrics.prometheus,
             config = config,
             tokenProvider = AzureM2MTokenProvider,
             responseHandler = GraphQLResponseHandler(),

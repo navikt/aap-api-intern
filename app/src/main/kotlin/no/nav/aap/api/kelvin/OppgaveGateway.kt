@@ -2,8 +2,6 @@ package no.nav.aap.api.kelvin
 
 import com.github.benmanes.caffeine.cache.Caffeine
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
-import java.net.URI
-import java.time.Duration
 import no.nav.aap.api.Metrics
 import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.intern.NåværendeEnhet
@@ -16,6 +14,8 @@ import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM
 import no.nav.aap.oppgave.enhet.EnhetOgOversendelse
 import no.nav.aap.oppgave.enhet.OppgaveKategori
 import no.nav.aap.oppgave.enhet.PersonRequest
+import java.net.URI
+import java.time.Duration
 
 object OppgaveGateway {
     private val baseUrl = URI.create(requiredConfigForKey("INTEGRASJON_OPPGAVE_URL"))
@@ -24,6 +24,7 @@ object OppgaveGateway {
     private val client =
         RestClient.withDefaultResponseHandler(
             config = config,
+            prometheus = prometheus,
             tokenProvider = AzureM2MTokenProvider,
         )
 

@@ -21,6 +21,7 @@ object TilgangGateway {
     private val client =
         RestClient.withDefaultResponseHandler(
             config = config,
+            prometheus = Metrics.prometheus,
             tokenProvider = AzureOBOTokenProvider,
         )
 

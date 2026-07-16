@@ -1,6 +1,7 @@
 package no.nav.aap.api.kelvin
 
 import behandlingsflyt.DialogmeldingEksistererDto
+import no.nav.aap.api.Metrics
 import java.net.URI
 import java.util.UUID
 import no.nav.aap.komponenter.config.requiredConfigForKey
@@ -17,6 +18,7 @@ class DokumentinnhentingGateway {
 
     private val client = RestClient.withDefaultResponseHandler(
         config = config,
+        prometheus = Metrics.prometheus,
         tokenProvider = AzureM2MTokenProvider,
     )
 
