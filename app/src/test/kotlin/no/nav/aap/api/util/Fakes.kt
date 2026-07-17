@@ -82,6 +82,8 @@ object Fakes : AutoCloseable {
     fun getTexasPort() = texas.port()
 
     private fun setProperties() {
+        System.setProperty("NAIS_TEAM_AAP", "nais-team-aap")
+
         // Texas
         System.setProperty("nais.token.endpoint", "http://localhost:${texas.port()}/token")
         System.setProperty("nais.token.exchange.endpoint", "http://localhost:${texas.port()}/token/exchange")
