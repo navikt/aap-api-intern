@@ -52,6 +52,7 @@ import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.LoggerFactory
 import no.nav.aap.api.kelvin.DokumentinnhentingGateway
+import no.nav.aap.tilgang.TeamAap
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -129,6 +130,8 @@ fun Application.api(
 
     aapHendelseProducerHolder = aapHendelseProducer
     modiaProducerHolder = modiaProducer
+    
+    val påkrevdeRollerMotor = if(Miljø.erProd()) listOf(TeamAap.id) else emptyList()
 
     routing {
         authenticate(IdentityProvider.ENTRA_ID.value) {
@@ -140,7 +143,7 @@ fun Application.api(
                 }
                 api(ds, arenaService, pdlGateway, clock)
                 dataInsertion(ds)
-                motorApi(ds)
+                motorApi(ds, påkrevdeRollerMotor)
             }
         }
         actuator(prometheus, motor)

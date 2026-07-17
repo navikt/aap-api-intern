@@ -29,6 +29,8 @@ spec:
         extra:
           - NAVident
           - azp_name
+        groups:
+          - id: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5 #NAIS_TEAM_AAP
   gcp:
     sqlInstances:
       - type: POSTGRES_16
@@ -169,3 +171,5 @@ spec:
       value: 997264c7-13dc-4c9e-817a-90789acb35ba
     - name: AZP_PADM2
       value: 5dc2db90-da0b-42a5-850c-522ea0b6160c
+    - name: NAIS_TEAM_AAP
+      value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5
