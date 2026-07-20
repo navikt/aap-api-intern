@@ -1,13 +1,10 @@
 package no.nav.aap.api.maksimum
 
-import java.time.LocalDate
 import no.nav.aap.api.intern.Maksimum
 import no.nav.aap.api.intern.Medium
 import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
-import org.slf4j.LoggerFactory
-
-private val log = LoggerFactory.getLogger(InternMaksimum::class.java)
+import java.time.LocalDate
 
 enum class InternKilde {
     ARENA,
@@ -161,11 +158,7 @@ fun InternPeriode.tilKontrakt(): no.nav.aap.api.intern.Periode =
     no.nav.aap.api.intern.Periode(
         fraOgMedDato = fraOgMedDato,
         tilOgMedDato = tilOgMedDato,
-    ).also {
-        if (fraOgMedDato == null) {
-            log.warn("Fra og med dato er null fra Arena periode: $this")
-        }
-    }
+    )
 
 fun InternKilde.tilKontrakt(): no.nav.aap.api.intern.Kilde =
     when (this) {
