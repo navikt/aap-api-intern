@@ -131,6 +131,13 @@ class ArenaoppslagGateway(
         return maksimumCache.getIfPresent(key)
             ?: gjørArenaPostOppslag<Maksimum, InternVedtakRequest>("/intern/maksimum", callId, req)
                 .getOrThrow()
+                .also {
+                    it.vedtak.forEach {
+                        if (it.periode.fraOgMedDato == null) {
+                            log.warn("Vedtak med id ${it.vedtaksId} har null for fraOgMedDato. Til-og-med: ${it.periode.tilOgMedDato}")
+                        }
+                    }
+                }
                 .also { maksimumCache.put(key, it) }
     }
 
