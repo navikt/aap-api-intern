@@ -2,6 +2,7 @@ package no.nav.aap.api.util
 
 import com.fasterxml.jackson.databind.JsonMappingException
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.plugins.statuspages.StatusPagesConfig
@@ -69,6 +70,23 @@ object StatusPagesConfigHelper {
                         text = "Forespørselen tok for lang tid. Prøv igjen om litt.",
                         status = HttpStatusCode.RequestTimeout
                     )
+                }
+
+                is ClientRequestException -> when (cause.response.status) {
+                    HttpStatusCode.BadRequest -> {
+                        logger.warn("Ugyldig forespørsel ved kall til '$uri': ${cause.message}")
+                        call.respondText(
+                            text = "Forespørselen inneholder ugyldige verdier",
+                            status = HttpStatusCode.BadRequest
+                        )
+                    }
+                    else -> {
+                        logger.error("Uhåndtert klientfeil ved kall til '$uri': ${cause.response.status}", cause)
+                        call.respondText(
+                            text = "En feil oppstod under behandling av forespørselen",
+                            status = HttpStatusCode.InternalServerError
+                        )
+                    }
                 }
 
                 else -> {
