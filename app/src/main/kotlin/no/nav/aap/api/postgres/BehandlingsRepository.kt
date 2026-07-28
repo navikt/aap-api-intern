@@ -95,7 +95,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setLocalDate(3, behandling.vedtaksDato)
                 setLocalDateTime(4, behandling.sak.opprettetTidspunkt)
                 setString(5, behandling.behandlingsReferanse)
-                setString(6, behandling.samId)
+                setString(6, behandling.samIdOgTpr.firstOrNull()?.samId)
                 setLong(7, behandling.vedtakId)
             }
 
@@ -407,7 +407,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
                     ),
                     behandlingsReferanse = row.getString("BEHANDLING_REFERANSE"),
-                    samId = row.getStringOrNull("SAMID"),
+                    samIdOgTpr = row.getStringOrNull("SAMID")?.let {
+                        listOf(SamIdOgTpnr(it, null))
+                    }.orEmpty(),
                     vedtakId = row.getLongOrNull("VEDTAKID") ?: 0L,
                     nyttVedtak = row.getBoolean("NYTT_VEDTAK"),
                     tilkjent = hentTilkjentYtelse(behandlingId),

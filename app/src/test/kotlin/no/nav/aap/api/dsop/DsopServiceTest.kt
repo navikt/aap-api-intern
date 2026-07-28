@@ -78,7 +78,7 @@ class DsopServiceTest {
             ),
         ),
         behandlingsReferanse = UUID.randomUUID().toString(),
-        samId = null,
+        samIdOgTpr = emptyList(),
         vedtakId = 1234L,
         beregningsgrunnlag = BigDecimal.ZERO,
         nyttVedtak = false,
@@ -308,7 +308,7 @@ class DsopServiceTest {
                     type
                 )
             }.verdier().toList(),
-            samId = null,
+            samIdOgTpr = emptyList(),
             vedtakId = -1L,
             beregningsgrunnlag = null,
             nyttVedtak = nyttVedtak,

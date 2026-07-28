@@ -67,7 +67,7 @@ class BehandlingsRepositoryTest {
             ),
         ),
         behandlingsReferanse = UUID.randomUUID().toString(),
-        samId = null,
+        samIdOgTpr = emptyList(),
         vedtakId = 1234L,
         beregningsgrunnlag = BigDecimal.ZERO,
         nyttVedtak = false,
