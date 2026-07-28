@@ -71,7 +71,9 @@ public data class Vedtak(
      **/
     val barnetilleggSats: Int,
     val kildesystem: Kilde,
+    @Deprecated("Erstatt med samordningOgTpnr.", replaceWith = ReplaceWith("samordningOgTpnr"))
     val samordningsId: String? = null,
+    val samordningOgTpnr: List<SamordningIdOgTpNummer> = emptyList(),
     @Deprecated("Alltid null, bør fjernes fra kontrakt.")
     val opphorsAarsak: String? = null,
     val vedtaksTypeKode: String?,
@@ -79,6 +81,8 @@ public data class Vedtak(
     @property:Description("Liste med dagsats (og andre satser/reduksjon) over tid. Til-fra-periodene svarer ikke til _når_ utbetalingen skjedde, men svarer til en periode med samme dagsats.")
     val utbetaling: List<UtbetalingMedMer>,
 )
+
+public data class SamordningIdOgTpNummer(val samordningId: String, val tpNummer: String?)
 
 /**
  * @param dagsats Dagsats før reduksjoner.
@@ -111,7 +115,9 @@ public data class VedtakUtenUtbetaling(
      */
     val barnetillegg: Int,
     val kildesystem: Kilde,
+    @Deprecated("Erstatt med samordningOgTpnr.", replaceWith = ReplaceWith("samordningOgTpnr"))
     val samordningsId: String? = null,
+    val samordningOgTpnr: List<SamordningIdOgTpNummer> = emptyList(),
     val opphorsAarsak: String? = null,
 )
 

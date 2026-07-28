@@ -42,7 +42,7 @@ class VedtakService(
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
                             barnetilleggSats = right?.verdi?.barnetilleggsats,
                             kildesystem = InternKilde.KELVIN,
-                            samordningsId = behandling.samIdOgTpNr.firstOrNull()?.samId,
+                            samordningOgTpnr = behandling.samIdOgTpNr,
                             opphorsAarsak = null,
                         )
                     )
@@ -89,7 +89,7 @@ class VedtakService(
                                 periode
                             ),
                             kildesystem = vedtakUtenUtbetalingUtenPeriode.kildesystem,
-                            samordningsId = vedtakUtenUtbetalingUtenPeriode.samordningsId,
+                            samIdOgTpnr = vedtakUtenUtbetalingUtenPeriode.samordningOgTpnr,
                             opphorsAarsak = vedtakUtenUtbetalingUtenPeriode.opphorsAarsak,
                         )
                     )
@@ -165,7 +165,7 @@ class VedtakService(
                             beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
                             barnMedStonad = tilkjentYtelse?.antallBarn ?: 0,
                             kildesystem = InternKilde.KELVIN,
-                            samordningsId = behandling.samIdOgTpNr.firstOrNull()?.samId,
+                            samordningOgTpnr = behandling.samIdOgTpNr,
                             opphorsAarsak = null,
                             barnetilleggSats = tilkjentYtelse?.barnetilleggsats,
                         )
@@ -233,7 +233,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
 
     @param:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
     val kildesystem: InternKilde,
-    val samordningsId: String? = null,
+    val samordningOgTpnr: List<SamIdOgTpnr> = emptyList(),
     val opphorsAarsak: String? = null,
     val lopenrvedtak: Int? = null,
     val relatertVedtak: Int? = null,
@@ -277,7 +277,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
             barnMedStonad = this.barnMedStonad,
             barnetillegg = barnMedStonad * (this.barnetilleggSats?.toInt() ?: 0),
             kildesystem = this.kildesystem,
-            samordningsId = this.samordningsId,
+            samIdOgTpnr = this.samordningOgTpnr,
             opphorsAarsak = this.opphorsAarsak,
             lopenrvedtak = this.lopenrvedtak,
             relatertVedtak = this.relatertVedtak,
