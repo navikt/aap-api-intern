@@ -42,7 +42,7 @@ class VedtakService(
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
                             barnetilleggSats = right?.verdi?.barnetilleggsats,
                             kildesystem = InternKilde.KELVIN,
-                            samordningsId = behandling.samIdOgTpr.firstOrNull()?.samId,
+                            samordningsId = behandling.samIdOgTpNr.firstOrNull()?.samId,
                             opphorsAarsak = null,
                         )
                     )
@@ -165,7 +165,7 @@ class VedtakService(
                             beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
                             barnMedStonad = tilkjentYtelse?.antallBarn ?: 0,
                             kildesystem = InternKilde.KELVIN,
-                            samordningsId = behandling.samIdOgTpr.firstOrNull()?.samId,
+                            samordningsId = behandling.samIdOgTpNr.firstOrNull()?.samId,
                             opphorsAarsak = null,
                             barnetilleggSats = tilkjentYtelse?.barnetilleggsats,
                         )
