@@ -314,7 +314,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
         ),
         muligMaksdato = null,
         behandlingsReferanse = "ref-123",
-        samId = null,
+        samIdOgTpr = listOf(),
         vedtakId = 123,
         beregningsgrunnlag = BigDecimal("500000"),
         perioderMedFritakMeldeplikt = listOf(

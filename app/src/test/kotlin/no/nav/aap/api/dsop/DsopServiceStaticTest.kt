@@ -451,7 +451,7 @@ class DsopServiceStaticTest {
                             BISTANDSBEHOV.toString()
                         ),
                     ),
-                    samId = null,
+                    samIdOgTpr = emptyList(),
                     vedtakId = 0L,
                     beregningsgrunnlag = null,
                     nyttVedtak = false,

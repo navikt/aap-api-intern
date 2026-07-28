@@ -65,6 +65,7 @@ class KelvinOboTest {
 
     private val testVedtak = DatadelingDTO(
         behandlingsId = "111222333",
+        samIdOgTpr = listOf(),
         behandlingsReferanse = UUID.randomUUID().toString(),
         rettighetsPeriodeFom = rettighetsFom,
         rettighetsPeriodeTom = rettighetsTom,

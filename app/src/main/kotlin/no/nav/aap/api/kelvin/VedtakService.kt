@@ -1,7 +1,6 @@
 package no.nav.aap.api.kelvin
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
-import no.nav.aap.api.intern.*
 import no.nav.aap.api.maksimum.InternKilde
 import no.nav.aap.api.maksimum.InternMedium
 import no.nav.aap.api.maksimum.InternMaksimum
@@ -43,7 +42,7 @@ class VedtakService(
                             barnMedStonad = right?.verdi?.antallBarn ?: 0,
                             barnetilleggSats = right?.verdi?.barnetilleggsats,
                             kildesystem = InternKilde.KELVIN,
-                            samordningsId = behandling.samId,
+                            samordningsId = behandling.samIdOgTpr.firstOrNull()?.samId,
                             opphorsAarsak = null,
                         )
                     )
@@ -166,7 +165,7 @@ class VedtakService(
                             beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
                             barnMedStonad = tilkjentYtelse?.antallBarn ?: 0,
                             kildesystem = InternKilde.KELVIN,
-                            samordningsId = behandling.samId,
+                            samordningsId = behandling.samIdOgTpr.firstOrNull()?.samId,
                             opphorsAarsak = null,
                             barnetilleggSats = tilkjentYtelse?.barnetilleggsats,
                         )
