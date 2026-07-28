@@ -23,7 +23,7 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
             { it.tilDomene() }),
         rettighetsTypePerioder = this.rettighetsTypeTidsLinje.map { it.tilDomene() },
         behandlingsReferanse = this.behandlingsReferanse,
-        samIdOgTpr = this.samIdOgTpr.map { SamIdOgTpnr(it.samId, it.tpnr) },
+        samIdOgTpNr = this.samIdOgTpr.map { SamIdOgTpnr(it.samId, it.tpnr) },
         vedtakId = this.vedtakId,
         beregningsgrunnlag = this.beregningsgrunnlag,
         nyttVedtak = nyttVedtak,

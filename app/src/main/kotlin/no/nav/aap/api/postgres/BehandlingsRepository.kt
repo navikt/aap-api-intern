@@ -81,8 +81,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
         val nyBehandlingId = connection.queryFirst(
             """
                 INSERT INTO BEHANDLING (SAK_ID, STATUS, VEDTAKS_DATO, OPPRETTET_TID, BEHANDLING_REFERANSE,
-                                        SAMID, VEDTAKID)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                                        VEDTAKID)
+                VALUES (?, ?, ?, ?, ?, ?)
                 ON CONFLICT (sak_id) DO UPDATE SET STATUS        = EXCLUDED.status,
                                                    vedtaks_dato  = excluded.vedtaks_dato,
                                                    OPPRETTET_TID = excluded.opprettet_tid
@@ -95,12 +95,28 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setLocalDate(3, behandling.vedtaksDato)
                 setLocalDateTime(4, behandling.sak.opprettetTidspunkt)
                 setString(5, behandling.behandlingsReferanse)
-                setString(6, behandling.samIdOgTpr.firstOrNull()?.samId)
-                setLong(7, behandling.vedtakId)
+                setLong(6, behandling.vedtakId)
             }
 
             setRowMapper { row ->
                 row.getLong("ID")
+            }
+        }
+
+        connection.execute("DELETE FROM BEHANDLING_SAMID WHERE BEHANDLING_ID = ?") {
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+
+        connection.executeBatch(
+            """INSERT INTO BEHANDLING_SAMID (BEHANDLING_ID, SAMID, TPNR) VALUES (?, ?, ?)""",
+            behandling.samIdOgTpNr
+        ) {
+            setParams {
+                setLong(1, nyBehandlingId)
+                setString(2, it.samId)
+                setString(3, it.tpnr)
             }
         }
 
@@ -407,9 +423,7 @@ class BehandlingsRepository(private val connection: DBConnection) {
                         opprettetTidspunkt = row.getLocalDateTime("OPPRETTET_TID"),
                     ),
                     behandlingsReferanse = row.getString("BEHANDLING_REFERANSE"),
-                    samIdOgTpr = row.getStringOrNull("SAMID")?.let {
-                        listOf(SamIdOgTpnr(it, null))
-                    }.orEmpty(),
+                    samIdOgTpNr = hentSamIdOgTpnr(behandlingId),
                     vedtakId = row.getLongOrNull("VEDTAKID") ?: 0L,
                     nyttVedtak = row.getBoolean("NYTT_VEDTAK"),
                     tilkjent = hentTilkjentYtelse(behandlingId),
@@ -497,6 +511,22 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 row.getEnum<Avslagsårsak>("avslagsarsak")
             }
         }.toSet()
+    }
+
+    private fun hentSamIdOgTpnr(behandlingId: Long): List<SamIdOgTpnr> {
+        return connection.queryList(
+            """SELECT SAMID, TPNR FROM BEHANDLING_SAMID WHERE BEHANDLING_ID = ?""".trimIndent()
+        ) {
+            setParams {
+                setLong(1, behandlingId)
+            }
+            setRowMapper { row ->
+                SamIdOgTpnr(
+                    samId = row.getString("SAMID"),
+                    tpnr = row.getStringOrNull("TPNR"),
+                )
+            }
+        }
     }
 
     private fun hentTilkjentYtelse(behandlingId: Long): Tidslinje<TilkjentYtelse> {

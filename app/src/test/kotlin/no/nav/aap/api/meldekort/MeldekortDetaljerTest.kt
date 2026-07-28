@@ -90,7 +90,7 @@ class MeldekortDetaljerTest : PostgresTestBase() {
                 )
             ),
             behandlingsReferanse = "test-ref-1234",
-            samIdOgTpr = emptyList(),
+            samIdOgTpNr = emptyList(),
             vedtakId = 1234L,
             beregningsgrunnlag = BigDecimal.ZERO,
             nyttVedtak = true,

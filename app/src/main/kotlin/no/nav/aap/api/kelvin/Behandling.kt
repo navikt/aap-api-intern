@@ -21,7 +21,7 @@ data class Behandling(
     val sak: Sak,
     val tilkjent: Tidslinje<TilkjentYtelse>,
     val rettighetsTypePerioder: List<RettighetsTypePeriode>,
-    val samIdOgTpr: List<SamIdOgTpnr>,
+    val samIdOgTpNr: List<SamIdOgTpnr>,
     val vedtakId: Long,
     val beregningsgrunnlag: BigDecimal?,
     val nyttVedtak: Boolean,
