@@ -5,6 +5,7 @@ import no.nav.aap.api.WithMetrics
 import no.nav.aap.api.intern.ArenaSakMedVedtakResponse
 import no.nav.aap.api.intern.ArenaSakOppsummering
 import no.nav.aap.api.intern.ArenaSakerResponse
+import no.nav.aap.api.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.api.intern.ArenaSakPerson
 import no.nav.aap.api.intern.ArenaVedtakDetaljer
 import no.nav.aap.api.intern.ArenaVedtakfakta
@@ -102,6 +103,13 @@ class ArenaService(
         personidentifikator: String
     ): ArenaSakerResponse {
         return arena.hentSakerForPerson(callId, SakerRequestV1(personidentifikator)).toResponse()
+    }
+
+    suspend fun hentManuellFordelingsgrunnlag(
+        callId: String,
+        personidentifikator: String
+    ): ManuellFordelingsgrunnlagResponse? {
+        return arena.hentManuellFordelingsgrunnlag(callId, personidentifikator)
     }
 
     suspend fun hentVedtakUtenUtbetaling(

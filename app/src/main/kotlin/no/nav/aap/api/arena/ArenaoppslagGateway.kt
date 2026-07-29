@@ -33,6 +33,8 @@ import io.prometheus.metrics.core.metrics.Summary
 import no.nav.aap.api.ArenaoppslagConfig
 import no.nav.aap.api.WithMetrics
 import no.nav.aap.api.intern.PerioderResponse
+import no.nav.aap.api.intern.ManuellFordelingsgrunnlagRequest
+import no.nav.aap.api.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
 import no.nav.aap.api.util.findRootCause
@@ -161,6 +163,19 @@ class ArenaoppslagGateway(
                 else throw throwable
             }
             .getOrThrow()
+
+    override suspend fun hentManuellFordelingsgrunnlag(
+        callId: String, personidentifikator: String
+    ): ManuellFordelingsgrunnlagResponse? =
+        gjørArenaPostOppslag<ManuellFordelingsgrunnlagResponse, ManuellFordelingsgrunnlagRequest>(
+            "/person/manuell-fordelingsgrunnlag",
+            callId,
+            ManuellFordelingsgrunnlagRequest(personidentifikator),
+            tillattMed404 = true
+        ).recover { throwable ->
+            if (responseStatus(throwable) == HttpStatusCode.NotFound) null
+            else throw throwable
+        }.getOrThrow()
 
     private suspend inline fun <reified T, reified V> gjørArenaPostOppslag(
         endepunkt: String, callId: String, req: V, tillattMed404: Boolean = false

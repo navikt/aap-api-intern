@@ -2,6 +2,7 @@ package no.nav.aap.api.util
 
 import no.nav.aap.api.arena.IArenaoppslagGateway
 import no.nav.aap.api.intern.PerioderResponse
+import no.nav.aap.api.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakOppsummeringKontrakt
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakPerson
@@ -94,4 +95,8 @@ class FakeArenaGateway : IArenaoppslagGateway {
         )
         else -> null
     }
+
+    override suspend fun hentManuellFordelingsgrunnlag(
+        callId: String, personidentifikator: String
+    ): ManuellFordelingsgrunnlagResponse? = null
 }

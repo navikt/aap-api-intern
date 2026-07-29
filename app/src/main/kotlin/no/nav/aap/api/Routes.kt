@@ -304,6 +304,22 @@ fun NormalOpenAPIRoute.api(
                 respond(saker)
             }
         }
+        route("/arena/person/manuell-fordelingsgrunnlag") {
+            post<CallIdHeader, ManuellFordelingsgrunnlagResponse, ManuellFordelingsgrunnlagRequest>(
+                info(description = "Henter manuelt fordelingsgrunnlag for en person fra Arena.")
+            ) { callIdHeader, requestBody ->
+                logger.info("Henter manuelt fordelingsgrunnlag for person fra Arena")
+                val callId = receiveCall(callIdHeader, pipeline)
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+
+                val grunnlag = arenaService.hentManuellFordelingsgrunnlag(
+                    callId,
+                    requestBody.personidentifikator
+                ) ?: return@post pipeline.call.respond(HttpStatusCode.NotFound)
+
+                respond(grunnlag)
+            }
+        }
         route("/arena/sak/{sakId}") {
             get<ArenaSakParameter, ArenaSakMedVedtakResponse>(
                 info(description = "Henter en Arena-sak med tilhørende vedtak.")
