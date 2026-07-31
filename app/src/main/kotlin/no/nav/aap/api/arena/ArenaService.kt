@@ -4,8 +4,8 @@ import io.micrometer.core.instrument.MeterRegistry
 import no.nav.aap.api.WithMetrics
 import no.nav.aap.api.intern.ArenaSakMedVedtakResponse
 import no.nav.aap.api.intern.ArenaSakOppsummering
-import no.nav.aap.api.intern.ArenaSakerResponse
 import no.nav.aap.api.intern.ArenaSakPerson
+import no.nav.aap.api.intern.ArenaSakerResponse
 import no.nav.aap.api.intern.ArenaVedtakDetaljer
 import no.nav.aap.api.intern.ArenaVedtakfakta
 import no.nav.aap.api.intern.Periode
@@ -13,21 +13,24 @@ import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.PerioderInkludert11_17Response
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.intern.SakStatus
-import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
 import no.nav.aap.api.maksimum.InternVedtak
+import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
+import org.slf4j.LoggerFactory
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
 class ArenaService(
     private val arena: IArenaoppslagGateway,
     private val arenaHistorikk: IArenaoppslagGateway
 ) : WithMetrics {
+
+    private val secureLog = LoggerFactory.getLogger("team-logs")
 
     override fun registrerMetrics(registry: MeterRegistry) {
         (arena as? WithMetrics)?.registrerMetrics(registry)
@@ -68,7 +71,11 @@ class ArenaService(
     suspend fun hentSaker(callId: String, personIdenter: List<String>): List<SakStatus.Arena> {
         val sakerRequest = SakerRequest(personIdenter)
         return arena.hentSakerByFnr(callId, sakerRequest).map {
-            arenaSakStatusTilDomene(it)
+            arenaSakStatusTilDomene(it).also { arenaSak ->
+                if (arenaSak.periode().fraOgMedDato == null) {
+                    secureLog.info("Arena-sak med null fraDato. Til-dato ${arenaSak.periode().tilOgMedDato} Status: ${arenaSak.statusKode}")
+                }
+            }
         }
     }
 
@@ -111,8 +118,8 @@ class ArenaService(
         return arena.hentMaksimum(callId, vedtakRequest).vedtak
             .filter {
                 it.periode.fraOgMedDato == null ||
-                it.periode.tilOgMedDato == null ||
-                it.periode.fraOgMedDato!! <= it.periode.tilOgMedDato
+                        it.periode.tilOgMedDato == null ||
+                        it.periode.fraOgMedDato!! <= it.periode.tilOgMedDato
             }
             .map { it.fraKontraktUtenUtbetaling() }
     }
