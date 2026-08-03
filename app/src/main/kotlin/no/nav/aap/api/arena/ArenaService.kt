@@ -17,12 +17,12 @@ import no.nav.aap.api.maksimum.InternVedtak
 import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
-import no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak
 import org.slf4j.LoggerFactory
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
@@ -44,8 +44,8 @@ class ArenaService(
         personIdenter: List<String>
     ): PersonEksistererIAAPArena {
         val aapHistorikkForPerson =
-            arenaHistorikk.hentPersonEksistererIAapContext(callId, SakerRequest(personIdenter))
-        return PersonEksistererIAAPArena(aapHistorikkForPerson.eksisterer)
+            arenaHistorikk.hentPersonHarHistorikkIArena(callId, HarHistorikkRequest(personIdenter.first()))
+        return PersonEksistererIAAPArena(aapHistorikkForPerson.harHistorikk)
     }
 
     suspend fun aktivitetfase(

@@ -1,26 +1,28 @@
 package no.nav.aap.api.arena
 
 import no.nav.aap.api.intern.PerioderResponse
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
 interface IArenaoppslagGateway {
     suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse
+    @Suppress("FunctionName")
     suspend fun hentPerioderInkludert11_17(
         callId: String,
         req: InternVedtakRequest
     ): PerioderMed11_17Response
 
-    suspend fun hentPersonEksistererIAapContext(
+    suspend fun hentPersonHarHistorikkIArena(
         callId: String,
-        req: SakerRequest
-    ): PersonEksistererIAAPArena
+        req: HarHistorikkRequest
+    ): HarHistorikkResponse
 
 
     suspend fun hentSakerByFnr(
