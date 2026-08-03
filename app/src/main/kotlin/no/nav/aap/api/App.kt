@@ -218,7 +218,6 @@ private fun opprettArenaService(config: AppConfig): ArenaService {
         // Vi øker timeouts fordi disse db-queries er tunge
         timeoutMillis = 2.minutes.inWholeMilliseconds,
         slowRequestMillis = 1.minutes.inWholeMilliseconds,
-        cacheName = "arenaoppslag_historikk_maksimum_cache",
     )
 
     return ArenaService(arenaRestGateway, arenaHistorikkGateway)

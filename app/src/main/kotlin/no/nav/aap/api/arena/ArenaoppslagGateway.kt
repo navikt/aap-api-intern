@@ -36,10 +36,11 @@ import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
 import no.nav.aap.api.util.findRootCause
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
@@ -53,21 +54,22 @@ private val secureLog = LoggerFactory.getLogger("team-logs")
 private val log = LoggerFactory.getLogger(ArenaoppslagGateway::class.java)
 
 private const val ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME = "arenaoppslag_client_seconds"
-private val clientLatencyStats: Summary = Summary.builder().name(ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME)
-    .quantile(0.5, 0.05) // Add 50th percentile (= median) with 5% tolerated error
-    .quantile(0.9, 0.01) // Add 90th percentile with 1% tolerated error
-    .quantile(0.99, 0.001) // Add 99th percentile with 0.1% tolerated error
-    .help("Latency arenaoppslag, in seconds").register()
+private val clientLatencyStats: Summary =
+    Summary.builder().name(ARENAOPPSLAG_CLIENT_SECONDS_METRICNAME)
+        .quantile(0.5, 0.05) // Add 50th percentile (= median) with 5% tolerated error
+        .quantile(0.9, 0.01) // Add 90th percentile with 1% tolerated error
+        .quantile(0.99, 0.001) // Add 99th percentile with 0.1% tolerated error
+        .help("Latency arenaoppslag, in seconds").register()
 
 private val objectMapper =
-    jacksonObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES).registerModule(JavaTimeModule())
+    jacksonObjectMapper().disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+        .registerModule(JavaTimeModule())
 
 @Suppress("MagicNumber")
 class ArenaoppslagGateway(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     private val slowRequestMillis: Long = 2000,
     private val timeoutMillis: Long = 20_000,
-    private val cacheName: String = "arenaoppslag_maksimum_cache",
 ) : IArenaoppslagGateway, WithMetrics {
     private val tokenProvider = AzureAdTokenProvider()
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
@@ -82,14 +84,15 @@ class ArenaoppslagGateway(
         .recordStats()
         .build<String, Maksimum>()
 
-    private val personEksistererCache = Caffeine.newBuilder()
+    private val harHistorikkCache = Caffeine.newBuilder()
         .maximumSize(10_000)
         .expireAfterWrite(Duration.ofMinutes(15))
         .recordStats()
-        .build<String, PersonEksistererIAAPArena>()
+        .build<String, HarHistorikkResponse>()
 
     override fun registrerMetrics(registry: MeterRegistry) {
-        CaffeineCacheMetrics.monitor(registry, maksimumCache, cacheName)
+        CaffeineCacheMetrics.monitor(registry, maksimumCache, "maksimumCache")
+        CaffeineCacheMetrics.monitor(registry, harHistorikkCache, "harHistorikkCache")
     }
 
     override suspend fun hentPerioder(
@@ -100,9 +103,10 @@ class ArenaoppslagGateway(
 
     override suspend fun hentPerioderInkludert11_17(
         callId: String, req: InternVedtakRequest,
-    ): PerioderMed11_17Response = gjørArenaPostOppslag<PerioderMed11_17Response, InternVedtakRequest>(
-        "/intern/perioder/11-17", callId, req
-    ).getOrThrow()
+    ): PerioderMed11_17Response =
+        gjørArenaPostOppslag<PerioderMed11_17Response, InternVedtakRequest>(
+            "/intern/perioder/11-17", callId, req
+        ).getOrThrow()
 
     override suspend fun hentSakerByFnr(
         callId: String, req: SakerRequest,
@@ -141,21 +145,26 @@ class ArenaoppslagGateway(
                 .also { maksimumCache.put(key, it) }
     }
 
-    override suspend fun hentPersonEksistererIAapContext(
-        callId: String, req: SakerRequest,
-    ): PersonEksistererIAAPArena {
+    override suspend fun hentPersonHarHistorikkIArena(
+        callId: String,
+        req: HarHistorikkRequest
+    ): HarHistorikkResponse {
         val key = req.toString()
-        return personEksistererCache.getIfPresent(key)
-            ?: gjørArenaPostOppslag<PersonEksistererIAAPArena, SakerRequest>(
-                "/api/v1/person/eksisterer", callId, req
+        return harHistorikkCache.getIfPresent(key)
+            ?: gjørArenaPostOppslag<HarHistorikkResponse, HarHistorikkRequest>(
+                "/api/v1/person/harHistorikk", callId, req
             ).getOrThrow()
-                .also { personEksistererCache.put(key, it) }
+                .also { harHistorikkCache.put(key, it) }
     }
 
     override suspend fun hentArenaSakMedVedtak(
         callId: String, sakId: String
     ): ArenaSakMedVedtakResponseV1? =
-        gjørArenaGetOppslag<ArenaSakMedVedtakResponseV1>("/api/v1/sak/$sakId", callId, tillattMed404 = true)
+        gjørArenaGetOppslag<ArenaSakMedVedtakResponseV1>(
+            "/api/v1/sak/$sakId",
+            callId,
+            tillattMed404 = true
+        )
             .recover { throwable ->
                 if (responseStatus(throwable) == HttpStatusCode.NotFound) null
                 else throw throwable
@@ -217,7 +226,11 @@ class ArenaoppslagGateway(
         val årsak = e.findRootCause()
         when {
             !fikkToken -> log.error("Fetch av token for Arena-oppslag feilet: ${årsak.message}", e)
-            !fikkArenaData -> log.error("Fetch av Arena-data feilet for '$endepunkt': ${årsak.message}", e)
+            !fikkArenaData -> log.error(
+                "Fetch av Arena-data feilet for '$endepunkt': ${årsak.message}",
+                e
+            )
+
             else -> {
                 log.error("Parsefeil for '$endepunkt'. Se securelog for stacktrace.")
                 secureLog.error("Parsefeil for '$endepunkt': ${årsak.message}", e)
