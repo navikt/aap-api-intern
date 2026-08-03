@@ -21,6 +21,8 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
+import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
+import no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak
 import org.slf4j.LoggerFactory
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
@@ -115,7 +117,7 @@ class ArenaService(
         callId: String,
         vedtakRequest: InternVedtakRequest
     ): List<InternVedtakUtenUtbetaling> {
-        return arena.hentMaksimum(callId, vedtakRequest).vedtak
+        return maksimum(callId, vedtakRequest).vedtak
             .filter {
                 it.periode.fraOgMedDato == null ||
                         it.periode.tilOgMedDato == null ||
@@ -125,7 +127,22 @@ class ArenaService(
     }
 
     suspend fun hentVedtak(callId: String, vedtakRequest: InternVedtakRequest): List<InternVedtak> {
-        return arena.hentMaksimum(callId, vedtakRequest).fraKontrakt().vedtak
+        return maksimum(callId, vedtakRequest).fraKontrakt().vedtak
+    }
+
+
+    private suspend fun maksimum(
+        callId: String,
+        vedtakRequest: InternVedtakRequest
+    ): Maksimum {
+        return arena.hentMaksimum(callId, vedtakRequest).let {
+            it.copy(vedtak = it.vedtak.filter { vedtak ->
+                // Gjenskaper filter i Arenaoppslag for å kunne
+                // https://github.com/navikt/aap-arenaoppslag/blob/d0098e8283da57f5b4bd5d853f4227d8ddcda41b/app/src/main/kotlin/no/nav/aap/arenaoppslag/database/VedtakRepository.kt#L91
+                val fraOgMedDato = vedtak.periode.fraOgMedDato
+                fraOgMedDato == null || vedtak.periode.tilOgMedDato == null || fraOgMedDato <= vedtak.periode.tilOgMedDato
+            })
+        }
     }
 
     suspend fun hentArenaSakMedVedtak(callId: String, sakId: String): ArenaSakMedVedtakResponse? =
