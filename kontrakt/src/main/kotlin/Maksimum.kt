@@ -27,7 +27,7 @@ public data class VedtakTeamObo(
 public data class InternVedtakRequestApiIntern(
     val personidentifikator: String,
     val fraOgMedDato: LocalDate? = LocalDate.of(1, 1, 1),
-    val tilOgMedDato: LocalDate? = LocalDate.of(9999, 12, 31)
+    val tilOgMedDato: LocalDate? = LocalDate.of(9999,   12, 31)
 )
 
 /**
@@ -38,7 +38,7 @@ public data class InternVedtakRequestApiIntern(
 public data class Vedtak(
     val dagsats: Int,
     val dagsatsEtterUføreReduksjon: Int?,
-    @param:Description("Fra Kelvin: ID som deles i forbindelse med samordning. Fra Arena er dette løpenummer til vedtakene.")
+    @param:Description("Fra Kelvin: ID som deles i forbindelse med samordning. Fra Arena er dette vedtakets database-ID.")
     val vedtakId: String,
     @param:Description("Status på et vedtak. Mulige verdier fra Kelvin er LØPENDE, AVSLUTTET, UTREDES. Fra Kelvin per i dag konstant lik LØPENDE.")
     val status: String,

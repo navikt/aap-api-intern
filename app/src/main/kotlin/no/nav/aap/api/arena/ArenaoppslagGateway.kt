@@ -152,7 +152,7 @@ class ArenaoppslagGateway(
         val key = req.toString()
         return harHistorikkCache.getIfPresent(key)
             ?: gjørArenaPostOppslag<HarHistorikkResponse, HarHistorikkRequest>(
-                "/api/v1/person/harHistorikk", callId, req
+                "/api/v1/person/historikk", callId, req
             ).getOrThrow()
                 .also { harHistorikkCache.put(key, it) }
     }
