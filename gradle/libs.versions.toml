@@ -1,5 +1,5 @@
 [versions]
-ktor = "3.5.1"
+ktor = "3.5.2"
 komponenter = "2.0.128"
 tilgang = "1.0.234"
 behandlingsflyt = "0.0.644"
@@ -16,7 +16,7 @@ hikaricp = "7.1.0"
 caffeine = "3.2.4"
 assertj = "3.27.7"
 nimbusJoseJwt = "10.9.1"
-commonsCodec = "1.22.0"
+commonsCodec = "1.22.1"
 
 [libraries]
 kelvinServer = { module = "no.nav.aap.kelvin:server", version.ref = "komponenter" }
