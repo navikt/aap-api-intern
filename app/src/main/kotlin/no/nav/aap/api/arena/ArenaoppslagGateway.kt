@@ -33,8 +33,6 @@ import io.prometheus.metrics.core.metrics.Summary
 import no.nav.aap.api.ArenaoppslagConfig
 import no.nav.aap.api.WithMetrics
 import no.nav.aap.api.intern.PerioderResponse
-import no.nav.aap.api.intern.ManuellFordelingsgrunnlagRequest
-import no.nav.aap.api.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.api.util.auth.AzureAdTokenProvider
 import no.nav.aap.api.util.circuitBreaker
 import no.nav.aap.api.util.findRootCause
@@ -42,6 +40,8 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.ManuellFordelingsgrunnlagRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest

@@ -37,30 +37,3 @@ public data class ArenaSakOppsummering(
 public data class ArenaSakerResponse(
     val saker: List<ArenaSakOppsummering>,
 )
-
-public data class ManuellFordelingsgrunnlagRequest(
-    val personidentifikator: String,
-)
-
-public data class VedtakMedMaksdato(
-    val vedtakId: Int,
-    val aktfaseKode: String,
-    val vedtaktypeKode: String,
-    val fra: LocalDate?,
-    val til: LocalDate?,
-    val maxdatoOrdinaer: LocalDate?,
-    val maxdatoUnntak: LocalDate?,
-    val maxdatoAap: LocalDate?,
-)
-
-public data class ManuellFordelingsgrunnlagResponse(
-    val saksnummer: String?,
-    val erAktiv: Boolean,
-    val under52Uker: Boolean?,
-    val gjenståendeOrdinæreDager: Int?,
-    // Samlet gjenstående unntaksperiode §11-12 (andre og tredje ledd slås sammen).
-    val gjenståendeUnntaksDager: Int?,
-    val sisteVedtak: VedtakMedMaksdato?,
-    val sisteUtbetaling: LocalDate?,
-)
-

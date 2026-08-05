@@ -5,9 +5,7 @@ import no.nav.aap.api.WithMetrics
 import no.nav.aap.api.intern.ArenaSakMedVedtakResponse
 import no.nav.aap.api.intern.ArenaSakOppsummering
 import no.nav.aap.api.intern.ArenaSakerResponse
-import no.nav.aap.api.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.api.intern.ArenaSakPerson
-import no.nav.aap.api.intern.ArenaSakerResponse
 import no.nav.aap.api.intern.ArenaVedtakDetaljer
 import no.nav.aap.api.intern.ArenaVedtakfakta
 import no.nav.aap.api.intern.Periode
@@ -22,6 +20,7 @@ import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
