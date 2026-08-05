@@ -4,17 +4,18 @@ import no.nav.aap.api.arena.IArenaoppslagGateway
 import no.nav.aap.api.intern.PerioderResponse
 import no.nav.aap.api.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakOppsummeringKontrakt
-import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakPerson
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
-import no.nav.aap.arenaoppslag.kontrakt.intern.PersonEksistererIAAPArena
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import java.time.LocalDate
 import java.time.LocalDateTime
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
 class FakeArenaGateway : IArenaoppslagGateway {
@@ -28,10 +29,11 @@ class FakeArenaGateway : IArenaoppslagGateway {
         return PerioderMed11_17Response(emptyList())
     }
 
-    override suspend fun hentPersonEksistererIAapContext(
-        callId: String, req: SakerRequest
-    ): PersonEksistererIAAPArena {
-        return PersonEksistererIAAPArena(false)
+    override suspend fun hentPersonHarHistorikkIArena(
+        callId: String,
+        req: HarHistorikkRequest
+    ): HarHistorikkResponse {
+        return HarHistorikkResponse(false)
     }
 
     override suspend fun hentSakerByFnr(

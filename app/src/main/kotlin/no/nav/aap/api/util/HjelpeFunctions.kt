@@ -39,10 +39,10 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): InternVedtak
         kildesystem = InternKilde.ARENA,
         barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0,
         barnetilleggSats = 0, // Hva skal dette være? Kanskje (this.utbetaling.lastOrNull()?.barnetillegg ?: 0) / this.barnMedStonad,
-        samordningsId = null,
         opphorsAarsak = null,
         lopenrvedtak = this.lopenrvedtak,
         relatertVedtak = this.relatertVedtak,
+        samIdOgTpnr = emptyList()
     )
 }
 
@@ -62,7 +62,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling()
         vedtaksTypeNavn = this.vedtaksTypeNavn,
         barnetillegg = this.utbetaling.lastOrNull()?.barnetillegg ?: 0,
         kildesystem = InternKilde.ARENA,
-        samordningsId = null,
+        samIdOgTpnr = emptyList(),
         opphorsAarsak = null,
         lopenrvedtak = this.lopenrvedtak,
         relatertVedtak = this.relatertVedtak,

@@ -9,6 +9,7 @@ import io.ktor.server.plugins.statuspages.StatusPagesConfig
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
 import no.nav.aap.api.IngenTilgangException
+import no.nav.aap.komponenter.httpklient.httpclient.error.RequestTimeoutHttpResponseException
 import no.nav.aap.komponenter.httpklient.httpclient.error.UhåndtertHttpResponsException
 import no.nav.aap.komponenter.json.DeserializationException
 import org.slf4j.LoggerFactory
@@ -64,6 +65,7 @@ object StatusPagesConfigHelper {
                     )
                 }
 
+                is RequestTimeoutHttpResponseException,
                 is HttpRequestTimeoutException -> {
                     logger.warn("Timeout mot $uri: ", cause)
                     call.respondText(

@@ -67,7 +67,7 @@ class BehandlingsRepositoryTest {
             ),
         ),
         behandlingsReferanse = UUID.randomUUID().toString(),
-        samId = null,
+        samIdOgTpNr = emptyList(),
         vedtakId = 1234L,
         beregningsgrunnlag = BigDecimal.ZERO,
         nyttVedtak = false,
@@ -277,5 +277,31 @@ class BehandlingsRepositoryTest {
         assertThat(stansVurderinger).hasSize(1)
         assertThat(stansVurderinger!!.single().fom).isEqualTo(LocalDate.of(2021, 11, 1))
         assertThat(stansVurderinger.single().vurdering).isEqualTo(StansEllerOpphør.STANS)
+    }
+
+    @Test
+    fun `lagre og hente ut samIdOgTpNr`() {
+        val samIds = listOf(
+            no.nav.aap.api.kelvin.SamIdOgTpnr("SAM001", "TP001"),
+            no.nav.aap.api.kelvin.SamIdOgTpnr("SAM002", null),
+            no.nav.aap.api.kelvin.SamIdOgTpnr("SAM003", "TP003"),
+        )
+
+        dataSource.transaction {
+            BehandlingsRepository(it).lagreBehandling(
+                fnr,
+                testVedtak.copy(
+                    sak = Sak("SAMID-TEST", testVedtak.sak.opprettetTidspunkt),
+                    samIdOgTpNr = samIds,
+                )
+            )
+        }
+
+        val hentet = dataSource.transaction {
+            BehandlingsRepository(it).hentVedtaksData("123445", søkePeriode)
+        }
+
+        val lagretSamIds = hentet.single { it.sak.saksnummer == "SAMID-TEST" }.samIdOgTpNr
+        assertThat(lagretSamIds).usingRecursiveComparison().isEqualTo(samIds)
     }
 }

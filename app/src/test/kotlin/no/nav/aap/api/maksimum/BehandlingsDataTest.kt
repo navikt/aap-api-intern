@@ -38,6 +38,7 @@ import java.time.*
 import java.util.*
 import kotlin.test.assertEquals
 import no.nav.aap.api.util.WithFakes
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SamIdOgTpnr
 
 @WithFakes
 class BehandlingsDataTest : PostgresTestBase() {
@@ -111,7 +112,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     verdi = RettighetsType.BISTANDSBEHOV.name,
                 )
             ),
-            samId = "1234asd",
+            samIdOgTpr = listOf(SamIdOgTpnr("1223", "4444")),
             vedtakId = 123456789L,
             beregningsgrunnlag = BigDecimal.valueOf(500_000),
             stansOpphørVurdering = null,
@@ -330,7 +331,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                             verdi = RettighetsType.BISTANDSBEHOV.name,
                         )
                     ),
-                    samId = "1234asd",
+                    samIdOgTpr = listOf(SamIdOgTpnr("1223", "4444")),
                     vedtakId = Random().nextLong(),
                     beregningsgrunnlag = 600_000.toBigDecimal(),
                     stansOpphørVurdering = null,

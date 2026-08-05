@@ -2,8 +2,10 @@ package no.nav.aap.api.maksimum
 
 import no.nav.aap.api.intern.Maksimum
 import no.nav.aap.api.intern.Medium
+import no.nav.aap.api.intern.SamordningIdOgTpNummer
 import no.nav.aap.api.intern.Vedtak
 import no.nav.aap.api.intern.VedtakUtenUtbetaling
+import no.nav.aap.api.kelvin.SamIdOgTpnr
 import java.time.LocalDate
 
 enum class InternKilde {
@@ -56,7 +58,7 @@ data class InternVedtak(
     val barnetillegg: Int,
     val barnetilleggSats: Int,
     val kildesystem: InternKilde,
-    val samordningsId: String? = null,
+    val samIdOgTpnr: List<SamIdOgTpnr>,
     val opphorsAarsak: String? = null,
     val vedtaksTypeKode: String?,
     val vedtaksTypeNavn: String?,
@@ -84,7 +86,7 @@ data class InternVedtakUtenUtbetaling(
     val barnMedStonad: Int,
     val barnetillegg: Int,
     val kildesystem: InternKilde,
-    val samordningsId: String? = null,
+    val samIdOgTpnr: List<SamIdOgTpnr>,
     val opphorsAarsak: String? = null,
     val lopenrvedtak: Int? = null,
     val relatertVedtak: Int? = null,
@@ -111,7 +113,8 @@ fun InternVedtak.tilKontrakt(): Vedtak =
         barnetillegg = barnetillegg,
         barnetilleggSats = barnetilleggSats,
         kildesystem = kildesystem.tilKontrakt(),
-        samordningsId = samordningsId,
+        samordningsId = samIdOgTpnr.firstOrNull()?.samId,
+        samordningOgTpnr = samIdOgTpnr.map { SamordningIdOgTpNummer(it.samId, it.tpnr) },
         opphorsAarsak = opphorsAarsak,
         vedtaksTypeKode = vedtaksTypeKode,
         vedtaksTypeNavn = vedtaksTypeNavn,
@@ -134,7 +137,8 @@ fun InternVedtakUtenUtbetaling.tilKontrakt(): VedtakUtenUtbetaling =
         barnMedStonad = barnMedStonad,
         barnetillegg = barnetillegg,
         kildesystem = kildesystem.tilKontrakt(),
-        samordningsId = samordningsId,
+        samordningsId = samIdOgTpnr.firstOrNull()?.samId,
+        samordningOgTpnr = samIdOgTpnr.map { SamordningIdOgTpNummer(it.samId, it.tpnr) },
         opphorsAarsak = opphorsAarsak,
     )
 

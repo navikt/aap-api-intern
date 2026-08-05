@@ -21,7 +21,7 @@ data class Behandling(
     val sak: Sak,
     val tilkjent: Tidslinje<TilkjentYtelse>,
     val rettighetsTypePerioder: List<RettighetsTypePeriode>,
-    val samId: String?,
+    val samIdOgTpNr: List<SamIdOgTpnr>,
     val vedtakId: Long,
     val beregningsgrunnlag: BigDecimal?,
     val nyttVedtak: Boolean,
@@ -42,6 +42,8 @@ data class Behandling(
     val arenakompatibleVedtakTidslinje: Tidslinje<Arenavedtak>
         get() = arenakompatibleVedtak.somTidslinje { it.periode }
 }
+
+data class SamIdOgTpnr(val samId: String, val tpnr: String?)
 
 data class GjeldendeStansEllerOpphør(
     val fom: LocalDate,
