@@ -310,7 +310,6 @@ fun NormalOpenAPIRoute.api(
             post<CallIdHeader, ManuellFordelingsgrunnlagResponse, ManuellFordelingsgrunnlagRequest>(
                 info(description = "Henter manuelt fordelingsgrunnlag for en person fra Arena.")
             ) { callIdHeader, requestBody ->
-                logger.info("Henter manuelt fordelingsgrunnlag for person fra Arena")
                 val callId = receiveCall(callIdHeader, pipeline)
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 

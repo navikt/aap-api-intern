@@ -92,9 +92,16 @@ class ArenaoppslagGateway(
         .recordStats()
         .build<String, HarHistorikkResponse>()
 
+    private val manuellFordelingsgrunnlagCache = Caffeine.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterWrite(Duration.ofMinutes(15))
+        .recordStats()
+        .build<String, ManuellFordelingsgrunnlagResponse>()
+
     override fun registrerMetrics(registry: MeterRegistry) {
         CaffeineCacheMetrics.monitor(registry, maksimumCache, "maksimumCache")
         CaffeineCacheMetrics.monitor(registry, harHistorikkCache, "harHistorikkCache")
+        CaffeineCacheMetrics.monitor(registry, manuellFordelingsgrunnlagCache, "manuellFordelingsgrunnlagCache")
     }
 
     override suspend fun hentPerioder(
@@ -147,6 +154,25 @@ class ArenaoppslagGateway(
                 .also { maksimumCache.put(key, it) }
     }
 
+    override suspend fun hentManuellFordelingsgrunnlag(
+        callId: String, personidentifikator: String
+    ): ManuellFordelingsgrunnlagResponse? {
+        val req = ManuellFordelingsgrunnlagRequest(personidentifikator)
+        val key = req.toString()
+        return manuellFordelingsgrunnlagCache.getIfPresent(key)
+            ?: gjørArenaPostOppslag<ManuellFordelingsgrunnlagResponse, ManuellFordelingsgrunnlagRequest>(
+                "/intern/manuell-fordelingsgrunnlag",
+                callId,
+                req,
+                tillattMed404 = true
+            ).recover { throwable ->
+                if (responseStatus(throwable) == HttpStatusCode.NotFound) null
+                else throw throwable
+            }
+                .getOrThrow()
+                ?.also { manuellFordelingsgrunnlagCache.put(key, it) }
+    }
+
     override suspend fun hentPersonHarHistorikkIArena(
         callId: String,
         req: HarHistorikkRequest
@@ -173,18 +199,6 @@ class ArenaoppslagGateway(
             }
             .getOrThrow()
 
-    override suspend fun hentManuellFordelingsgrunnlag(
-        callId: String, personidentifikator: String
-    ): ManuellFordelingsgrunnlagResponse? =
-        gjørArenaPostOppslag<ManuellFordelingsgrunnlagResponse, ManuellFordelingsgrunnlagRequest>(
-            "/person/manuell-fordelingsgrunnlag",
-            callId,
-            ManuellFordelingsgrunnlagRequest(personidentifikator),
-            tillattMed404 = true
-        ).recover { throwable ->
-            if (responseStatus(throwable) == HttpStatusCode.NotFound) null
-            else throw throwable
-        }.getOrThrow()
 
     private suspend inline fun <reified T, reified V> gjørArenaPostOppslag(
         endepunkt: String, callId: String, req: V, tillattMed404: Boolean = false
