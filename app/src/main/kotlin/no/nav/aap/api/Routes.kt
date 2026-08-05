@@ -37,6 +37,8 @@ import no.nav.aap.api.postgres.MeldekortPerioderRepository
 import no.nav.aap.api.postgres.SakStatusRepository
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.ManuellFordelingsgrunnlagRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.OidcToken
@@ -302,6 +304,21 @@ fun NormalOpenAPIRoute.api(
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val saker = arenaService.hentSakerForPerson(callId, requestBody.personidentifikator)
                 respond(saker)
+            }
+        }
+        route("/arena/person/manuell-fordelingsgrunnlag") {
+            post<CallIdHeader, ManuellFordelingsgrunnlagResponse, ManuellFordelingsgrunnlagRequest>(
+                info(description = "Henter manuelt fordelingsgrunnlag for en person fra Arena.")
+            ) { callIdHeader, requestBody ->
+                val callId = receiveCall(callIdHeader, pipeline)
+                sjekkTilgangTilPerson(requestBody.personidentifikator, token())
+
+                val grunnlag = arenaService.hentManuellFordelingsgrunnlag(
+                    callId,
+                    requestBody.personidentifikator
+                ) ?: return@post pipeline.call.respond(HttpStatusCode.NotFound)
+
+                respond(grunnlag)
             }
         }
         route("/arena/sak/{sakId}") {

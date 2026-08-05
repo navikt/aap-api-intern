@@ -40,6 +40,8 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.ManuellFordelingsgrunnlagRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
@@ -90,9 +92,16 @@ class ArenaoppslagGateway(
         .recordStats()
         .build<String, HarHistorikkResponse>()
 
+    private val manuellFordelingsgrunnlagCache = Caffeine.newBuilder()
+        .maximumSize(10_000)
+        .expireAfterWrite(Duration.ofMinutes(15))
+        .recordStats()
+        .build<String, ManuellFordelingsgrunnlagResponse>()
+
     override fun registrerMetrics(registry: MeterRegistry) {
         CaffeineCacheMetrics.monitor(registry, maksimumCache, "maksimumCache")
         CaffeineCacheMetrics.monitor(registry, harHistorikkCache, "harHistorikkCache")
+        CaffeineCacheMetrics.monitor(registry, manuellFordelingsgrunnlagCache, "manuellFordelingsgrunnlagCache")
     }
 
     override suspend fun hentPerioder(
@@ -145,6 +154,25 @@ class ArenaoppslagGateway(
                 .also { maksimumCache.put(key, it) }
     }
 
+    override suspend fun hentManuellFordelingsgrunnlag(
+        callId: String, personidentifikator: String
+    ): ManuellFordelingsgrunnlagResponse? {
+        val req = ManuellFordelingsgrunnlagRequest(personidentifikator)
+        val key = req.toString()
+        return manuellFordelingsgrunnlagCache.getIfPresent(key)
+            ?: gjørArenaPostOppslag<ManuellFordelingsgrunnlagResponse, ManuellFordelingsgrunnlagRequest>(
+                "/intern/manuell-fordelingsgrunnlag",
+                callId,
+                req,
+                tillattMed404 = true
+            ).recover { throwable ->
+                if (responseStatus(throwable) == HttpStatusCode.NotFound) null
+                else throw throwable
+            }
+                .getOrThrow()
+                ?.also { manuellFordelingsgrunnlagCache.put(key, it) }
+    }
+
     override suspend fun hentPersonHarHistorikkIArena(
         callId: String,
         req: HarHistorikkRequest
@@ -170,6 +198,7 @@ class ArenaoppslagGateway(
                 else throw throwable
             }
             .getOrThrow()
+
 
     private suspend inline fun <reified T, reified V> gjørArenaPostOppslag(
         endepunkt: String, callId: String, req: V, tillattMed404: Boolean = false

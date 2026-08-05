@@ -8,6 +8,7 @@ import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
+import no.nav.aap.arenaoppslag.kontrakt.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.PerioderMed11_17Response
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
@@ -96,4 +97,8 @@ class FakeArenaGateway : IArenaoppslagGateway {
         )
         else -> null
     }
+
+    override suspend fun hentManuellFordelingsgrunnlag(
+        callId: String, personidentifikator: String
+    ): ManuellFordelingsgrunnlagResponse? = null
 }
