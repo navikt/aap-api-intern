@@ -50,6 +50,7 @@ class InternMaksimumTest {
                     vedtaksdato = "2024-01-01",
                     vedtaksTypeKode = "E",
                     vedtaksTypeNavn = "Endring",
+                    utfallkode = null,
                     periode = ArenaPeriode(
                         fraOgMedDato = LocalDate.of(2024, 1, 1),
                         tilOgMedDato = LocalDate.of(2024, 1, 31),
@@ -187,6 +188,7 @@ class InternMaksimumTest {
             vedtaksdato = "2024-02-01",
             vedtaksTypeKode = "O",
             vedtaksTypeNavn = "Original",
+            utfallkode = null,
             periode = ArenaPeriode(
                 fraOgMedDato = LocalDate.of(2024, 2, 1),
                 tilOgMedDato = LocalDate.of(2024, 2, 29),
