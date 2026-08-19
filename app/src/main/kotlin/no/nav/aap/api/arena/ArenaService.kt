@@ -25,7 +25,6 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
@@ -158,19 +157,7 @@ class ArenaService(
             log.warn("Maksimum-vedtak med null utfallkode.")
         }
 
-        val original = hentMaksimum.let {
-            it.copy(vedtak = it.vedtak.filter { vedtak ->
-                val fraOgMedDato = vedtak.periode.fraOgMedDato
-                fraOgMedDato == null || vedtak.periode.tilOgMedDato == null || fraOgMedDato <= vedtak.periode.tilOgMedDato
-            })
-        }
-
-        if (medKodefilter != original) {
-            val størsteTilDatoOriginal = original.vedtak.maxOfOrNull { it.periode.tilOgMedDato ?: LocalDate.MIN }
-            val størsteTilDatoMedKodefilter = medKodefilter.vedtak.maxOfOrNull { it.periode.tilOgMedDato ?: LocalDate.MIN }
-            log.warn("Kodefilter er forskjellig fra SQL. Lengde: ${medKodefilter.vedtak.size} vs ${original.vedtak.size}. Største til dato: $størsteTilDatoMedKodefilter vs $størsteTilDatoOriginal.")
-        }
-        return original
+        return medKodefilter
     }
 
     suspend fun hentArenaSakMedVedtak(callId: String, sakId: String): ArenaSakMedVedtakResponse? =
