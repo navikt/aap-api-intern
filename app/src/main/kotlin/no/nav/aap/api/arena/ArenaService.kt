@@ -134,12 +134,15 @@ class ArenaService(
                 // Gjenskaper filter i Arenaoppslag for å kunne
                 // https://github.com/navikt/aap-arenaoppslag/blob/0506908b60c81103882386a3ed8572bb5e7d17bf/app/src/main/kotlin/no/nav/aap/arenaoppslag/database/MaksimumRepository.kt#L210
                 /*
+                           AND utfallkode = 'JA'
                            AND vedtaktypekode IN ('O', 'E', 'G', 'S')
                            AND vedtakstatuskode IN ('IVERK', 'AVSLU')
                            AND (fra_dato <= til_dato OR til_dato IS NULL)
                            AND (til_dato >= ? OR til_dato IS NULL)
                            AND fra_dato <= ?
                  */
+                val utfallkode = vedtak.utfallkode == "JA"
+
                 val fraOgMedDato = vedtak.periode.fraOgMedDato
                 val datoBetingelser =
                     fraOgMedDato == null || vedtak.periode.tilOgMedDato == null || fraOgMedDato <= vedtak.periode.tilOgMedDato
@@ -148,7 +151,7 @@ class ArenaService(
 
                 val vedtakstatusKode = vedtak.status in listOf("IVERK", "AVSLU")
 
-                datoBetingelser and vedtaktypeBetingelser and vedtakstatusKode
+                datoBetingelser and vedtaktypeBetingelser and vedtakstatusKode and utfallkode
             })
         }
 
