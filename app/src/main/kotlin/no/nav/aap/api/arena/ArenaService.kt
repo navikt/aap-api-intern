@@ -25,6 +25,7 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
@@ -128,9 +129,36 @@ class ArenaService(
     private suspend fun maksimum(
         callId: String, vedtakRequest: InternVedtakRequest
     ): Maksimum {
-        val hentMaksimum = arena.hentMaksimum(callId, vedtakRequest)
-        val medKodefilter = hentMaksimum.let {
-            it.copy(vedtak = it.vedtak.filter { vedtak ->
+        val requestFraOgMed = vedtakRequest.fraOgMedDato
+        val requestTilOgMed = vedtakRequest.tilOgMedDato
+
+        val hentMaksimum = arena.hentMaksimum(callId, vedtakRequest).let {
+            val utenUgyldigeVedtak = ArenaVedtakFilter.filtrerUgyldigeVedtak(it.vedtak)
+
+            // Midlertidig duplisering av kode for å verifisere filtrering av ugyldige vedtak
+            val utenUgyldigeVedtakFiltrert = utenUgyldigeVedtak.filter { vedtak ->
+                val utfallkode = vedtak.utfallkode == "JA"
+
+                val fraOgMedDato = vedtak.periode.fraOgMedDato
+
+                // Gjør dato-filter også i kode, i påvente av filteret fjernes fra arenaoppslag
+                val requestDatoFilter =
+                    fraOgMedDato == null || fraOgMedDato >= requestFraOgMed && (requestTilOgMed <= (vedtak.periode.tilOgMedDato
+                        ?: LocalDate.MAX))
+
+                if (!requestDatoFilter) {
+                    log.info("Vedtak filtrert ut pga requestDatoFilter. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til ${vedtak.periode.tilOgMedDato}")
+                }
+
+                val vedtaktypeBetingelser = vedtak.vedtaksTypeKode in listOf("O", "E", "G", "S")
+
+                val vedtakstatusKode = vedtak.status in listOf("IVERK", "AVSLU")
+
+                vedtaktypeBetingelser and vedtakstatusKode and utfallkode
+            }
+            // Slutt duplisering av kode
+
+            val resultat = it.copy(vedtak = it.vedtak.filter { vedtak ->
                 // Gjenskaper filter i Arenaoppslag for å kunne
                 // https://github.com/navikt/aap-arenaoppslag/blob/0506908b60c81103882386a3ed8572bb5e7d17bf/app/src/main/kotlin/no/nav/aap/arenaoppslag/database/MaksimumRepository.kt#L210
                 /*
@@ -147,12 +175,40 @@ class ArenaService(
                 val datoBetingelser =
                     fraOgMedDato == null || vedtak.periode.tilOgMedDato == null || fraOgMedDato <= vedtak.periode.tilOgMedDato
 
+                // Gjør dato-filter også i kode, i påvente av filteret fjernes fra arenaoppslag
+                val requestDatoFilter =
+                    fraOgMedDato == null || fraOgMedDato >= requestFraOgMed && (requestTilOgMed <= (vedtak.periode.tilOgMedDato
+                        ?: LocalDate.MAX))
+
+                if (!requestDatoFilter) {
+                    log.info("Vedtak filtrert ut pga requestDatoFilter. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til ${vedtak.periode.tilOgMedDato}")
+                }
+
                 val vedtaktypeBetingelser = vedtak.vedtaksTypeKode in listOf("O", "E", "G", "S")
 
                 val vedtakstatusKode = vedtak.status in listOf("IVERK", "AVSLU")
 
                 datoBetingelser and vedtaktypeBetingelser and vedtakstatusKode and utfallkode
             })
+
+            if (utenUgyldigeVedtakFiltrert.map { it.vedtaksId } != resultat.vedtak.map { it.vedtaksId }) {
+                val størrelseDiff = utenUgyldigeVedtakFiltrert.size - resultat.vedtak.size
+                val bortFiltrerte =
+                    resultat.vedtak.filter { it.vedtaksId !in utenUgyldigeVedtakFiltrert.map { v -> v.vedtaksId } }
+                        .map {
+                            listOf(
+                                it.vedtaksId,
+                                it.relatertVedtak,
+                                it.periode.fraOgMedDato,
+                                it.periode.tilOgMedDato,
+                                it.status,
+                                it.vedtaksTypeKode
+                            )
+                        }
+
+                log.info("Filtrerte bort ugyldige vedtak. Størrelsediff: $størrelseDiff. Interessante felter $bortFiltrerte")
+            }
+            resultat
         }
 
         // Midlertidig logg. Er denne noengang null?
@@ -160,7 +216,7 @@ class ArenaService(
             log.warn("Maksimum-vedtak med null utfallkode.")
         }
 
-        return medKodefilter
+        return hentMaksimum
     }
 
     suspend fun hentArenaSakMedVedtak(callId: String, sakId: String): ArenaSakMedVedtakResponse? =
