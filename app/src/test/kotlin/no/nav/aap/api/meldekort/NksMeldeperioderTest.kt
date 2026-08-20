@@ -224,16 +224,26 @@ class NksMeldeperioderTest : PostgresTestBase() {
                 ),
             ),
             NksMeldeperiode(
-                fraDato = andreMeldeperiodeFom.plusDays(1),
-                tilDato = andreMeldeperiodeTom.minusDays(1),
+                fraDato = andreMeldeperiodeFom,
+                tilDato = andreMeldeperiodeTom,
                 fritakMeldeplikt = listOf(
                     NksDatoperiode(
                         LocalDate.of(2026, 7, 5),
                         LocalDate.of(2026, 7, 6)
                     )
                 ),
-                meldekortMedTimer = emptyList(),
-                meldekortLevertIMeldeperioden = emptyList(),
+                meldekortMedTimer = listOf(
+                    NksMeldekortMedTimer(
+                        "54321",
+                        LocalDate.of(2026, 7, 13)
+                    )
+                ),
+                meldekortLevertIMeldeperioden = listOf(
+                    NksMeldekortMedTimer(
+                        "12345",
+                        LocalDate.of(2026, 6, 29)
+                    )
+                ),
                 timerArbeid = listOf(
                     NksTimerArbeid(
                         andreMeldeperiodeFom.plusDays(1),
@@ -247,8 +257,8 @@ class NksMeldeperioderTest : PostgresTestBase() {
                         dagsats = 900,
                         effektivDagsats = 900,
                         gradering = 100,
-                        periodeFom = andreMeldeperiodeFom.plusDays(1),
-                        periodeTom = andreMeldeperiodeTom.minusDays(1),
+                        periodeFom = andreMeldeperiodeFom,
+                        periodeTom = andreMeldeperiodeTom,
                     )
                 ),
                 meldeplikt = listOf(
