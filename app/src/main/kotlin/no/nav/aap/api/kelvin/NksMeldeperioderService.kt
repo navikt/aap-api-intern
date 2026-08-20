@@ -55,7 +55,7 @@ class NksMeldeperioderService(
 
         val tilkjentYtelseTidslinje = behandling?.tilkjent.orEmpty()
 
-        val meldeperioder = underveistidslinje.map { it.meldeperiode }.perioder()
+        val meldeperioder = underveistidslinje.map { it.meldeperiode }.komprimer().verdier()
 
         val meldeperioderÅReturnere =
             underveistidslinje.splittOppIPerioder(
