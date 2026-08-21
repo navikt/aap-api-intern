@@ -36,6 +36,7 @@ import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortPerioderRepository
 import no.nav.aap.api.postgres.SakStatusRepository
+import no.nav.aap.api.syfo.syfoRoutes
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.ManuellFordelingsgrunnlagRequest
@@ -209,6 +210,7 @@ fun NormalOpenAPIRoute.api(
 
     nksRoutes(dataSource, arenaService, pdlGateway, clock)
     holmesRoutes(dataSource, pdlGateway, clock)
+    syfoRoutes(dataSource, arenaService, pdlGateway)
 
     tag(Tag.Saker) {
         route("/meldekort-backend/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatusMeldekortbackend>, SakerRequestMeldekortbackend>(

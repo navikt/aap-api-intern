@@ -141,6 +141,9 @@ spec:
           namespace: poao
         - application: padm2
           namespace: teamsykefravr
+        - application: syfoperson
+          namespace: teamsykefravr
+          cluster: dev-gcp
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io
@@ -191,5 +194,7 @@ spec:
       value: 37e3a2ac-c5f3-4c65-a245-59c04a41f6d4
     - name: AZP_HOLMES_PERSONDATA_API
       value: f99254b7-a630-48fe-a21a-21989eca6f4b
+    - name: AZP_SYFOPERSON
+      value: 096d3198-c44e-449b-97a9-4bcecc31afa6
     - name: NAIS_TEAM_AAP
       value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5
