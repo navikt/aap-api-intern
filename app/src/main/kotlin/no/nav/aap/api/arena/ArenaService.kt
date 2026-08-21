@@ -148,7 +148,9 @@ class ArenaService(
                         ?: LocalDate.MAX))
 
                 if (!requestDatoFilter) {
-                    log.info("Vedtak filtrert ut pga requestDatoFilter. Noop. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til ${vedtak.periode.tilOgMedDato}")
+                    val ugyldig =
+                        vedtak.periode.tilOgMedDato?.let { fraOgMedDato > vedtak.periode.tilOgMedDato }
+                    log.info("Vedtak filtrert ut pga requestDatoFilter. Noop. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til ${vedtak.periode.tilOgMedDato}. Status: ${vedtak.status}. Type: ${vedtak.vedtaksTypeKode}. Ugyldig: $ugyldig.")
                 }
 
                 val vedtaktypeBetingelser = vedtak.vedtaksTypeKode in listOf("O", "E", "G", "S")
@@ -184,7 +186,7 @@ class ArenaService(
                 Metrics.requestDatoFilter(requestDatoFilter)
 
                 if (!requestDatoFilter) {
-                    log.info("Vedtak filtrert ut pga requestDatoFilter. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til ${vedtak.periode.tilOgMedDato}")
+                    log.info("Vedtak filtrert ut pga requestDatoFilter. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til ${vedtak.periode.tilOgMedDato}.")
                 }
 
                 val vedtaktypeBetingelser = vedtak.vedtaksTypeKode in listOf("O", "E", "G", "S")
