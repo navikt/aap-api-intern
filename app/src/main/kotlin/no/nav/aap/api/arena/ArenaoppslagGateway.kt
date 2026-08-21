@@ -72,6 +72,7 @@ class ArenaoppslagGateway(
     private val arenaoppslagConfig: ArenaoppslagConfig,
     private val slowRequestMillis: Long = 2000,
     private val timeoutMillis: Long = 20_000,
+    private val name: String? = "",
 ) : IArenaoppslagGateway, WithMetrics {
     private val tokenProvider = AzureAdTokenProvider()
     private val circuitBreaker = circuitBreaker("arenaoppslag-circuit-breaker") {
@@ -99,9 +100,9 @@ class ArenaoppslagGateway(
         .build<String, ManuellFordelingsgrunnlagResponse>()
 
     override fun registrerMetrics(registry: MeterRegistry) {
-        CaffeineCacheMetrics.monitor(registry, maksimumCache, "maksimumCache")
-        CaffeineCacheMetrics.monitor(registry, harHistorikkCache, "harHistorikkCache")
-        CaffeineCacheMetrics.monitor(registry, manuellFordelingsgrunnlagCache, "manuellFordelingsgrunnlagCache")
+        CaffeineCacheMetrics.monitor(registry, maksimumCache, "maksimumCache$name")
+        CaffeineCacheMetrics.monitor(registry, harHistorikkCache, "harHistorikkCache$name")
+        CaffeineCacheMetrics.monitor(registry, manuellFordelingsgrunnlagCache, "manuellFordelingsgrunnlagCache$name")
     }
 
     override suspend fun hentPerioder(
