@@ -1,6 +1,7 @@
 package no.nav.aap.api.arena
 
 import io.micrometer.core.instrument.MeterRegistry
+import no.nav.aap.api.Metrics
 import no.nav.aap.api.WithMetrics
 import no.nav.aap.api.intern.ArenaSakMedVedtakResponse
 import no.nav.aap.api.intern.ArenaSakOppsummering
@@ -179,6 +180,8 @@ class ArenaService(
                 val requestDatoFilter =
                     fraOgMedDato == null || fraOgMedDato >= requestFraOgMed && (requestTilOgMed <= (vedtak.periode.tilOgMedDato
                         ?: LocalDate.MAX))
+
+                Metrics.requestDatoFilter(requestDatoFilter)
 
                 if (!requestDatoFilter) {
                     log.info("Vedtak filtrert ut pga requestDatoFilter. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til ${vedtak.periode.tilOgMedDato}")

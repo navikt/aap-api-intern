@@ -45,4 +45,9 @@ object Metrics {
         "api_intern_enhetsinformasjon",
         listOf(Tag.of("fikk_respons", fikkRespons.toString()), Tag.of("type", type))
     ).increment()
+
+    fun requestDatoFilter(requestDatoFilter: Boolean) = prometheus.counter(
+        "api_intern_request_dato_filter",
+        listOf(Tag.of("requestDatoFilter", requestDatoFilter.toString()))
+    ).increment()
 }
