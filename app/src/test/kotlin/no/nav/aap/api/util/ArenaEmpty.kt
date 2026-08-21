@@ -18,7 +18,10 @@ import java.time.LocalDateTime
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
-class FakeArenaGateway : IArenaoppslagGateway {
+class FakeArenaGateway(
+    private val saker: List<SakStatus> = emptyList(),
+    private val maksimum: Maksimum = Maksimum(emptyList()),
+) : IArenaoppslagGateway {
     override suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): PerioderResponse {
         return PerioderResponse(emptyList())
     }
@@ -39,7 +42,7 @@ class FakeArenaGateway : IArenaoppslagGateway {
     override suspend fun hentSakerByFnr(
         callId: String, req: SakerRequest
     ): List<SakStatus> {
-        return emptyList()
+        return saker
     }
 
     override suspend fun hentSakerForPerson(
@@ -73,7 +76,7 @@ class FakeArenaGateway : IArenaoppslagGateway {
     override suspend fun hentMaksimum(
         callId: String, req: InternVedtakRequest
     ): Maksimum {
-        return Maksimum(emptyList())
+        return maksimum
     }
 
     override suspend fun hentArenaSakMedVedtak(
