@@ -26,7 +26,6 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
@@ -143,14 +142,14 @@ class ArenaService(
                 val fraOgMedDato = vedtak.periode.fraOgMedDato
 
                 // Gjør dato-filter også i kode, i påvente av filteret fjernes fra arenaoppslag
+                val tilOgMedDato = vedtak.periode.tilOgMedDato
                 val requestDatoFilter =
-                    fraOgMedDato == null || fraOgMedDato >= requestFraOgMed && (requestTilOgMed <= (vedtak.periode.tilOgMedDato
-                        ?: LocalDate.MAX))
+                    fraOgMedDato == null || fraOgMedDato >= requestFraOgMed && (tilOgMedDato == null || tilOgMedDato >= requestFraOgMed)
 
                 if (!requestDatoFilter) {
                     val ugyldig =
-                        vedtak.periode.tilOgMedDato?.let { fraOgMedDato > vedtak.periode.tilOgMedDato }
-                    log.info("Vedtak filtrert ut pga requestDatoFilter. Noop. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til ${vedtak.periode.tilOgMedDato}. Status: ${vedtak.status}. Type: ${vedtak.vedtaksTypeKode}. Ugyldig: $ugyldig.")
+                        tilOgMedDato?.let { fraOgMedDato > tilOgMedDato }
+                    log.info("Vedtak filtrert ut pga requestDatoFilter. Noop. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til $tilOgMedDato. Status: ${vedtak.status}. Type: ${vedtak.vedtaksTypeKode}. Ugyldig: $ugyldig.")
                 }
 
                 val vedtaktypeBetingelser = vedtak.vedtaksTypeKode in listOf("O", "E", "G", "S")
@@ -175,20 +174,20 @@ class ArenaService(
                 val utfallkode = vedtak.utfallkode == "JA"
 
                 val fraOgMedDato = vedtak.periode.fraOgMedDato
+                val tilOgMedDato = vedtak.periode.tilOgMedDato
                 val datoBetingelser =
-                    fraOgMedDato == null || vedtak.periode.tilOgMedDato == null || fraOgMedDato <= vedtak.periode.tilOgMedDato
+                    fraOgMedDato == null || tilOgMedDato == null || fraOgMedDato <= tilOgMedDato
 
                 // Gjør dato-filter også i kode, i påvente av filteret fjernes fra arenaoppslag
                 val requestDatoFilter =
-                    fraOgMedDato == null || fraOgMedDato >= requestFraOgMed && (requestTilOgMed <= (vedtak.periode.tilOgMedDato
-                        ?: LocalDate.MAX))
+                    fraOgMedDato == null || fraOgMedDato >= requestFraOgMed && (tilOgMedDato == null || tilOgMedDato >= requestFraOgMed)
 
                 Metrics.requestDatoFilter(requestDatoFilter)
 
                 if (!requestDatoFilter) {
                     val ugyldig =
-                        vedtak.periode.tilOgMedDato?.let { fraOgMedDato > vedtak.periode.tilOgMedDato }
-                    log.info("Vedtak filtrert ut pga requestDatoFilter. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til ${vedtak.periode.tilOgMedDato}. Status: ${vedtak.status}. Type: ${vedtak.vedtaksTypeKode}. Ugyldig: $ugyldig.")
+                        tilOgMedDato?.let { fraOgMedDato > tilOgMedDato }
+                    log.info("Vedtak filtrert ut pga requestDatoFilter. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til $tilOgMedDato. Status: ${vedtak.status}. Type: ${vedtak.vedtaksTypeKode}. Ugyldig: $ugyldig.")
                 }
 
                 val vedtaktypeBetingelser = vedtak.vedtaksTypeKode in listOf("O", "E", "G", "S")
