@@ -100,11 +100,11 @@ class NksMeldeperioderService(
                     mottattDato = meldekort.mottattTidspunkt.toLocalDate(),
                 )
             },
-            timerArbeid = map { it.timerArbeidet }.komprimer().segmenter().map {
+            timerArbeid = map { periode, verdi -> Pair(periode, verdi.timerArbeidet) }.komprimer().segmenter().map {
                 NksTimerArbeid(
                     periodeFom = it.periode.fom,
-                    periodeTom = it.periode.tom,
-                    timerArbeidet = it.verdi
+                    periodeTom = it.verdi.first.tom,
+                    timerArbeidet = it.verdi.second
                 )
             },
             arbeidsgrad = map { Pair(it.arbeidsgrad, it.overgrenseVerdi) }.komprimer().segmenter()

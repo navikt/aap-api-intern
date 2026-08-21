@@ -53,6 +53,7 @@ import java.time.ZoneOffset
 
 @WithFakes
 class NksMeldeperioderTest : PostgresTestBase() {
+    private val azure = AzureTokenGen("test", "test")
     private val personIdent = "12345678901"
     private val saksnummer = "NKS123"
     private val førsteMeldeperiodeFom = LocalDate.of(2026, 6, 15)
@@ -61,75 +62,97 @@ class NksMeldeperioderTest : PostgresTestBase() {
     private val andreMeldeperiodeTom = LocalDate.of(2026, 7, 12)
 
     @Test
-    fun `henter nks meldeperioder fra datadeling og detaljerte meldekort`() {
-        val azure = AzureTokenGen("test", "test")
+    fun `henter nks meldeperioder fra datadeling og detaljerte meldekort`() = medApi(
         // Klokken settes etter siste meldeperiode for å sikre at all testdata inkluderes
-        val clock = Clock.fixed(
-            Instant.from(andreMeldeperiodeTom.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC)),
-            ZoneId.of("UTC")
+        clock = klokkeEtter(andreMeldeperiodeTom)
+    ) {
+        assertThat(leggInnVedtak(testVedtak()).status).isEqualTo(HttpStatusCode.OK)
+        assertThat(leggInnMeldekort(testMeldekort()).status).isEqualTo(HttpStatusCode.OK)
+
+        val response = hentMeldeperioder(
+            fraOgMedDato = førsteMeldeperiodeFom.minusDays(1),
+            tilOgMedDato = andreMeldeperiodeTom.plusDays(1),
         )
 
-        testApplication {
-            application {
-                api(
-                    config = TestConfig.default(),
-                    datasourceFactory = { dataSource },
-                    arenaService = Fakes.getArenaService(),
-                    modiaProducer = Fakes.getKafka(),
-                    aapHendelseProducer = Fakes.getAapHendelse(),
-                    pdlGateway = PdlGatewayEmpty(),
-                    clock = clock,
-                )
-            }
-
-            val vedtakResponse = jsonHttpClient.post("/api/insert/vedtak") {
-                bearerAuth(azure.generate(isApp = true))
-                contentType(ContentType.Application.Json)
-                setBody(testVedtak())
-            }
-            assertThat(vedtakResponse.status).isEqualTo(HttpStatusCode.OK)
-
-            val meldekortResponse = jsonHttpClient.post("/api/insert/meldekort-detaljer") {
-                bearerAuth(azure.generate(isApp = true))
-                contentType(ContentType.Application.Json)
-                setBody(testMeldekort())
-            }
-            assertThat(meldekortResponse.status).isEqualTo(HttpStatusCode.OK)
-
-            val response = jsonHttpClient.post("/nks/meldeperioder") {
-                bearerAuth(azure.generate(isApp = false, azp = System.getProperty("AZP_SAAS_PROXY")))
-                contentType(ContentType.Application.Json)
-                setBody(
-                    MeldekortDetaljerRequest(
-                        personidentifikator = personIdent,
-                        fraOgMedDato = førsteMeldeperiodeFom.minusDays(1),
-                        tilOgMedDato = andreMeldeperiodeTom.plusDays(1),
-                    )
-                )
-            }
-
-            assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-            val body = response.body<NksMeldeperioderResponse>()
-
-            assertThat(body)
-                .usingRecursiveComparison()
-                .withComparatorForType(
-                    Comparator<BigDecimal> { left, right -> left.compareTo(right) },
-                    BigDecimal::class.java
-                )
-                .isEqualTo(expectedResponse())
-        }
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        assertRecursivelyEquals(response.body<NksMeldeperioderResponse>(), forventetRespons())
     }
 
     @Test
-    fun `søkeperiode begrenses til i dag selv om tilOgMedDato er i fremtiden`() {
-        val azure = AzureTokenGen("test", "test")
+    fun `søkeperiode begrenses til i dag selv om tilOgMedDato er i fremtiden`() = medApi(
         // Klokken settes til første dag i andre meldeperiode — første meldeperiode er fortid, andre er nåværende
-        val clock = Clock.fixed(
-            Instant.from(andreMeldeperiodeFom.atStartOfDay().toInstant(ZoneOffset.UTC)),
-            ZoneId.of("UTC")
+        clock = klokkePå(andreMeldeperiodeFom)
+    ) {
+        leggInnVedtak(testVedtak())
+
+        // Spør med tilOgMedDato langt frem i tid
+        val response = hentMeldeperioder(
+            fraOgMedDato = førsteMeldeperiodeFom.minusDays(1),
+            tilOgMedDato = andreMeldeperiodeTom.plusDays(10),
         )
 
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val body = response.body<NksMeldeperioderResponse>()
+
+        // Kun avsluttede meldeperioder skal returneres — nåværende og fremtidige ekskluderes
+        assertThat(body.meldeperioder).hasSize(1)
+        assertThat(body.meldeperioder.first().fraDato).isEqualTo(førsteMeldeperiodeFom)
+    }
+
+    @Test
+    fun `timerArbeid slås ikke sammen på tvers av underveisperioder selv om timerArbeidet er likt`() =
+        medApi(
+            clock = klokkeEtter(førsteMeldeperiodeTom)
+        ) {
+            // To underveisperioder etter hverandre med likt timerArbeidet, men ulik meldepliktstatus —
+            // periodegrensa mellom dem skal beholdes i timerArbeid, ikke slås sammen til én periode.
+            // Arbeidsgrad må være lik siden det kun er forventet én arbeidsgrad per meldeperiode.
+            val førstePeriodeTom = LocalDate.of(2026, 6, 21)
+            val andrePeriodeFom = LocalDate.of(2026, 6, 22)
+
+            val vedtak = standardVedtak(
+                fom = førsteMeldeperiodeFom,
+                tom = førsteMeldeperiodeTom,
+                underveisperioder = listOf(
+                    standardUnderveisperiode(
+                        fom = førsteMeldeperiodeFom,
+                        tom = førstePeriodeTom,
+                        meldeperiode = PeriodeDTO(førsteMeldeperiodeFom, førsteMeldeperiodeTom),
+                        meldepliktstatus = "MELDT_SEG",
+                        timerArbeidet = BigDecimal("5.0"),
+                    ),
+                    standardUnderveisperiode(
+                        fom = andrePeriodeFom,
+                        tom = førsteMeldeperiodeTom,
+                        meldeperiode = PeriodeDTO(førsteMeldeperiodeFom, førsteMeldeperiodeTom),
+                        meldepliktstatus = "IKKE_MELDT_SEG",
+                        timerArbeidet = BigDecimal("5.0"),
+                    ),
+                ),
+            )
+
+            assertThat(leggInnVedtak(vedtak).status).isEqualTo(HttpStatusCode.OK)
+
+            val response = hentMeldeperioder(
+                fraOgMedDato = førsteMeldeperiodeFom.minusDays(1),
+                tilOgMedDato = førsteMeldeperiodeTom.plusDays(1),
+            )
+
+            assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+            val body = response.body<NksMeldeperioderResponse>()
+
+            assertThat(body.meldeperioder).hasSize(1)
+            assertRecursivelyEquals(
+                body.meldeperioder.first().timerArbeid,
+                listOf(
+                    NksTimerArbeid(førsteMeldeperiodeFom, førstePeriodeTom, BigDecimal("5.0")),
+                    NksTimerArbeid(andrePeriodeFom, førsteMeldeperiodeTom, BigDecimal("5.0")),
+                ),
+            )
+        }
+
+    /** Kjører [block] mot en fullstendig oppsatt applikasjon med gitt [clock]. */
+    private fun medApi(clock: Clock, block: suspend ApplicationTestBuilder.() -> Unit) =
         testApplication {
             application {
                 api(
@@ -142,36 +165,127 @@ class NksMeldeperioderTest : PostgresTestBase() {
                     clock = clock,
                 )
             }
-
-            jsonHttpClient.post("/api/insert/vedtak") {
-                bearerAuth(azure.generate(isApp = true))
-                contentType(ContentType.Application.Json)
-                setBody(testVedtak())
-            }
-
-            // Spør med tilOgMedDato langt frem i tid
-            val response = jsonHttpClient.post("/nks/meldeperioder") {
-                bearerAuth(azure.generate(isApp = false, azp = System.getProperty("AZP_SAAS_PROXY")))
-                contentType(ContentType.Application.Json)
-                setBody(
-                    MeldekortDetaljerRequest(
-                        personidentifikator = personIdent,
-                        fraOgMedDato = førsteMeldeperiodeFom.minusDays(1),
-                        tilOgMedDato = andreMeldeperiodeTom.plusDays(10),
-                    )
-                )
-            }
-
-            assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-            val body = response.body<NksMeldeperioderResponse>()
-
-            // Kun avsluttede meldeperioder skal returneres — nåværende og fremtidige ekskluderes
-            assertThat(body.meldeperioder).hasSize(1)
-            assertThat(body.meldeperioder.first().fraDato).isEqualTo(førsteMeldeperiodeFom)
+            block()
         }
+
+    private fun klokkePå(dato: LocalDate): Clock =
+        Clock.fixed(Instant.from(dato.atStartOfDay().toInstant(ZoneOffset.UTC)), ZoneId.of("UTC"))
+
+    private fun klokkeEtter(dato: LocalDate): Clock = klokkePå(dato.plusDays(1))
+
+    private suspend fun ApplicationTestBuilder.leggInnVedtak(vedtak: DatadelingDTO) =
+        jsonHttpClient.post("/api/insert/vedtak") {
+            bearerAuth(azure.generate(isApp = true))
+            contentType(ContentType.Application.Json)
+            setBody(vedtak)
+        }
+
+    private suspend fun ApplicationTestBuilder.leggInnMeldekort(meldekort: List<DetaljertMeldekortDTO>) =
+        jsonHttpClient.post("/api/insert/meldekort-detaljer") {
+            bearerAuth(azure.generate(isApp = true))
+            contentType(ContentType.Application.Json)
+            setBody(meldekort)
+        }
+
+    private suspend fun ApplicationTestBuilder.hentMeldeperioder(
+        fraOgMedDato: LocalDate,
+        tilOgMedDato: LocalDate
+    ) =
+        jsonHttpClient.post("/nks/meldeperioder") {
+            bearerAuth(azure.generate(isApp = false, azp = System.getProperty("AZP_SAAS_PROXY")))
+            contentType(ContentType.Application.Json)
+            setBody(
+                MeldekortDetaljerRequest(
+                    personidentifikator = personIdent,
+                    fraOgMedDato = fraOgMedDato,
+                    tilOgMedDato = tilOgMedDato,
+                )
+            )
+        }
+
+    /** Sammenligner rekursivt, uten å kreve lik [BigDecimal]-skala (14.5 == 14.50). */
+    private fun <T> assertRecursivelyEquals(actual: T, expected: T) {
+        assertThat(actual)
+            .usingRecursiveComparison()
+            .withComparatorForType(
+                Comparator<BigDecimal> { left, right -> left.compareTo(right) },
+                BigDecimal::class.java
+            )
+            .isEqualTo(expected)
     }
 
-    private fun expectedResponse() = NksMeldeperioderResponse(
+    /** Underveisperiode med fornuftige defaultverdier, slik at tester kun trenger å angi det som er relevant. */
+    private fun standardUnderveisperiode(
+        fom: LocalDate,
+        tom: LocalDate,
+        meldeperiode: PeriodeDTO,
+        meldepliktstatus: String? = "MELDT_SEG",
+        arbeidsgrad: Int = 50,
+        overgrenseVerdi: Boolean = false,
+        timerArbeidet: BigDecimal = BigDecimal.ZERO,
+    ) = UnderveisperiodeDatadelingDTO(
+        fom = fom,
+        tom = tom,
+        meldepliktstatus = meldepliktstatus,
+        arbeidsgrad = arbeidsgrad,
+        overgrenseVerdi = overgrenseVerdi,
+        timerArbeidet = timerArbeidet,
+        periode = PeriodeDTO(fom, tom),
+        meldeperiode = meldeperiode,
+    )
+
+    /** Datadeling-vedtak med fornuftige defaultverdier for felter som er irrelevante for de fleste tester. */
+    private fun standardVedtak(
+        fom: LocalDate,
+        tom: LocalDate,
+        underveisperioder: List<UnderveisperiodeDatadelingDTO>,
+        tilkjent: List<TilkjentDTO> = listOf(
+            TilkjentDTO(
+                tilkjentFom = fom,
+                tilkjentTom = tom,
+                dagsats = 1000,
+                effektivDagsats = 650,
+                gradering = 70,
+                samordningUføregradering = null,
+                grunnlagsfaktor = BigDecimal("3.5"),
+                grunnbeløp = BigDecimal("130000"),
+                antallBarn = 0,
+                barnetilleggsats = BigDecimal.ZERO,
+                barnetillegg = BigDecimal.ZERO,
+            ),
+        ),
+        perioderMedFritakMeldeplikt: List<PeriodeDTO> = emptyList(),
+    ) = DatadelingDTO(
+        rettighetsPeriodeFom = fom,
+        rettighetsPeriodeTom = tom,
+        behandlingStatus = Status.AVSLUTTET,
+        behandlingsId = "123",
+        vedtaksDato = fom,
+        sak = SakDTO(
+            saksnummer = saksnummer,
+            fnr = listOf(personIdent),
+            opprettetTidspunkt = LocalDateTime.of(2026, 6, 1, 12, 0),
+        ),
+        tilkjent = tilkjent,
+        rettighetsTypeTidsLinje = listOf(
+            RettighetsTypePeriode(
+                fom = fom,
+                tom = tom,
+                verdi = "BISTANDSBEHOV"
+            )
+        ),
+        muligMaksdato = null,
+        behandlingsReferanse = "ref-123",
+        samIdOgTpr = listOf(),
+        vedtakId = 123,
+        beregningsgrunnlag = BigDecimal("500000"),
+        perioderMedFritakMeldeplikt = perioderMedFritakMeldeplikt,
+        stansOpphørVurdering = null,
+        arenavedtak = emptyList(),
+        underveisperioder = underveisperioder,
+    )
+
+    private fun forventetRespons() = NksMeldeperioderResponse(
         meldeperioder = listOf(
             NksMeldeperiode(
                 fraDato = førsteMeldeperiodeFom,
