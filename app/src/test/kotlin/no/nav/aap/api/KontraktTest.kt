@@ -20,6 +20,7 @@ import no.nav.aap.api.util.PostgresTestBase
 import no.nav.aap.api.util.WithFakes
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import java.io.File
 
 @WithFakes
 class KontraktTest : PostgresTestBase() {
@@ -82,7 +83,12 @@ class KontraktTest : PostgresTestBase() {
             val res = jsonHttpClient.get("/openapi.json") {
                 contentType(ContentType.Application.Json)
             }
-            val openapi = jacksonObjectMapper().readTree(res.bodyAsText())
+            val content = res.bodyAsText()
+
+            //tofile:
+            File("openapi2.json").writeText(content)
+
+            val openapi = jacksonObjectMapper().readTree(content)
 
             block(openapi)
         }

@@ -189,5 +189,7 @@ spec:
       value: 52106802-f42e-4587-8547-6289d1df6cac
     - name: AZP_PADM2
       value: 37e3a2ac-c5f3-4c65-a245-59c04a41f6d4
+    - name: AZP_HOLMES_PERSONDATA_API
+      value: f99254b7-a630-48fe-a21a-21989eca6f4b
     - name: NAIS_TEAM_AAP
       value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5
