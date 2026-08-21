@@ -144,7 +144,7 @@ class ArenaService(
                 // Gjør dato-filter også i kode, i påvente av filteret fjernes fra arenaoppslag
                 val tilOgMedDato = vedtak.periode.tilOgMedDato
                 val requestDatoFilter =
-                    fraOgMedDato == null || fraOgMedDato >= requestFraOgMed && (tilOgMedDato == null || tilOgMedDato >= requestFraOgMed)
+                    fraOgMedDato == null || (fraOgMedDato <= requestFraOgMed) && (tilOgMedDato == null || tilOgMedDato >= requestFraOgMed) && (tilOgMedDato == null || fraOgMedDato <= tilOgMedDato)
 
                 if (!requestDatoFilter) {
                     val ugyldig =
@@ -180,7 +180,7 @@ class ArenaService(
 
                 // Gjør dato-filter også i kode, i påvente av filteret fjernes fra arenaoppslag
                 val requestDatoFilter =
-                    fraOgMedDato == null || fraOgMedDato >= requestFraOgMed && (tilOgMedDato == null || tilOgMedDato >= requestFraOgMed)
+                    fraOgMedDato == null || (fraOgMedDato <= requestFraOgMed) && (tilOgMedDato == null || tilOgMedDato >= requestFraOgMed) && (tilOgMedDato == null || fraOgMedDato <= tilOgMedDato)
 
                 Metrics.requestDatoFilter(requestDatoFilter)
 
