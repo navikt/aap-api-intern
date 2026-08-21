@@ -147,7 +147,7 @@ class ArenaService(
                         ?: LocalDate.MAX))
 
                 if (!requestDatoFilter) {
-                    log.info("Vedtak filtrert ut pga requestDatoFilter. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til ${vedtak.periode.tilOgMedDato}")
+                    log.info("Vedtak filtrert ut pga requestDatoFilter. Noop. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til ${vedtak.periode.tilOgMedDato}")
                 }
 
                 val vedtaktypeBetingelser = vedtak.vedtaksTypeKode in listOf("O", "E", "G", "S")
