@@ -11,12 +11,17 @@ import javax.sql.DataSource
 import no.nav.aap.api.CallIdHeader
 import no.nav.aap.api.Tag
 import no.nav.aap.api.azpForTokenGenHvisIkkeProd
+import no.nav.aap.api.hentAllePersonidenter
 import no.nav.aap.api.intern.SyfoSakerRequest
 import no.nav.aap.api.intern.SyfoSakerResponse
+import no.nav.aap.api.kelvin.KelvinSakService
 import no.nav.aap.api.pdl.IPdlGateway
+import no.nav.aap.api.postgres.SakStatusRepository
 import no.nav.aap.api.receiveCall
 import no.nav.aap.api.arena.ArenaService
+import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
@@ -40,12 +45,20 @@ fun NormalOpenAPIRoute.syfoRoutes(
             info(description = "Henter AAP-saker, søknadsdatoer og vedtak for Modia SYFO."),
             tags(Tag.Syfo),
         ) { callIdHeader, requestBody ->
-            val callId = receiveCall(callIdHeader, pipeline)
+            val callId = receiveCall(callIdHeader)
+            val personidenter = hentAllePersonidenter(
+                listOf(requestBody.personidentifikator),
+                pdlGateway,
+            )
+            val kelvinSaker = dataSource.transaction { connection ->
+                KelvinSakService(
+                    SakStatusRepository(connection),
+                    BehandlingsRepository(connection),
+                ).hentSakStatus(personidenter)
+            }
             val response = SyfoService(
-                dataSource = dataSource,
                 arenaService = arenaService,
-                pdlGateway = pdlGateway,
-            ).hentSaker(callId, requestBody.personidentifikator)
+            ).hentSaker(callId, personidenter, kelvinSaker)
 
             respond(response)
         }

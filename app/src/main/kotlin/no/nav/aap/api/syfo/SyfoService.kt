@@ -1,88 +1,32 @@
 package no.nav.aap.api.syfo
 
 import no.nav.aap.api.arena.ArenaService
-import no.nav.aap.api.hentAllePersonidenter
-import no.nav.aap.api.intern.Kilde
 import no.nav.aap.api.intern.Periode
-import no.nav.aap.api.intern.SakStatus
+import no.nav.aap.api.intern.SyfoSak
 import no.nav.aap.api.intern.SyfoSakerResponse
-import no.nav.aap.api.intern.SyfoSoknader
 import no.nav.aap.api.intern.SyfoVedtak
-import no.nav.aap.api.kelvin.Behandling
-import no.nav.aap.api.kelvin.KelvinSakService
 import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
-import no.nav.aap.api.pdl.IPdlGateway
-import no.nav.aap.api.postgres.BehandlingsRepository
-import no.nav.aap.api.postgres.SakStatusRepository
+import no.nav.aap.api.sak.SakStatus
+import no.nav.aap.api.sak.tilKontrakt
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
-import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.verdityper.Tid
-import javax.sql.DataSource
-import no.nav.aap.komponenter.type.Periode as KelvinPeriode
 
-class SyfoService(
-    private val dataSource: DataSource,
+internal class SyfoService(
     private val arenaService: ArenaService,
-    private val pdlGateway: IPdlGateway,
 ) {
-    suspend fun hentSaker(callId: String, personidentifikator: String): SyfoSakerResponse {
-        val personidenter = hentAllePersonidenter(listOf(personidentifikator), pdlGateway)
-        val (kelvinSaker, kelvinVedtak) = hentKelvinData(personidenter)
+    suspend fun hentSaker(
+        callId: String,
+        personidenter: List<String>,
+        kelvinSaker: List<SakStatus.Kelvin>,
+    ): SyfoSakerResponse {
         val arenaSaker = arenaService.hentSaker(callId, personidenter)
         val arenaVedtak = hentArenaVedtak(callId, personidenter, arenaSaker)
 
         return SyfoSakerResponse(
-            soknader = kelvinSaker
-                .distinctBy { it.sakId }
-                .map {
-                    SyfoSoknader(
-                        sakId = it.sakId,
-                        statuskode = it.statusKode,
-                        soknadsdatoer = it.soknadsdatoer.distinct().sorted(),
-                    )
-                }
-                .sortedBy(SyfoSoknader::sakId),
-            vedtak = (arenaVedtak.tilSyfoVedtak() + kelvinVedtak.map(KelvinVedtak::tilSyfoVedtak))
-                .sortedBy(SyfoVedtak::vedtaksdato),
+            saker = kelvinSaker.tilSyfoSaker() +
+                    arenaSaker.tilSyfoSaker(arenaVedtak.tilSyfoVedtak()),
         )
     }
-
-    private fun hentKelvinData(
-        personidenter: List<String>,
-    ): Pair<List<SakStatus.Kelvin>, List<KelvinVedtak>> =
-        dataSource.transaction { connection ->
-            val behandlingsRepository = BehandlingsRepository(connection)
-            val saker = KelvinSakService(
-                SakStatusRepository(connection),
-                behandlingsRepository,
-            ).hentSakStatus(personidenter)
-            val vedtak = personidenter
-                .flatMap { personident ->
-                    behandlingsRepository.hentVedtaksData(
-                        personident,
-                        KelvinPeriode(Tid.MIN, Tid.MAKS),
-                    )
-                }
-                .distinctBy {
-                    Triple(
-                        it.sak.saksnummer,
-                        it.vedtakId,
-                        it.vedtaksDato,
-                    )
-                }
-                .map(::tilKelvinVedtak)
-
-            saker to vedtak
-        }
-
-    private fun tilKelvinVedtak(behandling: Behandling): KelvinVedtak =
-        KelvinVedtak(
-            sakId = behandling.sak.saksnummer,
-            vedtaksdato = behandling.vedtaksDato,
-            perioder = behandling.rettighetsTypePerioder
-                .map { Periode(it.fom, it.tom) }
-                .distinct(),
-        )
 
     private suspend fun hentArenaVedtak(
         callId: String,
@@ -101,35 +45,52 @@ class SyfoService(
                 )
             }
         }
+}
 
-    private fun List<InternVedtakUtenUtbetaling>.tilSyfoVedtak(): List<SyfoVedtak> =
-        groupBy { it.saksnummer to it.vedtakId }
-            .values
-            .map { vedtak ->
-                SyfoVedtak(
-                    sakId = vedtak.first().saksnummer,
-                    kilde = Kilde.ARENA,
-                    vedtaksdato = vedtak.first().vedtaksdato,
-                    perioder = vedtak.map {
-                        Periode(
-                            fraOgMedDato = it.periode.fraOgMedDato,
-                            tilOgMedDato = it.periode.tilOgMedDato,
-                        )
-                    }.distinct(),
+private fun List<SakStatus.Kelvin>.tilSyfoSaker(): List<SyfoSak.Kelvin> =
+    map { sak ->
+        SyfoSak.Kelvin(
+            sakid = sak.sakId,
+            statuskode = sak.statusKode.tilKontrakt(),
+            soknadsdatoer = sak.soknadsdatoer,
+            vedtak = sak.vedtaksdato?.let { vedtaksdato ->
+                listOf(
+                    SyfoVedtak(
+                        vedtaksdato = vedtaksdato,
+                        perioder = sak.perioder.map { it.tilKontrakt() },
+                    ),
                 )
-            }
-}
-
-private data class KelvinVedtak(
-    val sakId: String,
-    val vedtaksdato: java.time.LocalDate,
-    val perioder: List<Periode>,
-) {
-    fun tilSyfoVedtak(): SyfoVedtak =
-        SyfoVedtak(
-            sakId = sakId,
-            kilde = Kilde.KELVIN,
-            vedtaksdato = vedtaksdato,
-            perioder = perioder,
+            }.orEmpty(),
         )
-}
+    }
+
+private fun List<SakStatus.Arena>.tilSyfoSaker(
+    vedtak: Map<String, List<SyfoVedtak>>,
+): List<SyfoSak.Arena> =
+    distinctBy(SakStatus.Arena::sakId).map { sak ->
+        SyfoSak.Arena(
+            sakid = sak.sakId,
+            statuskode = sak.statusKode.tilKontrakt(),
+            vedtak = vedtak[sak.sakId].orEmpty(),
+        )
+    }
+
+private fun List<InternVedtakUtenUtbetaling>.tilSyfoVedtak(): Map<String, List<SyfoVedtak>> =
+    groupBy { it.saksnummer }
+        .mapValues { (_, vedtak) ->
+            vedtak
+                .groupBy { it.vedtakId }
+                .values
+                .map { perioder ->
+                    SyfoVedtak(
+                        vedtaksdato = perioder.first().vedtaksdato,
+                        perioder = perioder.map {
+                            Periode(
+                                fraOgMedDato = it.periode.fraOgMedDato,
+                                tilOgMedDato = it.periode.tilOgMedDato,
+                            )
+                        }.distinct(),
+                    )
+                }
+                .sortedBy(SyfoVedtak::vedtaksdato)
+        }

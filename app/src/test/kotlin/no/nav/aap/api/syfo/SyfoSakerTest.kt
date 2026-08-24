@@ -21,10 +21,12 @@ import java.util.UUID
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
 import no.nav.aap.api.arena.ArenaService
-import no.nav.aap.api.intern.Kilde
+import no.nav.aap.api.intern.ArenaStatus
 import no.nav.aap.api.intern.KelvinStatus
 import no.nav.aap.api.intern.SyfoSakerRequest
 import no.nav.aap.api.intern.SyfoSakerResponse
+import no.nav.aap.api.intern.SyfoSak
+import no.nav.aap.api.intern.SyfoVedtak
 import no.nav.aap.api.intern.behandlingsflyt.Periode as KelvinPeriode
 import no.nav.aap.api.intern.Periode as SakStatusPeriode
 import no.nav.aap.api.intern.behandlingsflyt.SakStatus as KelvinSakStatus
@@ -57,13 +59,20 @@ import org.junit.jupiter.api.Test
 class SyfoSakerTest : PostgresTestBase() {
     private val personidentifikator = "12345678910"
     private val kelvinSakId = "KELVIN-SAK"
+    private val kelvinSakId2 = "KELVIN-SAK-2"
     private val arenaSakId = "ARENA-SAK"
     private val fom = LocalDate.of(2025, 1, 1)
     private val tom = LocalDate.of(2025, 12, 31)
 
     @Test
     fun `returnerer soknader og vedtak fra Arena og Kelvin`() {
+        lagreKelvinData(vedtaksdato = fom.minusDays(3), vedtakId = 122L)
         lagreKelvinData()
+        lagreKelvinData(
+            sakId = kelvinSakId2,
+            vedtaksdato = fom.minusDays(4),
+            vedtakId = 124L,
+        )
 
         testApplication {
             application {
@@ -88,20 +97,48 @@ class SyfoSakerTest : PostgresTestBase() {
                 setBody(SyfoSakerRequest(personidentifikator))
             }
 
-            assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-            val body = response.body<SyfoSakerResponse>()
-            val soknader = body.soknader.single()
-            assertThat(soknader.sakId).isEqualTo(kelvinSakId)
-            assertThat(soknader.statuskode).isEqualTo(KelvinStatus.FERDIGBEHANDLET)
-            assertThat(soknader.soknadsdatoer).containsExactly(fom.minusMonths(1))
-            assertThat(body.vedtak).hasSize(2)
-            val arenaVedtak = body.vedtak.single { it.kilde == Kilde.ARENA }
-            assertThat(arenaVedtak.sakId).isEqualTo(arenaSakId)
-            assertThat(arenaVedtak.vedtaksdato).isEqualTo(fom.minusDays(1))
-            val kelvinVedtak = body.vedtak.single { it.kilde == Kilde.KELVIN }
-            assertThat(kelvinVedtak.sakId).isEqualTo(kelvinSakId)
-            assertThat(kelvinVedtak.vedtaksdato).isEqualTo(fom.minusDays(2))
-            assertThat(kelvinVedtak.perioder).containsExactly(SakStatusPeriode(fom, tom))
+            assertThat(response.body<SyfoSakerResponse>()).isEqualTo(
+                SyfoSakerResponse(
+                    saker = listOf(
+                        SyfoSak.Kelvin(
+                            sakid = kelvinSakId,
+                            statuskode = KelvinStatus.FERDIGBEHANDLET,
+                            soknadsdatoer = listOf(fom.minusMonths(1)),
+                            vedtak = listOf(
+                                SyfoVedtak(
+                                    vedtaksdato = fom.minusDays(2),
+                                    perioder = listOf(SakStatusPeriode(fom, tom)),
+                                ),
+                            ),
+                        ),
+                        SyfoSak.Kelvin(
+                            sakid = kelvinSakId2,
+                            statuskode = KelvinStatus.FERDIGBEHANDLET,
+                            soknadsdatoer = listOf(fom.minusMonths(1)),
+                            vedtak = listOf(
+                                SyfoVedtak(
+                                    vedtaksdato = fom.minusDays(4),
+                                    perioder = listOf(SakStatusPeriode(fom, tom)),
+                                ),
+                            ),
+                        ),
+                        SyfoSak.Arena(
+                            sakid = arenaSakId,
+                            statuskode = ArenaStatus.IVERK,
+                            vedtak = listOf(
+                                SyfoVedtak(
+                                    vedtaksdato = fom.minusDays(1),
+                                    perioder = listOf(SakStatusPeriode(fom, tom)),
+                                ),
+                                SyfoVedtak(
+                                    vedtaksdato = fom,
+                                    perioder = listOf(SakStatusPeriode(fom, tom)),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            )
         }
     }
 
@@ -132,8 +169,7 @@ class SyfoSakerTest : PostgresTestBase() {
 
             assertThat(response.status).isEqualTo(HttpStatusCode.OK)
             val body = response.body<SyfoSakerResponse>()
-            assertThat(body.soknader).isEmpty()
-            assertThat(body.vedtak).isEmpty()
+            assertThat(body.saker).isEmpty()
         }
     }
 
@@ -166,12 +202,16 @@ class SyfoSakerTest : PostgresTestBase() {
         }
     }
 
-    private fun lagreKelvinData() {
+    private fun lagreKelvinData(
+        sakId: String = kelvinSakId,
+        vedtaksdato: LocalDate = fom.minusDays(2),
+        vedtakId: Long = 123L,
+    ) {
         dataSource.transaction { connection ->
             SakStatusRepository(connection).lagreSakStatusFraKelvin(
                 personidentifikator,
                 KelvinSakStatus(
-                    sakId = kelvinSakId,
+                    sakId = sakId,
                     søknadsdatoer = listOf(fom.minusMonths(1)),
                     statusKode = SakstatusFraKelvin.FERDIGBEHANDLET,
                     periode = KelvinPeriode(fom, tom),
@@ -183,14 +223,14 @@ class SyfoSakerTest : PostgresTestBase() {
                     behandlingsReferanse = UUID.randomUUID().toString(),
                     rettighetsperiode = Periode(fom, tom),
                     behandlingStatus = KelvinBehandlingStatus.AVSLUTTET,
-                    vedtaksDato = fom.minusDays(2),
-                    sak = Sak(kelvinSakId, LocalDateTime.of(fom.minusMonths(2), java.time.LocalTime.NOON)),
+                    vedtaksDato = vedtaksdato,
+                    sak = Sak(sakId, LocalDateTime.of(fom.minusMonths(2), java.time.LocalTime.NOON)),
                     tilkjent = tidslinjeOf(),
                     rettighetsTypePerioder = listOf(
                         RettighetsTypePeriode(fom, tom, RettighetsType.BISTANDSBEHOV.name)
                     ),
                     samIdOgTpNr = emptyList(),
-                    vedtakId = 123L,
+                    vedtakId = vedtakId,
                     beregningsgrunnlag = BigDecimal.ZERO,
                     nyttVedtak = true,
                     stansOpphørVurdering = emptySet(),
@@ -210,7 +250,12 @@ class SyfoSakerTest : PostgresTestBase() {
                     sakId = arenaSakId,
                     statusKode = ArenaStatusKontrakt.IVERK,
                     periode = ArenaPeriode(fom, tom),
-                )
+                ),
+                ArenaSakStatus(
+                    sakId = arenaSakId,
+                    statusKode = ArenaStatusKontrakt.GODKJ,
+                    periode = ArenaPeriode(fom, tom),
+                ),
             ),
             maksimum = ArenaMaksimum(
                 vedtak = listOf(
@@ -232,6 +277,26 @@ class SyfoSakerTest : PostgresTestBase() {
                         barnetilleggsats = 0,
                         justertG = null,
                         lopenrvedtak = 1,
+                        relatertVedtak = null,
+                    ),
+                    ArenaVedtak(
+                        vedtaksId = "arena-vedtak-2",
+                        utbetaling = emptyList(),
+                        dagsats = 0,
+                        status = "IVERK",
+                        utfallkode = "JA",
+                        saksnummer = arenaSakId,
+                        vedtaksdato = fom.toString(),
+                        vedtaksTypeKode = "O",
+                        vedtaksTypeNavn = "Ordinært",
+                        periode = ArenaPeriode(fom, tom),
+                        rettighetsType = "AAP",
+                        beregningsgrunnlag = 0,
+                        barnMedStonad = 0,
+                        barnetillegg = 0,
+                        barnetilleggsats = 0,
+                        justertG = null,
+                        lopenrvedtak = 2,
                         relatertVedtak = null,
                     )
                 )
