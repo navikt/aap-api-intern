@@ -102,7 +102,7 @@ class NksMeldeperioderService(
             },
             timerArbeid = map { periode, verdi -> Pair(periode, verdi.timerArbeidet) }.komprimer().segmenter().map {
                 NksTimerArbeid(
-                    periodeFom = it.periode.fom,
+                    periodeFom = it.verdi.first.fom,
                     periodeTom = it.verdi.first.tom,
                     timerArbeidet = it.verdi.second
                 )
