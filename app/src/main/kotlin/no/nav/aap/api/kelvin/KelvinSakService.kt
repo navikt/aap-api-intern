@@ -1,9 +1,16 @@
 package no.nav.aap.api.kelvin
 
-import no.nav.aap.api.intern.*
+import no.nav.aap.api.intern.Kilde as KontraktKilde
+import no.nav.aap.api.intern.Periode as KontraktPeriode
+import no.nav.aap.api.intern.SakStatusMeldekortbackend
 import no.nav.aap.api.intern.behandlingsflyt.SakstatusFraKelvin
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.SakStatusRepository
+import no.nav.aap.api.sak.KelvinStatus
+import no.nav.aap.api.sak.NåværendeEnhet
+import no.nav.aap.api.sak.Periode
+import no.nav.aap.api.sak.SakStatus
+import no.nav.aap.api.sak.YtelseStatus
 import no.nav.aap.komponenter.tidslinje.orEmpty
 import no.nav.aap.komponenter.verdityper.Tid
 import java.time.LocalDate
@@ -17,7 +24,6 @@ class KelvinSakService(
      * TODO: lag person-tabell, slik at vi slipper å spørre på hver ident
      */
     fun hentSakStatus(identer: List<String>): List<SakStatus.Kelvin> {
-
         return identer.flatMap { ident ->
             val (enhetinfo, saksnummer) = OppgaveGateway.hentEnhetForPerson(ident)
 
@@ -41,15 +47,15 @@ class KelvinSakService(
                             SakstatusFraKelvin.FERDIGBEHANDLET -> KelvinStatus.FERDIGBEHANDLET
                         },
                         ytelsestatus = when {
-                            kelvinSakStatus.statusKode == SakstatusFraKelvin.SOKNAD_UNDER_BEHANDLING -> SakStatus.YtelseStatus.FOR_VEDTAK
+                            kelvinSakStatus.statusKode == SakstatusFraKelvin.SOKNAD_UNDER_BEHANDLING -> YtelseStatus.FOR_VEDTAK
                             // Behandling er kun null før vedtaket er fattet
-                            nyesteBehandling == null -> SakStatus.YtelseStatus.FOR_VEDTAK
+                            nyesteBehandling == null -> YtelseStatus.FOR_VEDTAK
                             erAvsluttetNå(
                                 nyesteBehandling,
                                 LocalDate.now()
-                            ) -> SakStatus.YtelseStatus.AVSLUTTET
+                            ) -> YtelseStatus.AVSLUTTET
 
-                            else -> SakStatus.YtelseStatus.LOPENDE
+                            else -> YtelseStatus.LOPENDE
                         },
                         periode = periode?.let { Periode(it.fom, it.tom) }
                             ?: kelvinSakStatus.periode.let { Periode(it.fom, it.tom) },
@@ -63,7 +69,8 @@ class KelvinSakService(
                         perioder = nyesteBehandling?.rettighetsTypeTidslinje.orEmpty().segmenter()
                             .map { it.periode }.map { Periode(it.fom, it.tom) },
                         forelopigMaksdato = nyesteBehandling?.foreløpigMaksdato,
-                        soknadsdatoer = kelvinSakStatus.søknadsdatoer.orEmpty().sorted()
+                        soknadsdatoer = kelvinSakStatus.søknadsdatoer.orEmpty().sorted(),
+                        vedtaksdato = nyesteBehandling?.vedtaksDato,
                     )
                 }
         }
@@ -86,8 +93,8 @@ class KelvinSakService(
             sakStatusRepository.hentSakStatus(ident)
                 .map {
                     SakStatusMeldekortbackend(
-                        Kilde.KELVIN,
-                        it.periode.let { Periode(it.fom, it.tom) },
+                        KontraktKilde.KELVIN,
+                        it.periode.let { KontraktPeriode(it.fom, it.tom) },
                         it.sakId
                     )
                 }

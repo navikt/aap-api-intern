@@ -19,6 +19,8 @@ import no.nav.aap.api.kelvin.NksMeldeperioderService
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.SakStatusRepository
+import no.nav.aap.api.sak.SakStatus as DomeneSakStatus
+import no.nav.aap.api.sak.tilKontrakt
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
@@ -114,12 +116,12 @@ fun NormalOpenAPIRoute.nksRoutes(
             responseDescription(description = "Liste med saker, potensielt fra både Arena og Kelvin. `enhet` er alltid null fra Arena."),
             tags(Tag.NKS)
         ) { callIdHeader, requestBody ->
-            val callId = receiveCall(callIdHeader, pipeline)
+            val callId = receiveCall(callIdHeader)
 
             Metrics.antallIdenter("/sakerByFnr", requestBody.personidentifikatorer.size)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
-            val kelvinSaker: List<SakStatus> =
+            val kelvinSaker: List<DomeneSakStatus.Kelvin> =
                 dataSource.transaction { connection ->
                     val kelvinSakService = KelvinSakService(
                         SakStatusRepository(connection),
@@ -128,12 +130,12 @@ fun NormalOpenAPIRoute.nksRoutes(
 
                     kelvinSakService.hentSakStatus(personIdenter)
                 }
-            val arenaSaker: List<SakStatus> =
+            val arenaSaker: List<DomeneSakStatus.Arena> =
                 arenaService.hentSaker(callId, requestBody.personidentifikatorer)
 
             tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
 
-            respond(arenaSaker + kelvinSaker)
+            respond((arenaSaker + kelvinSaker).map { it.tilKontrakt() })
         }
     }
 }

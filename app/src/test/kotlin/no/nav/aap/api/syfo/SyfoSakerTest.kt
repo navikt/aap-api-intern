@@ -21,10 +21,12 @@ import java.util.UUID
 import no.nav.aap.api.TestConfig
 import no.nav.aap.api.api
 import no.nav.aap.api.arena.ArenaService
-import no.nav.aap.api.intern.Kilde
+import no.nav.aap.api.intern.ArenaStatus
 import no.nav.aap.api.intern.KelvinStatus
 import no.nav.aap.api.intern.SyfoSakerRequest
 import no.nav.aap.api.intern.SyfoSakerResponse
+import no.nav.aap.api.intern.SyfoSak
+import no.nav.aap.api.intern.SyfoVedtak
 import no.nav.aap.api.intern.behandlingsflyt.Periode as KelvinPeriode
 import no.nav.aap.api.intern.Periode as SakStatusPeriode
 import no.nav.aap.api.intern.behandlingsflyt.SakStatus as KelvinSakStatus
@@ -63,6 +65,7 @@ class SyfoSakerTest : PostgresTestBase() {
 
     @Test
     fun `returnerer soknader og vedtak fra Arena og Kelvin`() {
+        lagreKelvinData(vedtaksdato = fom.minusDays(3), vedtakId = 122L)
         lagreKelvinData()
 
         testApplication {
@@ -88,20 +91,33 @@ class SyfoSakerTest : PostgresTestBase() {
                 setBody(SyfoSakerRequest(personidentifikator))
             }
 
-            assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-            val body = response.body<SyfoSakerResponse>()
-            val soknader = body.soknader.single()
-            assertThat(soknader.sakId).isEqualTo(kelvinSakId)
-            assertThat(soknader.statuskode).isEqualTo(KelvinStatus.FERDIGBEHANDLET)
-            assertThat(soknader.soknadsdatoer).containsExactly(fom.minusMonths(1))
-            assertThat(body.vedtak).hasSize(2)
-            val arenaVedtak = body.vedtak.single { it.kilde == Kilde.ARENA }
-            assertThat(arenaVedtak.sakId).isEqualTo(arenaSakId)
-            assertThat(arenaVedtak.vedtaksdato).isEqualTo(fom.minusDays(1))
-            val kelvinVedtak = body.vedtak.single { it.kilde == Kilde.KELVIN }
-            assertThat(kelvinVedtak.sakId).isEqualTo(kelvinSakId)
-            assertThat(kelvinVedtak.vedtaksdato).isEqualTo(fom.minusDays(2))
-            assertThat(kelvinVedtak.perioder).containsExactly(SakStatusPeriode(fom, tom))
+            assertThat(response.body<SyfoSakerResponse>()).isEqualTo(
+                SyfoSakerResponse(
+                    saker = listOf(
+                        SyfoSak.Kelvin(
+                            sakid = kelvinSakId,
+                            statuskode = KelvinStatus.FERDIGBEHANDLET,
+                            soknadsdatoer = listOf(fom.minusMonths(1)),
+                            vedtak = listOf(
+                                SyfoVedtak(
+                                    vedtaksdato = fom.minusDays(2),
+                                    perioder = listOf(SakStatusPeriode(fom, tom)),
+                                ),
+                            ),
+                        ),
+                        SyfoSak.Arena(
+                            sakid = arenaSakId,
+                            statuskode = ArenaStatus.IVERK,
+                            vedtak = listOf(
+                                SyfoVedtak(
+                                    vedtaksdato = fom.minusDays(1),
+                                    perioder = listOf(SakStatusPeriode(fom, tom)),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            )
         }
     }
 
@@ -132,8 +148,7 @@ class SyfoSakerTest : PostgresTestBase() {
 
             assertThat(response.status).isEqualTo(HttpStatusCode.OK)
             val body = response.body<SyfoSakerResponse>()
-            assertThat(body.soknader).isEmpty()
-            assertThat(body.vedtak).isEmpty()
+            assertThat(body.saker).isEmpty()
         }
     }
 
@@ -166,7 +181,10 @@ class SyfoSakerTest : PostgresTestBase() {
         }
     }
 
-    private fun lagreKelvinData() {
+    private fun lagreKelvinData(
+        vedtaksdato: LocalDate = fom.minusDays(2),
+        vedtakId: Long = 123L,
+    ) {
         dataSource.transaction { connection ->
             SakStatusRepository(connection).lagreSakStatusFraKelvin(
                 personidentifikator,
@@ -183,14 +201,14 @@ class SyfoSakerTest : PostgresTestBase() {
                     behandlingsReferanse = UUID.randomUUID().toString(),
                     rettighetsperiode = Periode(fom, tom),
                     behandlingStatus = KelvinBehandlingStatus.AVSLUTTET,
-                    vedtaksDato = fom.minusDays(2),
+                    vedtaksDato = vedtaksdato,
                     sak = Sak(kelvinSakId, LocalDateTime.of(fom.minusMonths(2), java.time.LocalTime.NOON)),
                     tilkjent = tidslinjeOf(),
                     rettighetsTypePerioder = listOf(
                         RettighetsTypePeriode(fom, tom, RettighetsType.BISTANDSBEHOV.name)
                     ),
                     samIdOgTpNr = emptyList(),
-                    vedtakId = 123L,
+                    vedtakId = vedtakId,
                     beregningsgrunnlag = BigDecimal.ZERO,
                     nyttVedtak = true,
                     stansOpphørVurdering = emptySet(),
