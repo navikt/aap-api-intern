@@ -13,61 +13,61 @@ application {
 dependencies {
     implementation(project(":kontrakt"))
 
-    implementation(libs.kelvinServer)
-    implementation(libs.kelvinInfrastructure)
-    implementation(libs.kelvinDbconnect)
-    implementation(libs.kelvinDbmigrering)
-    implementation(libs.kelvinTidslinje)
-    implementation(libs.tilgangPlugin)
-    implementation(libs.behandlingsflytKontrakt)
-    implementation(libs.oppgaveApiKontrakt)
-    implementation(libs.arenaoppslagKontrakt)
-    implementation(libs.motor)
-    implementation(libs.motorApi)
+    implementation(libs.kelvin.server)
+    implementation(libs.kelvin.infrastructure)
+    implementation(libs.kelvin.dbconnect)
+    implementation(libs.kelvin.dbmigrering)
+    implementation(libs.kelvin.tidslinje)
+    implementation(libs.tilgang.plugin)
+    implementation(libs.behandlingsflyt.kontrakt)
+    implementation(libs.oppgave.api.kontrakt)
+    implementation(libs.arenaoppslag.kontrakt)
+    implementation(libs.kelvin.motor)
+    implementation(libs.kelvin.motor.api)
 
-    implementation(libs.ktorSerializationJackson)
+    implementation(libs.ktor.serialization.jackson)
 
-    implementation(libs.ktorServerAuth)
-    implementation(libs.ktorServerAuthJwt)
-    implementation(libs.ktorServerCallLogging)
-    implementation(libs.ktorServerCallLoggingJvm)
-    implementation(libs.ktorServerContentNegotiation)
-    implementation(libs.ktorServerCore)
-    implementation(libs.ktorServerMetricsMicrometer)
-    implementation(libs.ktorServerNetty)
-    implementation(libs.ktorServerStatusPages)
-    implementation(libs.ktorServerCallId)
+    implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.auth.jwt)
+    implementation(libs.ktor.server.call.logging)
+    implementation(libs.ktor.server.call.logging.jvm)
+    implementation(libs.ktor.server.content.negotiation)
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.metrics.micrometer)
+    implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.status.pages)
+    implementation(libs.ktor.server.call.id)
 
-    implementation(libs.ktorClientAuth)
-    implementation(libs.ktorClientCio)
-    implementation(libs.ktorClientContentNegotiation)
-    implementation(libs.ktorClientJackson)
-    implementation(libs.ktorClientLogging)
+    implementation(libs.ktor.client.auth)
+    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.content.negotiation)
+    implementation(libs.ktor.client.jackson)
+    implementation(libs.ktor.client.logging)
 
-    implementation(libs.kafkaClients)
+    implementation(libs.kafka.clients)
     implementation(libs.logback)
-    implementation(libs.jacksonDatatypeJsr310)
-    implementation(libs.micrometerRegistryPrometheus)
-    implementation(libs.logstashLogbackEncoder)
-    implementation(libs.prometheusMetricsTracerInitializer)
+    implementation(libs.jackson.datatype.jsr310)
+    implementation(libs.micrometer.registry.prometheus)
+    implementation(libs.logstash.logback.encoder)
+    implementation(libs.prometheus.metrics.tracer.initializer)
 
     implementation(libs.hikaricp)
 
-    implementation(libs.resilience4jCircuitbreaker)
-    implementation(libs.resilience4jKotlin)
-    implementation(libs.resilience4jMicrometer)
+    implementation(libs.resilience4j.circuitbreaker)
+    implementation(libs.resilience4j.kotlin)
+    implementation(libs.resilience4j.micrometer)
 
     implementation(libs.caffeine)
 
-    implementation(libs.kelvinKtorOpenapiGenerator)
-    testImplementation(libs.kelvinDbtest)
-    testImplementation(libs.ktorServerTestHost)
+    implementation(libs.kelvin.ktor.openapi.generator)
+    testImplementation(libs.kelvin.dbtest)
+    testImplementation(libs.ktor.server.test.host)
     constraints {
-        implementation(libs.commonsCodec)
+        implementation(libs.commons.codec)
     }
-    testImplementation(libs.junitJupiterParams)
+    testImplementation(libs.junit.jupiter.params)
     testImplementation(libs.assertj)
-    testImplementation(libs.nimbusJoseJwt)
+    testImplementation(libs.nimbus.jose.jwt)
     testImplementation(kotlin("test"))
 }
 
@@ -79,6 +79,7 @@ tasks {
 }
 
 tasks.register<JavaExec>("runTestApp") {
+    group = "application"
     description = "Kjør TestApp"
     mainClass.set("no.nav.aap.api.TestAppKt")
     classpath = sourceSets["test"].runtimeClasspath
