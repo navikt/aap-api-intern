@@ -8,6 +8,7 @@ import com.papsign.ktor.openapigen.route.info
 import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.path.normal.post
+import com.papsign.ktor.openapigen.route.response.OpenAPIPipelineContext
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
@@ -21,7 +22,6 @@ import io.ktor.server.auth.principal
 import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.path
 import io.ktor.server.response.respond
-import io.ktor.server.routing.RoutingContext
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.dsop.dsopRoutes
 import no.nav.aap.api.holmes.holmesRoutes
@@ -36,6 +36,10 @@ import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortPerioderRepository
 import no.nav.aap.api.postgres.SakStatusRepository
+import no.nav.aap.api.sak.SakStatus as DomeneSakStatus
+import no.nav.aap.api.sak.NåværendeEnhet as DomeneNåværendeEnhet
+import no.nav.aap.api.sak.tilKontrakt
+import no.nav.aap.api.syfo.syfoRoutes
 import no.nav.aap.api.util.perioderMedAAp
 import no.nav.aap.arenaoppslag.kontrakt.intern.InternVedtakRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.ManuellFordelingsgrunnlagRequest
@@ -103,9 +107,8 @@ data class ArenaSakParameter(
     fun callId(): String? = listOfNotNull(`Nav-CallId`, `X-Correlation-Id`).firstOrNull()
 }
 
-internal fun receiveCall(
+internal fun OpenAPIPipelineContext.receiveCall(
     callIdHeader: CallIdHeader,
-    pipeline: RoutingContext,
 ): String {
     Metrics.httpRequestTeller(pipeline.call)
 
@@ -127,7 +130,7 @@ fun NormalOpenAPIRoute.api(
             post<CallIdHeader, PerioderResponse, InternVedtakRequestApiIntern>(
                 info(description = "Henter perioder med vedtak for en person innen gitte datointervall.")
             ) { callIdHeader, requestBody ->
-                val callId = receiveCall(callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader)
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
@@ -164,7 +167,7 @@ fun NormalOpenAPIRoute.api(
                 ), null, null, null,
                 info(description = "Henter perioder med vedtak fra Arena (aktivitetsfase) for en person innen gitte datointervall. Er ment for Team Tilleggstønader.")
             ) { callIdHeader, requestBody ->
-                val callId = receiveCall(callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader)
 
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val vedtakRequest = requestBody.tilKontrakt()
@@ -209,6 +212,7 @@ fun NormalOpenAPIRoute.api(
 
     nksRoutes(dataSource, arenaService, pdlGateway, clock)
     holmesRoutes(dataSource, pdlGateway, clock)
+    syfoRoutes(dataSource, arenaService, pdlGateway)
 
     tag(Tag.Saker) {
         route("/meldekort-backend/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatusMeldekortbackend>, SakerRequestMeldekortbackend>(
@@ -222,7 +226,7 @@ fun NormalOpenAPIRoute.api(
             null, null, null,
             info(description = "Henter saker for en person. Kan kun kalles fra meldekort-backend.")
         ) { callIdHeader, requestBody ->
-            val callId = receiveCall(callIdHeader, pipeline)
+            val callId = receiveCall(callIdHeader)
 
             val personIdenter =
                 pdlGateway.hentAlleIdenterForPerson(requestBody.personidentifikator)
@@ -239,7 +243,13 @@ fun NormalOpenAPIRoute.api(
                 }
             val arenaSaker: List<SakStatusMeldekortbackend> =
                 arenaService.hentSaker(callId, listOf(requestBody.personidentifikator))
-                    .map { SakStatusMeldekortbackend(it.kilde, it.periode(), it.sakId) }
+                    .map {
+                        SakStatusMeldekortbackend(
+                            Kilde.ARENA,
+                            it.periode.tilKontrakt(),
+                            it.sakId,
+                        )
+                    }
 
             tellKildesystem(kelvinSaker, arenaSaker, "/sakerByFnr")
 
@@ -259,7 +269,7 @@ fun NormalOpenAPIRoute.api(
             Metrics.antallIdenter("/kelvin/sakerByFnr", requestBody.personidentifikatorer.size)
 
             val personIdenter = hentAllePersonidenter(requestBody.personidentifikatorer, pdlGateway)
-            val kelvinSaker: List<SakStatus.Kelvin> =
+            val kelvinSaker: List<DomeneSakStatus.Kelvin> =
                 dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
                     val kelvinSakService =
@@ -271,12 +281,12 @@ fun NormalOpenAPIRoute.api(
             respond(kelvinSaker.map {
                 SakStatusOverlappskontroll(
                     sakId = it.sakId,
-                    statusKode = it.status(),
-                    periode = it.periode,
+                    statusKode = it.statusKode.tilKontrakt(),
+                    periode = it.periode.tilKontrakt(),
                     // Dette kommer fra Kelvin-periode, som alltid har ikke-null fra-dato
                     fraDato = it.periode.fraOgMedDato!!,
-                    kilde = it.kilde,
-                    enhet = it.enhet
+                    kilde = Kilde.KELVIN,
+                    enhet = it.enhet?.tilKontrakt(),
                 )
             })
         }
@@ -287,7 +297,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Sjekker om en person eksisterer i Arena (AAP).")
             ) { callIdHeader, requestBody ->
                 logger.info("Sjekker om person eksisterer i aap-arena")
-                val callId = receiveCall(callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader)
 
                 pipeline.call.response.headers.append(
                     HttpHeaders.ContentType,
@@ -303,7 +313,7 @@ fun NormalOpenAPIRoute.api(
                 info(description = "Henter saker for en person fra Arena via ny v1-kontrakt.")
             ) { callIdHeader, requestBody ->
                 logger.info("Henter saker for person fra Arena (v1)")
-                val callId = receiveCall(callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader)
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
                 val saker = arenaService.hentSakerForPerson(callId, requestBody.personidentifikator)
                 respond(saker)
@@ -313,7 +323,7 @@ fun NormalOpenAPIRoute.api(
             post<CallIdHeader, ManuellFordelingsgrunnlagResponse, ManuellFordelingsgrunnlagRequest>(
                 info(description = "Henter manuelt fordelingsgrunnlag for en person fra Arena.")
             ) { callIdHeader, requestBody ->
-                val callId = receiveCall(callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader)
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
                 val grunnlag = arenaService.hentManuellFordelingsgrunnlag(
@@ -353,7 +363,7 @@ fun NormalOpenAPIRoute.api(
                     """.trimIndent()
                 )
             ) { callIdHeader, requestBody ->
-                val callId = receiveCall(callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader)
                 val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
@@ -386,7 +396,7 @@ fun NormalOpenAPIRoute.api(
                 )
             ) { callIdHeader, requestBody ->
                 logger.info("Henter maksimum")
-                val callId = receiveCall(callIdHeader, pipeline)
+                val callId = receiveCall(callIdHeader)
 
                 val body = requestBody.tilKontrakt()
                 sjekkTilgangTilPerson(requestBody.personidentifikator, token())
@@ -516,7 +526,7 @@ fun NormalOpenAPIRoute.api(
                             rettighetsType = it.rettighetsType,
                         )
                     },
-                    sakstatus = sakStatus.status(),
+                    sakstatus = sakStatus.statusKode.tilKontrakt(),
                     maksdato = sakStatus.forelopigMaksdato
                 )
             )
@@ -537,6 +547,22 @@ internal fun azpForTokenGenHvisIkkeProd(): List<UUID> =
 internal fun tellKelvinKall(request: ApplicationRequest) {
     Metrics.kildesystemTeller("kelvin", request.path()).increment()
 }
+
+private fun DomeneNåværendeEnhet.tilKontrakt(): NåværendeEnhet =
+    NåværendeEnhet(
+        oversendtDato = oversendtDato,
+        oppgaveKategori = when (oppgaveKategori) {
+            no.nav.aap.api.sak.OppgaveKategori.MEDLEMSKAP -> OppgaveKategori.MEDLEMSKAP
+            no.nav.aap.api.sak.OppgaveKategori.STUDENT -> OppgaveKategori.STUDENT
+            no.nav.aap.api.sak.OppgaveKategori.LOKALKONTOR -> OppgaveKategori.LOKALKONTOR
+            no.nav.aap.api.sak.OppgaveKategori.KVALITETSSIKRING -> OppgaveKategori.KVALITETSSIKRING
+            no.nav.aap.api.sak.OppgaveKategori.NAY -> OppgaveKategori.NAY
+            no.nav.aap.api.sak.OppgaveKategori.BESLUTTER -> OppgaveKategori.BESLUTTER
+        },
+        enhet = enhet,
+        erHasteSak = erHasteSak,
+        venteAarsak = venteAarsak,
+    )
 
 internal fun tellKildesystem(
     kelvinData: List<*>?,

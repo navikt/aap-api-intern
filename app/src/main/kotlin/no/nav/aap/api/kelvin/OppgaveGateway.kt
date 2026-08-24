@@ -4,7 +4,8 @@ import com.github.benmanes.caffeine.cache.Caffeine
 import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics
 import no.nav.aap.api.Metrics
 import no.nav.aap.api.Metrics.prometheus
-import no.nav.aap.api.intern.NåværendeEnhet
+import no.nav.aap.api.sak.NåværendeEnhet
+import no.nav.aap.api.sak.OppgaveKategori
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.httpklient.httpclient.ClientConfig
 import no.nav.aap.komponenter.httpklient.httpclient.RestClient
@@ -12,7 +13,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.request.PostRequest
 import no.nav.aap.komponenter.httpklient.httpclient.retryablePost
 import no.nav.aap.komponenter.httpklient.httpclient.tokenprovider.azurecc.AzureM2MTokenProvider
 import no.nav.aap.oppgave.enhet.EnhetOgOversendelse
-import no.nav.aap.oppgave.enhet.OppgaveKategori
+import no.nav.aap.oppgave.enhet.OppgaveKategori as OppgaveKategoriKontrakt
 import no.nav.aap.oppgave.enhet.PersonRequest
 import java.net.URI
 import java.time.Duration
@@ -59,12 +60,12 @@ object OppgaveGateway {
             NåværendeEnhet(
                 oversendtDato = it.oversendtDato,
                 oppgaveKategori = when (it.oppgaveKategori) {
-                    OppgaveKategori.MEDLEMSKAP -> no.nav.aap.api.intern.OppgaveKategori.MEDLEMSKAP
-                    OppgaveKategori.LOKALKONTOR -> no.nav.aap.api.intern.OppgaveKategori.LOKALKONTOR
-                    OppgaveKategori.KVALITETSSIKRING -> no.nav.aap.api.intern.OppgaveKategori.KVALITETSSIKRING
-                    OppgaveKategori.NAY -> no.nav.aap.api.intern.OppgaveKategori.NAY
-                    OppgaveKategori.BESLUTTER -> no.nav.aap.api.intern.OppgaveKategori.BESLUTTER
-                    OppgaveKategori.STUDENT -> no.nav.aap.api.intern.OppgaveKategori.STUDENT
+                    OppgaveKategoriKontrakt.MEDLEMSKAP -> OppgaveKategori.MEDLEMSKAP
+                    OppgaveKategoriKontrakt.LOKALKONTOR -> OppgaveKategori.LOKALKONTOR
+                    OppgaveKategoriKontrakt.KVALITETSSIKRING -> OppgaveKategori.KVALITETSSIKRING
+                    OppgaveKategoriKontrakt.NAY -> OppgaveKategori.NAY
+                    OppgaveKategoriKontrakt.BESLUTTER -> OppgaveKategori.BESLUTTER
+                    OppgaveKategoriKontrakt.STUDENT -> OppgaveKategori.STUDENT
                 },
                 enhet = it.enhet,
                 venteAarsak = it.venteÅrsak,

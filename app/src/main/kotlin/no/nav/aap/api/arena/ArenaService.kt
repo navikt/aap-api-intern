@@ -9,13 +9,14 @@ import no.nav.aap.api.intern.ArenaSakPerson
 import no.nav.aap.api.intern.ArenaSakerResponse
 import no.nav.aap.api.intern.ArenaVedtakDetaljer
 import no.nav.aap.api.intern.ArenaVedtakfakta
-import no.nav.aap.api.intern.Periode
 import no.nav.aap.api.intern.PeriodeInkludert11_17
 import no.nav.aap.api.intern.PerioderInkludert11_17Response
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
-import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.api.maksimum.InternVedtak
 import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
+import no.nav.aap.api.sak.ArenaStatus
+import no.nav.aap.api.sak.Periode
+import no.nav.aap.api.sak.SakStatus
 import no.nav.aap.api.util.fraKontrakt
 import no.nav.aap.api.util.fraKontraktUtenUtbetaling
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.HarHistorikkRequest
@@ -60,7 +61,7 @@ class ArenaService(
             perioder = arenaSvar.perioder.map { periode ->
                 PeriodeInkludert11_17(
                     periode = periode.periode.let {
-                        Periode(
+                        no.nav.aap.api.intern.Periode(
                             it.fraOgMedDato, it.tilOgMedDato
                         )
                     },
@@ -74,8 +75,8 @@ class ArenaService(
         val sakerRequest = SakerRequest(personIdenter)
         return arena.hentSakerByFnr(callId, sakerRequest).map {
             arenaSakStatusTilDomene(it).also { arenaSak ->
-                if (arenaSak.periode().fraOgMedDato == null) {
-                    secureLog.info("Arena-sak med null fraDato. Til-dato ${arenaSak.periode().tilOgMedDato} Status: ${arenaSak.statusKode}")
+                if (arenaSak.periode.fraOgMedDato == null) {
+                    secureLog.info("Arena-sak med null fraDato. Til-dato ${arenaSak.periode.tilOgMedDato} Status: ${arenaSak.statusKode}")
                 }
             }
         }
@@ -84,22 +85,25 @@ class ArenaService(
     private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus) =
         SakStatus.Arena(
             sakId = it.sakId, statusKode = when (it.statusKode) {
-                Status.AVSLU -> no.nav.aap.api.intern.ArenaStatus.AVSLU
-                Status.FORDE -> no.nav.aap.api.intern.ArenaStatus.FORDE
-                Status.GODKJ -> no.nav.aap.api.intern.ArenaStatus.GODKJ
-                Status.INNST -> no.nav.aap.api.intern.ArenaStatus.INNST
-                Status.IVERK -> no.nav.aap.api.intern.ArenaStatus.IVERK
-                Status.KONT -> no.nav.aap.api.intern.ArenaStatus.KONT
-                Status.MOTAT -> no.nav.aap.api.intern.ArenaStatus.MOTAT
-                Status.OPPRE -> no.nav.aap.api.intern.ArenaStatus.OPPRE
-                Status.REGIS -> no.nav.aap.api.intern.ArenaStatus.REGIS
-                Status.UKJENT -> no.nav.aap.api.intern.ArenaStatus.UKJENT
+                Status.AVSLU -> ArenaStatus.AVSLU
+                Status.FORDE -> ArenaStatus.FORDE
+                Status.GODKJ -> ArenaStatus.GODKJ
+                Status.INNST -> ArenaStatus.INNST
+                Status.IVERK -> ArenaStatus.IVERK
+                Status.KONT -> ArenaStatus.KONT
+                Status.MOTAT -> ArenaStatus.MOTAT
+                Status.OPPRE -> ArenaStatus.OPPRE
+                Status.REGIS -> ArenaStatus.REGIS
+                Status.UKJENT -> ArenaStatus.UKJENT
             }, periode = Periode(
                 it.periode.fraOgMedDato, it.periode.tilOgMedDato
             )
         )
 
-    suspend fun hentPerioder(callId: String, vedtakRequest: InternVedtakRequest): List<Periode> {
+    suspend fun hentPerioder(
+        callId: String,
+        vedtakRequest: InternVedtakRequest,
+    ): List<no.nav.aap.api.intern.Periode> {
         return arena.hentPerioder(callId, vedtakRequest).perioder
     }
 
