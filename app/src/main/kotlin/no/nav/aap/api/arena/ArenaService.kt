@@ -148,12 +148,15 @@ class ArenaService(
                 // Gjør dato-filter også i kode, i påvente av filteret fjernes fra arenaoppslag
                 val tilOgMedDato = vedtak.periode.tilOgMedDato
                 val requestDatoFilter =
-                    fraOgMedDato == null || (fraOgMedDato <= requestFraOgMed) && (tilOgMedDato == null || tilOgMedDato >= requestFraOgMed) && (tilOgMedDato == null || fraOgMedDato <= tilOgMedDato)
+                    fraOgMedDato != null &&
+                            (tilOgMedDato == null || fraOgMedDato <= tilOgMedDato) &&
+                            (tilOgMedDato == null || tilOgMedDato >= requestFraOgMed) &&
+                            fraOgMedDato <= requestTilOgMed
 
                 if (!requestDatoFilter) {
                     val ugyldig =
-                        tilOgMedDato?.let { fraOgMedDato > tilOgMedDato }
-                    log.info("Vedtak filtrert ut pga requestDatoFilter. Noop. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til $tilOgMedDato. Status: ${vedtak.status}. Type: ${vedtak.vedtaksTypeKode}. Ugyldig: $ugyldig.")
+                        tilOgMedDato?.let { fraOgMedDato != null && fraOgMedDato > tilOgMedDato }
+                    log.info("Vedtak filtrert ut pga requestDatoFil3ter. Noop. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til $tilOgMedDato. Status: ${vedtak.status}. Type: ${vedtak.vedtaksTypeKode}. Ugyldig: $ugyldig.")
                 }
 
                 val vedtaktypeBetingelser = vedtak.vedtaksTypeKode in listOf("O", "E", "G", "S")
@@ -184,13 +187,16 @@ class ArenaService(
 
                 // Gjør dato-filter også i kode, i påvente av filteret fjernes fra arenaoppslag
                 val requestDatoFilter =
-                    fraOgMedDato == null || (fraOgMedDato <= requestFraOgMed) && (tilOgMedDato == null || tilOgMedDato >= requestFraOgMed) && (tilOgMedDato == null || fraOgMedDato <= tilOgMedDato)
+                    fraOgMedDato != null &&
+                            (tilOgMedDato == null || fraOgMedDato <= tilOgMedDato) &&
+                            (tilOgMedDato == null || tilOgMedDato >= requestFraOgMed) &&
+                            fraOgMedDato <= requestTilOgMed
 
                 Metrics.requestDatoFilter(requestDatoFilter)
 
                 if (!requestDatoFilter) {
                     val ugyldig =
-                        tilOgMedDato?.let { fraOgMedDato > tilOgMedDato }
+                        tilOgMedDato?.let { fraOgMedDato != null && fraOgMedDato > tilOgMedDato }
                     log.info("Vedtak filtrert ut pga requestDatoFilter. Request-datoer: $requestFraOgMed og dato: $requestTilOgMed. Vedtak-fra: $fraOgMedDato og til $tilOgMedDato. Status: ${vedtak.status}. Type: ${vedtak.vedtaksTypeKode}. Ugyldig: $ugyldig.")
                 }
 
