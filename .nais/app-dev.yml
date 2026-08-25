@@ -197,5 +197,8 @@ spec:
       value: f99254b7-a630-48fe-a21a-21989eca6f4b
     - name: AZP_SYFOPERSON
       value: 096d3198-c44e-449b-97a9-4bcecc31afa6
+    # Namespace poao, app: veilarboppfolging
+    - name: AZP_DAB
+      value: 5afdf9f0-4487-41ef-b103-b4c35be4f9fb
     - name: NAIS_TEAM_AAP
       value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5

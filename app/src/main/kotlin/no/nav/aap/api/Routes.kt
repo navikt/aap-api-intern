@@ -23,6 +23,7 @@ import io.ktor.server.request.ApplicationRequest
 import io.ktor.server.request.path
 import io.ktor.server.response.respond
 import no.nav.aap.api.arena.ArenaService
+import no.nav.aap.api.dab.dabRoutes
 import no.nav.aap.api.dsop.dsopRoutes
 import no.nav.aap.api.holmes.holmesRoutes
 import no.nav.aap.api.intern.*
@@ -84,6 +85,7 @@ enum class Tag(override val description: String) : APITag {
     ArenaHistorikk("For å hente informasjon om AAP historikk fra Arena"),
     Syfo("Endepunkter brukt av Syfo"),
     Holmes("Endepunkter brukt av Team Holmes (Watson Søk)"),
+    DAB("Endepunkter brukt av DAB"),
     ;
 }
 
@@ -213,6 +215,7 @@ fun NormalOpenAPIRoute.api(
     nksRoutes(dataSource, arenaService, pdlGateway, clock)
     holmesRoutes(dataSource, pdlGateway, clock)
     syfoRoutes(dataSource, arenaService, pdlGateway)
+    dabRoutes(dataSource, arenaService, pdlGateway)
 
     tag(Tag.Saker) {
         route("/meldekort-backend/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatusMeldekortbackend>, SakerRequestMeldekortbackend>(
