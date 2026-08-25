@@ -6,6 +6,7 @@ metadata:
   labels:
     team: aap
     komponent: datadeling
+    systemkatalog.nav.no/system: SK-268
   annotations:
     texas.nais.io/enabled: "true"
 spec:
