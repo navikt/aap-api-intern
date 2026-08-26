@@ -47,7 +47,10 @@ fun NormalOpenAPIRoute.nksRoutes(
                     UUID.fromString(requiredConfigForKey("AZP_SAAS_PROXY"))
                 ) + azpForTokenGenHvisIkkeProd(),
             ), null, null, null,
-            info(description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS."),
+            info(
+                description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS. Vil bli slettet.",
+                deprecated = true
+            ),
             tags(Tag.NKS)
         ) { _, requestBody ->
             Metrics.httpRequestTeller(pipeline.call)
