@@ -120,6 +120,7 @@ object Fakes : AutoCloseable {
         System.setProperty("AZP_PADM2", UUID.randomUUID().toString())
         System.setProperty("AZP_HOLMES_PERSONDATA_API", UUID.randomUUID().toString())
         System.setProperty("AZP_SYFOPERSON", UUID.randomUUID().toString())
+        System.setProperty("AZP_DAB", UUID.randomUUID().toString())
     }
 }
 

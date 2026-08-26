@@ -124,7 +124,7 @@ fun ArenaStatus.tilKontrakt(): KontraktArenaStatus =
         ArenaStatus.UKJENT -> KontraktArenaStatus.UKJENT
     }
 
-private fun YtelseStatus.tilKontrakt(): KontraktSakStatus.YtelseStatus =
+internal fun YtelseStatus.tilKontrakt(): KontraktSakStatus.YtelseStatus =
     when (this) {
         YtelseStatus.FOR_VEDTAK -> KontraktSakStatus.YtelseStatus.FOR_VEDTAK
         YtelseStatus.LOPENDE -> KontraktSakStatus.YtelseStatus.LOPENDE
