@@ -1,6 +1,7 @@
 package no.nav.aap.api.syfo
 
 import no.nav.aap.api.arena.ArenaService
+import no.nav.aap.api.arena.ArenaVedtakFilter
 import no.nav.aap.api.intern.Periode
 import no.nav.aap.api.intern.SyfoSak
 import no.nav.aap.api.intern.SyfoSakerResponse
@@ -21,10 +22,11 @@ internal class SyfoService(
     ): SyfoSakerResponse {
         val arenaSaker = arenaService.hentSaker(callId, personidenter)
         val arenaVedtak = hentArenaVedtak(callId, personidenter, arenaSaker)
+        val filtrerteArenaVedtak = ArenaVedtakFilter.filtrerUgyldigeVedtak(arenaVedtak)
 
         return SyfoSakerResponse(
             saker = kelvinSaker.tilSyfoSaker() +
-                    arenaSaker.tilSyfoSaker(arenaVedtak.tilSyfoVedtak()),
+                    arenaSaker.tilSyfoSaker(filtrerteArenaVedtak.tilSyfoVedtak()),
         )
     }
 
@@ -81,10 +83,10 @@ private fun List<InternVedtakUtenUtbetaling>.tilSyfoVedtak(): Map<String, List<S
             vedtak
                 .groupBy { it.vedtakId }
                 .values
-                .map { perioder ->
+                .map { internVedtak ->
                     SyfoVedtak(
-                        vedtaksdato = perioder.first().vedtaksdato,
-                        perioder = perioder.map {
+                        vedtaksdato = internVedtak.first().vedtaksdato,
+                        perioder = internVedtak.map {
                             Periode(
                                 fraOgMedDato = it.periode.fraOgMedDato,
                                 tilOgMedDato = it.periode.tilOgMedDato,
