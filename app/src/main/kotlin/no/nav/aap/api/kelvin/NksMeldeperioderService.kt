@@ -25,7 +25,7 @@ class NksMeldeperioderService(
     private val clock: Clock,
 ) {
     private val behandlingsRepository = BehandlingsRepository(connection)
-    private val meldekortService = MeldekortService(connection, pdlGateway, clock)
+    private val meldekortService = MeldekortService(connection, pdlGateway)
 
     fun hent(
         personIdentifikator: String,
