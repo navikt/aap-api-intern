@@ -312,7 +312,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
             }
         }
         val barnetilleggRader = behandling.barnMedBarnetillegg.flatMap { barn ->
-            barn.perioderMedBarnetillegg.map { periode -> barn.ident to periode }
+            barn.perioderMedBarnetillegg
+                .filter { periode -> periode.beløp.signum() != 0 }
+                .map { periode -> barn.ident to periode }
         }
         connection.executeBatch(
             """

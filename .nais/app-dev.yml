@@ -145,6 +145,9 @@ spec:
         - application: syfoperson
           namespace: teamsykefravr
           cluster: dev-gcp
+        - applicaton: bidrag-grunnlag
+          namespace: bidrag
+          cluster: dev-gcp
     outbound:
       external:
         - host: arenaoppslag.dev-fss-pub.nais.io
@@ -200,5 +203,7 @@ spec:
     # Namespace poao, app: veilarboppfolging
     - name: AZP_DAB
       value: 5afdf9f0-4487-41ef-b103-b4c35be4f9fb
+    - name: AZP_BISYS
+      value: f4b0316b-c636-481a-8c92-16b7ef646c98
     - name: NAIS_TEAM_AAP
       value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5
