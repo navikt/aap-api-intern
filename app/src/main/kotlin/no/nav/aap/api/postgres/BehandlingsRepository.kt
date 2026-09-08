@@ -305,6 +305,29 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setLocalDate(5, it.tom)
             }
         }
+
+        connection.execute("DELETE FROM BARN_MED_BARNETILLEGG WHERE BEHANDLING_ID = ?") {
+            setParams {
+                setLong(1, nyBehandlingId)
+            }
+        }
+        val barnetilleggRader = behandling.barnMedBarnetillegg.flatMap { barn ->
+            barn.perioderMedBarnetillegg.map { periode -> barn.ident to periode }
+        }
+        connection.executeBatch(
+            """
+                INSERT INTO BARN_MED_BARNETILLEGG (BEHANDLING_ID, IDENT, PERIODE, BELOP)
+                VALUES (?, ?, ?::daterange, ?)
+            """.trimIndent(),
+            barnetilleggRader
+        ) {
+            setParams { (ident, periodeMedBeløp) ->
+                setLong(1, nyBehandlingId)
+                setString(2, ident)
+                setPeriode(3, Periode(periodeMedBeløp.fom, periodeMedBeløp.tom))
+                setBigDecimal(4, periodeMedBeløp.beløp)
+            }
+        }
     }
 
     fun hentVedtaksData(fnr: String, periode: Periode): List<Behandling> {
@@ -436,9 +459,35 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     foreløpigMaksdato = sak.foreløpigMaksdato,
                     perioderMedFritakMeldeplikt = hentPerioderMedFritakMeldeplikt(behandlingId),
                     underveisperioder = hentUnderveisperioder(behandlingId),
+                    barnMedBarnetillegg = hentBarnMedBarnetillegg(behandlingId),
                 )
             }
         }
+    }
+
+    private fun hentBarnMedBarnetillegg(behandlingId: Long): List<BarnMedBarnetillegg> {
+        val rader = connection.queryList(
+            """
+                SELECT * FROM BARN_MED_BARNETILLEGG
+                WHERE BEHANDLING_ID = ?
+            """.trimIndent()
+        ) {
+            setParams {
+                setLong(1, behandlingId)
+            }
+            setRowMapper { row ->
+                val periode = row.getPeriode("PERIODE")
+                row.getStringOrNull("IDENT") to PeriodeMedBeløp(
+                    fom = periode.fom,
+                    tom = periode.tom,
+                    beløp = row.getBigDecimal("BELOP"),
+                )
+            }
+        }
+
+        return rader
+            .groupBy({ it.first }, { it.second })
+            .map { (ident, perioder) -> BarnMedBarnetillegg(ident = ident, perioderMedBarnetillegg = perioder) }
     }
 
     private fun hentPerioderMedFritakMeldeplikt(behandlingId: Long): List<Periode> {

@@ -3,8 +3,10 @@ package no.nav.aap.api.kelvin
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArbeidIPeriodeDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArenaVedtaksvariantDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BarnMedBarnetilleggDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.PeriodeMedBeløpDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.SakDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.StansEllerOpphørEnumDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.TilkjentDTO
@@ -62,6 +64,7 @@ fun DatadelingDTO.tilDomene(nyttVedtak: Boolean = false): Behandling {
         },
         perioderMedFritakMeldeplikt = this.perioderMedFritakMeldeplikt.map { Periode(it.fom, it.tom) },
         underveisperioder = this.underveisperioder.map { it.tilDomene() },
+        barnMedBarnetillegg = this.barnMedBarnetillegg.map { it.tilDomene() },
     )
 }
 
@@ -130,5 +133,20 @@ fun DetaljertMeldekortDTO.tilDomene(): Meldekort {
         mottattTidspunkt = this.mottattTidspunkt,
         meldePeriode = Periode(this.meldeperiodeFom, this.meldeperiodeTom),
         arbeidPerDag = this.timerArbeidPerPeriode.map { it.tilDomene() },
+    )
+}
+
+fun BarnMedBarnetilleggDTO.tilDomene(): BarnMedBarnetillegg {
+    return BarnMedBarnetillegg(
+        ident = this.ident,
+        perioderMedBarnetillegg = this.perioderMedBarnetillegg.map { it.tilDomene() },
+    )
+}
+
+fun PeriodeMedBeløpDTO.tilDomene(): PeriodeMedBeløp {
+    return PeriodeMedBeløp(
+        fom = this.fom,
+        tom = this.tom,
+        beløp = this.beløp,
     )
 }

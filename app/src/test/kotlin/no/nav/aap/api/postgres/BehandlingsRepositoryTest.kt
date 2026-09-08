@@ -7,8 +7,10 @@ import java.time.LocalDateTime
 import java.util.UUID
 import no.nav.aap.api.kelvin.Arenavedtak
 import no.nav.aap.api.kelvin.Behandling
+import no.nav.aap.api.kelvin.BarnMedBarnetillegg
 import no.nav.aap.api.kelvin.GjeldendeStansEllerOpphør
 import no.nav.aap.api.kelvin.KelvinBehandlingStatus
+import no.nav.aap.api.kelvin.PeriodeMedBeløp
 import no.nav.aap.api.kelvin.RettighetsTypePeriode
 import no.nav.aap.api.kelvin.Sak
 import no.nav.aap.api.kelvin.StansEllerOpphør
@@ -95,6 +97,21 @@ class BehandlingsRepositoryTest {
         foreløpigMaksdato = null,
         perioderMedFritakMeldeplikt = emptyList(),
         underveisperioder = emptyList(),
+        barnMedBarnetillegg = listOf(
+            BarnMedBarnetillegg(
+                ident = "12345678901",
+                perioderMedBarnetillegg = listOf(
+                    PeriodeMedBeløp(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 2, 1), BigDecimal("38")),
+                    PeriodeMedBeløp(LocalDate.of(2021, 2, 2), LocalDate.of(2021, 3, 1), BigDecimal("76")),
+                ),
+            ),
+            BarnMedBarnetillegg(
+                ident = null,
+                perioderMedBarnetillegg = listOf(
+                    PeriodeMedBeløp(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 4, 1), BigDecimal("38")),
+                ),
+            ),
+        ),
     )
 
     @Test
@@ -113,6 +130,8 @@ class BehandlingsRepositoryTest {
         assertThat(uthentetVedtak).hasSize(1)
         assertThat(uthentetVedtak[0].arenakompatibleVedtak)
             .isEqualTo(testVedtak.arenakompatibleVedtak)
+        assertThat(uthentetVedtak[0].barnMedBarnetillegg)
+            .containsExactlyInAnyOrderElementsOf(testVedtak.barnMedBarnetillegg)
     }
 
     @Test

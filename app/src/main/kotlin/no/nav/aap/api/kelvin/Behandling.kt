@@ -30,6 +30,7 @@ data class Behandling(
     val foreløpigMaksdato: LocalDate?,
     val perioderMedFritakMeldeplikt: List<Periode>,
     val underveisperioder: List<Underveisperiode>,
+    val barnMedBarnetillegg: List<BarnMedBarnetillegg> = emptyList(),
 ) {
     val rettighetsTypeTidslinje: Tidslinje<String>
         get() = rettighetsTypePerioder.somTidslinje({ it.periode }, { it.verdi })
@@ -107,6 +108,17 @@ data class Underveisperiode(
     val arbeidsgrad: Int,
     val overgrenseVerdi: Boolean,
     val timerArbeidet: BigDecimal,
+)
+
+data class BarnMedBarnetillegg(
+    val ident: String?,
+    val perioderMedBarnetillegg: List<PeriodeMedBeløp>,
+)
+
+data class PeriodeMedBeløp(
+    val fom: LocalDate,
+    val tom: LocalDate,
+    val beløp: BigDecimal,
 )
 
 /**
