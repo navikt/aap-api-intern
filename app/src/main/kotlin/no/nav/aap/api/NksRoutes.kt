@@ -10,28 +10,23 @@ import com.papsign.ktor.openapigen.route.tags
 import io.ktor.http.HttpStatusCode
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.intern.MeldekortDetaljerRequest
-import no.nav.aap.api.intern.MeldekortDetaljerResponse
 import no.nav.aap.api.intern.NksMeldeperioderResponse
 import no.nav.aap.api.intern.SakStatus
 import no.nav.aap.api.kelvin.KelvinSakService
-import no.nav.aap.api.kelvin.MeldekortService
 import no.nav.aap.api.kelvin.NksMeldeperioderService
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.SakStatusRepository
-import no.nav.aap.api.sak.SakStatus as DomeneSakStatus
 import no.nav.aap.api.sak.tilKontrakt
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
-import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.*
 import javax.sql.DataSource
-
-private val logger = LoggerFactory.getLogger("NksRoutes")
+import no.nav.aap.api.sak.SakStatus as DomeneSakStatus
 
 fun NormalOpenAPIRoute.nksRoutes(
     dataSource: DataSource,
@@ -40,43 +35,6 @@ fun NormalOpenAPIRoute.nksRoutes(
     clock: Clock = Clock.systemDefaultZone(),
 ) {
     tag(Tag.Meldekort) {
-        route("/kelvin/meldekort-detaljer").authorizedPost<CallIdHeader, MeldekortDetaljerResponse, MeldekortDetaljerRequest>(
-            AuthorizationBodyPathConfig(
-                operasjon = Operasjon.SE,
-                authorizedAzps = listOf(
-                    UUID.fromString(requiredConfigForKey("AZP_SAAS_PROXY"))
-                ) + azpForTokenGenHvisIkkeProd(),
-            ), null, null, null,
-            info(
-                description = "Henter detaljerte meldekort for en gitt person og evt. begrenset til en gitt periode. Kan kun brukes av NKS. Vil bli slettet.",
-                deprecated = true
-            ),
-            tags(Tag.NKS)
-        ) { _, requestBody ->
-            Metrics.httpRequestTeller(pipeline.call)
-            val personIdentifikator = requestBody.personidentifikator
-
-            val meldekortListe = dataSource.transaction { connection ->
-                val meldekortService = MeldekortService(connection, pdlGateway, clock)
-                meldekortService.hentAlle(
-                    personIdentifikator,
-                    requestBody.fraOgMedDato,
-                    requestBody.tilOgMedDato
-                )
-                    .map { (meldekort, tilkjentYtelsePerioder) ->
-                        meldekort.tilKontrakt(tilkjentYtelsePerioder)
-                    }
-            }
-
-            tellKelvinKall(pipeline.call.request)
-
-            if (meldekortListe.isEmpty()) {
-                logger.info("Fant ingen meldekort for person $personIdentifikator i den angitte perioden")
-            }
-
-            val responseBody = MeldekortDetaljerResponse(personIdentifikator, meldekortListe)
-            respond(responseBody, HttpStatusCode.OK)
-        }
 
         route("/nks/meldeperioder").authorizedPost<CallIdHeader, NksMeldeperioderResponse, MeldekortDetaljerRequest>(
             AuthorizationBodyPathConfig(
