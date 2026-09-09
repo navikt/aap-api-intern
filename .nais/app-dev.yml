@@ -145,7 +145,7 @@ spec:
         - application: syfoperson
           namespace: teamsykefravr
           cluster: dev-gcp
-        - applicaton: bidrag-grunnlag
+        - application: bidrag-grunnlag
           namespace: bidrag
           cluster: dev-gcp
     outbound:

@@ -139,7 +139,7 @@ spec:
         - application: syfoperson
           namespace: teamsykefravr
           cluster: prod-gcp
-        - applicaton: bidrag-grunnlag
+        - application: bidrag-grunnlag
           namespace: bidrag
           cluster: prod-gcp
     outbound:
