@@ -26,12 +26,15 @@ import no.nav.aap.arenaoppslag.kontrakt.intern.ManuellFordelingsgrunnlagResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
 import no.nav.aap.arenaoppslag.kontrakt.intern.Status
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
+import no.nav.aap.komponenter.miljo.Miljø
 import org.slf4j.LoggerFactory
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 
 class ArenaService(
-    private val arena: IArenaoppslagGateway, private val arenaHistorikk: IArenaoppslagGateway
+    private val arena: IArenaoppslagGateway,
+    private val arenaHistorikk: IArenaoppslagGateway,
+    private val erProd: Boolean = Miljø.erProd(),
 ) : WithMetrics {
 
     private val secureLog = LoggerFactory.getLogger("team-logs")
@@ -122,11 +125,21 @@ class ArenaService(
     suspend fun hentVedtakUtenUtbetaling(
         callId: String, vedtakRequest: InternVedtakRequest
     ): List<InternVedtakUtenUtbetaling> {
-        return maksimum(callId, vedtakRequest).vedtak.map { it.fraKontraktUtenUtbetaling() }
+        val vedtak = maksimum(callId, vedtakRequest).vedtak.map { it.fraKontraktUtenUtbetaling() }
+        return if (!erProd) {
+            vedtak.sortedWith(compareBy(nullsLast()) { it.periode.tilOgMedDato ?: it.periode.fraOgMedDato })
+        } else {
+            vedtak
+        }
     }
 
     suspend fun hentVedtak(callId: String, vedtakRequest: InternVedtakRequest): List<InternVedtak> {
-        return maksimum(callId, vedtakRequest).fraKontrakt().vedtak
+        val vedtak = maksimum(callId, vedtakRequest).fraKontrakt().vedtak
+        return if (!erProd) {
+            vedtak.sortedWith(compareBy(nullsLast()) { it.periode.tilOgMedDato ?: it.periode.fraOgMedDato })
+        } else {
+            vedtak
+        }
     }
 
 
