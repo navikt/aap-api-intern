@@ -27,7 +27,6 @@ class ArenaServiceTest {
         val arenaService = ArenaService(
             arena = FakeArenaGateway(maksimum = Maksimum(vedtak = listOf(vedtakC, vedtakA, vedtakB))),
             arenaHistorikk = FakeArenaGateway(),
-            erProd = false,
         )
 
         val vedtak = arenaService.hentVedtak(
@@ -36,22 +35,6 @@ class ArenaServiceTest {
         )
 
         assertThat(vedtak.map { it.vedtakId }).containsExactly("A", "B", "C")
-    }
-
-    @Test
-    fun `skal ikke sortere vedtak i prod`(): Unit = runBlocking {
-        val arenaService = ArenaService(
-            arena = FakeArenaGateway(maksimum = Maksimum(vedtak = listOf(vedtakC, vedtakA, vedtakB))),
-            arenaHistorikk = FakeArenaGateway(),
-            erProd = true,
-        )
-
-        val vedtak = arenaService.hentVedtak(
-            callId = "test-call-id",
-            vedtakRequest = InternVedtakRequest(personidentifikator = "12345678910"),
-        )
-
-        assertThat(vedtak.map { it.vedtakId }).containsExactly("C", "A", "B")
     }
 
     private val vedtakA = konstruerVedtak(

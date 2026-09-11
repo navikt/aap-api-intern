@@ -38,7 +38,7 @@ public data class InternVedtakRequestApiIntern(
 public data class Vedtak(
     val dagsats: Int,
     val dagsatsEtterUføreReduksjon: Int?,
-    @param:Description("Fra Kelvin: ID som deles i forbindelse med samordning. Fra Arena er dette vedtakets database-ID.")
+    @param:Description("Fra Kelvin: ID som deles i forbindelse med samordning. Fra Arena er dette vedtakets database-ID. Det bør ikke bygges logikk på denne.")
     val vedtakId: String,
     @param:Description("Status på et vedtak. Mulige verdier fra Kelvin er LØPENDE, AVSLUTTET, UTREDES. Fra Kelvin per i dag konstant lik LØPENDE.")
     val status: String,
@@ -90,6 +90,7 @@ public data class SamordningIdOgTpNummer(val samordningId: String, val tpNummer:
 public data class VedtakUtenUtbetaling(
     val dagsats: Int,
     val dagsatsEtterUføreReduksjon: Int?,
+    @property:Description("Database-ID for vedtaket. Det bør ikke bygges logikk på denne.")
     val vedtakId: String,
     val status: String,
     val saksnummer: String,
