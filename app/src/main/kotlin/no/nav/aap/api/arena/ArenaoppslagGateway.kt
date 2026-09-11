@@ -130,7 +130,7 @@ class ArenaoppslagGateway(
         "/api/v1/person/saker", callId, req, tillattMed404 = true
     ).recover { throwable ->
         if (responseStatus(throwable) == HttpStatusCode.NotFound) {
-            secureLog.warn("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
+            secureLog.info("Personen ble ikke funnet i Arena [personidentifikator=${req.personidentifikator}]")
             // Personen ble ikke funnet i Arena – returner tom liste med saker
             SakerResponse(emptyList())
         } else {
