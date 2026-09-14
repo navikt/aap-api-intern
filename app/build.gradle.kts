@@ -47,6 +47,7 @@ dependencies {
     implementation(kelvinLibs.jackson.datatype.jsr310)
     implementation(kelvinLibs.micrometer.prometheus)
     implementation(kelvinLibs.logstash.logback.encoder)
+    implementation(libs.prometheus.metrics.tracer.initializer)
 
     implementation(kelvinLibs.hikaricp)
 

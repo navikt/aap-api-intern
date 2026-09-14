@@ -26,3 +26,5 @@ arenaoppslag-kontrakt = { module = "no.nav.aap.arenaoppslag:kontrakt", version.r
 resilience4j-circuitbreaker = { module = "io.github.resilience4j:resilience4j-circuitbreaker", version.ref = "resilience4j" }
 resilience4j-kotlin = { module = "io.github.resilience4j:resilience4j-kotlin", version.ref = "resilience4j" }
 resilience4j-micrometer = { module = "io.github.resilience4j:resilience4j-micrometer", version.ref = "resilience4j" }
+
+prometheus-metrics-tracer-initializer = { module = "io.prometheus:prometheus-metrics-tracer-initializer", version.ref = "prometheus" }
