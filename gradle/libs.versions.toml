@@ -1,22 +1,10 @@
 [versions]
-ktor = "3.5.2"
-komponenter = "2.0.152"
+komponenter = "2.0.161"
 tilgang = "1.0.238"
-behandlingsflyt = "0.0.659"
+behandlingsflyt = "0.0.661"
 oppgave = "0.0.207"
 arenaoppslag = "0.6.1"
 resilience4j = "2.4.0"
-kafka = "4.3.1"
-logback = "1.6.3"
-jackson = "2.22"
-micrometer = "1.17.1"
-logstashEncoder = "9.0"
-prometheus = "1.8.0"
-hikaricp = "7.1.0"
-caffeine = "3.2.4"
-assertj = "3.27.7"
-nimbusJoseJwt = "10.9.1"
-commonsCodec = "1.22.1"
 
 [libraries]
 kelvin-server = { module = "no.nav.aap.kelvin:server", version.ref = "komponenter" }
@@ -27,60 +15,14 @@ kelvin-tidslinje = { module = "no.nav.aap.kelvin:tidslinje", version.ref = "komp
 kelvin-ktor-openapi-generator = { module = "no.nav.aap.kelvin:ktor-openapi-generator", version.ref = "komponenter" }
 kelvin-dbtest = { module = "no.nav.aap.kelvin:dbtest", version.ref = "komponenter" }
 kelvin-json = { module = "no.nav.aap.kelvin:json", version.ref = "komponenter" }
-
 kelvin-motor = { module = "no.nav.aap.kelvin:motor", version.ref = "komponenter" }
 kelvin-motor-api = { module = "no.nav.aap.kelvin:motor-api", version.ref = "komponenter" }
-
 tilgang-plugin = { module = "no.nav.aap.tilgang:plugin", version.ref = "tilgang" }
 tilgang-plugin-kontrakt = { module = "no.nav.aap.tilgang:plugin-kontrakt", version.ref = "tilgang" }
-
 behandlingsflyt-kontrakt = { module = "no.nav.aap.behandlingsflyt:kontrakt", version.ref = "behandlingsflyt" }
-
 oppgave-api-kontrakt = { module = "no.nav.aap.oppgave:api-kontrakt", version.ref = "oppgave" }
-
 arenaoppslag-kontrakt = { module = "no.nav.aap.arenaoppslag:kontrakt", version.ref = "arenaoppslag" }
-
-ktor-serialization-jackson = { module = "io.ktor:ktor-serialization-jackson", version.ref = "ktor" }
-ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor" }
-ktor-server-auth-jwt = { module = "io.ktor:ktor-server-auth-jwt", version.ref = "ktor" }
-ktor-server-call-logging = { module = "io.ktor:ktor-server-call-logging", version.ref = "ktor" }
-ktor-server-call-logging-jvm = { module = "io.ktor:ktor-server-call-logging-jvm", version.ref = "ktor" }
-ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
-ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
-ktor-server-metrics-micrometer = { module = "io.ktor:ktor-server-metrics-micrometer", version.ref = "ktor" }
-ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor" }
-ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
-ktor-server-call-id = { module = "io.ktor:ktor-server-call-id", version.ref = "ktor" }
-ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
-ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
-ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
-ktor-client-jackson = { module = "io.ktor:ktor-client-jackson", version.ref = "ktor" }
-ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
-
-kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
-
-logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
-logstash-logback-encoder = { module = "net.logstash.logback:logstash-logback-encoder", version.ref = "logstashEncoder" }
-
-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
-jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
-
-micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
-prometheus-metrics-tracer-initializer = { module = "io.prometheus:prometheus-metrics-tracer-initializer", version.ref = "prometheus" }
-
-hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
 
 resilience4j-circuitbreaker = { module = "io.github.resilience4j:resilience4j-circuitbreaker", version.ref = "resilience4j" }
 resilience4j-kotlin = { module = "io.github.resilience4j:resilience4j-kotlin", version.ref = "resilience4j" }
 resilience4j-micrometer = { module = "io.github.resilience4j:resilience4j-micrometer", version.ref = "resilience4j" }
-
-caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
-
-assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
-nimbus-jose-jwt = { module = "com.nimbusds:nimbus-jose-jwt", version.ref = "nimbusJoseJwt" }
-junit-jupiter-params = { module = "org.junit.jupiter:junit-jupiter-params" }
-commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
-
-[plugins]
-ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
