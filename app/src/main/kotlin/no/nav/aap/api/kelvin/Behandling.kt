@@ -119,6 +119,9 @@ data class PeriodeMedBeløp(
     val fom: LocalDate,
     val tom: LocalDate,
     val beløp: BigDecimal,
+    // Midlertidig null, vil tømme db og refylle
+    val sats: BigDecimal?,
+    val uredusertBeløp: BigDecimal?
 )
 
 /**

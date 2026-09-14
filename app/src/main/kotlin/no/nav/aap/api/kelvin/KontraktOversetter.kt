@@ -148,5 +148,7 @@ fun PeriodeMedBeløpDTO.tilDomene(): PeriodeMedBeløp {
         fom = this.fom,
         tom = this.tom,
         beløp = this.beløp,
+        sats = this.sats,
+        uredusertBeløp = this.uredusertBeløp
     )
 }
