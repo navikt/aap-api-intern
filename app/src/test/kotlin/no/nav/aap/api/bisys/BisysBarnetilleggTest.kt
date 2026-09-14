@@ -160,13 +160,25 @@ class BisysBarnetilleggTest : PostgresTestBase() {
                         BarnMedBarnetillegg(
                             ident = barnIdent,
                             perioderMedBarnetillegg = listOf(
-                                PeriodeMedBeløp(fom = fom, tom = tom, beløp = BigDecimal(38)),
+                                PeriodeMedBeløp(
+                                    fom = fom,
+                                    tom = tom,
+                                    beløp = BigDecimal(38),
+                                    sats = null,
+                                    uredusertBeløp = null
+                                ),
                             ),
                         ),
                         BarnMedBarnetillegg(
                             ident = null,
                             perioderMedBarnetillegg = listOf(
-                                PeriodeMedBeløp(fom = fom, tom = tom, beløp = BigDecimal(38)),
+                                PeriodeMedBeløp(
+                                    fom = fom,
+                                    tom = tom,
+                                    beløp = BigDecimal(38),
+                                    sats = null,
+                                    uredusertBeløp = null
+                                ),
                             ),
                         ),
                     ),

@@ -101,14 +101,14 @@ class BehandlingsRepositoryTest {
             BarnMedBarnetillegg(
                 ident = "12345678901",
                 perioderMedBarnetillegg = listOf(
-                    PeriodeMedBeløp(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 2, 1), BigDecimal("38")),
-                    PeriodeMedBeløp(LocalDate.of(2021, 2, 2), LocalDate.of(2021, 3, 1), BigDecimal("76")),
+                    PeriodeMedBeløp(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 2, 1), BigDecimal("38"), null, null),
+                    PeriodeMedBeløp(LocalDate.of(2021, 2, 2), LocalDate.of(2021, 3, 1), BigDecimal("76"), null, null),
                 ),
             ),
             BarnMedBarnetillegg(
                 ident = null,
                 perioderMedBarnetillegg = listOf(
-                    PeriodeMedBeløp(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 4, 1), BigDecimal("38")),
+                    PeriodeMedBeløp(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 4, 1), BigDecimal("38"), null, null),
                 ),
             ),
         ),

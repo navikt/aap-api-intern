@@ -318,8 +318,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
         }
         connection.executeBatch(
             """
-                INSERT INTO BARN_MED_BARNETILLEGG (BEHANDLING_ID, IDENT, PERIODE, BELOP)
-                VALUES (?, ?, ?::daterange, ?)
+                INSERT INTO BARN_MED_BARNETILLEGG (BEHANDLING_ID, IDENT, PERIODE, BELOP, SATS, UREDUSERT_BELOP)
+                VALUES (?, ?, ?::daterange, ?, ?, ?)
             """.trimIndent(),
             barnetilleggRader
         ) {
@@ -328,6 +328,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 setString(2, ident)
                 setPeriode(3, Periode(periodeMedBeløp.fom, periodeMedBeløp.tom))
                 setBigDecimal(4, periodeMedBeløp.beløp)
+                setBigDecimal(5, periodeMedBeløp.sats)
+                setBigDecimal(6, periodeMedBeløp.uredusertBeløp)
             }
         }
     }
@@ -483,6 +485,8 @@ class BehandlingsRepository(private val connection: DBConnection) {
                     fom = periode.fom,
                     tom = periode.tom,
                     beløp = row.getBigDecimal("BELOP"),
+                    sats = row.getBigDecimalOrNull("SATS"),
+                    uredusertBeløp = row.getBigDecimalOrNull("UREDUSERT_BELOP"),
                 )
             }
         }
