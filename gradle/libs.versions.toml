@@ -1,9 +1,9 @@
 [versions]
-komponenter = "2.0.161"
-tilgang = "1.0.238"
+komponenter = "2.0.163"
+tilgang = "1.0.240"
 behandlingsflyt = "0.0.663"
-oppgave = "0.0.207"
-arenaoppslag = "0.6.1"
+oppgave = "0.0.215"
+arenaoppslag = "0.6.2"
 resilience4j = "2.4.0"
 prometheus = "1.8.0"
 
