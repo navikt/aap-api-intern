@@ -36,7 +36,7 @@ class DsopService(
         clock: Clock = Clock.systemDefaultZone(),
     ) : this(
         behandlingsRepository = BehandlingsRepository(connection),
-        meldekortService = MeldekortService(connection, pdlGateway, clock),
+        meldekortService = MeldekortService(connection, pdlGateway),
         clock = clock,
     )
 
