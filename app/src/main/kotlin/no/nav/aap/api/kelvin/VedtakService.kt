@@ -54,7 +54,7 @@ class VedtakService(
                 }
 
             val tilkjentPerioder =
-                behandling.tilkjent.splittOppIPerioder(perioderMedArena.perioder().toList())
+                behandling.tilkjentUtenHelger.splittOppIPerioder(perioderMedArena.perioder().toList())
 
             perioderMedArena.kombiner(
                 tilkjentPerioder,
@@ -100,16 +100,6 @@ class VedtakService(
         }
 
         return InternMaksimum(vedtak)
-    }
-
-    fun tilkjentYtelseForPeriode(fnr: String, periode: Periode): List<Segment<TilkjentYtelse>> {
-        return behandlingsRepository.hentVedtaksData(fnr, periode)
-            // Antar høyeste vedtak-id er nyeste behandling.
-            .maxByOrNull { it.vedtakId }
-            ?.tilkjent.orEmpty()
-            .begrensetTil(periode)
-            .segmenter()
-            .toList()
     }
 
     private fun hentTilkjentYtelseForPeriode(

@@ -53,7 +53,7 @@ class NksMeldeperioderService(
 
         val fritakMeldepliktTidslinje = behandling?.fritakMeldepliktTidslinje.orEmpty().komprimer()
 
-        val tilkjentYtelseTidslinje = behandling?.tilkjent.orEmpty()
+        val tilkjentYtelseTidslinje = behandling?.tilkjentUtenHelger.orEmpty()
 
         val meldeperioder = underveistidslinje.map { it.meldeperiode }.komprimer().verdier()
 
