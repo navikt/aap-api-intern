@@ -1,7 +1,7 @@
 [versions]
-komponenter = "2.0.163"
+komponenter = "2.0.165"
 tilgang = "1.0.240"
-behandlingsflyt = "0.0.663"
+behandlingsflyt = "0.0.664"
 oppgave = "0.0.215"
 arenaoppslag = "0.6.2"
 resilience4j = "2.4.0"
