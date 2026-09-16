@@ -8,10 +8,32 @@ import java.time.LocalDateTime
 import kotlin.math.roundToInt
 import no.nav.aap.api.intern.DsopVedtaksTypeDTO
 import no.nav.aap.api.intern.DsopVedtaksvariantDTO
+import no.nav.aap.komponenter.tidslinje.StandardSammenslåere
 import no.nav.aap.komponenter.tidslinje.Tidslinje
 import no.nav.aap.komponenter.tidslinje.somTidslinje
 import no.nav.aap.komponenter.type.Periode
+import java.time.DayOfWeek
 
+private fun Periode.finnHelger(): List<Periode> {
+    return dager()
+        .filter { it.dayOfWeek == DayOfWeek.SATURDAY || it.dayOfWeek == DayOfWeek.SUNDAY }
+        .map { Periode(it, it) }
+}
+
+/** Fjerner helger fra tidslinjen. Ser kun på periodene som faktisk finnes i tidslinjen,
+ * ikke hull mellom dem, for å unngå å iterere over unødvendig mange dager. */
+fun <T> Tidslinje<T>.utenHelger(): Tidslinje<T> {
+    val helger = segmenter()
+        .flatMap { it.periode.finnHelger() }
+        .somTidslinje({ it }, {})
+        .komprimer()
+
+    return this.kombiner(helger, StandardSammenslåere.minus()).komprimer()
+}
+
+/**
+ * @param tilkjent Tilkjent ytelse-tidslinje, _med_ positiv dagsats i helger. Så bør ikke brukes som en proxy for "utbetalinger".
+ */
 data class Behandling(
     val behandlingsReferanse: String,
     @Deprecated("Ikke del denne utad.")
@@ -35,6 +57,10 @@ data class Behandling(
     val rettighetsTypeTidslinje: Tidslinje<String>
         get() = rettighetsTypePerioder.somTidslinje({ it.periode }, { it.verdi })
             .komprimer()
+
+    /** [tilkjent], men uten helger. AAP utbetales ikke for lørdag/søndag, så bruk denne
+     * når du skal beregne dagsats/utbetaling. */
+    val tilkjentUtenHelger: Tidslinje<TilkjentYtelse> by lazy { tilkjent.utenHelger() }
 
     val underveisTidslinje get() = underveisperioder.somTidslinje({ it.periode }, { it })
 

@@ -322,7 +322,14 @@ class NksMeldeperioderTest : PostgresTestBase() {
                         effektivDagsats = 650,
                         gradering = 70,
                         periodeFom = førsteMeldeperiodeFom,
-                        periodeTom = førsteMeldeperiodeTom,
+                        periodeTom = LocalDate.of(2026, 6, 19),
+                    ),
+                    NksDagsats(
+                        dagsats = 1000,
+                        effektivDagsats = 650,
+                        gradering = 70,
+                        periodeFom = LocalDate.of(2026, 6, 22),
+                        periodeTom = LocalDate.of(2026, 6, 26),
                     )
                 ),
                 meldeplikt = listOf(
@@ -372,7 +379,14 @@ class NksMeldeperioderTest : PostgresTestBase() {
                         effektivDagsats = 900,
                         gradering = 100,
                         periodeFom = andreMeldeperiodeFom,
-                        periodeTom = andreMeldeperiodeTom,
+                        periodeTom = LocalDate.of(2026, 7, 3),
+                    ),
+                    NksDagsats(
+                        dagsats = 900,
+                        effektivDagsats = 900,
+                        gradering = 100,
+                        periodeFom = LocalDate.of(2026, 7, 6),
+                        periodeTom = LocalDate.of(2026, 7, 10),
                     )
                 ),
                 meldeplikt = listOf(
