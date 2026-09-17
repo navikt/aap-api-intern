@@ -136,6 +136,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     arenaService = Fakes.getArenaService(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
 
@@ -194,6 +195,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     arenaService = Fakes.getArenaService(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
 
@@ -244,6 +246,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     arenaService = Fakes.getArenaService(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
 
@@ -358,6 +361,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     arenaService = Fakes.getArenaService(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
 
@@ -415,6 +419,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     arenaService = Fakes.getArenaService(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
 
@@ -517,6 +522,7 @@ class BehandlingsDataTest : PostgresTestBase() {
                     arenaService = Fakes.getArenaService(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse(),
                     clock = clock
                 )
             }

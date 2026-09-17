@@ -129,6 +129,7 @@ class BisysBarnetilleggTest : PostgresTestBase() {
             pdlGateway = PdlGatewayEmpty(),
             modiaProducer = Fakes.getKafka(),
             aapHendelseProducer = Fakes.getAapHendelse(),
+            arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
         )
     }
 

@@ -55,6 +55,7 @@ class ArenaOppslagTest {
                     arenaService = Fakes.getArenaService(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
             testBlock(token)

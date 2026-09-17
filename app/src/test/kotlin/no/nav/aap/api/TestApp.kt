@@ -32,6 +32,7 @@ fun main() {
             pdlGateway = PdlGatewayEmpty(),
             modiaProducer = Fakes.getKafka(),
             aapHendelseProducer = Fakes.getAapHendelse(),
+            arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
         )
         loggStoppOgRyddOpp(Fakes, dataSource)
     }.start(wait = true)

@@ -128,6 +128,7 @@ class KelvinOboTest {
                         pdlGateway = PdlGatewayEmpty(),
                         aapHendelseProducer = Fakes.getAapHendelse(),
                         modiaProducer = Fakes.getKafka(),
+                        arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                     )
                 }
 

@@ -1,6 +1,7 @@
 package no.nav.aap.api.motor
 
 import no.nav.aap.api.motor.jobber.SendAapHendelseUtfører
+import no.nav.aap.api.motor.jobber.SendArbeidsoppfølgingHendelseUtfører
 import no.nav.aap.api.motor.jobber.SendModiaHendelseUtfører
 import no.nav.aap.motor.Jobb
 
@@ -12,6 +13,7 @@ object ProsesseringsJobber {
         return listOf(
             SendAapHendelseUtfører,
             SendModiaHendelseUtfører,
+            SendArbeidsoppfølgingHendelseUtfører
         )
     }
 }

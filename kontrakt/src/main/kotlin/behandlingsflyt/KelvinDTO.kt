@@ -16,6 +16,10 @@ public data class OppdaterIdenterDto(
     val identer: List<String>,
 )
 
+public data class NySøknadDto(
+    val personident: String,
+)
+
 /**
  * Payload fra behandlingsflyt. Ikke del denne ut.
  */

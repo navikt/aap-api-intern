@@ -25,6 +25,9 @@ object TestConfig {
             modia = ModiaConfig(
                 topic = "test"
             ),
+            arbeidsoppfølging = ArbeidsoppfølgingConfig(
+                topic = "test"
+            ),
             aapHendelse = AapHendelseConfig(
                 topic = "test-aap-hendelse-topic"
             )

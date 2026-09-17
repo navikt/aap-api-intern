@@ -43,6 +43,7 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                         modiaProducer = Fakes.getKafka(),
                         aapHendelseProducer = Fakes.getAapHendelse(),
                         pdlGateway = PdlGatewayEmpty(),
+                        arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                     )
                 }
 
@@ -109,6 +110,7 @@ class MeldekortPeriodeTest : PostgresTestBase() {
                         modiaProducer = Fakes.getKafka(),
                         aapHendelseProducer = Fakes.getAapHendelse(),
                         pdlGateway = PdlGatewayEmpty(),
+                        arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                     )
                 }
                 //Disabled OBO TEST, SJEKK VED LEDIG KAPASITET

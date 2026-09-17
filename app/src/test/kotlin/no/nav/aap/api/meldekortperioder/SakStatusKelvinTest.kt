@@ -81,6 +81,7 @@ class SakStatusKelvinTest {
                         modiaProducer = Fakes.getKafka(),
                         aapHendelseProducer = Fakes.getAapHendelse(),
                         pdlGateway = PdlGatewayEmpty(),
+                        arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                     )
                 }
 
