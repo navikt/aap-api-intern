@@ -12,11 +12,10 @@ import no.nav.aap.api.intern.behandlingsflyt.NySøknadDto
 import no.nav.aap.api.intern.behandlingsflyt.OppdaterIdenterDto
 import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
 import no.nav.aap.api.kafka.Hendelse
+import no.nav.aap.api.kafka.arbeidsoppfølging.arbeidsoppfølgingProducerHolder
 import no.nav.aap.api.motor.jobber.AapHendelsePayload
-import no.nav.aap.api.motor.jobber.ArbeidsoppfølgingHendelsePayload
 import no.nav.aap.api.motor.jobber.ModiaHendelsePayload
 import no.nav.aap.api.motor.jobber.SendAapHendelseUtfører
-import no.nav.aap.api.motor.jobber.SendArbeidsoppfølgingHendelseUtfører
 import no.nav.aap.api.motor.jobber.SendModiaHendelseUtfører
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortDetaljerRepository
@@ -31,7 +30,6 @@ import no.nav.aap.motor.JobbInput
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
-import org.slf4j.LoggerFactory
 import javax.sql.DataSource
 
 fun NormalOpenAPIRoute.dataInsertion(
@@ -170,12 +168,7 @@ fun NormalOpenAPIRoute.dataInsertion(
                 info("Kalles hver gang behandlingsflyt mottar en søknad. Endepunktet kan kun brukes av behandlingsflyt. Sender hendelse til Modia arbeidsoppfølging.")
             ).toTypedArray()
         ) { _, req ->
-            dataSource.transaction { connection ->
-                val arbeidsoppfølgingJobbInput = JobbInput(SendArbeidsoppfølgingHendelseUtfører)
-                    .medPayload(DefaultJsonMapper.toJson(ArbeidsoppfølgingHendelsePayload(req.personident)))
-                val flytJobbRepository = FlytJobbRepository(connection)
-                flytJobbRepository.leggTil(arbeidsoppfølgingJobbInput)
-            }
+            arbeidsoppfølgingProducerHolder.produce(req.personident)
             respondWithStatus(HttpStatusCode.OK)
         }
     }
