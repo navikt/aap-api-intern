@@ -15,7 +15,7 @@ internal fun List<SakStatus.Kelvin>.kelvinTilDabSaker(): List<DabSak.Kelvin> =
     }
 
 internal fun List<SakStatus.Arena>.arenaTilDabSaker(): List<DabSak.Arena> =
-    distinctBy(SakStatus.Arena::sakId).map { sak ->
+    map { sak ->
         DabSak.Arena(
             sakId = sak.sakId,
             statusKode = sak.statusKode.tilKontrakt(),
