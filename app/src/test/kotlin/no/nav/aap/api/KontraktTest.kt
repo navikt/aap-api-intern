@@ -77,6 +77,7 @@ class KontraktTest : PostgresTestBase() {
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
                     pdlGateway = PdlGatewayEmpty(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
 

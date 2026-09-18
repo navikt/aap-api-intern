@@ -163,6 +163,7 @@ class NksMeldeperioderTest : PostgresTestBase() {
                     aapHendelseProducer = Fakes.getAapHendelse(),
                     pdlGateway = PdlGatewayEmpty(),
                     clock = clock,
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
             block()

@@ -178,6 +178,8 @@ spec:
       value: obo.ytelser-v1
     - name: AAP_HENDELSE_TOPIC
       value: aap.api-intern-hendelse-v1
+    - name: ARBEIDSOPPFOLGING_TOPIC
+      value: poao.start-oppfolging
     - name: AZP_MELDEKORT_BACKEND
       value: 1546a011-c525-4022-a7dc-4b7b41c82ef9
     - name: AZP_SAAS_PROXY
