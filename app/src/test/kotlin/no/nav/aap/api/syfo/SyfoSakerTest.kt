@@ -83,6 +83,7 @@ class SyfoSakerTest : PostgresTestBase() {
                     pdlGateway = PdlGatewayEmpty(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
 
@@ -167,6 +168,7 @@ class SyfoSakerTest : PostgresTestBase() {
                     pdlGateway = PdlGatewayEmpty(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
 
@@ -198,6 +200,7 @@ class SyfoSakerTest : PostgresTestBase() {
                     pdlGateway = PdlGatewayEmpty(),
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
 

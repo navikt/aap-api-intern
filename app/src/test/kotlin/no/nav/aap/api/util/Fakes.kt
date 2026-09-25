@@ -36,6 +36,7 @@ object Fakes : AutoCloseable {
 
     private val kafka = KafkaFake()
     private val aapHendelse = AapHendelseKafkaFake()
+    private val arbeidsoppfølgingHendelse = ArbeidsoppfølgingKafkaFake()
     private val arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway())
 
     var tilgangResponse: TilgangResponse = TilgangResponse(true)
@@ -69,6 +70,7 @@ object Fakes : AutoCloseable {
         dokumentinnhenting.stop(0L, 0L)
         kafka.close()
         aapHendelse.close()
+        arbeidsoppfølgingHendelse.close()
     }
 
     fun getArenaService() = arenaService
@@ -78,6 +80,8 @@ object Fakes : AutoCloseable {
     fun getKafka() = kafka
 
     fun getAapHendelse() = aapHendelse
+
+    fun getArbeidsoppfølgingHendelse() = arbeidsoppfølgingHendelse
 
     fun getTexasPort() = texas.port()
 

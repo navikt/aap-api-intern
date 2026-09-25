@@ -67,6 +67,7 @@ class HolmesArbeidstimerTest : PostgresTestBase() {
                     aapHendelseProducer = Fakes.getAapHendelse(),
                     pdlGateway = PdlGatewayEmpty(),
                     clock = clock,
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
 
@@ -115,6 +116,7 @@ class HolmesArbeidstimerTest : PostgresTestBase() {
                     modiaProducer = Fakes.getKafka(),
                     aapHendelseProducer = Fakes.getAapHendelse(),
                     pdlGateway = PdlGatewayEmpty(),
+                    arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
                 )
             }
 

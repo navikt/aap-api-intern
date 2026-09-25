@@ -5,14 +5,16 @@ import com.papsign.ktor.openapigen.route.path.normal.NormalOpenAPIRoute
 import com.papsign.ktor.openapigen.route.response.respondWithStatus
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
-import io.ktor.http.*
-import io.ktor.server.response.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
 import io.micrometer.core.instrument.DistributionSummary
 import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.Tag
+import no.nav.aap.api.intern.behandlingsflyt.NySøknadDto
 import no.nav.aap.api.intern.behandlingsflyt.OppdaterIdenterDto
 import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
 import no.nav.aap.api.kafka.Hendelse
+import no.nav.aap.api.kafka.arbeidsoppfølging.arbeidsoppfølgingProducerHolder
 import no.nav.aap.api.motor.jobber.AapHendelsePayload
 import no.nav.aap.api.motor.jobber.ModiaHendelsePayload
 import no.nav.aap.api.motor.jobber.SendAapHendelseUtfører
@@ -157,6 +159,20 @@ fun NormalOpenAPIRoute.dataInsertion(
                     )
                 }
 
+                respondWithStatus(HttpStatusCode.OK)
+            }
+
+            route("/ny-soknad").authorizedPost<Unit, Unit, NySøknadDto>(
+                routeConfig = AuthorizationBodyPathConfig(
+                    operasjon = Operasjon.SE,
+                    applicationsOnly = true,
+                    applicationRole = "add-data",
+                ),
+                modules = listOf(
+                    info("Kalles hver gang behandlingsflyt mottar en søknad. Endepunktet kan kun brukes av behandlingsflyt. Sender hendelse til Modia arbeidsoppfølging.")
+                ).toTypedArray()
+            ) { _, req ->
+                arbeidsoppfølgingProducerHolder.produce(req.personident)
                 respondWithStatus(HttpStatusCode.OK)
             }
         }

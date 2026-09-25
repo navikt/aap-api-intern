@@ -17,6 +17,7 @@ data class AppConfig(
     ),
     val modia: ModiaConfig = ModiaConfig(),
     val aapHendelse: AapHendelseConfig = AapHendelseConfig(),
+    val arbeidsoppfølging: ArbeidsoppfølgingConfig = ArbeidsoppfølgingConfig(),
 ){
     companion object {
         const val ANTALL_WORKERS: Int = 4
@@ -46,6 +47,10 @@ data class ArenaoppslagConfig(
 
 data class ModiaConfig(
     val topic: String = getEnvVar("MODIA_TOPIC"),
+)
+
+data class ArbeidsoppfølgingConfig(
+    val topic: String = getEnvVar("ARBEIDSOPPFOLGING_TOPIC"),
 )
 
 data class AapHendelseConfig(

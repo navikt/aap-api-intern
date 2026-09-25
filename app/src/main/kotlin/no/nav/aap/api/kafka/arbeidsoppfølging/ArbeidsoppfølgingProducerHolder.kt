@@ -1,0 +1,3 @@
+package no.nav.aap.api.kafka.arbeidsoppfølging
+
+lateinit var arbeidsoppfølgingProducerHolder: ArbeidsoppfølgingProducer

@@ -33,6 +33,9 @@ import no.nav.aap.api.kafka.AapHendelseKafkaProducer
 import no.nav.aap.api.kafka.aapHendelseProducerHolder
 import no.nav.aap.api.kafka.KafkaProducer
 import no.nav.aap.api.kafka.ModiaKafkaProducer
+import no.nav.aap.api.kafka.arbeidsoppfølging.ArbeidsoppfølgingKafkaProducer
+import no.nav.aap.api.kafka.arbeidsoppfølging.ArbeidsoppfølgingProducer
+import no.nav.aap.api.kafka.arbeidsoppfølging.arbeidsoppfølgingProducerHolder
 import no.nav.aap.api.kafka.modiaProducerHolder
 import no.nav.aap.api.kelvin.dataInsertion
 import no.nav.aap.api.motor.ProsesseringsJobber
@@ -98,6 +101,11 @@ fun Application.api(
         config.modia,
         AppConfig.shutdownGracePeriod
     ),
+    arbeidsoppfølgingProducer: ArbeidsoppfølgingProducer = ArbeidsoppfølgingKafkaProducer(
+        config.kafka,
+        config.arbeidsoppfølging,
+        AppConfig.shutdownGracePeriod
+    )
 ) {
     install(StatusPages, StatusPagesConfigHelper.setup())
 
@@ -130,6 +138,7 @@ fun Application.api(
 
     aapHendelseProducerHolder = aapHendelseProducer
     modiaProducerHolder = modiaProducer
+    arbeidsoppfølgingProducerHolder = arbeidsoppfølgingProducer
     
     val påkrevdeRollerMotor = if(Miljø.erProd()) listOf(TeamAap.id) else emptyList()
 
@@ -169,6 +178,11 @@ fun Application.api(
                     modiaProducer.close()
                 } catch (e: Exception) {
                     logger.warn("Feil ved lukking av modiaProducer", e)
+                }
+                try {
+                    arbeidsoppfølgingProducer.close()
+                } catch (e: Exception) {
+                    logger.warn("Feil ved lukking av arbeidsoppfølgingProducer", e)
                 }
             }
         } catch (_: Exception) {
