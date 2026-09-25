@@ -77,6 +77,7 @@ data class CallIdHeader(
 
 enum class Tag(override val description: String) : APITag {
     Perioder("For å hente perioder med AAP"),
+    PushFraBehandlingsflyt("Endepunkter som kalles fra behandlingsflyt"),
     Saker("For å hente AAP-saker"),
     NKS("Endepunkter brukt av NKS"),
     Meldekort("For å hente AAP-meldekort"),

@@ -137,6 +137,20 @@ class SyfoSakerTest : PostgresTestBase() {
                                 ),
                             ),
                         ),
+                        SyfoSak.Arena(
+                            sakid = arenaSakId,
+                            statuskode = ArenaStatus.GODKJ,
+                            vedtak = listOf(
+                                SyfoVedtak(
+                                    vedtaksdato = fom.minusDays(1),
+                                    perioder = listOf(SakStatusPeriode(fom, tom)),
+                                ),
+                                SyfoVedtak(
+                                    vedtaksdato = fom,
+                                    perioder = listOf(SakStatusPeriode(fom, tom)),
+                                ),
+                            ),
+                        ),
                     ),
                 ),
             )

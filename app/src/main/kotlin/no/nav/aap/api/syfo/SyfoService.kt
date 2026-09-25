@@ -69,7 +69,7 @@ private fun List<SakStatus.Kelvin>.tilSyfoSaker(): List<SyfoSak.Kelvin> =
 private fun List<SakStatus.Arena>.tilSyfoSaker(
     vedtak: Map<String, List<SyfoVedtak>>,
 ): List<SyfoSak.Arena> =
-    distinctBy(SakStatus.Arena::sakId).map { sak ->
+    map { sak ->
         SyfoSak.Arena(
             sakid = sak.sakId,
             statuskode = sak.statusKode.tilKontrakt(),
