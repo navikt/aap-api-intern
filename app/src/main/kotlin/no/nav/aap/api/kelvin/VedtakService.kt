@@ -203,32 +203,32 @@ fun weekdaysBetween(startDate: LocalDate, endDate: LocalDate): Int {
  * @param vedtakId Svarer til ID til vedtak-tabellen i behandlingsflyt.
  */
 data class VedtakUtenUtbetalingUtenPeriode(
-    @param:Description("ID som deles i forbindelse med samordning.")
+    @property:Description("ID som deles i forbindelse med samordning.")
     val vedtakId: String,
-    @param:Description("Full dagsats før reduksjoner.")
+    @property:Description("Full dagsats før reduksjoner.")
     val dagsats: Int,
-    @param:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin). Ved manglende data er denne null.")
+    @property:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin). Ved manglende data er denne null.")
     val dagsatsEtterUføreReduksjon: Int,
-    @param:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES. Per i dag konstant lik LØPENDE.")
+    @property:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES. Per i dag konstant lik LØPENDE.")
     val status: String,
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
-    @param:Description("Rettighetsgruppe. For data fra Arena er dette aktivitetsfasekode.")
+    @property:Description("Rettighetsgruppe. For data fra Arena er dette aktivitetsfasekode.")
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,
 
-    @param:Description("Antall barn som gir rett til barnetillegg.")
+    @property:Description("Antall barn som gir rett til barnetillegg.")
     /** Antall barn som gir rett til barnetillegg.  */
     val barnMedStonad: Int,
 
-    @param:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
+    @property:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
     val kildesystem: InternKilde,
     val samordningOgTpnr: List<SamIdOgTpnr> = emptyList(),
     val opphorsAarsak: String? = null,
     val lopenrvedtak: Int? = null,
     val relatertVedtak: Int? = null,
 
-    @param:Description(
+    @property:Description(
         """
      Størrelsen på ugradert barnetilleggsats.
     

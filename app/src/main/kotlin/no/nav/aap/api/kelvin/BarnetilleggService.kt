@@ -8,6 +8,8 @@ import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.komponenter.dbconnect.DBConnection
 import no.nav.aap.komponenter.type.Periode
 import no.nav.aap.komponenter.verdityper.Tid
+import org.slf4j.LoggerFactory
+import java.math.BigDecimal
 import java.time.Clock
 import java.time.LocalDate
 
@@ -17,6 +19,8 @@ class BarnetilleggService(
     private val clock: Clock,
 ) {
     private val behandlingsRepository = BehandlingsRepository(connection)
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     fun hentBarnetillegg(
         personIdentifikator: String,
@@ -36,7 +40,16 @@ class BarnetilleggService(
             BisysBarnMedBarnetillegg(
                 ident = barn.ident,
                 perioderMedBarnetillegg = barn.perioderMedBarnetillegg.map {
-                    BisysPeriodeMedBeløp(fra = it.fom, til = it.tom, beløp = it.beløp)
+                    if (it.uredusertBeløp == null || it.sats == null) {
+                        log.warn("Sats eller full sats er null, for behandling ${behandling.behandlingsReferanse}. Sats: ${it.sats}. Uredusert beløp: ${it.uredusertBeløp}")
+                    }
+                    BisysPeriodeMedBeløp(
+                        fra = it.fom,
+                        til = it.tom,
+                        beløp = it.beløp,
+                        sats = it.sats ?: BigDecimal.ZERO,
+                        uredusertBeløp = it.uredusertBeløp ?: BigDecimal.ZERO,
+                    )
                 },
             )
         }

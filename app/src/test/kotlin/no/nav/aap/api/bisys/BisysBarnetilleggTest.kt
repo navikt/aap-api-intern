@@ -64,13 +64,25 @@ class BisysBarnetilleggTest : PostgresTestBase() {
                 BisysBarnMedBarnetillegg(
                     ident = barnIdent,
                     perioderMedBarnetillegg = listOf(
-                        BisysPeriodeMedBeløp(fra = fom, til = tom, beløp = BigDecimal(38)),
+                        BisysPeriodeMedBeløp(
+                            fra = fom,
+                            til = tom,
+                            beløp = BigDecimal(38),
+                            sats = BigDecimal(1),
+                            uredusertBeløp = BigDecimal(1),
+                        ),
                     ),
                 ),
                 BisysBarnMedBarnetillegg(
                     ident = null,
                     perioderMedBarnetillegg = listOf(
-                        BisysPeriodeMedBeløp(fra = fom, til = tom, beløp = BigDecimal(38)),
+                        BisysPeriodeMedBeløp(
+                            fra = fom,
+                            til = tom,
+                            beløp = BigDecimal(38),
+                            sats = BigDecimal(1),
+                            uredusertBeløp = BigDecimal(1),
+                        ),
                     ),
                 )
             )
@@ -165,8 +177,8 @@ class BisysBarnetilleggTest : PostgresTestBase() {
                                     fom = fom,
                                     tom = tom,
                                     beløp = BigDecimal(38),
-                                    sats = null,
-                                    uredusertBeløp = null
+                                    sats = BigDecimal(1),
+                                    uredusertBeløp = BigDecimal(1)
                                 ),
                             ),
                         ),
@@ -177,8 +189,8 @@ class BisysBarnetilleggTest : PostgresTestBase() {
                                     fom = fom,
                                     tom = tom,
                                     beløp = BigDecimal(38),
-                                    sats = null,
-                                    uredusertBeløp = null
+                                    sats = BigDecimal(1),
+                                    uredusertBeløp = BigDecimal(1)
                                 ),
                             ),
                         ),

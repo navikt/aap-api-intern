@@ -5,18 +5,18 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 public data class HolmesArbeidstimerResponse(
-    @param:Description("Personidentifikator (fnr/dnr) for personen.")
+    @property:Description("Personidentifikator (fnr/dnr) for personen.")
     val personIdent: String,
-    @param:Description("Liste av meldeperioder med registrerte arbeidstimer.")
+    @property:Description("Liste av meldeperioder med registrerte arbeidstimer.")
     val meldeperioder: List<HolmesMeldeperiode>,
 )
 
 public data class HolmesMeldeperiode(
-    @param:Description("Fra-dato for meldeperioden.")
+    @property:Description("Fra-dato for meldeperioden.")
     val periodeFom: LocalDate,
-    @param:Description("Til-dato for meldeperioden. Disse er alltid to uker.")
+    @property:Description("Til-dato for meldeperioden. Disse er alltid to uker.")
     val periodeTom: LocalDate,
-    @param:Description("Timer registrert i denne meldeperioden.")
+    @property:Description("Timer registrert i denne meldeperioden.")
     val timerArbeid: List<HolmesTimerArbeid>,
 )
 
