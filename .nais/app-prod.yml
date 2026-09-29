@@ -142,9 +142,6 @@ spec:
         - application: bidrag-grunnlag
           namespace: bidrag
           cluster: prod-gcp
-        - application: bidrag-feature
-          namespace: bidrag
-          cluster: prod-gcp
     outbound:
       external:
         - host: arenaoppslag.prod-fss-pub.nais.io
