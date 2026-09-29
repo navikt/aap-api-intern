@@ -210,5 +210,7 @@ spec:
       value: 5afdf9f0-4487-41ef-b103-b4c35be4f9fb
     - name: AZP_BISYS
       value: f4b0316b-c636-481a-8c92-16b7ef646c98
+    - name: AZP_BISYS_FEATURE
+      value: b44d5afa-1900-44f6-921f-6ec13dee9e01
     - name: NAIS_TEAM_AAP
       value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5

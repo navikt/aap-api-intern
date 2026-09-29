@@ -15,6 +15,7 @@ import no.nav.aap.api.kelvin.BarnetilleggService
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.komponenter.config.requiredConfigForKey
 import no.nav.aap.komponenter.dbconnect.transaction
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.tilgang.AuthorizationBodyPathConfig
 import no.nav.aap.tilgang.Operasjon
 import no.nav.aap.tilgang.authorizedPost
@@ -31,9 +32,13 @@ fun NormalOpenAPIRoute.bisysRoutes(
         route("/bisys/barnetillegg").authorizedPost<CallIdHeader, BisysBarnetilleggResponse, BisysBarnetilleggRequest>(
             AuthorizationBodyPathConfig(
                 operasjon = Operasjon.SE,
-                authorizedAzps = listOf(
-                    UUID.fromString(requiredConfigForKey("AZP_BISYS")),
-                ) + azpForTokenGenHvisIkkeProd(),
+                authorizedAzps = buildList {
+                    add(UUID.fromString(requiredConfigForKey("AZP_BISYS")))
+                    addAll(azpForTokenGenHvisIkkeProd())
+                    if (Miljø.erDev()) {
+                        add(UUID.fromString(requiredConfigForKey("AZP_BISYS_FEATURE")))
+                    }
+                },
             ),
             null,
             null,
