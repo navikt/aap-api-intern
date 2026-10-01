@@ -5,7 +5,7 @@ behandlingsflyt = "0.0.669"
 oppgave = "0.0.216"
 arenaoppslag = "0.7.13"
 resilience4j = "2.4.0"
-prometheus = "1.8.0"
+prometheus = "1.9.0"
 
 [libraries]
 kelvin-server = { module = "no.nav.aap.kelvin:server", version.ref = "komponenter" }
