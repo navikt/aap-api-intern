@@ -15,7 +15,7 @@ include(
 dependencyResolutionManagement {
     versionCatalogs {
         create("kelvinLibs") {
-            from("no.nav.aap.kelvin:version-catalog:2.0.165")
+            from("no.nav.aap.kelvin:version-catalog:2.0.173")
         }
     }
     // Felles for alle gradle prosjekter i repoet
