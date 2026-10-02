@@ -30,7 +30,7 @@ class SakStatusSerializationTest {
     @Test
     fun `serialiserer og deserialiserer Kelvin SakStatus`() {
         val original = SakStatus.Kelvin(
-            statusKode = KelvinStatus.LØPENDE,
+            statusKode = KelvinStatus.SOKNAD_UNDER_BEHANDLING,
             periode = Periode(
                 fraOgMedDato = LocalDate.of(2024, 1, 1),
                 tilOgMedDato = LocalDate.of(2024, 12, 31)

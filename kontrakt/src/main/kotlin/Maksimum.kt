@@ -40,7 +40,7 @@ public data class Vedtak(
     val dagsatsEtterUføreReduksjon: Int?,
     @property:Description("Fra Kelvin: ID som deles i forbindelse med samordning. Fra Arena er dette vedtakets database-ID. Det bør ikke bygges logikk på denne.")
     val vedtakId: String,
-    @property:Description("Status på et vedtak. Mulige verdier fra Kelvin er LØPENDE, AVSLUTTET, UTREDES. Fra Kelvin per i dag konstant lik LØPENDE.")
+    @property:Description("Status på et vedtak. Mulige verdier fra Kelvin er LØPENDE. Fra Kelvin per i dag konstant lik LØPENDE.")
     val status: String,
     val saksnummer: String,
     val vedtaksdato: LocalDate,
