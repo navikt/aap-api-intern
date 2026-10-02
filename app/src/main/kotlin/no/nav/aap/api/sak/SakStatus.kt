@@ -58,7 +58,6 @@ enum class ArenaStatus {
 }
 
 enum class KelvinStatus {
-    UTREDES,
     SOKNAD_UNDER_BEHANDLING,
     REVURDERING_UNDER_BEHANDLING,
     FERDIGBEHANDLET,
@@ -104,7 +103,6 @@ fun Periode.tilKontrakt(): KontraktPeriode =
 
 fun KelvinStatus.tilKontrakt(): KontraktKelvinStatus =
     when (this) {
-        KelvinStatus.UTREDES -> KontraktKelvinStatus.UTREDES
         KelvinStatus.SOKNAD_UNDER_BEHANDLING -> KontraktKelvinStatus.SOKNAD_UNDER_BEHANDLING
         KelvinStatus.REVURDERING_UNDER_BEHANDLING -> KontraktKelvinStatus.REVURDERING_UNDER_BEHANDLING
         KelvinStatus.FERDIGBEHANDLET -> KontraktKelvinStatus.FERDIGBEHANDLET

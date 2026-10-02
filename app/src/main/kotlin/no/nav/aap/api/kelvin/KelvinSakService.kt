@@ -45,7 +45,6 @@ class KelvinSakService(
                     SakStatus.Kelvin(
                         sakId = kelvinSakStatus.sakId,
                         statusKode = when (kelvinSakStatus.statusKode) {
-                            SakstatusFraKelvin.UTREDES -> KelvinStatus.UTREDES
                             SakstatusFraKelvin.SOKNAD_UNDER_BEHANDLING -> KelvinStatus.SOKNAD_UNDER_BEHANDLING
                             SakstatusFraKelvin.REVURDERING_UNDER_BEHANDLING -> KelvinStatus.REVURDERING_UNDER_BEHANDLING
                             SakstatusFraKelvin.FERDIGBEHANDLET -> KelvinStatus.FERDIGBEHANDLET

@@ -139,38 +139,6 @@ public enum class ArenaStatus : SakStatusEnum {
 }
 
 public enum class KelvinStatus : SakStatusEnum {
-    // Disse skal bort fra Kelvin
-    OPPRETTET,
-    UTREDES,
-    LØPENDE,
-    AVSLUTTET,
-
-    // Disse kommer fra Kelvin
-    SOKNAD_UNDER_BEHANDLING,
-    REVURDERING_UNDER_BEHANDLING,
-    FERDIGBEHANDLET,
-}
-
-
-public enum class Status {
-    AVSLU,
-    FORDE,
-    GODKJ,
-    INNST,
-    IVERK,
-    KONT,
-    MOTAT,
-    OPPRE,
-    REGIS,
-    UKJENT,
-
-    // Disse skal bort fra Kelvin
-    OPPRETTET,
-    UTREDES,
-    LØPENDE,
-    AVSLUTTET,
-
-    // Disse kommer fra Kelvin
     SOKNAD_UNDER_BEHANDLING,
     REVURDERING_UNDER_BEHANDLING,
     FERDIGBEHANDLET,
