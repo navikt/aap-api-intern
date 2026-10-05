@@ -22,6 +22,8 @@ spec:
       cpu: 500m
       memory: 1Gi
   terminationGracePeriodSeconds: 30
+  tokenx:
+    enabled: true
   azure:
     application:
       enabled: true
@@ -79,6 +81,7 @@ spec:
           namespace: tilleggsstonader
           cluster: prod-gcp
         - application: postmottak-backend
+        - application: innsyn
         - application: arena
           namespace: teamarenanais
           cluster: prod-fss
@@ -201,3 +204,5 @@ spec:
       value: 17fd50b1-1a4b-4c09-be83-5b2c3a065224
     - name: NAIS_TEAM_AAP
       value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5
+    - name: MINE_AAP_CLIENT_ID
+      value: prod-gcp:aap:innsyn

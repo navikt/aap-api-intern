@@ -20,9 +20,6 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.routing.routing
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import java.time.Clock
-import javax.sql.DataSource
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.aap.api.actuator.actuator
@@ -37,7 +34,9 @@ import no.nav.aap.api.kafka.arbeidsoppfølging.ArbeidsoppfølgingKafkaProducer
 import no.nav.aap.api.kafka.arbeidsoppfølging.ArbeidsoppfølgingProducer
 import no.nav.aap.api.kafka.arbeidsoppfølging.arbeidsoppfølgingProducerHolder
 import no.nav.aap.api.kafka.modiaProducerHolder
+import no.nav.aap.api.kelvin.DokumentinnhentingGateway
 import no.nav.aap.api.kelvin.dataInsertion
+import no.nav.aap.api.mineaap.mineAaapApi
 import no.nav.aap.api.motor.ProsesseringsJobber
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.pdl.PdlGateway
@@ -53,9 +52,11 @@ import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
-import org.slf4j.LoggerFactory
-import no.nav.aap.api.kelvin.DokumentinnhentingGateway
 import no.nav.aap.tilgang.TeamAap
+import org.slf4j.LoggerFactory
+import java.time.Clock
+import javax.sql.DataSource
+import kotlin.time.Duration.Companion.minutes
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -125,7 +126,7 @@ fun Application.api(
                 url = "https://github.com/navikt/aap-api-intern",
             )
         ),
-        identityProvider = IdentityProvider.ENTRA_ID
+        identityProviders = listOf(IdentityProvider.TOKENX, IdentityProvider.ENTRA_ID)
     )
 
     val ds = datasourceFactory()
@@ -153,6 +154,11 @@ fun Application.api(
                 api(ds, arenaService, pdlGateway, clock)
                 dataInsertion(ds)
                 motorApi(ds, påkrevdeRollerMotor)
+            }
+        }
+        authenticate(IdentityProvider.TOKENX.value) {
+            apiRouting {
+                mineAaapApi(ds, pdlGateway)
             }
         }
         actuator(prometheus, motor)
