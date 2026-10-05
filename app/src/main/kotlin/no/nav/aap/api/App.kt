@@ -55,6 +55,7 @@ import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
 import org.slf4j.LoggerFactory
 import no.nav.aap.api.kelvin.DokumentinnhentingGateway
+import no.nav.aap.api.mineaap.mineAaapApi
 import no.nav.aap.tilgang.TeamAap
 
 private val logger = LoggerFactory.getLogger("App")
@@ -153,6 +154,11 @@ fun Application.api(
                 api(ds, arenaService, pdlGateway, clock)
                 dataInsertion(ds)
                 motorApi(ds, påkrevdeRollerMotor)
+            }
+        }
+        authenticate(IdentityProvider.TOKENX.value) {
+            apiRouting {
+                mineAaapApi(ds, pdlGateway)
             }
         }
         actuator(prometheus, motor)

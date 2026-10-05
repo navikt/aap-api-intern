@@ -23,6 +23,8 @@ spec:
       cpu: 500m
       memory: 1Gi
   terminationGracePeriodSeconds: 30
+  tokenx:
+    enabled: true
   azure:
     application:
       enabled: true
