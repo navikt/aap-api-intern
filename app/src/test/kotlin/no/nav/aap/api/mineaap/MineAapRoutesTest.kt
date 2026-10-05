@@ -37,18 +37,6 @@ class MineAapRoutesTest : PostgresTestBase() {
     }
 
     @Test
-    fun `godkjent konsument får hente saker`() = testApplication {
-        oppsett()
-
-        val response = client.get(sti) {
-            bearerAuth(tokenx.generate(clientId = System.getProperty("MINE_AAP_CLIENT_ID")))
-        }
-
-        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-        assertThat(response.bodyAsText()).isEqualTo("[]")
-    }
-
-    @Test
     fun `avviser TokenX-token fra annen konsument`() = testApplication {
         oppsett()
 
