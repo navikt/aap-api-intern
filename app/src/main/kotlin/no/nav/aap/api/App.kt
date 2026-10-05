@@ -17,7 +17,7 @@ import io.ktor.server.auth.authenticate
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.routing.routing
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import kotlinx.coroutines.Dispatchers
@@ -25,10 +25,15 @@ import kotlinx.coroutines.launch
 import no.nav.aap.api.actuator.actuator
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.arena.ArenaoppslagGateway
-import no.nav.aap.api.kafka.*
+import no.nav.aap.api.kafka.AapHendelseProducer
+import no.nav.aap.api.kafka.AapHendelseKafkaProducer
+import no.nav.aap.api.kafka.aapHendelseProducerHolder
+import no.nav.aap.api.kafka.KafkaProducer
+import no.nav.aap.api.kafka.ModiaKafkaProducer
 import no.nav.aap.api.kafka.arbeidsoppfølging.ArbeidsoppfølgingKafkaProducer
 import no.nav.aap.api.kafka.arbeidsoppfølging.ArbeidsoppfølgingProducer
 import no.nav.aap.api.kafka.arbeidsoppfølging.arbeidsoppfølgingProducerHolder
+import no.nav.aap.api.kafka.modiaProducerHolder
 import no.nav.aap.api.kelvin.DokumentinnhentingGateway
 import no.nav.aap.api.kelvin.dataInsertion
 import no.nav.aap.api.mineaap.mineAaapApi
