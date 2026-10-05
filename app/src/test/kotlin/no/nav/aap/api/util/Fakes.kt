@@ -126,6 +126,10 @@ object Fakes : AutoCloseable {
         System.setProperty("AZP_SYFOPERSON", UUID.randomUUID().toString())
         System.setProperty("AZP_DAB", UUID.randomUUID().toString())
         System.setProperty("AZP_BISYS", UUID.randomUUID().toString())
+
+        // Mine-aap
+        System.setProperty("MINE_AAP_CLIENT_ID", "localhost:aap:innsyn")
+
     }
 }
 
