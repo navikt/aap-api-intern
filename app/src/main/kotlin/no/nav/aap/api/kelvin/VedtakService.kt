@@ -34,7 +34,7 @@ class VedtakService(
                             dagsats = right?.verdi?.dagsats ?: 0,
                             dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
                                 ?: 0,
-                            status = Status.LØPENDE.name, // TODO
+                            status = Status.LØPENDE.name,
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
@@ -96,7 +96,6 @@ class VedtakService(
                     segment
                 }
             ).komprimer().segmenter().map { it.verdi }
-                .filter { it.status == Status.LØPENDE.toString() || it.status == Status.AVSLUTTET.toString() }
         }
 
         return InternMaksimum(vedtak)
