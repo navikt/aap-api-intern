@@ -8,6 +8,7 @@ import no.nav.aap.api.hentAllePersonidenter
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.util.auth.authorizedClientIds
 import no.nav.aap.komponenter.config.requiredConfigForKey
+import no.nav.aap.komponenter.miljo.Miljø
 import no.nav.aap.komponenter.server.auth.personBruker
 import javax.sql.DataSource
 
@@ -21,6 +22,7 @@ fun NormalOpenAPIRoute.mineAaapApi(
         )
         route("/saker-med-behandlinger") {
             get<Unit, List<Unit>> {
+                require(!Miljø.erProd()) { "ikke tilgjengelig i prod" }
                 val personIdenter = hentAllePersonidenter(listOf(personBruker().pid), pdlGateway)
                 respond(listOf())
             }
