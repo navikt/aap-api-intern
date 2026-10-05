@@ -45,9 +45,5 @@ fun Route.installClientIdAllowlist(config: ClientIdAllowlistConfig) {
     })
 }
 
-/**
- * Bekvemmelighetsfunksjon for ktor-openapigen-ruter: installerer [installClientIdAllowlist]
- * på den underliggende [Route] til denne [NormalOpenAPIRoute].
- */
 fun NormalOpenAPIRoute.authorizedClientIds(vararg clientId: String) =
     ktorRoute.installClientIdAllowlist(ClientIdAllowlistConfig(clientId.toList()))
