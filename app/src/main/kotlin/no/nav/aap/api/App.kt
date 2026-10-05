@@ -6,38 +6,25 @@ import com.papsign.ktor.openapigen.route.apiRouting
 import com.papsign.ktor.openapigen.route.route
 import com.papsign.ktor.openapigen.route.tag
 import com.zaxxer.hikari.HikariDataSource
-import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStarted
-import io.ktor.server.application.ApplicationStopPreparing
-import io.ktor.server.application.ApplicationStopped
-import io.ktor.server.application.ApplicationStopping
-import io.ktor.server.application.install
-import io.ktor.server.application.log
-import io.ktor.server.auth.authenticate
-import io.ktor.server.engine.connector
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.routing.routing
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.statuspages.*
+import io.ktor.server.routing.*
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
-import java.time.Clock
-import javax.sql.DataSource
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import no.nav.aap.api.actuator.actuator
 import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.arena.ArenaoppslagGateway
-import no.nav.aap.api.kafka.AapHendelseProducer
-import no.nav.aap.api.kafka.AapHendelseKafkaProducer
-import no.nav.aap.api.kafka.aapHendelseProducerHolder
-import no.nav.aap.api.kafka.KafkaProducer
-import no.nav.aap.api.kafka.ModiaKafkaProducer
+import no.nav.aap.api.kafka.*
 import no.nav.aap.api.kafka.arbeidsoppfølging.ArbeidsoppfølgingKafkaProducer
 import no.nav.aap.api.kafka.arbeidsoppfølging.ArbeidsoppfølgingProducer
 import no.nav.aap.api.kafka.arbeidsoppfølging.arbeidsoppfølgingProducerHolder
-import no.nav.aap.api.kafka.modiaProducerHolder
+import no.nav.aap.api.kelvin.DokumentinnhentingGateway
 import no.nav.aap.api.kelvin.dataInsertion
+import no.nav.aap.api.mineaap.mineAaapApi
 import no.nav.aap.api.motor.ProsesseringsJobber
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.pdl.PdlGateway
@@ -53,10 +40,11 @@ import no.nav.aap.motor.Motor
 import no.nav.aap.motor.api.motorApi
 import no.nav.aap.motor.mdc.NoExtraLogInfoProvider
 import no.nav.aap.motor.retry.RetryService
-import org.slf4j.LoggerFactory
-import no.nav.aap.api.kelvin.DokumentinnhentingGateway
-import no.nav.aap.api.mineaap.mineAaapApi
 import no.nav.aap.tilgang.TeamAap
+import org.slf4j.LoggerFactory
+import java.time.Clock
+import javax.sql.DataSource
+import kotlin.time.Duration.Companion.minutes
 
 private val logger = LoggerFactory.getLogger("App")
 
@@ -126,7 +114,7 @@ fun Application.api(
                 url = "https://github.com/navikt/aap-api-intern",
             )
         ),
-        identityProvider = IdentityProvider.ENTRA_ID
+        identityProviders = listOf(IdentityProvider.TOKENX, IdentityProvider.ENTRA_ID)
     )
 
     val ds = datasourceFactory()
