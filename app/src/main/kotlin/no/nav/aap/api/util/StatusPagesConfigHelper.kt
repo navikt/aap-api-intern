@@ -17,6 +17,7 @@ import no.nav.aap.komponenter.httpklient.httpclient.error.RequestTimeoutHttpResp
 import no.nav.aap.komponenter.httpklient.httpclient.error.UhåndtertHttpResponsException
 import no.nav.aap.komponenter.json.DeserializationException
 import org.slf4j.LoggerFactory
+import java.net.SocketTimeoutException
 
 object StatusPagesConfigHelper {
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -68,7 +69,8 @@ object StatusPagesConfigHelper {
                 }
 
                 is RequestTimeoutHttpResponseException,
-                is HttpRequestTimeoutException -> {
+                is HttpRequestTimeoutException,
+                is SocketTimeoutException -> {
                     logger.warn("Timeout mot $uri: ", cause)
                     call.respondWithError(TimeoutException("Forespørselen tok for lang tid. Prøv igjen om litt."))
                 }
@@ -78,8 +80,12 @@ object StatusPagesConfigHelper {
                         logger.warn("Ugyldig forespørsel ved kall til '$uri': ${cause.message}")
                         call.respondWithError(UgyldigForespørselException("Forespørselen inneholder ugyldige verdier"))
                     }
+
                     else -> {
-                        logger.error("Uhåndtert klientfeil ved kall til '$uri': ${cause.response.status}", cause)
+                        logger.error(
+                            "Uhåndtert klientfeil ved kall til '$uri': ${cause.response.status}",
+                            cause
+                        )
                         call.respondWithError(
                             ApiException(
                                 status = cause.response.status,
