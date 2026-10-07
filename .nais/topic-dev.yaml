@@ -20,3 +20,6 @@ spec:
     - application: arena-hendelse-proxy
       team: aap
       access: readwrite
+    - application: veilarboppfolging
+      team: poao
+      access: read
