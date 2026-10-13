@@ -22,3 +22,4 @@ src/generated
 
 # Ignore Gradle build output directory
 build
+.kotlin/
