@@ -192,7 +192,11 @@ fun NormalOpenAPIRoute.dataInsertion(
             ) { _, req ->
                 dataSource.transaction { connection ->
                     val behandlingVisningRepository = BehandlingVisningRepository(connection)
-                    behandlingVisningRepository.lagreBehandlingVisning(fnr = req.ident, saksnummer = req.saksnummer, behandlingVisning = req.behandling)
+                    behandlingVisningRepository.lagreBehandlingVisning(
+                        fnr = req.ident,
+                        saksnummer = req.saksnummer,
+                        behandlingVisning = req.behandling
+                    )
                 }
                 pipeline.call.respond(HttpStatusCode.OK)
             }

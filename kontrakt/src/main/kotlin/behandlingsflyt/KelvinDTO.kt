@@ -38,7 +38,7 @@ public enum class SakstatusFraKelvin {
     FERDIGBEHANDLET,
 }
 
-public enum class BehandlingHendelseNavn{
+public enum class BehandlingHendelseNavn {
     SØKNAD_MOTTATT,
     UNDER_BEHANDLING,
     FERDIG_BEHANDLET,
@@ -49,15 +49,18 @@ public enum class BehandlingHendelseNavn{
     VENTER_PÅ_SVAR_PÅ_FORHÅNDSVARSEL,
     VENTER_PÅ_OPPLYSNINGER_FRA_UTENLANDSKE_MYNDIGHETER,
 }
-public enum class BehandlingVisningType{
+
+public enum class BehandlingVisningType {
     SØKNAD,
     KLAGE
 }
-public enum class BehandlingHendelseStatus{
+
+public enum class BehandlingHendelseStatus {
     AKTIV,
     FULLFØRT,
     IKKE_PÅBEGYNT,
 }
+
 public data class BehandlingHendelse(
     val navn: BehandlingHendelseNavn,
     val tidsstempel: LocalDateTime,
@@ -70,6 +73,7 @@ public data class BehandlingVisning(
     val behandlingType: BehandlingVisningType,
     val hendelser: List<BehandlingHendelse>
 )
+
 public data class BehandlingVisningKelvinRequest(
     val ident: String,
     val saksnummer: String,
