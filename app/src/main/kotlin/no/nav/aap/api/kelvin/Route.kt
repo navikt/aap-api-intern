@@ -10,6 +10,7 @@ import io.ktor.server.response.respond
 import io.micrometer.core.instrument.DistributionSummary
 import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.Tag
+import no.nav.aap.api.intern.behandlingsflyt.BehandlingVisningKelvinRequest
 import no.nav.aap.api.intern.behandlingsflyt.NySøknadDto
 import no.nav.aap.api.intern.behandlingsflyt.OppdaterIdenterDto
 import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
@@ -19,6 +20,7 @@ import no.nav.aap.api.motor.jobber.AapHendelsePayload
 import no.nav.aap.api.motor.jobber.ModiaHendelsePayload
 import no.nav.aap.api.motor.jobber.SendAapHendelseUtfører
 import no.nav.aap.api.motor.jobber.SendModiaHendelseUtfører
+import no.nav.aap.api.postgres.BehandlingVisningRepository
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortDetaljerRepository
 import no.nav.aap.api.postgres.MeldekortPerioderRepository
@@ -174,6 +176,29 @@ fun NormalOpenAPIRoute.dataInsertion(
             ) { _, req ->
                 arbeidsoppfølgingProducerHolder.produce(req.personident)
                 respondWithStatus(HttpStatusCode.OK)
+            }
+
+            route("/behandling-visning").authorizedPost<Unit, Unit, BehandlingVisningKelvinRequest>(
+                routeConfig = AuthorizationBodyPathConfig(
+                    operasjon = Operasjon.SE,
+                    applicationsOnly = true,
+                    applicationRole = "add-data",
+                ),
+                modules = listOf(
+                    info(
+                        "Behandling-visning for bruk i innbygger-eksponerte konsumenter"
+                    )
+                ).toTypedArray()
+            ) { _, req ->
+                dataSource.transaction { connection ->
+                    val behandlingVisningRepository = BehandlingVisningRepository(connection)
+                    behandlingVisningRepository.lagreBehandlingVisning(
+                        fnr = req.ident,
+                        saksnummer = req.saksnummer,
+                        behandlingVisning = req.behandling
+                    )
+                }
+                pipeline.call.respond(HttpStatusCode.OK)
             }
         }
     }
