@@ -2,10 +2,10 @@ CREATE TABLE BEHANDLING_VISNING
 (
     ID                      BIGSERIAL       PRIMARY KEY,
     IDENT                   VARCHAR(11)     NOT NULL,
-    SAKSNUMMER              VARCHAR(50)     NOT NULL,
-    BEHANDLING_REFERANSE    VARCHAR(100)    NOT NULL,
+    SAKSNUMMER              TEXT            NOT NULL,
+    BEHANDLING_REFERANSE    TEXT            NOT NULL,
     AVSLUTTET               BOOLEAN         NOT NULL,
-    BEHANDLING_TYPE         VARCHAR(50)     NOT NULL
+    BEHANDLING_TYPE         TEXT            NOT NULL
 );
 
 CREATE INDEX idx_behandling_visning_ident ON behandling_visning (IDENT);
@@ -15,8 +15,8 @@ CREATE TABLE BEHANDLING_VISNING_HENDELSE
 (
     ID                      BIGSERIAL       PRIMARY KEY,
     BEHANDLING_VISNING_ID   BIGINT          NOT NULL REFERENCES BEHANDLING_VISNING (ID) ON DELETE CASCADE,
-    NAVN                    VARCHAR(75)     NOT NULL,
-    STATUS                  VARCHAR(50)     NOT NULL,
+    NAVN                    TEXT            NOT NULL,
+    STATUS                  TEXT            NOT NULL,
     TIDSSTEMPEL             TIMESTAMP(3)    NOT NULL
 );
 
