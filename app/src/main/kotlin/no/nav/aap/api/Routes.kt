@@ -494,6 +494,8 @@ fun NormalOpenAPIRoute.api(
 
             sjekkTilgangTilPerson(requestBody.personidentifikator, token())
 
+            val identer = pdlGateway.hentAlleIdenterForPerson(requestBody.personidentifikator)
+                .map { it.ident }
             val request = requestBody.tilKontrakt()
 
             val (kelvinSaker, sakStatus) = dataSource.transaction { connection ->
@@ -502,7 +504,7 @@ fun NormalOpenAPIRoute.api(
                 val sakstatus = KelvinSakService(
                     SakStatusRepository(connection),
                     BehandlingsRepository(connection)
-                ).hentSakStatus(listOf(requestBody.personidentifikator)).firstOrNull()
+                ).hentSakStatus(identer).firstOrNull()
 
                 Pair(
                     VedtakService(behandlingsRepository, clock = clock).hentMediumFraKelvin(
