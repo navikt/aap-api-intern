@@ -1,10 +1,10 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.api.intern.behandlingsflyt.BehandlingHendelse
-import no.nav.aap.api.intern.behandlingsflyt.BehandlingHendelseNavn
-import no.nav.aap.api.intern.behandlingsflyt.BehandlingHendelseStatus
-import no.nav.aap.api.intern.behandlingsflyt.BehandlingVisning
-import no.nav.aap.api.intern.behandlingsflyt.BehandlingVisningType
+import no.nav.aap.api.mineaap.BehandlingHendelse
+import no.nav.aap.api.mineaap.BehandlingHendelseNavn
+import no.nav.aap.api.mineaap.BehandlingHendelseStatus
+import no.nav.aap.api.mineaap.BehandlingVisning
+import no.nav.aap.api.mineaap.BehandlingVisningType
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat

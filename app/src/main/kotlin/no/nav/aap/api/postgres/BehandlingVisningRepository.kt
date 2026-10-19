@@ -1,7 +1,7 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.api.intern.behandlingsflyt.BehandlingHendelse
-import no.nav.aap.api.intern.behandlingsflyt.BehandlingVisning
+import no.nav.aap.api.mineaap.BehandlingHendelse
+import no.nav.aap.api.mineaap.BehandlingVisning
 import no.nav.aap.komponenter.dbconnect.DBConnection
 
 class BehandlingVisningRepository(private val connection: DBConnection) {

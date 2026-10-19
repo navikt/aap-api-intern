@@ -1,9 +1,17 @@
 package no.nav.aap.api.kelvin
 
+import no.nav.aap.api.mineaap.BehandlingHendelse
+import no.nav.aap.api.mineaap.BehandlingVisning
+import no.nav.aap.api.mineaap.BehandlingVisningType
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArbeidIPeriodeDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArenaVedtaksvariantDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BarnMedBarnetilleggDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingHendelseDto
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingHendelseNavn
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingHendelseStatus
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingHendelseType
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingVisningDto
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.PeriodeMedBeløpDTO
@@ -150,5 +158,37 @@ fun PeriodeMedBeløpDTO.tilDomene(): PeriodeMedBeløp {
         beløp = this.beløp,
         sats = this.sats,
         uredusertBeløp = this.uredusertBeløp
+    )
+}
+fun BehandlingHendelseDto.tilDomene(): BehandlingHendelse {
+    return BehandlingHendelse(
+        navn = when(this.navn){
+            BehandlingHendelseNavn.SØKNAD_MOTTATT -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.SØKNAD_MOTTATT
+            BehandlingHendelseNavn.UNDER_BEHANDLING -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.UNDER_BEHANDLING
+            BehandlingHendelseNavn.SØKNAD_TRUKKET -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.SØKNAD_TRUKKET
+            BehandlingHendelseNavn.VENTER_PÅ_OPPLYSNINGER -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.VENTER_PÅ_OPPLYSNINGER
+            BehandlingHendelseNavn.VENTER_PÅ_OPPLYSNINGER_FRA_UTENLANDSKE_MYNDIGHETER -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.VENTER_PÅ_OPPLYSNINGER_FRA_UTENLANDSKE_MYNDIGHETER
+            BehandlingHendelseNavn.VENTER_PÅ_SVAR_PÅ_FORHÅNDSVARSEL -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.VENTER_PÅ_SVAR_PÅ_FORHÅNDSVARSEL
+            BehandlingHendelseNavn.VENTER_PÅ_MEDISINSKE_OPPLYSNINGER -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.VENTER_PÅ_MEDISINSKE_OPPLYSNINGER
+            BehandlingHendelseNavn.VENTER_PÅ_SVAR_FRA_BRUKER -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.VENTER_PÅ_SVAR_FRA_BRUKER
+            BehandlingHendelseNavn.FERDIG_BEHANDLET -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.FERDIG_BEHANDLET
+        },
+        tidsstempel = this.tidsstempel,
+        status = when(this.status) {
+            BehandlingHendelseStatus.AKTIV -> no.nav.aap.api.mineaap.BehandlingHendelseStatus.AKTIV
+            BehandlingHendelseStatus.FULLFØRT -> no.nav.aap.api.mineaap.BehandlingHendelseStatus.FULLFØRT
+            BehandlingHendelseStatus.IKKE_PÅBEGYNT -> no.nav.aap.api.mineaap.BehandlingHendelseStatus.IKKE_PÅBEGYNT
+        }
+    )
+}
+fun BehandlingVisningDto.tilDomene(): BehandlingVisning {
+    return BehandlingVisning(
+        behandlingReferanse = this.behandlingReferanse.toString(),
+        avsluttet = this.avsluttet,
+        behandlingType = when (this.behandlingType){
+            BehandlingHendelseType.SØKNAD -> BehandlingVisningType.SØKNAD
+            BehandlingHendelseType.KLAGE -> BehandlingVisningType.KLAGE
+        },
+        hendelser = this.hendelser.map { it.tilDomene() },
     )
 }

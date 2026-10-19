@@ -10,7 +10,6 @@ import io.ktor.server.response.respond
 import io.micrometer.core.instrument.DistributionSummary
 import no.nav.aap.api.Metrics.prometheus
 import no.nav.aap.api.Tag
-import no.nav.aap.api.intern.behandlingsflyt.BehandlingVisningKelvinRequest
 import no.nav.aap.api.intern.behandlingsflyt.NySøknadDto
 import no.nav.aap.api.intern.behandlingsflyt.OppdaterIdenterDto
 import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
@@ -27,6 +26,7 @@ import no.nav.aap.api.postgres.MeldekortPerioderRepository
 import no.nav.aap.api.postgres.SakStatusRepository
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingVisningRequest
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
@@ -178,7 +178,7 @@ fun NormalOpenAPIRoute.dataInsertion(
                 respondWithStatus(HttpStatusCode.OK)
             }
 
-            route("/behandling-visning").authorizedPost<Unit, Unit, BehandlingVisningKelvinRequest>(
+            route("/behandling-visning").authorizedPost<Unit, Unit, BehandlingVisningRequest>(
                 routeConfig = AuthorizationBodyPathConfig(
                     operasjon = Operasjon.SE,
                     applicationsOnly = true,
@@ -195,7 +195,7 @@ fun NormalOpenAPIRoute.dataInsertion(
                     behandlingVisningRepository.lagreBehandlingVisning(
                         fnr = req.ident,
                         saksnummer = req.saksnummer,
-                        behandlingVisning = req.behandling
+                        behandlingVisning = req.behandling.tilDomene()
                     )
                 }
                 pipeline.call.respond(HttpStatusCode.OK)
