@@ -27,9 +27,10 @@ import no.nav.aap.api.intern.behandlingsflyt.Periode
 import no.nav.aap.api.intern.behandlingsflyt.SakStatus
 import no.nav.aap.api.intern.behandlingsflyt.SakStatusKelvin
 import no.nav.aap.api.intern.behandlingsflyt.SakstatusFraKelvin
+import no.nav.aap.api.pdl.IPdlGateway
+import no.nav.aap.api.pdl.PdlIdent
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
-import no.nav.aap.api.util.PdlGatewayEmpty
 import no.nav.aap.api.util.WithFakes
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
@@ -59,6 +60,7 @@ class KelvinOboTest {
     fun tearDown() = dataSource.close()
 
     private val fnr = "12345678910"
+    private val historiskFnr = "10987654321"
     private val saksnummer = "4MGL8LS"
     private val rettighetsFom = LocalDate.now().minusYears(2)
     private val rettighetsTom = LocalDate.now().minusYears(1)
@@ -73,7 +75,7 @@ class KelvinOboTest {
         vedtaksDato = rettighetsFom.minusDays(1),
         sak = SakDTO(
             saksnummer = saksnummer,
-            fnr = listOf(fnr),
+            fnr = listOf(fnr, historiskFnr),
             opprettetTidspunkt = LocalDateTime.now().minusYears(2),
         ),
         tilkjent = listOf(
@@ -125,7 +127,12 @@ class KelvinOboTest {
                         config = TestConfig.default(),
                         datasourceFactory = { dataSource },
                         arenaService = Fakes.getArenaService(),
-                        pdlGateway = PdlGatewayEmpty(),
+                        pdlGateway = object : IPdlGateway {
+                            override fun hentAlleIdenterForPerson(personIdent: String) = listOf(
+                                PdlIdent(personIdent, historisk = false, gruppe = "FOLKEREGISTERIDENT"),
+                                PdlIdent(historiskFnr, historisk = true, gruppe = "FOLKEREGISTERIDENT"),
+                            )
+                        },
                         aapHendelseProducer = Fakes.getAapHendelse(),
                         modiaProducer = Fakes.getKafka(),
                         arbeidsoppfølgingProducer = Fakes.getArbeidsoppfølgingHendelse()
@@ -141,7 +148,7 @@ class KelvinOboTest {
                 jsonHttpClient.post("/api/insert/sakStatus") {
                     bearerAuth(azure.generate(isApp = true))
                     contentType(ContentType.Application.Json)
-                    setBody(testSakStatus)
+                    setBody(testSakStatus.copy(ident = historiskFnr))
                 }.also { assertThat(it.status).isEqualTo(HttpStatusCode.OK) }
 
                 val oboResponse = jsonHttpClient.post("/kelvin/obo") {
