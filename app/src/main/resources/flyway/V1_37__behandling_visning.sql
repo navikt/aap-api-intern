@@ -1,7 +1,7 @@
 CREATE TABLE BEHANDLING_VISNING
 (
     ID                      BIGSERIAL       PRIMARY KEY,
-    IDENT                   VARCHAR(11)     NOT NULL,
+    IDENT                   TEXT            NOT NULL,
     SAKSNUMMER              TEXT            NOT NULL,
     BEHANDLING_REFERANSE    TEXT            NOT NULL,
     AVSLUTTET               BOOLEAN         NOT NULL,
@@ -14,7 +14,7 @@ CREATE UNIQUE INDEX idx_behandling_visning_behandling_referanse ON behandling_vi
 CREATE TABLE BEHANDLING_VISNING_HENDELSE
 (
     ID                      BIGSERIAL       PRIMARY KEY,
-    BEHANDLING_VISNING_ID   BIGINT          NOT NULL REFERENCES BEHANDLING_VISNING (ID) ON DELETE CASCADE,
+    BEHANDLING_VISNING_ID   BIGINT          NOT NULL REFERENCES BEHANDLING_VISNING (ID),
     NAVN                    TEXT            NOT NULL,
     STATUS                  TEXT            NOT NULL,
     TIDSSTEMPEL             TIMESTAMP(3)    NOT NULL
