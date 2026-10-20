@@ -1,0 +1,23 @@
+CREATE TABLE BEHANDLING_VISNING
+(
+    ID                      BIGSERIAL       PRIMARY KEY,
+    IDENT                   TEXT            NOT NULL,
+    SAKSNUMMER              TEXT            NOT NULL,
+    BEHANDLING_REFERANSE    TEXT            NOT NULL,
+    AVSLUTTET               BOOLEAN         NOT NULL,
+    BEHANDLING_TYPE         TEXT            NOT NULL
+);
+
+CREATE INDEX idx_behandling_visning_ident ON behandling_visning (IDENT);
+CREATE UNIQUE INDEX idx_behandling_visning_behandling_referanse ON behandling_visning (BEHANDLING_REFERANSE);
+
+CREATE TABLE BEHANDLING_VISNING_HENDELSE
+(
+    ID                      BIGSERIAL       PRIMARY KEY,
+    BEHANDLING_VISNING_ID   BIGINT          NOT NULL REFERENCES BEHANDLING_VISNING (ID),
+    NAVN                    TEXT            NOT NULL,
+    STATUS                  TEXT            NOT NULL,
+    TIDSSTEMPEL             TIMESTAMP(3)    NOT NULL
+);
+
+CREATE INDEX idx_behandling_visning_hendelse_behandling_visning_id ON behandling_visning_hendelse (BEHANDLING_VISNING_ID);

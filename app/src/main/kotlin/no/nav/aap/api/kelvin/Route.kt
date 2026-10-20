@@ -19,12 +19,14 @@ import no.nav.aap.api.motor.jobber.AapHendelsePayload
 import no.nav.aap.api.motor.jobber.ModiaHendelsePayload
 import no.nav.aap.api.motor.jobber.SendAapHendelseUtfører
 import no.nav.aap.api.motor.jobber.SendModiaHendelseUtfører
+import no.nav.aap.api.postgres.BehandlingVisningRepository
 import no.nav.aap.api.postgres.BehandlingsRepository
 import no.nav.aap.api.postgres.MeldekortDetaljerRepository
 import no.nav.aap.api.postgres.MeldekortPerioderRepository
 import no.nav.aap.api.postgres.SakStatusRepository
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DetaljertMeldekortDTO
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingVisningRequest
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.json.DefaultJsonMapper
 import no.nav.aap.motor.FlytJobbRepository
@@ -174,6 +176,29 @@ fun NormalOpenAPIRoute.dataInsertion(
             ) { _, req ->
                 arbeidsoppfølgingProducerHolder.produce(req.personident)
                 respondWithStatus(HttpStatusCode.OK)
+            }
+
+            route("/behandling-visning").authorizedPost<Unit, Unit, BehandlingVisningRequest>(
+                routeConfig = AuthorizationBodyPathConfig(
+                    operasjon = Operasjon.SE,
+                    applicationsOnly = true,
+                    applicationRole = "add-data",
+                ),
+                modules = listOf(
+                    info(
+                        "Behandling-visning for bruk i innbygger-eksponerte konsumenter"
+                    )
+                ).toTypedArray()
+            ) { _, req ->
+                dataSource.transaction { connection ->
+                    val behandlingVisningRepository = BehandlingVisningRepository(connection)
+                    behandlingVisningRepository.lagreBehandlingVisning(
+                        fnr = req.ident,
+                        saksnummer = req.saksnummer,
+                        behandlingVisning = req.behandling.tilDomene()
+                    )
+                }
+                pipeline.call.respond(HttpStatusCode.OK)
             }
         }
     }
