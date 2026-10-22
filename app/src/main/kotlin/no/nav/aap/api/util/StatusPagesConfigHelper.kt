@@ -81,6 +81,11 @@ object StatusPagesConfigHelper {
                         call.respondWithError(UgyldigForespørselException("Forespørselen inneholder ugyldige verdier"))
                     }
 
+                    HttpStatusCode.RequestTimeout -> {
+                        logger.warn("Timeout ved kall til '$uri': ${cause.message}")
+                        call.respondWithError(TimeoutException("Forespørselen tok for lang tid. Prøv igjen om litt."))
+                    }
+
                     else -> {
                         logger.error(
                             "Uhåndtert klientfeil ved kall til '$uri': ${cause.response.status}",
