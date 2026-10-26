@@ -202,6 +202,9 @@ spec:
       value: 02139158-981f-4cc9-a653-f2c10c9b0ab2
     - name: AZP_BISYS
       value: 17fd50b1-1a4b-4c09-be83-5b2c3a065224
+    # TODO: erstatt med klient-ID for eien/eien-backend. Endepunktet svarer 501 i prod inntil videre.
+    - name: AZP_EIEN
+      value: 00000000-0000-0000-0000-000000000000
     - name: NAIS_TEAM_AAP
       value: ee2a0374-97a6-462e-9a05-3cb7be3d8fc5
     - name: MINE_AAP_CLIENT_ID

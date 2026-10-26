@@ -24,14 +24,16 @@ class ArenaServiceTest {
         //                    |---C--->                    C: 01.05-null  -> nøkkel 01.05 (løpende)
         //
         // Input kommer i vilkårlig rekkefølge (C, A, B), men skal sorteres til A, B, C.
+        val ident = "12345678910"
         val arenaService = ArenaService(
-            arena = FakeArenaGateway(maksimum = Maksimum(vedtak = listOf(vedtakC, vedtakA, vedtakB))),
+            arena = FakeArenaGateway()
+                .leggTilMaksimum(ident, Maksimum(vedtak = listOf(vedtakC, vedtakA, vedtakB))),
             arenaHistorikk = FakeArenaGateway(),
         )
 
         val vedtak = arenaService.hentVedtak(
             callId = "test-call-id",
-            vedtakRequest = InternVedtakRequest(personidentifikator = "12345678910"),
+            vedtakRequest = InternVedtakRequest(personidentifikator = ident),
         )
 
         assertThat(vedtak.map { it.vedtakId }).containsExactly("A", "B", "C")

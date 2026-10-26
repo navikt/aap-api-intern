@@ -241,7 +241,10 @@ class SyfoSakerTest : PostgresTestBase() {
                     rettighetsperiode = Periode(fom, tom),
                     behandlingStatus = KelvinBehandlingStatus.AVSLUTTET,
                     vedtaksDato = vedtaksdato,
-                    sak = Sak(sakId, LocalDateTime.of(fom.minusMonths(2), java.time.LocalTime.NOON)),
+                    sak = Sak(
+                        sakId,
+                        LocalDateTime.of(fom.minusMonths(2), java.time.LocalTime.NOON)
+                    ),
                     tilkjent = tidslinjeOf(),
                     rettighetsTypePerioder = listOf(
                         RettighetsTypePeriode(fom, tom, RettighetsType.BISTANDSBEHOV.name)
@@ -261,64 +264,68 @@ class SyfoSakerTest : PostgresTestBase() {
     }
 
     private fun arenaServiceMedVedtak(): ArenaService {
-        val gateway = FakeArenaGateway(
-            saker = listOf(
-                ArenaSakStatus(
-                    sakId = arenaSakId,
-                    statusKode = ArenaStatusKontrakt.IVERK,
-                    periode = ArenaPeriode(fom, tom),
-                ),
-                ArenaSakStatus(
-                    sakId = arenaSakId,
-                    statusKode = ArenaStatusKontrakt.GODKJ,
-                    periode = ArenaPeriode(fom, tom),
-                ),
-            ),
-            maksimum = ArenaMaksimum(
-                vedtak = listOf(
-                    ArenaVedtak(
-                        vedtaksId = "arena-vedtak",
-                        utbetaling = emptyList(),
-                        dagsats = 0,
-                        status = "IVERK",
-                        utfallkode = "JA",
-                        saksnummer = arenaSakId,
-                        vedtaksdato = fom.minusDays(1).toString(),
-                        vedtaksTypeKode = "O",
-                        vedtaksTypeNavn = "Ordinært",
+        val gateway = FakeArenaGateway()
+            .leggTilSaker(
+                personidentifikator,
+                listOf(
+                    ArenaSakStatus(
+                        sakId = arenaSakId,
+                        statusKode = ArenaStatusKontrakt.IVERK,
                         periode = ArenaPeriode(fom, tom),
-                        rettighetsType = "AAP",
-                        beregningsgrunnlag = 0,
-                        barnMedStonad = 0,
-                        barnetillegg = 0,
-                        barnetilleggsats = 0,
-                        justertG = null,
-                        lopenrvedtak = 1,
-                        relatertVedtak = null,
                     ),
-                    ArenaVedtak(
-                        vedtaksId = "arena-vedtak-2",
-                        utbetaling = emptyList(),
-                        dagsats = 0,
-                        status = "IVERK",
-                        utfallkode = "JA",
-                        saksnummer = arenaSakId,
-                        vedtaksdato = fom.toString(),
-                        vedtaksTypeKode = "O",
-                        vedtaksTypeNavn = "Ordinært",
+                    ArenaSakStatus(
+                        sakId = arenaSakId,
+                        statusKode = ArenaStatusKontrakt.GODKJ,
                         periode = ArenaPeriode(fom, tom),
-                        rettighetsType = "AAP",
-                        beregningsgrunnlag = 0,
-                        barnMedStonad = 0,
-                        barnetillegg = 0,
-                        barnetilleggsats = 0,
-                        justertG = null,
-                        lopenrvedtak = 2,
-                        relatertVedtak = null,
+                    ),
+                ),
+            ).leggTilMaksimum(
+                personidentifikator,
+                ArenaMaksimum(
+                    vedtak = listOf(
+                        ArenaVedtak(
+                            vedtaksId = "arena-vedtak",
+                            utbetaling = emptyList(),
+                            dagsats = 0,
+                            status = "IVERK",
+                            utfallkode = "JA",
+                            saksnummer = arenaSakId,
+                            vedtaksdato = fom.minusDays(1).toString(),
+                            vedtaksTypeKode = "O",
+                            vedtaksTypeNavn = "Ordinært",
+                            periode = ArenaPeriode(fom, tom),
+                            rettighetsType = "AAP",
+                            beregningsgrunnlag = 0,
+                            barnMedStonad = 0,
+                            barnetillegg = 0,
+                            barnetilleggsats = 0,
+                            justertG = null,
+                            lopenrvedtak = 1,
+                            relatertVedtak = null,
+                        ),
+                        ArenaVedtak(
+                            vedtaksId = "arena-vedtak-2",
+                            utbetaling = emptyList(),
+                            dagsats = 0,
+                            status = "IVERK",
+                            utfallkode = "JA",
+                            saksnummer = arenaSakId,
+                            vedtaksdato = fom.toString(),
+                            vedtaksTypeKode = "O",
+                            vedtaksTypeNavn = "Ordinært",
+                            periode = ArenaPeriode(fom, tom),
+                            rettighetsType = "AAP",
+                            beregningsgrunnlag = 0,
+                            barnMedStonad = 0,
+                            barnetillegg = 0,
+                            barnetilleggsats = 0,
+                            justertG = null,
+                            lopenrvedtak = 2,
+                            relatertVedtak = null,
+                        )
                     )
-                )
-            ),
-        )
+                ),
+            )
         return ArenaService(gateway, gateway)
     }
 

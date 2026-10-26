@@ -22,7 +22,11 @@ import no.nav.aap.api.pdl.PdlIdenterData
 import no.nav.aap.api.util.graphql.GraphQLResponse
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import java.util.concurrent.ConcurrentHashMap
 import no.nav.aap.oppgave.enhet.EnhetOgOversendelse
+import no.nav.aap.oppgave.enhet.NåværendeEnhet
 import no.nav.aap.oppgave.enhet.PersonRequest
 import no.nav.aap.tilgang.TilgangResponse
 
@@ -37,7 +41,8 @@ object Fakes : AutoCloseable {
     private val kafka = KafkaFake()
     private val aapHendelse = AapHendelseKafkaFake()
     private val arbeidsoppfølgingHendelse = ArbeidsoppfølgingKafkaFake()
-    private val arenaService = ArenaService(FakeArenaGateway(), FakeArenaGateway())
+    private val arenaGateway = FakeArenaGateway()
+    private val arenaService = ArenaService(arenaGateway, arenaGateway)
 
     var tilgangResponse: TilgangResponse = TilgangResponse(true)
 
@@ -49,6 +54,14 @@ object Fakes : AutoCloseable {
             tilgangResponse = TilgangResponse(true)
         }
     }
+
+    private val oppgaveEnheter = ConcurrentHashMap<String, NåværendeEnhet>()
+
+    fun leggTilOppgaveEnhet(ident: String, enhet: NåværendeEnhet) {
+        oppgaveEnheter[ident] = enhet
+    }
+
+    fun hentOppgaveEnhet(ident: String): NåværendeEnhet? = oppgaveEnheter[ident]
 
     fun start() {
         texas.start()
@@ -75,6 +88,8 @@ object Fakes : AutoCloseable {
 
     fun getArenaService() = arenaService
 
+    fun getArenaGateway() = arenaGateway
+
     fun getArenaPort() = arena.port()
 
     fun getKafka() = kafka
@@ -86,6 +101,7 @@ object Fakes : AutoCloseable {
     fun getTexasPort() = texas.port()
 
     private fun setProperties() {
+        System.setProperty("NAIS_CLUSTER_NAME", "LOCAL")
         System.setProperty("NAIS_TEAM_AAP", "nais-team-aap")
 
         // Texas
@@ -126,6 +142,7 @@ object Fakes : AutoCloseable {
         System.setProperty("AZP_SYFOPERSON", UUID.randomUUID().toString())
         System.setProperty("AZP_DAB", UUID.randomUUID().toString())
         System.setProperty("AZP_BISYS", UUID.randomUUID().toString())
+        System.setProperty("AZP_EIEN", UUID.randomUUID().toString())
 
         // Mine-aap
         System.setProperty("MINE_AAP_CLIENT_ID", "localhost:aap:innsyn")
@@ -171,15 +188,16 @@ fun Application.arena() {
 }
 
 fun Application.oppgaveFake() {
-    install(ContentNegotiation) { jackson() }
+    install(ContentNegotiation) {
+        jackson {
+            registerModule(JavaTimeModule())
+            disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+        }
+    }
     routing {
         post("/enhet/status/person") {
-            call.receive<PersonRequest>()
-            call.respond(
-                EnhetOgOversendelse(
-                    tilstand = null
-                )
-            )
+            val request = call.receive<PersonRequest>()
+            call.respond(EnhetOgOversendelse(tilstand = Fakes.hentOppgaveEnhet(request.ident)))
         }
     }
 }
@@ -219,6 +237,8 @@ fun Application.tilgangFake() = runBlocking {
         }
     }
 }
+
+fun nyIdent(): String = (1..11).map { (0..9).random() }.joinToString("")
 
 fun EmbeddedServer<*, *>.port(): Int =
     runBlocking { this@port.engine.resolvedConnectors() }
