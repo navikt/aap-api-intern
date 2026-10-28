@@ -46,10 +46,11 @@ class BehandlingVisningRepositoryTest {
                 ),
             ),
         )
+        val saksnummer = "SAK-1"
 
-        lagre(fnr, "SAK-1", behandling)
+        lagre(fnr, saksnummer, behandling)
 
-        assertThat(hent(fnr)).containsExactly(behandling)
+        assertThat(hent(fnr, saksnummer)).containsExactly(behandling)
     }
 
     @Test
@@ -76,11 +77,12 @@ class BehandlingVisningRepositoryTest {
                 ),
             ),
         )
+        val saksnummer = "SAK-2"
 
-        lagre(fnr, "SAK-2", første)
-        lagre(fnr, "SAK-2", oppdatert)
+        lagre(fnr, saksnummer, første)
+        lagre(fnr, saksnummer, oppdatert)
 
-        assertThat(hent(fnr)).containsExactly(oppdatert)
+        assertThat(hent(fnr, saksnummer)).containsExactly(oppdatert)
     }
 
     @Test
@@ -88,26 +90,28 @@ class BehandlingVisningRepositoryTest {
         val fnr = "10000000003"
         val søknad = behandlingVisning(referanse = "ref-3a", type = BehandlingVisningType.SØKNAD)
         val klage = behandlingVisning(referanse = "ref-3b", type = BehandlingVisningType.KLAGE)
+        val saksnummer = "SAK-3"
 
-        lagre(fnr, "SAK-3", søknad)
-        lagre(fnr, "SAK-3", klage)
+        lagre(fnr, saksnummer, søknad)
+        lagre(fnr, saksnummer, klage)
 
-        assertThat(hent(fnr)).containsExactly(søknad, klage)
+        assertThat(hent(fnr, saksnummer)).containsExactly(søknad, klage)
     }
 
     @Test
     fun `lagrer behandling uten hendelser`() {
         val fnr = "10000000004"
         val behandling = behandlingVisning(referanse = "ref-4", hendelser = emptyList())
+        val saksnummer = "SAK-4"
 
-        lagre(fnr, "SAK-4", behandling)
+        lagre(fnr, saksnummer, behandling)
 
-        assertThat(hent(fnr)).containsExactly(behandling)
+        assertThat(hent(fnr, saksnummer)).containsExactly(behandling)
     }
 
     @Test
     fun `returnerer tom liste når ident ikke har behandlinger`() {
-        assertThat(hent("19999999999")).isEmpty()
+        assertThat(hent("19999999999", "sak1")).isEmpty()
     }
 
     private fun lagre(fnr: String, saksnummer: String, behandling: BehandlingVisning) {
@@ -116,8 +120,8 @@ class BehandlingVisningRepositoryTest {
         }
     }
 
-    private fun hent(fnr: String): List<BehandlingVisning> =
-        dataSource.transaction { BehandlingVisningRepository(it).hentBehandlingVisninger(fnr) }
+    private fun hent(fnr: String, saksnummer: String): List<BehandlingVisning> =
+        dataSource.transaction { BehandlingVisningRepository(it).hentBehandlingVisninger(fnr, saksnummer) }
 
     private fun behandlingVisning(
         referanse: String,

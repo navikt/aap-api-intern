@@ -55,17 +55,19 @@ class BehandlingVisningRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentBehandlingVisninger(fnr: String): List<BehandlingVisning> {
+    fun hentBehandlingVisninger(fnr: String, saksnummer: String): List<BehandlingVisning> {
         return connection.queryList(
             """
                 SELECT ID, BEHANDLING_REFERANSE, AVSLUTTET, BEHANDLING_TYPE
                 FROM BEHANDLING_VISNING
                 WHERE IDENT = ?
+                AND SAKSNUMMER = ?
                 ORDER BY ID
             """.trimIndent()
         ) {
             setParams {
                 setString(1, fnr)
+                setString(2, saksnummer)
             }
             setRowMapper { row ->
                 row.getLong("ID") to BehandlingVisning(

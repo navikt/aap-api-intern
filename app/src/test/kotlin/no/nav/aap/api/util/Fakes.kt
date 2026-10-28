@@ -155,6 +155,11 @@ fun Application.texas() {
         post("/introspect") {
             call.respond(mapOf("active" to true))
         }
+        post("/tokenx/exchange") {
+            call.respond(TestToken(TokenXTokenGen().generate(
+                clientId = "localhost:aap:innsyn",
+            )))
+        }
     }
 }
 
