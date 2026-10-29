@@ -1,15 +1,15 @@
 package no.nav.aap.api.kelvin
 
-import no.nav.aap.api.mineaap.BehandlingHendelse
-import no.nav.aap.api.mineaap.BehandlingVisning
-import no.nav.aap.api.mineaap.BehandlingVisningType
+import no.nav.aap.api.mineaap.BehandlingHendelseIntern
+import no.nav.aap.api.mineaap.BehandlingHendelseProgresjonIntern
+import no.nav.aap.api.mineaap.BehandlingVisningIntern
+import no.nav.aap.api.mineaap.BehandlingVisningTypeIntern
 import no.nav.aap.behandlingsflyt.kontrakt.behandling.Status
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArbeidIPeriodeDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.ArenaVedtaksvariantDTO
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BarnMedBarnetilleggDTO
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingHendelseDto
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingHendelseNavn
-import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingHendelseStatus
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingHendelse
+import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingHendelseProgresjon
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingHendelseType
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.BehandlingVisningDto
 import no.nav.aap.behandlingsflyt.kontrakt.datadeling.DatadelingDTO
@@ -160,34 +160,74 @@ fun PeriodeMedBeløpDTO.tilDomene(): PeriodeMedBeløp {
         uredusertBeløp = this.uredusertBeløp
     )
 }
-fun BehandlingHendelseDto.tilDomene(): BehandlingHendelse {
-    return BehandlingHendelse(
-        navn = when(this.navn){
-            BehandlingHendelseNavn.SØKNAD_MOTTATT -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.SØKNAD_MOTTATT
-            BehandlingHendelseNavn.UNDER_BEHANDLING -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.UNDER_BEHANDLING
-            BehandlingHendelseNavn.SØKNAD_TRUKKET -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.SØKNAD_TRUKKET
-            BehandlingHendelseNavn.VENTER_PÅ_OPPLYSNINGER -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.VENTER_PÅ_OPPLYSNINGER
-            BehandlingHendelseNavn.VENTER_PÅ_OPPLYSNINGER_FRA_UTENLANDSKE_MYNDIGHETER -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.VENTER_PÅ_OPPLYSNINGER_FRA_UTENLANDSKE_MYNDIGHETER
-            BehandlingHendelseNavn.VENTER_PÅ_SVAR_PÅ_FORHÅNDSVARSEL -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.VENTER_PÅ_SVAR_PÅ_FORHÅNDSVARSEL
-            BehandlingHendelseNavn.VENTER_PÅ_MEDISINSKE_OPPLYSNINGER -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.VENTER_PÅ_MEDISINSKE_OPPLYSNINGER
-            BehandlingHendelseNavn.VENTER_PÅ_SVAR_FRA_BRUKER -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.VENTER_PÅ_SVAR_FRA_BRUKER
-            BehandlingHendelseNavn.FERDIG_BEHANDLET -> no.nav.aap.api.mineaap.BehandlingHendelseNavn.FERDIG_BEHANDLET
-        },
-        tidsstempel = this.tidsstempel,
-        status = when(this.status) {
-            BehandlingHendelseStatus.AKTIV -> no.nav.aap.api.mineaap.BehandlingHendelseStatus.AKTIV
-            BehandlingHendelseStatus.FULLFØRT -> no.nav.aap.api.mineaap.BehandlingHendelseStatus.FULLFØRT
-            BehandlingHendelseStatus.IKKE_PÅBEGYNT -> no.nav.aap.api.mineaap.BehandlingHendelseStatus.IKKE_PÅBEGYNT
+fun BehandlingHendelseProgresjon.tilDomene(): BehandlingHendelseProgresjonIntern {
+    return when(this) {
+        BehandlingHendelseProgresjon.AKTIV -> BehandlingHendelseProgresjonIntern.AKTIV
+        BehandlingHendelseProgresjon.IKKE_PÅBEGYNT -> BehandlingHendelseProgresjonIntern.IKKE_PÅBEGYNT
+        BehandlingHendelseProgresjon.FULLFØRT -> BehandlingHendelseProgresjonIntern.FULLFØRT
+    }
+}
+
+fun BehandlingHendelse.SøknadMottatt.tilDomene(): BehandlingHendelseIntern {
+    return BehandlingHendelseIntern.SøknadMottatt(
+        sistEndret = this.sistEndret,
+        progresjon = this.progresjon.tilDomene(),
+    )
+}
+fun BehandlingHendelse.AlderLovvalgMedlemskap.tilDomene(): BehandlingHendelseIntern {
+    return BehandlingHendelseIntern.AlderLovvalgMedlemskap(
+        sistEndret = this.sistEndret,
+        progresjon = this.progresjon.tilDomene(),
+        status = when (this.status) {
+            BehandlingHendelse.AlderLovvalgMedlemskap.Status.VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER -> BehandlingHendelseIntern.AlderLovvalgMedlemskap.Status.VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER
+            BehandlingHendelse.AlderLovvalgMedlemskap.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER -> BehandlingHendelseIntern.AlderLovvalgMedlemskap.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER
+            null -> null
         }
     )
 }
-fun BehandlingVisningDto.tilDomene(): BehandlingVisning {
-    return BehandlingVisning(
+fun BehandlingHendelse.NavKontor.tilDomene(): BehandlingHendelseIntern {
+    return BehandlingHendelseIntern.NavKontor(
+        sistEndret = this.sistEndret,
+        progresjon = this.progresjon.tilDomene(),
+        status = when (this.status) {
+            BehandlingHendelse.NavKontor.Status.VENTER_PÅ_LEGEERKLÆRING -> BehandlingHendelseIntern.NavKontor.Status.VENTER_PÅ_LEGEERKLÆRING
+            BehandlingHendelse.NavKontor.Status.MOTTATT_LEGEERKLÆRING -> BehandlingHendelseIntern.NavKontor.Status.MOTTATT_LEGEERKLÆRING
+            BehandlingHendelse.NavKontor.Status.PURRET_PÅ_LEGERERKLÆRING -> BehandlingHendelseIntern.NavKontor.Status.PURRET_PÅ_LEGERERKLÆRING
+            null -> null
+        }
+    )
+}
+fun BehandlingHendelse.Nay.tilDomene(): BehandlingHendelseIntern {
+   return BehandlingHendelseIntern.Nay(
+       sistEndret = this.sistEndret,
+       progresjon = this.progresjon.tilDomene(),
+       status = when (this.status){
+           BehandlingHendelse.Nay.Status.VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER -> BehandlingHendelseIntern.Nay.Status.VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER
+           BehandlingHendelse.Nay.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER -> BehandlingHendelseIntern.Nay.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER
+           null -> null
+       }
+   )
+}
+fun BehandlingHendelse.FerdigBehandlet.tilDomene(): BehandlingHendelseIntern {
+    return BehandlingHendelseIntern.FerdigBehandlet(
+        sistEndret = this.sistEndret,
+        progresjon = this.progresjon.tilDomene(),
+    )
+}
+fun BehandlingHendelse.tilDomene(): BehandlingHendelseIntern = when (this) {
+    is BehandlingHendelse.SøknadMottatt -> this.tilDomene()
+    is BehandlingHendelse.AlderLovvalgMedlemskap -> this.tilDomene()
+    is BehandlingHendelse.NavKontor -> this.tilDomene()
+    is BehandlingHendelse.Nay -> this.tilDomene()
+    is BehandlingHendelse.FerdigBehandlet -> this.tilDomene()
+}
+fun BehandlingVisningDto.tilDomene(): BehandlingVisningIntern {
+    return BehandlingVisningIntern(
         behandlingReferanse = this.behandlingReferanse.toString(),
         avsluttet = this.avsluttet,
         behandlingType = when (this.behandlingType){
-            BehandlingHendelseType.SØKNAD -> BehandlingVisningType.SØKNAD
-            BehandlingHendelseType.KLAGE -> BehandlingVisningType.KLAGE
+            BehandlingHendelseType.SØKNAD -> BehandlingVisningTypeIntern.SØKNAD
+            BehandlingHendelseType.KLAGE -> BehandlingVisningTypeIntern.KLAGE
         },
         hendelser = this.hendelser.map { it.tilDomene() },
     )
