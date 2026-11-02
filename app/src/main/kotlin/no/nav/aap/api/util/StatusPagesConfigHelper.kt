@@ -2,6 +2,7 @@ package no.nav.aap.api.util
 
 import com.fasterxml.jackson.databind.JsonMappingException
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException
+import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
@@ -70,6 +71,7 @@ object StatusPagesConfigHelper {
 
                 is RequestTimeoutHttpResponseException,
                 is HttpRequestTimeoutException,
+                is ConnectTimeoutException,
                 is SocketTimeoutException -> {
                     logger.warn("Timeout mot $uri: ", cause)
                     call.respondWithError(TimeoutException("Forespørselen tok for lang tid. Prøv igjen om litt."))
@@ -79,6 +81,11 @@ object StatusPagesConfigHelper {
                     HttpStatusCode.BadRequest -> {
                         logger.warn("Ugyldig forespørsel ved kall til '$uri': ${cause.message}")
                         call.respondWithError(UgyldigForespørselException("Forespørselen inneholder ugyldige verdier"))
+                    }
+
+                    HttpStatusCode.RequestTimeout -> {
+                        logger.warn("Timeout ved kall til '$uri': ${cause.message}")
+                        call.respondWithError(TimeoutException("Forespørselen tok for lang tid. Prøv igjen om litt."))
                     }
 
                     else -> {

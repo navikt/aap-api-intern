@@ -21,7 +21,11 @@ import no.nav.aap.api.intern.ArenaSakMedVedtakResponse
 import no.nav.aap.api.intern.PersonEksistererIAAPArena
 import no.nav.aap.api.util.AzureTokenGen
 import no.nav.aap.api.util.Fakes
+import no.nav.aap.api.util.nyIdent
 import no.nav.aap.api.util.WithFakes
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakOppsummeringKontrakt
+import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakPerson
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerResponse
 import no.nav.aap.arenaoppslag.kontrakt.intern.SakerRequest
@@ -29,6 +33,9 @@ import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.UUID
 
 @WithFakes
 class ArenaOppslagTest {
@@ -80,33 +87,52 @@ class ArenaOppslagTest {
 
     @Test
     fun `kan hente saker for person med saker`() {
+        val ident = nyIdent()
+        Fakes.getArenaGateway().leggTilSakerForPerson(
+            ident,
+            listOf(
+                ArenaSakOppsummeringKontrakt(
+                    sakId = "1",
+                    lopenummer = 1,
+                    aar = 2021,
+                    antallVedtak = 1,
+                    statuskode = "AKTIV",
+                    statusnavn = "Aktiv",
+                    sakstype = "Arbeidsavklaringspenger",
+                    regDato = LocalDate.of(2022, 2, 2),
+                    avsluttetDato = null,
+                )
+            )
+        )
         testWithKtorApp { token ->
             val res = jsonHttpClient.post("/arena/person/saker") {
                 bearerAuth(token.generate(isApp = true))
                 contentType(ContentType.Application.Json)
-                setBody(SakerRequestV1(personidentifikator = "01410028596"))
+                setBody(SakerRequestV1(personidentifikator = ident))
             }
             assertThat(res).isNotNull()
             assertThat(res.status).isEqualTo(HttpStatusCode.OK)
             val parsedBody = res.body<SakerResponse>()
             assertThat(parsedBody).isNotNull
-            assertThat(parsedBody.saker).isNotEmpty() // forventet respons fra FakeArenaGateway
+            assertThat(parsedBody.saker).extracting("sakId").containsExactly("1")
         }
     }
 
     @Test
     fun `kan hente saker for person uten saker`() {
+        val ident = nyIdent()
+        Fakes.getArenaGateway().leggTilSakerForPerson(ident, emptyList())
         testWithKtorApp { token ->
             val res = jsonHttpClient.post("/arena/person/saker") {
                 bearerAuth(token.generate(isApp = true))
                 contentType(ContentType.Application.Json)
-                setBody(SakerRequestV1(personidentifikator = "12345678910"))
+                setBody(SakerRequestV1(personidentifikator = ident))
             }
             assertThat(res).isNotNull()
             assertThat(res.status).isEqualTo(HttpStatusCode.OK)
             val parsedBody = res.body<SakerResponse>()
             assertThat(parsedBody).isNotNull
-            assertThat(parsedBody.saker).isEmpty() // forventet respons fra FakeArenaGateway
+            assertThat(parsedBody.saker).isEmpty()
         }
     }
 
@@ -122,7 +148,7 @@ class ArenaOppslagTest {
             assertThat(res.status).isEqualTo(HttpStatusCode.OK)
             val parsedBody = res.body<SakerResponse>()
             assertThat(parsedBody).isNotNull
-            assertThat(parsedBody.saker).isEmpty() // forventet respons fra FakeArenaGateway
+            assertThat(parsedBody.saker).isEmpty()
         }
     }
 
@@ -150,14 +176,16 @@ class ArenaOppslagTest {
 
     @Test
     fun `kan hente Arena-sak med vedtak`() {
+        val ident = nyIdent()
+        val sakId = leggTilSakMedVedtak(ident)
         testWithKtorApp { token ->
-            val res = jsonHttpClient.get("/arena/sak/1") {
+            val res = jsonHttpClient.get("/arena/sak/$sakId") {
                 bearerAuth(token.generate(isApp = true))
             }
             assertThat(res.status).isEqualTo(HttpStatusCode.OK)
             val parsedBody = res.body<ArenaSakMedVedtakResponse>()
-            assertThat(parsedBody.sakId).isEqualTo("1")
-            assertThat(parsedBody.person.fodselsnummer).isEqualTo("01410028596")
+            assertThat(parsedBody.sakId).isEqualTo(sakId)
+            assertThat(parsedBody.person.fodselsnummer).isEqualTo(ident)
         }
     }
 
@@ -181,14 +209,38 @@ class ArenaOppslagTest {
 
     @Test
     fun `hentArenaSakMedVedtak returnerer 403 når OBO-token ikke har tilgang til person`() {
+        val sakId = leggTilSakMedVedtak(nyIdent())
         Fakes.withTilgangNektet {
             testWithKtorApp { token ->
-                val res = jsonHttpClient.get("/arena/sak/1") {
+                val res = jsonHttpClient.get("/arena/sak/$sakId") {
                     bearerAuth(token.generate(isApp = false))
                 }
                 assertThat(res.status).isEqualTo(HttpStatusCode.Forbidden)
             }
         }
+    }
+
+    private fun leggTilSakMedVedtak(fodselsnummer: String): String {
+        val sakId = UUID.randomUUID().toString()
+        Fakes.getArenaGateway().leggTilSakMedVedtak(
+            ArenaSakMedVedtakResponseV1(
+                sakId = sakId,
+                opprettetAar = 2022,
+                lopenr = 1,
+                person = ArenaSakPerson(
+                    personId = 1,
+                    fodselsnummer = fodselsnummer,
+                    fornavn = "Test",
+                    etternavn = "Testesen",
+                ),
+                statuskode = "AKTIV",
+                statusnavn = "Aktiv",
+                registrertDato = LocalDateTime.of(2022, 1, 1, 0, 0),
+                avsluttetDato = null,
+                vedtak = emptyList(),
+            )
+        )
+        return sakId
     }
 
     private val ApplicationTestBuilder.jsonHttpClient: HttpClient

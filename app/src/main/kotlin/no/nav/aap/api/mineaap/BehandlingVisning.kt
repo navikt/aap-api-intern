@@ -2,38 +2,88 @@ package no.nav.aap.api.mineaap
 
 import java.time.LocalDateTime
 
-enum class BehandlingHendelseNavn {
+enum class BehandlingHendelseNavnIntern {
     SØKNAD_MOTTATT,
-    UNDER_BEHANDLING,
+    ALDER_LOVVALG_MEDLEMSKAP,
+    NAV_KONTOR,
+    NAY,
     FERDIG_BEHANDLET,
-    SØKNAD_TRUKKET,
-    VENTER_PÅ_MEDISINSKE_OPPLYSNINGER,
-    VENTER_PÅ_SVAR_FRA_BRUKER,
-    VENTER_PÅ_OPPLYSNINGER,
-    VENTER_PÅ_SVAR_PÅ_FORHÅNDSVARSEL,
-    VENTER_PÅ_OPPLYSNINGER_FRA_UTENLANDSKE_MYNDIGHETER,
 }
 
-enum class BehandlingVisningType {
+enum class BehandlingVisningTypeIntern {
     SØKNAD,
     KLAGE
 }
 
-enum class BehandlingHendelseStatus {
+enum class BehandlingHendelseProgresjonIntern {
     AKTIV,
     FULLFØRT,
     IKKE_PÅBEGYNT,
 }
 
-data class BehandlingHendelse(
-    val navn: BehandlingHendelseNavn,
-    val tidsstempel: LocalDateTime,
-    val status: BehandlingHendelseStatus,
-)
+public sealed interface BehandlingHendelseIntern {
+    public val navn: BehandlingHendelseNavnIntern
+    public val sistEndret: LocalDateTime?
+    public val progresjon: BehandlingHendelseProgresjonIntern
 
-data class BehandlingVisning(
+    public data class SøknadMottatt(
+        override val sistEndret: LocalDateTime,
+        override val progresjon: BehandlingHendelseProgresjonIntern
+    ) : BehandlingHendelseIntern {
+        override val navn: BehandlingHendelseNavnIntern = BehandlingHendelseNavnIntern.SØKNAD_MOTTATT
+    }
+
+    public data class AlderLovvalgMedlemskap(
+        override val sistEndret: LocalDateTime?,
+        override val progresjon: BehandlingHendelseProgresjonIntern,
+        public val status: Status? = null,
+    ) : BehandlingHendelseIntern {
+        override val navn: BehandlingHendelseNavnIntern = BehandlingHendelseNavnIntern.ALDER_LOVVALG_MEDLEMSKAP
+
+        public enum class Status {
+            VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
+            MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
+        }
+    }
+
+    public data class NavKontor(
+        override val sistEndret: LocalDateTime?,
+        override val progresjon: BehandlingHendelseProgresjonIntern,
+        val status: Status? = null,
+    ) : BehandlingHendelseIntern {
+        override val navn: BehandlingHendelseNavnIntern = BehandlingHendelseNavnIntern.NAV_KONTOR
+
+        public enum class Status {
+            VENTER_PÅ_LEGEERKLÆRING,
+            PURRET_PÅ_LEGERERKLÆRING,
+            MOTTATT_LEGEERKLÆRING,
+        }
+    }
+
+    public data class Nay(
+        override val sistEndret: LocalDateTime?,
+        override val progresjon: BehandlingHendelseProgresjonIntern,
+        val status: Status? = null,
+    ) : BehandlingHendelseIntern {
+        override val navn: BehandlingHendelseNavnIntern = BehandlingHendelseNavnIntern.NAY
+
+        public enum class Status {
+            VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
+            MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
+        }
+    }
+
+    public data class FerdigBehandlet(
+        override val sistEndret: LocalDateTime?,
+        override val progresjon: BehandlingHendelseProgresjonIntern
+    ) : BehandlingHendelseIntern {
+        override val navn: BehandlingHendelseNavnIntern = BehandlingHendelseNavnIntern.FERDIG_BEHANDLET
+    }
+}
+
+data class BehandlingVisningIntern(
     val behandlingReferanse: String,
     val avsluttet: Boolean,
-    val behandlingType: BehandlingVisningType,
-    val hendelser: List<BehandlingHendelse>
+    val behandlingType: BehandlingVisningTypeIntern,
+    val hendelser: List<BehandlingHendelseIntern>
 )

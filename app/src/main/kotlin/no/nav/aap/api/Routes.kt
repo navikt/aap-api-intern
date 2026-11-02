@@ -26,6 +26,7 @@ import no.nav.aap.api.arena.ArenaService
 import no.nav.aap.api.bisys.bisysRoutes
 import no.nav.aap.api.dab.dabRoutes
 import no.nav.aap.api.dsop.dsopRoutes
+import no.nav.aap.api.eien.eienRoutes
 import no.nav.aap.api.holmes.holmesRoutes
 import no.nav.aap.api.intern.*
 import no.nav.aap.api.kelvin.AktivitetsfaseService
@@ -89,6 +90,7 @@ enum class Tag(override val description: String) : APITag {
     Holmes("Endepunkter brukt av Team Holmes (Watson Søk)"),
     DAB("Endepunkter brukt av DAB"),
     Bisys("Endepunkter brukt av Bisys"),
+    Eien("Endepunkter brukt av prosjekt Eien (Én innbygger - ett Nav)"),
     ;
 }
 
@@ -220,6 +222,7 @@ fun NormalOpenAPIRoute.api(
     syfoRoutes(dataSource, arenaService, pdlGateway)
     dabRoutes(dataSource, arenaService, pdlGateway)
     bisysRoutes(dataSource, pdlGateway, clock)
+    eienRoutes(dataSource, pdlGateway)
 
     tag(Tag.Saker) {
         route("/meldekort-backend/sakerByFnr").authorizedPost<CallIdHeader, List<SakStatusMeldekortbackend>, SakerRequestMeldekortbackend>(

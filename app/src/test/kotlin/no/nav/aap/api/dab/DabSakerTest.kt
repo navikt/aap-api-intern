@@ -205,8 +205,9 @@ class DabSakerTest : PostgresTestBase() {
     }
 
     private fun arenaService(): ArenaService {
-        val gateway = FakeArenaGateway(
-            saker = listOf(
+        val gateway = FakeArenaGateway().leggTilSaker(
+            personidentifikator,
+            listOf(
                 ArenaSakStatus(
                     sakId = arenaSakId,
                     statusKode = ArenaStatusKontrakt.IVERK,
