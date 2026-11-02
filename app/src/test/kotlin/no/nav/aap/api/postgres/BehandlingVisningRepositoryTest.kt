@@ -1,10 +1,9 @@
 package no.nav.aap.api.postgres
 
-import no.nav.aap.api.mineaap.BehandlingHendelse
-import no.nav.aap.api.mineaap.BehandlingHendelseNavn
-import no.nav.aap.api.mineaap.BehandlingHendelseStatus
-import no.nav.aap.api.mineaap.BehandlingVisning
-import no.nav.aap.api.mineaap.BehandlingVisningType
+import no.nav.aap.api.mineaap.BehandlingHendelseIntern
+import no.nav.aap.api.mineaap.BehandlingHendelseProgresjonIntern
+import no.nav.aap.api.mineaap.BehandlingVisningIntern
+import no.nav.aap.api.mineaap.BehandlingVisningTypeIntern
 import no.nav.aap.komponenter.dbconnect.transaction
 import no.nav.aap.komponenter.dbtest.TestDataSource
 import org.assertj.core.api.Assertions.assertThat
@@ -34,20 +33,66 @@ class BehandlingVisningRepositoryTest {
         val behandling = behandlingVisning(
             referanse = "ref-1",
             hendelser = listOf(
-                BehandlingHendelse(
-                    navn = BehandlingHendelseNavn.SØKNAD_MOTTATT,
-                    tidsstempel = LocalDateTime.of(2025, 1, 2, 10, 15, 30, 123_000_000),
-                    status = BehandlingHendelseStatus.FULLFØRT,
+                BehandlingHendelseIntern.SøknadMottatt(
+                    sistEndret = LocalDateTime.of(2025, 1, 2, 10, 15, 30, 123_000_000),
+                    progresjon = BehandlingHendelseProgresjonIntern.FULLFØRT,
                 ),
-                BehandlingHendelse(
-                    navn = BehandlingHendelseNavn.UNDER_BEHANDLING,
-                    tidsstempel = LocalDateTime.of(2025, 1, 3, 8, 0),
-                    status = BehandlingHendelseStatus.AKTIV,
+                BehandlingHendelseIntern.AlderLovvalgMedlemskap(
+                    sistEndret = LocalDateTime.of(2025, 1, 3, 8, 0),
+                    progresjon = BehandlingHendelseProgresjonIntern.AKTIV,
+                    status = BehandlingHendelseIntern.AlderLovvalgMedlemskap.Status.VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
+                ),
+                BehandlingHendelseIntern.NavKontor(
+                    sistEndret = LocalDateTime.of(2025, 1, 4, 8, 0),
+                    progresjon = BehandlingHendelseProgresjonIntern.AKTIV,
+                    status = BehandlingHendelseIntern.NavKontor.Status.PURRET_PÅ_LEGERERKLÆRING,
+                ),
+                BehandlingHendelseIntern.Nay(
+                    sistEndret = LocalDateTime.of(2025, 1, 5, 8, 0),
+                    progresjon = BehandlingHendelseProgresjonIntern.AKTIV,
+                    status = BehandlingHendelseIntern.Nay.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
+                ),
+                BehandlingHendelseIntern.FerdigBehandlet(
+                    sistEndret = LocalDateTime.of(2025, 1, 6, 8, 0),
+                    progresjon = BehandlingHendelseProgresjonIntern.FULLFØRT,
                 ),
             ),
         )
 
         lagre(fnr, "SAK-1", behandling)
+
+        assertThat(hent(fnr)).containsExactly(behandling)
+    }
+
+    @Test
+    fun `lagrer og henter hendelser uten status og uten sistEndret`() {
+        val fnr = "10000000005"
+        val behandling = behandlingVisning(
+            referanse = "ref-5",
+            hendelser = listOf(
+                BehandlingHendelseIntern.AlderLovvalgMedlemskap(
+                    sistEndret = null,
+                    progresjon = BehandlingHendelseProgresjonIntern.IKKE_PÅBEGYNT,
+                    status = null,
+                ),
+                BehandlingHendelseIntern.NavKontor(
+                    sistEndret = null,
+                    progresjon = BehandlingHendelseProgresjonIntern.IKKE_PÅBEGYNT,
+                    status = null,
+                ),
+                BehandlingHendelseIntern.Nay(
+                    sistEndret = null,
+                    progresjon = BehandlingHendelseProgresjonIntern.IKKE_PÅBEGYNT,
+                    status = null,
+                ),
+                BehandlingHendelseIntern.FerdigBehandlet(
+                    sistEndret = null,
+                    progresjon = BehandlingHendelseProgresjonIntern.IKKE_PÅBEGYNT,
+                ),
+            ),
+        )
+
+        lagre(fnr, "SAK-5", behandling)
 
         assertThat(hent(fnr)).containsExactly(behandling)
     }
@@ -59,20 +104,18 @@ class BehandlingVisningRepositoryTest {
             referanse = "ref-2",
             avsluttet = false,
             hendelser = listOf(
-                BehandlingHendelse(
-                    navn = BehandlingHendelseNavn.SØKNAD_MOTTATT,
-                    tidsstempel = LocalDateTime.of(2025, 1, 2, 10, 0),
-                    status = BehandlingHendelseStatus.AKTIV,
+                BehandlingHendelseIntern.SøknadMottatt(
+                    sistEndret = LocalDateTime.of(2025, 1, 2, 10, 0),
+                    progresjon = BehandlingHendelseProgresjonIntern.AKTIV,
                 ),
             ),
         )
         val oppdatert = første.copy(
             avsluttet = true,
             hendelser = listOf(
-                BehandlingHendelse(
-                    navn = BehandlingHendelseNavn.FERDIG_BEHANDLET,
-                    tidsstempel = LocalDateTime.of(2025, 2, 1, 12, 0),
-                    status = BehandlingHendelseStatus.FULLFØRT,
+                BehandlingHendelseIntern.FerdigBehandlet(
+                    sistEndret = LocalDateTime.of(2025, 2, 1, 12, 0),
+                    progresjon = BehandlingHendelseProgresjonIntern.FULLFØRT,
                 ),
             ),
         )
@@ -86,8 +129,8 @@ class BehandlingVisningRepositoryTest {
     @Test
     fun `ulike behandlingReferanser for samme ident beholdes begge`() {
         val fnr = "10000000003"
-        val søknad = behandlingVisning(referanse = "ref-3a", type = BehandlingVisningType.SØKNAD)
-        val klage = behandlingVisning(referanse = "ref-3b", type = BehandlingVisningType.KLAGE)
+        val søknad = behandlingVisning(referanse = "ref-3a", type = BehandlingVisningTypeIntern.SØKNAD)
+        val klage = behandlingVisning(referanse = "ref-3b", type = BehandlingVisningTypeIntern.KLAGE)
 
         lagre(fnr, "SAK-3", søknad)
         lagre(fnr, "SAK-3", klage)
@@ -110,27 +153,26 @@ class BehandlingVisningRepositoryTest {
         assertThat(hent("19999999999")).isEmpty()
     }
 
-    private fun lagre(fnr: String, saksnummer: String, behandling: BehandlingVisning) {
+    private fun lagre(fnr: String, saksnummer: String, behandling: BehandlingVisningIntern) {
         dataSource.transaction {
             BehandlingVisningRepository(it).lagreBehandlingVisning(fnr, saksnummer, behandling)
         }
     }
 
-    private fun hent(fnr: String): List<BehandlingVisning> =
+    private fun hent(fnr: String): List<BehandlingVisningIntern> =
         dataSource.transaction { BehandlingVisningRepository(it).hentBehandlingVisninger(fnr) }
 
     private fun behandlingVisning(
         referanse: String,
         avsluttet: Boolean = false,
-        type: BehandlingVisningType = BehandlingVisningType.SØKNAD,
-        hendelser: List<BehandlingHendelse> = listOf(
-            BehandlingHendelse(
-                navn = BehandlingHendelseNavn.SØKNAD_MOTTATT,
-                tidsstempel = LocalDateTime.of(2025, 1, 1, 9, 0),
-                status = BehandlingHendelseStatus.FULLFØRT,
+        type: BehandlingVisningTypeIntern = BehandlingVisningTypeIntern.SØKNAD,
+        hendelser: List<BehandlingHendelseIntern> = listOf(
+            BehandlingHendelseIntern.SøknadMottatt(
+                sistEndret = LocalDateTime.of(2025, 1, 1, 9, 0),
+                progresjon = BehandlingHendelseProgresjonIntern.FULLFØRT,
             ),
         ),
-    ) = BehandlingVisning(
+    ) = BehandlingVisningIntern(
         behandlingReferanse = referanse,
         avsluttet = avsluttet,
         behandlingType = type,
