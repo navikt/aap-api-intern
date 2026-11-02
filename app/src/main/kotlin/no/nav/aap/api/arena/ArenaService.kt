@@ -75,11 +75,7 @@ class ArenaService(
     suspend fun hentSaker(callId: String, personIdenter: List<String>): List<SakStatus.Arena> {
         val sakerRequest = SakerRequest(personIdenter)
         return arena.hentSakerByFnr(callId, sakerRequest).map {
-            arenaSakStatusTilDomene(it).also { arenaSak ->
-                if (arenaSak.periode.fraOgMedDato == null) {
-                    secureLog.info("Arena-sak med null fraDato. Til-dato ${arenaSak.periode.tilOgMedDato} Status: ${arenaSak.statusKode}")
-                }
-            }
+            arenaSakStatusTilDomene(it)
         }
     }
 
