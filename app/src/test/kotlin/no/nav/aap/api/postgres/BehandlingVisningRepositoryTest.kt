@@ -61,7 +61,7 @@ class BehandlingVisningRepositoryTest {
 
         lagre(fnr, "SAK-1", behandling)
 
-        assertThat(hent(fnr)).containsExactly(behandling)
+        assertThat(hent("SAK-1")).containsExactly(behandling)
     }
 
     @Test
@@ -94,7 +94,7 @@ class BehandlingVisningRepositoryTest {
 
         lagre(fnr, "SAK-5", behandling)
 
-        assertThat(hent(fnr)).containsExactly(behandling)
+        assertThat(hent("SAK-5")).containsExactly(behandling)
     }
 
     @Test
@@ -123,11 +123,11 @@ class BehandlingVisningRepositoryTest {
         lagre(fnr, "SAK-2", første)
         lagre(fnr, "SAK-2", oppdatert)
 
-        assertThat(hent(fnr)).containsExactly(oppdatert)
+        assertThat(hent("SAK-2")).containsExactly(oppdatert)
     }
 
     @Test
-    fun `ulike behandlingReferanser for samme ident beholdes begge`() {
+    fun `ulike behandlingReferanser for samme sak beholdes begge`() {
         val fnr = "10000000003"
         val søknad = behandlingVisning(referanse = "ref-3a", type = BehandlingVisningTypeIntern.SØKNAD)
         val klage = behandlingVisning(referanse = "ref-3b", type = BehandlingVisningTypeIntern.KLAGE)
@@ -135,7 +135,7 @@ class BehandlingVisningRepositoryTest {
         lagre(fnr, "SAK-3", søknad)
         lagre(fnr, "SAK-3", klage)
 
-        assertThat(hent(fnr)).containsExactly(søknad, klage)
+        assertThat(hent("SAK-3")).containsExactly(søknad, klage)
     }
 
     @Test
@@ -145,12 +145,25 @@ class BehandlingVisningRepositoryTest {
 
         lagre(fnr, "SAK-4", behandling)
 
-        assertThat(hent(fnr)).containsExactly(behandling)
+        assertThat(hent("SAK-4")).containsExactly(behandling)
     }
 
     @Test
-    fun `returnerer tom liste når ident ikke har behandlinger`() {
-        assertThat(hent("19999999999")).isEmpty()
+    fun `henter ikke behandlinger fra andre saksnummer`() {
+        val fnr = "10000000006"
+        val sakA = behandlingVisning("ref-sak-a")
+        val sakB = behandlingVisning("ref-sak-b")
+
+        lagre(fnr, "SAK-A", sakA)
+        lagre(fnr, "SAK-B", sakB)
+
+        assertThat(hent("SAK-A")).containsExactly(sakA)
+        assertThat(hent("SAK-B")).containsExactly(sakB)
+    }
+
+    @Test
+    fun `returnerer tom liste når sak ikke har behandlinger`() {
+        assertThat(hent("SAK-99")).isEmpty()
     }
 
     private fun lagre(fnr: String, saksnummer: String, behandling: BehandlingVisningIntern) {
@@ -159,8 +172,8 @@ class BehandlingVisningRepositoryTest {
         }
     }
 
-    private fun hent(fnr: String): List<BehandlingVisningIntern> =
-        dataSource.transaction { BehandlingVisningRepository(it).hentBehandlingVisninger(fnr) }
+    private fun hent(saksnummer: String): List<BehandlingVisningIntern> =
+        dataSource.transaction { BehandlingVisningRepository(it).hentBehandlingVisninger(saksnummer) }
 
     private fun behandlingVisning(
         referanse: String,

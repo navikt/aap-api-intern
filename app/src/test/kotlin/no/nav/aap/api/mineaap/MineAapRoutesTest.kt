@@ -2,11 +2,14 @@ package no.nav.aap.api.mineaap
 
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.jackson
 import io.ktor.server.testing.ApplicationTestBuilder
@@ -30,6 +33,7 @@ import no.nav.aap.komponenter.dbconnect.transaction
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 @WithFakes
 class MineAapRoutesTest : PostgresTestBase() {
@@ -84,88 +88,159 @@ class MineAapRoutesTest : PostgresTestBase() {
 
         assertThat(response.status).isEqualTo(HttpStatusCode.Forbidden)
     }
+
     @Test
-    fun `kobler ikke behandling fra annet fnr selv om saksnummer er likt`() =
-        testApplication {
-            val nåværendeFnr = "10000000001"
-            val historiskFnr = "10000000002"
-            val saksnummer = "SAK-1"
+    fun `returnerer egne saker med hver sine behandlinger`() = testApplication {
+        val fnr = "20000000001"
+        val annenPersonFnr = "20000000002"
+        lagreSak(fnr, "MA-1A")
+        lagreSak(fnr, "MA-1B")
+        lagreSak(annenPersonFnr, "MA-1C")
+        lagreBehandling(fnr, "MA-1A", behandling("ma-1a-behandling"))
+        lagreBehandling(fnr, "MA-1B", behandling("ma-1b-behandling"))
+        lagreBehandling(annenPersonFnr, "MA-1C", behandling("ma-1c-behandling"))
 
-            val pdlGateway = object : IPdlGateway {
-                override fun hentAlleIdenterForPerson(personIdent: String) =
-                    listOf(
-                        PdlIdent(
-                            ident = nåværendeFnr,
-                            historisk = false,
-                            gruppe = "FOLKEREGISTERIDENT",
-                        ),
-                        PdlIdent(
-                            ident = historiskFnr,
-                            historisk = true,
-                            gruppe = "FOLKEREGISTERIDENT",
-                        ),
-                    )
-            }
+        val response = hentSaker(fnr)
 
-            dataSource.transaction { connection ->
-                SakStatusRepository(connection).lagreSakStatusFraKelvin(
-                    fnr = nåværendeFnr,
-                    sakStatus = SakStatus(
-                        sakId = saksnummer,
-                        søknadsdatoer = emptyList(),
-                        statusKode = SakstatusFraKelvin.FERDIGBEHANDLET,
-                        periode = Periode(
-                            fom = LocalDate.of(2025, 1, 1),
-                            tom = LocalDate.of(2025, 12, 31),
-                        ),
-                    ),
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        val saker = response.lesSaker()
+        assertThat(saker.map { it.saksnummer }).containsExactlyInAnyOrder("MA-1A", "MA-1B")
+        assertThat(saker.single { it.saksnummer == "MA-1A" }.behandlinger.map { it.behandlingReferanse })
+            .containsExactly("ma-1a-behandling")
+        assertThat(saker.single { it.saksnummer == "MA-1B" }.behandlinger.map { it.behandlingReferanse })
+            .containsExactly("ma-1b-behandling")
+    }
+
+    @Test
+    fun `returnerer sak med tom behandlingsliste når saken ikke har behandlinger`() = testApplication {
+        val fnr = "20000000003"
+        lagreSak(fnr, "MA-2")
+
+        val saker = hentSaker(fnr).lesSaker()
+
+        assertThat(saker).hasSize(1)
+        assertThat(saker.single().saksnummer).isEqualTo("MA-2")
+        assertThat(saker.single().behandlinger).isEmpty()
+    }
+
+    @Test
+    fun `returnerer tom liste når bruker ikke har saker`() = testApplication {
+        val response = hentSaker("20000000004")
+
+        assertThat(response.status).isEqualTo(HttpStatusCode.OK)
+        assertThat(response.lesSaker()).isEmpty()
+    }
+
+    @Test
+    fun `finner sak lagret under historisk ident`() = testApplication {
+        val nåværendeFnr = "20000000005"
+        val historiskFnr = "20000000006"
+        lagreSak(historiskFnr, "MA-4")
+        lagreBehandling(historiskFnr, "MA-4", behandling("ma-4-behandling"))
+
+        val pdlGateway = object : IPdlGateway {
+            override fun hentAlleIdenterForPerson(personIdent: String) =
+                listOf(
+                    PdlIdent(ident = nåværendeFnr, historisk = false, gruppe = "FOLKEREGISTERIDENT"),
+                    PdlIdent(ident = historiskFnr, historisk = true, gruppe = "FOLKEREGISTERIDENT"),
                 )
-
-                val repository = BehandlingVisningRepository(connection)
-
-                repository.lagreBehandlingVisning(
-                    fnr = nåværendeFnr,
-                    saksnummer = saksnummer,
-                    behandlingVisning = BehandlingVisning(
-                        behandlingReferanse = "behandling-nåværende",
-                        avsluttet = false,
-                        behandlingType = BehandlingVisningType.SØKNAD,
-                        hendelser = emptyList(),
-                    ),
-                )
-
-                repository.lagreBehandlingVisning(
-                    fnr = historiskFnr,
-                    saksnummer = saksnummer,
-                    behandlingVisning = BehandlingVisning(
-                        behandlingReferanse = "behandling-historisk",
-                        avsluttet = false,
-                        behandlingType = BehandlingVisningType.SØKNAD,
-                        hendelser = emptyList(),
-                    ),
-                )
-            }
-
-            oppsett(pdlGateway)
-
-            val response = jsonHttpClient.get(sti) {
-                bearerAuth(
-                    tokenx.generate(
-                        clientId = "localhost:aap:innsyn",
-                        pid = nåværendeFnr,
-                    ),
-                )
-            }
-
-            assertThat(response.status).isEqualTo(HttpStatusCode.OK)
-
-            val saker = response.body<List<SakMedBehandlingerVisning>>()
-
-            assertThat(saker).hasSize(1)
-            assertThat(saker.single().saksnummer).isEqualTo(saksnummer)
-            assertThat(
-                saker.single().behandlinger.map(BehandlingVisning::behandlingReferanse)
-            ).containsExactly("behandling-nåværende")
         }
 
+        val saker = hentSaker(nåværendeFnr, pdlGateway).lesSaker()
+
+        assertThat(saker.map { it.saksnummer }).containsExactly("MA-4")
+        assertThat(saker.single().behandlinger.map { it.behandlingReferanse })
+            .containsExactly("ma-4-behandling")
+    }
+
+    @Test
+    fun `serialiserer hendelser med navn som diskriminator`() = testApplication {
+        val fnr = "20000000007"
+        lagreSak(fnr, "MA-5")
+        lagreBehandling(
+            fnr,
+            "MA-5",
+            BehandlingVisningIntern(
+                behandlingReferanse = "ma-5-behandling",
+                avsluttet = true,
+                behandlingType = BehandlingVisningTypeIntern.KLAGE,
+                hendelser = listOf(
+                    BehandlingHendelseIntern.SøknadMottatt(
+                        sistEndret = LocalDateTime.of(2025, 1, 1, 9, 0),
+                        progresjon = BehandlingHendelseProgresjonIntern.FULLFØRT,
+                    ),
+                    BehandlingHendelseIntern.Nay(
+                        sistEndret = null,
+                        progresjon = BehandlingHendelseProgresjonIntern.AKTIV,
+                        status = BehandlingHendelseIntern.Nay.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
+                    ),
+                ),
+            ),
+        )
+
+        val tekst = hentSaker(fnr).bodyAsText()
+
+        val behandling = mapper.readTree(tekst).single()["behandlinger"].single()
+        assertThat(behandling["behandlingType"].asText()).isEqualTo("KLAGE")
+        assertThat(behandling["hendelser"].map { it["navn"].asText() })
+            .containsExactly("SØKNAD_MOTTATT", "NAY")
+
+        val hendelser = mapper.readValue<List<SakMedBehandlingerVisning>>(tekst)
+            .single().behandlinger.single().hendelser
+        assertThat(hendelser[0]).isInstanceOf(BehandlingHendelseResponse.SøknadMottatt::class.java)
+        assertThat(hendelser[1]).isEqualTo(
+            BehandlingHendelseResponse.Nay(
+                sistEndret = null,
+                progresjon = BehandlingHendelseProgresjonResponse.AKTIV,
+                status = BehandlingHendelseResponse.Nay.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
+            )
+        )
+    }
+
+    private val mapper = jacksonObjectMapper()
+        .registerModule(JavaTimeModule())
+        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+
+    private suspend fun ApplicationTestBuilder.hentSaker(
+        fnr: String,
+        pdlGateway: IPdlGateway = PdlGatewayEmpty(),
+    ): HttpResponse {
+        oppsett(pdlGateway)
+        return jsonHttpClient.get(sti) {
+            bearerAuth(tokenx.generate(clientId = "localhost:aap:innsyn", pid = fnr))
+        }
+    }
+
+    private suspend fun HttpResponse.lesSaker(): List<SakMedBehandlingerVisning> =
+        mapper.readValue(bodyAsText())
+
+    private fun lagreSak(fnr: String, saksnummer: String) {
+        dataSource.transaction { connection ->
+            SakStatusRepository(connection).lagreSakStatusFraKelvin(
+                fnr = fnr,
+                sakStatus = SakStatus(
+                    sakId = saksnummer,
+                    søknadsdatoer = emptyList(),
+                    statusKode = SakstatusFraKelvin.FERDIGBEHANDLET,
+                    periode = Periode(
+                        fom = LocalDate.of(2025, 1, 1),
+                        tom = LocalDate.of(2025, 12, 31),
+                    ),
+                ),
+            )
+        }
+    }
+
+    private fun lagreBehandling(fnr: String, saksnummer: String, behandling: BehandlingVisningIntern) {
+        dataSource.transaction { connection ->
+            BehandlingVisningRepository(connection).lagreBehandlingVisning(fnr, saksnummer, behandling)
+        }
+    }
+
+    private fun behandling(referanse: String) = BehandlingVisningIntern(
+        behandlingReferanse = referanse,
+        avsluttet = false,
+        behandlingType = BehandlingVisningTypeIntern.SØKNAD,
+        hendelser = emptyList(),
+    )
 }

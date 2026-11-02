@@ -28,25 +28,18 @@ fun NormalOpenAPIRoute.mineAaapApi(
                 val sakerMedeBhandlingerVisning = dataSource.transaction { connection ->
                     val sakStatusRepository = SakStatusRepository(connection)
                     val behandlingVisningRepository = BehandlingVisningRepository(connection)
-                    personIdenter.flatMap { fnr ->
-                        sakStatusRepository.hentSakStatus(fnr)
-                            .mapNotNull { sakStatus ->
-                                val behandlinger =
-                                    behandlingVisningRepository.hentBehandlingVisninger(
-                                        fnr = fnr,
-                                        saksnummer = sakStatus.sakId,
-                                    )
-
-                                SakMedBehandlingerVisning(
-                                    saksnummer = sakStatus.sakId,
-                                    behandlinger = behandlinger,
-                                )
-                            }
+                    val saker = personIdenter.flatMap(sakStatusRepository::hentSakStatus)
+                    saker.map { sakStatus ->
+                        SakMedBehandlingerVisning(
+                            saksnummer = sakStatus.sakId,
+                            behandlinger = behandlingVisningRepository
+                                .hentBehandlingVisninger(saksnummer = sakStatus.sakId)
+                                .map { it.tilResponse() },
+                        )
                     }
                 }
                 respond(sakerMedeBhandlingerVisning)
             }
         }
-
     }
 }
