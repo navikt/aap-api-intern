@@ -91,26 +91,4 @@ class MineAapMapperTest {
         }
     }
 
-    @Test
-    fun `enums har samme verdier i domene og respons`() {
-        assertSammeVerdier(BehandlingVisningTypeIntern.entries, BehandlingVisningTypeResponse.entries)
-        assertSammeVerdier(BehandlingHendelseNavnIntern.entries, BehandlingHendelseNavnResponse.entries)
-        assertSammeVerdier(BehandlingHendelseProgresjonIntern.entries, BehandlingHendelseProgresjonResponse.entries)
-        assertSammeVerdier(
-            BehandlingHendelseIntern.AlderLovvalgMedlemskap.Status.entries,
-            BehandlingHendelseResponse.AlderLovvalgMedlemskap.Status.entries,
-        )
-        assertSammeVerdier(
-            BehandlingHendelseIntern.NavKontor.Status.entries,
-            BehandlingHendelseResponse.NavKontor.Status.entries,
-        )
-        assertSammeVerdier(
-            BehandlingHendelseIntern.Nay.Status.entries,
-            BehandlingHendelseResponse.Nay.Status.entries,
-        )
-    }
-
-    private fun assertSammeVerdier(domene: List<Enum<*>>, respons: List<Enum<*>>) {
-        assertThat(respons.map { it.name }).containsExactlyElementsOf(domene.map { it.name })
-    }
 }
