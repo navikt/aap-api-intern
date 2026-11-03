@@ -29,7 +29,6 @@ class BehandlingVisningRepositoryTest {
 
     @Test
     fun `lagrer og henter behandling med hendelser`() {
-        val fnr = "10000000001"
         val behandling = behandlingVisning(
             referanse = "ref-1",
             hendelser = listOf(
@@ -59,14 +58,13 @@ class BehandlingVisningRepositoryTest {
             ),
         )
 
-        lagre(fnr, "SAK-1", behandling)
+        lagre("SAK-1", behandling)
 
         assertThat(hent("SAK-1")).containsExactly(behandling)
     }
 
     @Test
     fun `lagrer og henter hendelser uten status og uten sistEndret`() {
-        val fnr = "10000000005"
         val behandling = behandlingVisning(
             referanse = "ref-5",
             hendelser = listOf(
@@ -92,14 +90,13 @@ class BehandlingVisningRepositoryTest {
             ),
         )
 
-        lagre(fnr, "SAK-5", behandling)
+        lagre("SAK-5", behandling)
 
         assertThat(hent("SAK-5")).containsExactly(behandling)
     }
 
     @Test
     fun `ny lagring med samme behandlingReferanse erstatter den gamle`() {
-        val fnr = "10000000002"
         val første = behandlingVisning(
             referanse = "ref-2",
             avsluttet = false,
@@ -120,42 +117,39 @@ class BehandlingVisningRepositoryTest {
             ),
         )
 
-        lagre(fnr, "SAK-2", første)
-        lagre(fnr, "SAK-2", oppdatert)
+        lagre("SAK-2", første)
+        lagre("SAK-2", oppdatert)
 
         assertThat(hent("SAK-2")).containsExactly(oppdatert)
     }
 
     @Test
     fun `ulike behandlingReferanser for samme sak beholdes begge`() {
-        val fnr = "10000000003"
         val søknad = behandlingVisning(referanse = "ref-3a", type = BehandlingVisningTypeIntern.SØKNAD)
         val klage = behandlingVisning(referanse = "ref-3b", type = BehandlingVisningTypeIntern.KLAGE)
 
-        lagre(fnr, "SAK-3", søknad)
-        lagre(fnr, "SAK-3", klage)
+        lagre("SAK-3", søknad)
+        lagre("SAK-3", klage)
 
         assertThat(hent("SAK-3")).containsExactly(søknad, klage)
     }
 
     @Test
     fun `lagrer behandling uten hendelser`() {
-        val fnr = "10000000004"
         val behandling = behandlingVisning(referanse = "ref-4", hendelser = emptyList())
 
-        lagre(fnr, "SAK-4", behandling)
+        lagre("SAK-4", behandling)
 
         assertThat(hent("SAK-4")).containsExactly(behandling)
     }
 
     @Test
     fun `henter ikke behandlinger fra andre saksnummer`() {
-        val fnr = "10000000006"
         val sakA = behandlingVisning("ref-sak-a")
         val sakB = behandlingVisning("ref-sak-b")
 
-        lagre(fnr, "SAK-A", sakA)
-        lagre(fnr, "SAK-B", sakB)
+        lagre("SAK-A", sakA)
+        lagre("SAK-B", sakB)
 
         assertThat(hent("SAK-A")).containsExactly(sakA)
         assertThat(hent("SAK-B")).containsExactly(sakB)
@@ -166,9 +160,9 @@ class BehandlingVisningRepositoryTest {
         assertThat(hent("SAK-99")).isEmpty()
     }
 
-    private fun lagre(fnr: String, saksnummer: String, behandling: BehandlingVisningIntern) {
+    private fun lagre(saksnummer: String, behandling: BehandlingVisningIntern) {
         dataSource.transaction {
-            BehandlingVisningRepository(it).lagreBehandlingVisning(fnr, saksnummer, behandling)
+            BehandlingVisningRepository(it).lagreBehandlingVisning(saksnummer, behandling)
         }
     }
 

@@ -96,9 +96,9 @@ class MineAapRoutesTest : PostgresTestBase() {
         lagreSak(fnr, "MA-1A")
         lagreSak(fnr, "MA-1B")
         lagreSak(annenPersonFnr, "MA-1C")
-        lagreBehandling(fnr, "MA-1A", behandling("ma-1a-behandling"))
-        lagreBehandling(fnr, "MA-1B", behandling("ma-1b-behandling"))
-        lagreBehandling(annenPersonFnr, "MA-1C", behandling("ma-1c-behandling"))
+        lagreBehandling("MA-1A", behandling("ma-1a-behandling"))
+        lagreBehandling("MA-1B", behandling("ma-1b-behandling"))
+        lagreBehandling("MA-1C", behandling("ma-1c-behandling"))
 
         val response = hentSaker(fnr)
 
@@ -136,7 +136,7 @@ class MineAapRoutesTest : PostgresTestBase() {
         val nåværendeFnr = "20000000005"
         val historiskFnr = "20000000006"
         lagreSak(historiskFnr, "MA-4")
-        lagreBehandling(historiskFnr, "MA-4", behandling("ma-4-behandling"))
+        lagreBehandling("MA-4", behandling("ma-4-behandling"))
 
         val pdlGateway = object : IPdlGateway {
             override fun hentAlleIdenterForPerson(personIdent: String) =
@@ -158,7 +158,6 @@ class MineAapRoutesTest : PostgresTestBase() {
         val fnr = "20000000007"
         lagreSak(fnr, "MA-5")
         lagreBehandling(
-            fnr,
             "MA-5",
             BehandlingVisningIntern(
                 behandlingReferanse = "ma-5-behandling",
@@ -231,9 +230,9 @@ class MineAapRoutesTest : PostgresTestBase() {
         }
     }
 
-    private fun lagreBehandling(fnr: String, saksnummer: String, behandling: BehandlingVisningIntern) {
+    private fun lagreBehandling(saksnummer: String, behandling: BehandlingVisningIntern) {
         dataSource.transaction { connection ->
-            BehandlingVisningRepository(connection).lagreBehandlingVisning(fnr, saksnummer, behandling)
+            BehandlingVisningRepository(connection).lagreBehandlingVisning(saksnummer, behandling)
         }
     }
 
