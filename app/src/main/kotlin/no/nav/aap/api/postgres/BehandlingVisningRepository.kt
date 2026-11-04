@@ -9,24 +9,22 @@ import java.time.LocalDateTime
 
 class BehandlingVisningRepository(private val connection: DBConnection) {
 
-    fun lagreBehandlingVisning(fnr: String, saksnummer: String, behandlingVisning: BehandlingVisningIntern) {
+    fun lagreBehandlingVisning(saksnummer: String, behandlingVisning: BehandlingVisningIntern) {
         val behandlingVisningId = connection.queryFirst(
             """
-                INSERT INTO BEHANDLING_VISNING (IDENT, SAKSNUMMER, BEHANDLING_REFERANSE, AVSLUTTET, BEHANDLING_TYPE)
-                VALUES (?, ?, ?, ?, ?)
-                ON CONFLICT (BEHANDLING_REFERANSE) DO UPDATE SET IDENT           = EXCLUDED.IDENT,
-                                                                 SAKSNUMMER      = EXCLUDED.SAKSNUMMER,
+                INSERT INTO BEHANDLING_VISNING (SAKSNUMMER, BEHANDLING_REFERANSE, AVSLUTTET, BEHANDLING_TYPE)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT (BEHANDLING_REFERANSE) DO UPDATE SET SAKSNUMMER      = EXCLUDED.SAKSNUMMER,
                                                                  AVSLUTTET       = EXCLUDED.AVSLUTTET,
                                                                  BEHANDLING_TYPE = EXCLUDED.BEHANDLING_TYPE
                 RETURNING ID
             """.trimIndent()
         ) {
             setParams {
-                setString(1, fnr)
-                setString(2, saksnummer)
-                setString(3, behandlingVisning.behandlingReferanse)
-                setBoolean(4, behandlingVisning.avsluttet)
-                setString(5, behandlingVisning.behandlingType.toString())
+                setString(1, saksnummer)
+                setString(2, behandlingVisning.behandlingReferanse)
+                setBoolean(3, behandlingVisning.avsluttet)
+                setString(4, behandlingVisning.behandlingType.toString())
             }
             setRowMapper { row ->
                 row.getLong("ID")
@@ -65,17 +63,17 @@ class BehandlingVisningRepository(private val connection: DBConnection) {
         }
     }
 
-    fun hentBehandlingVisninger(fnr: String): List<BehandlingVisningIntern> {
+    fun hentBehandlingVisninger(saksnummer: String): List<BehandlingVisningIntern> {
         return connection.queryList(
             """
                 SELECT ID, BEHANDLING_REFERANSE, AVSLUTTET, BEHANDLING_TYPE
                 FROM BEHANDLING_VISNING
-                WHERE IDENT = ?
+                WHERE SAKSNUMMER = ?
                 ORDER BY ID
             """.trimIndent()
         ) {
             setParams {
-                setString(1, fnr)
+                setString(1, saksnummer)
             }
             setRowMapper { row ->
                 row.getLong("ID") to BehandlingVisningIntern(

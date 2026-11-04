@@ -193,7 +193,6 @@ fun NormalOpenAPIRoute.dataInsertion(
                 dataSource.transaction { connection ->
                     val behandlingVisningRepository = BehandlingVisningRepository(connection)
                     behandlingVisningRepository.lagreBehandlingVisning(
-                        fnr = req.ident,
                         saksnummer = req.saksnummer,
                         behandlingVisning = req.behandling.tilDomene()
                     )
