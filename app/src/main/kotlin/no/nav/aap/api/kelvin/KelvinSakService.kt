@@ -88,7 +88,7 @@ class KelvinSakService(
             }
         }.maxByOrNull { it.fom }
 
-        return sisteStans != null && sisteStans.fom.plusDays(1).isBefore(nå)
+        return perioderMedRett.isEmpty() || (sisteStans != null && sisteStans.fom.plusDays(1).isBefore(nå))
     }
 
     fun hentSakStatusUtenEnhet(identer: List<String>): List<SakStatusMeldekortbackend> {
