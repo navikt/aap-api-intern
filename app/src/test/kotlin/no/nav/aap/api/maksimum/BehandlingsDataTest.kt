@@ -495,6 +495,9 @@ class BehandlingsDataTest : PostgresTestBase() {
         forventetResourceFil = "/forstegangsvedtak_fra_medium.json",
     )
 
+    /**
+     * For å gjenskape test: kjør behandlingsflyt lokalt, lag et scenario, og logg payload til api-intern.
+     */
     private inline fun <reified T : Any> snapshotTest(
         endpoint: String,
         forventetResourceFil: String,
@@ -510,7 +513,7 @@ class BehandlingsDataTest : PostgresTestBase() {
         // Setter nå-tidspunkt i framtiden for å kunne få utbetalinger
         val clock = Clock.fixed(
             Instant.from(
-                LocalDate.of(2026, 6, 9).atStartOfDay().toInstant(ZoneOffset.UTC)
+                LocalDate.of(2026, 12, 9).atStartOfDay().toInstant(ZoneOffset.UTC)
             ),
             ZoneId.of("UTC")
         )
@@ -538,9 +541,9 @@ class BehandlingsDataTest : PostgresTestBase() {
                 contentType(ContentType.Application.Json)
                 setBody(
                     InternVedtakRequest(
-                        "01410048945",
-                        LocalDate.now(clock).minusYears(1),
-                        LocalDate.now(clock).plusMonths(12)
+                        "39105072649",
+                        LocalDate.now(clock).minusYears(10),
+                        LocalDate.now(clock).plusYears(10)
                     )
                 )
             }

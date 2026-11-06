@@ -1,66 +1,91 @@
 {
   "vedtak": [
     {
-      "dagsats": 1022,
-      "dagsatsEtterUføreReduksjon": 1022,
-      "vedtakId": "59866",
+      "dagsats": 1072,
+      "dagsatsEtterUføreReduksjon": 536,
+      "vedtakId": "25",
       "status": "LØPENDE",
-      "saksnummer": "LoCAL_4LHHPQ0",
-      "vedtaksdato": "2026-06-09",
+      "saksnummer": "LoCAL_4LEJN1S",
+      "vedtaksdato": "2026-11-06",
       "vedtaksTypeKode": "O",
       "vedtaksTypeNavn": null,
       "periode": {
-        "fraOgMedDato": "2025-08-01",
-        "tilOgMedDato": "2025-12-31"
+        "fraOgMedDato": "2026-06-01",
+        "tilOgMedDato": "2026-08-31"
       },
       "rettighetsType": "SYKEPENGEERSTATNING",
-      "beregningsgrunnlag": 213375,
-      "barnMedStonad": 2,
-      "barnetillegg": 74,
-      "kildesystem": "KELVIN",
-      "samordningsId": null,
-      "opphorsAarsak": null
-    },
-    {
-      "dagsats": 1022,
-      "dagsatsEtterUføreReduksjon": 1022,
-      "vedtakId": "59866",
-      "status": "LØPENDE",
-      "saksnummer": "LoCAL_4LHHPQ0",
-      "vedtaksdato": "2026-06-09",
-      "vedtaksTypeKode": "O",
-      "vedtaksTypeNavn": null,
-      "periode": {
-        "fraOgMedDato": "2026-01-01",
-        "tilOgMedDato": "2026-04-30"
-      },
-      "rettighetsType": "BISTANDSBEHOV",
-      "beregningsgrunnlag": 213375,
+      "beregningsgrunnlag": 223849,
       "barnMedStonad": 2,
       "barnetillegg": 76,
       "kildesystem": "KELVIN",
       "samordningsId": null,
+      "samordningOgTpnr": [],
       "opphorsAarsak": null
     },
     {
       "dagsats": 1072,
-      "dagsatsEtterUføreReduksjon": 1072,
-      "vedtakId": "59866",
+      "dagsatsEtterUføreReduksjon": 536,
+      "vedtakId": "25",
       "status": "LØPENDE",
-      "saksnummer": "LoCAL_4LHHPQ0",
-      "vedtaksdato": "2026-06-09",
-      "vedtaksTypeKode": "O",
+      "saksnummer": "LoCAL_4LEJN1S",
+      "vedtaksdato": "2026-11-06",
+      "vedtaksTypeKode": "E",
       "vedtaksTypeNavn": null,
       "periode": {
-        "fraOgMedDato": "2026-05-01",
-        "tilOgMedDato": "2026-07-31"
+        "fraOgMedDato": "2026-09-01",
+        "tilOgMedDato": "2026-09-30"
       },
       "rettighetsType": "BISTANDSBEHOV",
-      "beregningsgrunnlag": 213375,
+      "beregningsgrunnlag": 223849,
       "barnMedStonad": 2,
       "barnetillegg": 76,
       "kildesystem": "KELVIN",
       "samordningsId": null,
+      "samordningOgTpnr": [],
+      "opphorsAarsak": null
+    },
+    {
+      "dagsats": 1072,
+      "dagsatsEtterUføreReduksjon": 429,
+      "vedtakId": "25",
+      "status": "LØPENDE",
+      "saksnummer": "LoCAL_4LEJN1S",
+      "vedtaksdato": "2026-11-06",
+      "vedtaksTypeKode": "E",
+      "vedtaksTypeNavn": null,
+      "periode": {
+        "fraOgMedDato": "2026-10-01",
+        "tilOgMedDato": "2026-11-30"
+      },
+      "rettighetsType": "BISTANDSBEHOV",
+      "beregningsgrunnlag": 223849,
+      "barnMedStonad": 2,
+      "barnetillegg": 76,
+      "kildesystem": "KELVIN",
+      "samordningsId": null,
+      "samordningOgTpnr": [],
+      "opphorsAarsak": null
+    },
+    {
+      "dagsats": 1072,
+      "dagsatsEtterUføreReduksjon": 429,
+      "vedtakId": "25",
+      "status": "LØPENDE",
+      "saksnummer": "LoCAL_4LEJN1S",
+      "vedtaksdato": "2026-11-06",
+      "vedtaksTypeKode": "E",
+      "vedtaksTypeNavn": null,
+      "periode": {
+        "fraOgMedDato": "2026-12-01",
+        "tilOgMedDato": "2027-05-31"
+      },
+      "rettighetsType": "BISTANDSBEHOV",
+      "beregningsgrunnlag": 223849,
+      "barnMedStonad": 2,
+      "barnetillegg": 76,
+      "kildesystem": "KELVIN",
+      "samordningsId": null,
+      "samordningOgTpnr": [],
       "opphorsAarsak": null
     }
   ]

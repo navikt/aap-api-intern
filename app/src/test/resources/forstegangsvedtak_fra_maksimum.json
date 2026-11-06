@@ -1,319 +1,18 @@
 {
   "vedtak": [
     {
-      "dagsats": 1022,
-      "dagsatsEtterUføreReduksjon": 1022,
-      "vedtakId": "59866",
+      "dagsats": 1072,
+      "dagsatsEtterUføreReduksjon": 536,
+      "vedtakId": "25",
       "status": "LØPENDE",
-      "saksnummer": "LoCAL_4LHHPQ0",
-      "vedtaksdato": "2026-06-09",
+      "saksnummer": "LoCAL_4LEJN1S",
+      "vedtaksdato": "2026-11-06",
       "periode": {
-        "fraOgMedDato": "2025-08-01",
-        "tilOgMedDato": "2025-12-31"
+        "fraOgMedDato": "2026-06-01",
+        "tilOgMedDato": "2026-08-31"
       },
       "rettighetsType": "SYKEPENGEERSTATNING",
-      "beregningsgrunnlag": 213375,
-      "barnMedStonad": 2,
-      "barnetillegg": 74,
-      "barnetilleggSats": 37,
-      "kildesystem": "KELVIN",
-      "samordningsId": null,
-      "samordningOgTpnr": [],
-      "opphorsAarsak": null,
-      "vedtaksTypeKode": "O",
-      "vedtaksTypeNavn": null,
-      "utbetaling": [
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-08-01",
-            "tilOgMedDato": "2025-08-01"
-          },
-          "belop": 1096,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-08-04",
-            "tilOgMedDato": "2025-08-08"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-08-11",
-            "tilOgMedDato": "2025-08-15"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-08-18",
-            "tilOgMedDato": "2025-08-22"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-08-25",
-            "tilOgMedDato": "2025-08-29"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-09-01",
-            "tilOgMedDato": "2025-09-05"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-09-08",
-            "tilOgMedDato": "2025-09-12"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-09-15",
-            "tilOgMedDato": "2025-09-19"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-09-22",
-            "tilOgMedDato": "2025-09-26"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-09-29",
-            "tilOgMedDato": "2025-10-03"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-10-06",
-            "tilOgMedDato": "2025-10-10"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-10-13",
-            "tilOgMedDato": "2025-10-17"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-10-20",
-            "tilOgMedDato": "2025-10-24"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-10-27",
-            "tilOgMedDato": "2025-10-31"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-11-03",
-            "tilOgMedDato": "2025-11-07"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-11-10",
-            "tilOgMedDato": "2025-11-14"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-11-17",
-            "tilOgMedDato": "2025-11-21"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-11-24",
-            "tilOgMedDato": "2025-11-28"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-12-01",
-            "tilOgMedDato": "2025-12-05"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-12-08",
-            "tilOgMedDato": "2025-12-12"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-12-15",
-            "tilOgMedDato": "2025-12-19"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-12-22",
-            "tilOgMedDato": "2025-12-26"
-          },
-          "belop": 5480,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2025-12-29",
-            "tilOgMedDato": "2025-12-31"
-          },
-          "belop": 3288,
-          "dagsats": 1022,
-          "barnetillegg": 74,
-          "barnetilegg": 74
-        }
-      ]
-    },
-    {
-      "dagsats": 1022,
-      "dagsatsEtterUføreReduksjon": 1022,
-      "vedtakId": "59866",
-      "status": "LØPENDE",
-      "saksnummer": "LoCAL_4LHHPQ0",
-      "vedtaksdato": "2026-06-09",
-      "periode": {
-        "fraOgMedDato": "2026-01-01",
-        "tilOgMedDato": "2026-04-30"
-      },
-      "rettighetsType": "BISTANDSBEHOV",
-      "beregningsgrunnlag": 213375,
+      "beregningsgrunnlag": 223849,
       "barnMedStonad": 2,
       "barnetillegg": 76,
       "barnetilleggSats": 38,
@@ -326,235 +25,187 @@
       "utbetaling": [
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-01-01",
-            "tilOgMedDato": "2026-01-02"
+            "fraOgMedDato": "2026-06-01",
+            "tilOgMedDato": "2026-06-05"
           },
-          "belop": 2196,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-01-05",
-            "tilOgMedDato": "2026-01-09"
+            "fraOgMedDato": "2026-06-08",
+            "tilOgMedDato": "2026-06-12"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-01-12",
-            "tilOgMedDato": "2026-01-16"
+            "fraOgMedDato": "2026-06-15",
+            "tilOgMedDato": "2026-06-19"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-01-19",
-            "tilOgMedDato": "2026-01-23"
+            "fraOgMedDato": "2026-06-22",
+            "tilOgMedDato": "2026-06-26"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-01-26",
-            "tilOgMedDato": "2026-01-30"
+            "fraOgMedDato": "2026-06-29",
+            "tilOgMedDato": "2026-07-03"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-02-02",
-            "tilOgMedDato": "2026-02-06"
+            "fraOgMedDato": "2026-07-06",
+            "tilOgMedDato": "2026-07-10"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-02-09",
-            "tilOgMedDato": "2026-02-13"
+            "fraOgMedDato": "2026-07-13",
+            "tilOgMedDato": "2026-07-17"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-02-16",
-            "tilOgMedDato": "2026-02-20"
+            "fraOgMedDato": "2026-07-20",
+            "tilOgMedDato": "2026-07-24"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-02-23",
-            "tilOgMedDato": "2026-02-27"
+            "fraOgMedDato": "2026-07-27",
+            "tilOgMedDato": "2026-07-31"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-03-02",
-            "tilOgMedDato": "2026-03-06"
+            "fraOgMedDato": "2026-08-03",
+            "tilOgMedDato": "2026-08-07"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-03-09",
-            "tilOgMedDato": "2026-03-13"
+            "fraOgMedDato": "2026-08-10",
+            "tilOgMedDato": "2026-08-14"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-03-16",
-            "tilOgMedDato": "2026-03-20"
+            "fraOgMedDato": "2026-08-17",
+            "tilOgMedDato": "2026-08-21"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-03-23",
-            "tilOgMedDato": "2026-03-27"
+            "fraOgMedDato": "2026-08-24",
+            "tilOgMedDato": "2026-08-28"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-03-30",
-            "tilOgMedDato": "2026-04-03"
+            "fraOgMedDato": "2026-08-31",
+            "tilOgMedDato": "2026-08-31"
           },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2026-04-06",
-            "tilOgMedDato": "2026-04-10"
-          },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2026-04-13",
-            "tilOgMedDato": "2026-04-17"
-          },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2026-04-20",
-            "tilOgMedDato": "2026-04-24"
-          },
-          "belop": 5490,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
-        },
-        {
-          "reduksjon": null,
-          "utbetalingsgrad": 100,
-          "periode": {
-            "fraOgMedDato": "2026-04-27",
-            "tilOgMedDato": "2026-04-30"
-          },
-          "belop": 4392,
-          "dagsats": 1022,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 574,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         }
       ]
     },
     {
       "dagsats": 1072,
-      "dagsatsEtterUføreReduksjon": 1072,
-      "vedtakId": "59866",
+      "dagsatsEtterUføreReduksjon": 536,
+      "vedtakId": "25",
       "status": "LØPENDE",
-      "saksnummer": "LoCAL_4LHHPQ0",
-      "vedtaksdato": "2026-06-09",
+      "saksnummer": "LoCAL_4LEJN1S",
+      "vedtaksdato": "2026-11-06",
       "periode": {
-        "fraOgMedDato": "2026-05-01",
-        "tilOgMedDato": "2026-07-31"
+        "fraOgMedDato": "2026-09-01",
+        "tilOgMedDato": "2026-09-30"
       },
       "rettighetsType": "BISTANDSBEHOV",
-      "beregningsgrunnlag": 213375,
+      "beregningsgrunnlag": 223849,
       "barnMedStonad": 2,
       "barnetillegg": 76,
       "barnetilleggSats": 38,
@@ -562,92 +213,262 @@
       "samordningsId": null,
       "samordningOgTpnr": [],
       "opphorsAarsak": null,
-      "vedtaksTypeKode": "O",
+      "vedtaksTypeKode": "E",
       "vedtaksTypeNavn": null,
       "utbetaling": [
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-05-01",
-            "tilOgMedDato": "2026-05-01"
+            "fraOgMedDato": "2026-09-01",
+            "tilOgMedDato": "2026-09-04"
           },
-          "belop": 1148,
-          "dagsats": 1072,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2296,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-05-04",
-            "tilOgMedDato": "2026-05-08"
+            "fraOgMedDato": "2026-09-07",
+            "tilOgMedDato": "2026-09-11"
           },
-          "belop": 5740,
-          "dagsats": 1072,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-05-11",
-            "tilOgMedDato": "2026-05-15"
+            "fraOgMedDato": "2026-09-14",
+            "tilOgMedDato": "2026-09-18"
           },
-          "belop": 5740,
-          "dagsats": 1072,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-05-18",
-            "tilOgMedDato": "2026-05-22"
+            "fraOgMedDato": "2026-09-21",
+            "tilOgMedDato": "2026-09-25"
           },
-          "belop": 5740,
-          "dagsats": 1072,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 2870,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 100,
+          "utbetalingsgrad": 50,
           "periode": {
-            "fraOgMedDato": "2026-05-25",
-            "tilOgMedDato": "2026-05-29"
+            "fraOgMedDato": "2026-09-28",
+            "tilOgMedDato": "2026-09-30"
           },
-          "belop": 5740,
-          "dagsats": 1072,
-          "barnetillegg": 76,
-          "barnetilegg": 76
+          "belop": 1722,
+          "dagsats": 536,
+          "barnetillegg": 38,
+          "barnetilegg": 38
+        }
+      ]
+    },
+    {
+      "dagsats": 1072,
+      "dagsatsEtterUføreReduksjon": 429,
+      "vedtakId": "25",
+      "status": "LØPENDE",
+      "saksnummer": "LoCAL_4LEJN1S",
+      "vedtaksdato": "2026-11-06",
+      "periode": {
+        "fraOgMedDato": "2026-10-01",
+        "tilOgMedDato": "2026-11-30"
+      },
+      "rettighetsType": "BISTANDSBEHOV",
+      "beregningsgrunnlag": 223849,
+      "barnMedStonad": 2,
+      "barnetillegg": 76,
+      "barnetilleggSats": 38,
+      "kildesystem": "KELVIN",
+      "samordningsId": null,
+      "samordningOgTpnr": [],
+      "opphorsAarsak": null,
+      "vedtaksTypeKode": "E",
+      "vedtaksTypeNavn": null,
+      "utbetaling": [
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 40,
+          "periode": {
+            "fraOgMedDato": "2026-10-01",
+            "tilOgMedDato": "2026-10-02"
+          },
+          "belop": 918,
+          "dagsats": 428,
+          "barnetillegg": 30,
+          "barnetilegg": 30
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 85,
+          "utbetalingsgrad": 40,
           "periode": {
-            "fraOgMedDato": "2026-06-01",
-            "tilOgMedDato": "2026-06-05"
+            "fraOgMedDato": "2026-10-05",
+            "tilOgMedDato": "2026-10-09"
           },
-          "belop": 4875,
-          "dagsats": 911,
-          "barnetillegg": 65,
-          "barnetilegg": 65
+          "belop": 2295,
+          "dagsats": 428,
+          "barnetillegg": 30,
+          "barnetilegg": 30
         },
         {
           "reduksjon": null,
-          "utbetalingsgrad": 85,
+          "utbetalingsgrad": 40,
           "periode": {
-            "fraOgMedDato": "2026-06-08",
-            "tilOgMedDato": "2026-06-09"
+            "fraOgMedDato": "2026-10-12",
+            "tilOgMedDato": "2026-10-16"
           },
-          "belop": 1950,
-          "dagsats": 911,
-          "barnetillegg": 65,
-          "barnetilegg": 65
+          "belop": 2295,
+          "dagsats": 428,
+          "barnetillegg": 30,
+          "barnetilegg": 30
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 40,
+          "periode": {
+            "fraOgMedDato": "2026-10-19",
+            "tilOgMedDato": "2026-10-23"
+          },
+          "belop": 2295,
+          "dagsats": 428,
+          "barnetillegg": 30,
+          "barnetilegg": 30
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 40,
+          "periode": {
+            "fraOgMedDato": "2026-10-26",
+            "tilOgMedDato": "2026-10-30"
+          },
+          "belop": 2295,
+          "dagsats": 428,
+          "barnetillegg": 30,
+          "barnetilegg": 30
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 0,
+          "periode": {
+            "fraOgMedDato": "2026-11-02",
+            "tilOgMedDato": "2026-11-06"
+          },
+          "belop": 0,
+          "dagsats": 0,
+          "barnetillegg": 0,
+          "barnetilegg": 0
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 0,
+          "periode": {
+            "fraOgMedDato": "2026-11-09",
+            "tilOgMedDato": "2026-11-13"
+          },
+          "belop": 0,
+          "dagsats": 0,
+          "barnetillegg": 0,
+          "barnetilegg": 0
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 0,
+          "periode": {
+            "fraOgMedDato": "2026-11-16",
+            "tilOgMedDato": "2026-11-20"
+          },
+          "belop": 0,
+          "dagsats": 0,
+          "barnetillegg": 0,
+          "barnetilegg": 0
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 0,
+          "periode": {
+            "fraOgMedDato": "2026-11-23",
+            "tilOgMedDato": "2026-11-27"
+          },
+          "belop": 0,
+          "dagsats": 0,
+          "barnetillegg": 0,
+          "barnetilegg": 0
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 0,
+          "periode": {
+            "fraOgMedDato": "2026-11-30",
+            "tilOgMedDato": "2026-11-30"
+          },
+          "belop": 0,
+          "dagsats": 0,
+          "barnetillegg": 0,
+          "barnetilegg": 0
+        }
+      ]
+    },
+    {
+      "dagsats": 1072,
+      "dagsatsEtterUføreReduksjon": 429,
+      "vedtakId": "25",
+      "status": "LØPENDE",
+      "saksnummer": "LoCAL_4LEJN1S",
+      "vedtaksdato": "2026-11-06",
+      "periode": {
+        "fraOgMedDato": "2026-12-01",
+        "tilOgMedDato": "2027-05-31"
+      },
+      "rettighetsType": "BISTANDSBEHOV",
+      "beregningsgrunnlag": 223849,
+      "barnMedStonad": 2,
+      "barnetillegg": 76,
+      "barnetilleggSats": 38,
+      "kildesystem": "KELVIN",
+      "samordningsId": null,
+      "samordningOgTpnr": [],
+      "opphorsAarsak": null,
+      "vedtaksTypeKode": "E",
+      "vedtaksTypeNavn": null,
+      "utbetaling": [
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 0,
+          "periode": {
+            "fraOgMedDato": "2026-12-01",
+            "tilOgMedDato": "2026-12-04"
+          },
+          "belop": 0,
+          "dagsats": 0,
+          "barnetillegg": 0,
+          "barnetilegg": 0
+        },
+        {
+          "reduksjon": null,
+          "utbetalingsgrad": 0,
+          "periode": {
+            "fraOgMedDato": "2026-12-07",
+            "tilOgMedDato": "2026-12-09"
+          },
+          "belop": 0,
+          "dagsats": 0,
+          "barnetillegg": 0,
+          "barnetilegg": 0
         }
       ]
     }
