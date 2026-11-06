@@ -26,21 +26,23 @@ class VedtakService(
         val vedtak = kelvinData.flatMap { behandling ->
             val perioderTidslinje = behandling.rettighetsTypeTidslinje.kombiner(
                 behandling.tilkjent,
-                JoinStyle.LEFT_JOIN { periode, left, right ->
+                JoinStyle.LEFT_JOIN { periode, (_, rettighetsType), right ->
+                    val tilkjentYtelse = right?.verdi
+
                     Segment(
                         periode,
                         VedtakUtenUtbetalingUtenPeriode(
                             vedtakId = behandling.vedtakId.toString(),
-                            dagsats = right?.verdi?.dagsats ?: 0,
-                            dagsatsEtterUføreReduksjon = right?.verdi?.regnUtDagsatsEtterUføreReduksjon()
-                                ?: 0,
+                            dagsats = tilkjentYtelse?.dagsats.ellerNull(),
+                            dagsatsEtterUføreReduksjon = tilkjentYtelse?.regnUtDagsatsEtterUføreReduksjon()
+                                .ellerNull(),
                             status = Status.LØPENDE.name,
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
-                            rettighetsType = left.verdi,
-                            beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
-                            barnMedStonad = right?.verdi?.antallBarn ?: 0,
-                            barnetilleggSats = right?.verdi?.barnetilleggsats,
+                            rettighetsType = rettighetsType,
+                            beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt().ellerNull(),
+                            barnMedStonad = tilkjentYtelse?.antallBarn.ellerNull(),
+                            barnetilleggSats = tilkjentYtelse?.barnetilleggsats,
                             kildesystem = InternKilde.KELVIN,
                             samordningOgTpnr = behandling.samIdOgTpNr,
                             opphorsAarsak = null,
@@ -54,7 +56,9 @@ class VedtakService(
                 }
 
             val tilkjentPerioder =
-                behandling.tilkjentUtenHelger.splittOppIPerioder(perioderMedArena.perioder().toList())
+                behandling.tilkjentUtenHelger.splittOppIPerioder(
+                    perioderMedArena.perioder().toList()
+                )
 
             perioderMedArena.kombiner(
                 tilkjentPerioder,
@@ -64,6 +68,7 @@ class VedtakService(
                         vedtakUtenUtbetalingUtenPeriode.arenavedtak?.vedtaksvariant?.typeKode
                             ?: if (behandling.nyttVedtak) "O" else "E"
                     val tilkjentYtelseTidslinje = right?.verdi.orEmpty()
+
                     val segment = Segment(
                         periode,
                         InternVedtak(
@@ -77,11 +82,10 @@ class VedtakService(
                             rettighetsType = vedtakUtenUtbetalingUtenPeriode.rettighetsType,
                             beregningsgrunnlag = vedtakUtenUtbetalingUtenPeriode.beregningsgrunnlag,
                             barnMedStonad = vedtakUtenUtbetalingUtenPeriode.barnMedStonad,
-                            barnetillegg = vedtakUtenUtbetalingUtenPeriode.barnMedStonad * (tilkjentYtelseTidslinje.segmenter()
-                                .firstOrNull()?.verdi?.barnetilleggsats?.toInt()
-                                ?: 0),
+                            barnetillegg = vedtakUtenUtbetalingUtenPeriode.barnMedStonad * tilkjentYtelseTidslinje.segmenter()
+                                .lastOrNull()?.verdi?.barnetilleggsats?.toInt().ellerNull(),
                             barnetilleggSats = vedtakUtenUtbetalingUtenPeriode.barnetilleggSats?.toInt()
-                                ?: 0,
+                                .ellerNull(),
                             vedtaksTypeKode = vedtaksTypeKode,
                             vedtaksTypeNavn = null,
                             utbetaling = hentTilkjentYtelseForPeriode(
@@ -110,22 +114,26 @@ class VedtakService(
         .orEmpty()
         .komprimer()
         .segmenter()
-        .map { utbetaling ->
+        .map { (periode, verdi) ->
+            val utbetaling = verdi
+
+            val dagsats = utbetaling.dagsats
+            val gradering = utbetaling.gradering
+
+            val beløpPerDag = utbetaling.effektivDagsats
+                ?: ((dagsats + utbetaling.barnetillegg.toInt()) * gradering / 100)
+
             InternUtbetalingMedMer(
                 reduksjon = null,
-                utbetalingsgrad = utbetaling.verdi.gradering,
-                periode = InternPeriode(
-                    utbetaling.periode.fom,
-                    utbetaling.periode.tom
-                ),
+                utbetalingsgrad = gradering,
+                periode = InternPeriode(periode.fom, periode.tom),
                 // TODO: bør hente korrekt beløp på samme måte som i behandlingsflyt
-                belop = ((utbetaling.verdi.dagsats + utbetaling.verdi.barnetillegg.toInt()) * utbetaling.verdi.gradering) / 100 * weekdaysBetween(
-                    utbetaling.periode.fom,
-                    utbetaling.periode.tom
+                belop = beløpPerDag * weekdaysBetween(
+                    periode.fom,
+                    periode.tom
                 ),
-                dagsats = utbetaling.verdi.dagsats * utbetaling.verdi.gradering / 100,
-                barnetillegg = utbetaling.verdi.gradertBarnetillegg()
-                    .toInt()
+                dagsats = dagsats * gradering / 100,
+                barnetillegg = utbetaling.gradertBarnetillegg().toInt()
             )
         }
 
@@ -144,15 +152,15 @@ class VedtakService(
                         periode,
                         VedtakUtenUtbetalingUtenPeriode(
                             vedtakId = behandling.vedtakId.toString(),
-                            dagsats = tilkjentYtelse?.dagsats ?: 0,
+                            dagsats = tilkjentYtelse?.dagsats.ellerNull(),
                             dagsatsEtterUføreReduksjon = tilkjentYtelse?.regnUtDagsatsEtterUføreReduksjon()
-                                ?: 0,
+                                .ellerNull(),
                             status = Status.LØPENDE.name, // TODO!
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
-                            beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt() ?: 0,
-                            barnMedStonad = tilkjentYtelse?.antallBarn ?: 0,
+                            beregningsgrunnlag = behandling.beregningsgrunnlag?.toInt().ellerNull(),
+                            barnMedStonad = tilkjentYtelse?.antallBarn.ellerNull(),
                             kildesystem = InternKilde.KELVIN,
                             samordningOgTpnr = behandling.samIdOgTpNr,
                             opphorsAarsak = null,
@@ -165,7 +173,6 @@ class VedtakService(
                     perioderTidslinje.leftJoin(behandling.arenakompatibleVedtakTidslinje) { periode, left, right ->
                         Segment(periode, left.copy(arenavedtak = right))
                     }
-
                 }
                 .map {
                     it.verdi.tilVedtakUtenUtbetaling(
@@ -216,8 +223,8 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val rettighetsType: String, ////aktivitetsfase //Aktfasekode
     val beregningsgrunnlag: Int,
 
-    @property:Description("Antall barn som gir rett til barnetillegg.")
     /** Antall barn som gir rett til barnetillegg.  */
+    @property:Description("Antall barn som gir rett til barnetillegg.")
     val barnMedStonad: Int,
 
     @property:Description("Kildesystem for vedtak. Mulige verdier er ARENA og KELVIN.")
@@ -227,6 +234,12 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val lopenrvedtak: Int? = null,
     val relatertVedtak: Int? = null,
 
+    /** Størrelsen på ugradert barnetilleggsats.
+     *
+     * Verdien er ugradert, i den forstand at:
+     * Hvis barnetilleggsatsen er spesifisert i AAP-forskriften § 8 til 38 kroner, og medlemmet får 50% AAP,
+     * så vil [barnetilleggSats] være 38.
+     **/
     @property:Description(
         """
      Størrelsen på ugradert barnetilleggsats.
@@ -236,12 +249,6 @@ data class VedtakUtenUtbetalingUtenPeriode(
     så vil [barnetilleggSats] være 38.
     """
     )
-    /** Størrelsen på ugradert barnetilleggsats.
-     *
-     * Verdien er ugradert, i den forstand at:
-     * Hvis barnetilleggsatsen er spesifisert i AAP-forskriften § 8 til 38 kroner, og medlemmet får 50% AAP,
-     * så vil [barnetilleggSats] være 38.
-     **/
     val barnetilleggSats: BigDecimal? = null,
     val arenavedtak: Arenavedtak? = null,
 ) {
@@ -264,7 +271,7 @@ data class VedtakUtenUtbetalingUtenPeriode(
             rettighetsType = this.rettighetsType,
             beregningsgrunnlag = this.beregningsgrunnlag,
             barnMedStonad = this.barnMedStonad,
-            barnetillegg = barnMedStonad * (this.barnetilleggSats?.toInt() ?: 0),
+            barnetillegg = barnMedStonad * this.barnetilleggSats?.toInt().ellerNull(),
             kildesystem = this.kildesystem,
             samIdOgTpnr = this.samordningOgTpnr,
             opphorsAarsak = this.opphorsAarsak,
@@ -273,3 +280,5 @@ data class VedtakUtenUtbetalingUtenPeriode(
         )
     }
 }
+
+fun Int?.ellerNull(): Int = this ?: 0

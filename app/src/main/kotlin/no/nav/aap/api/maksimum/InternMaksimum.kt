@@ -44,6 +44,21 @@ data class InternMaksimum(
     val vedtak: List<InternVedtak>,
 )
 
+/**
+ * @property vedtakId Fra Kelvin: database-ID fra vedtak-tabellen i behandlingsflyt. Fra Arena: vedtak_id-feltet fra vedtak-tabellen.
+ * @property status Fra Kelvin: konstant lik 'LØPENDE'. Fra Arena er dette 'vedtakstatuskode'.
+ * @property dagsats
+ * @property barnetillegg Fra Kelvin: definert som antall barn x siste
+ * barnetilleggsats i denne perioden ([periode]). Tilsvarende for Arena-data.
+ * @property barnetilleggSats Fra Kelvin: gjeldende barnetilleggsats i denne [periode]. Fra Arena: tallet null.
+ *
+ * @property samIdOgTpnr Liste med samordning- og tp-nummer. Deles videre til ekstern-api-et for
+ * at samhandlere skal kunne matche med hendelser.
+ *
+ * @property kildesystem Enten Kelvin eller Arena.
+ * @property lopenrvedtak Kun fra Arena. Verdi fra database-feltet med samme navn i vedtak-tabellen.
+ * @property relatertVedtak Kun fra Arena. Kommer fra 'vedtak_id_relatert'.
+ */
 data class InternVedtak(
     val dagsats: Int,
     val dagsatsEtterUføreReduksjon: Int?,

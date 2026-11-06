@@ -1,349 +1,24 @@
 {
-  "rettighetsPeriodeFom": "2025-08-01",
+  "rettighetsPeriodeFom": "2026-06-01",
   "rettighetsPeriodeTom": "2999-01-01",
   "behandlingStatus": "IVERKSETTES",
-  "behandlingsId": "89942",
-  "vedtaksDato": "2026-06-09",
+  "behandlingsId": "55",
+  "vedtaksDato": "2026-11-06",
   "sak": {
-    "saksnummer": "LoCAL_4LHHPQ0",
+    "saksnummer": "LoCAL_4LEJN1S",
     "fnr": [
-      "01410048945"
+      "39105072649"
     ],
-    "opprettetTidspunkt": "2026-06-09T07:50:15.926"
+    "opprettetTidspunkt": "2026-11-06T08:52:05.312"
   },
   "tilkjent": [
-    {
-      "tilkjentFom": "2025-08-01",
-      "tilkjentTom": "2025-08-10",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2025-08-11",
-      "tilkjentTom": "2025-08-24",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2025-08-25",
-      "tilkjentTom": "2025-09-07",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2025-09-08",
-      "tilkjentTom": "2025-09-21",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2025-09-22",
-      "tilkjentTom": "2025-10-05",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2025-10-06",
-      "tilkjentTom": "2025-10-19",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2025-10-20",
-      "tilkjentTom": "2025-11-02",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2025-11-03",
-      "tilkjentTom": "2025-11-16",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2025-11-17",
-      "tilkjentTom": "2025-11-30",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2025-12-01",
-      "tilkjentTom": "2025-12-14",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2025-12-15",
-      "tilkjentTom": "2025-12-28",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2025-12-29",
-      "tilkjentTom": "2025-12-31",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 37.00,
-      "barnetillegg": 74.00
-    },
-    {
-      "tilkjentFom": "2026-01-01",
-      "tilkjentTom": "2026-01-11",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-01-12",
-      "tilkjentTom": "2026-01-25",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-01-26",
-      "tilkjentTom": "2026-02-01",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-02-02",
-      "tilkjentTom": "2026-02-08",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-02-09",
-      "tilkjentTom": "2026-02-22",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-02-23",
-      "tilkjentTom": "2026-03-08",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-03-09",
-      "tilkjentTom": "2026-03-22",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-03-23",
-      "tilkjentTom": "2026-04-05",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-04-06",
-      "tilkjentTom": "2026-04-19",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-04-20",
-      "tilkjentTom": "2026-04-30",
-      "dagsats": 1022,
-      "effektivDagsats": 1022,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 130160.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-05-01",
-      "tilkjentTom": "2026-05-03",
-      "dagsats": 1072,
-      "effektivDagsats": 1072,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 136549.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-05-04",
-      "tilkjentTom": "2026-05-17",
-      "dagsats": 1072,
-      "effektivDagsats": 1072,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 136549.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-05-18",
-      "tilkjentTom": "2026-05-31",
-      "dagsats": 1072,
-      "effektivDagsats": 1072,
-      "gradering": 100,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 136549.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
     {
       "tilkjentFom": "2026-06-01",
       "tilkjentTom": "2026-06-14",
       "dagsats": 1072,
-      "effektivDagsats": 911,
-      "gradering": 85,
-      "samordningUføregradering": 0,
+      "effektivDagsats": 574,
+      "gradering": 50,
+      "samordningUføregradering": 50,
       "grunnlagsfaktor": 0.0078500000,
       "grunnbeløp": 136549.00,
       "antallBarn": 2,
@@ -354,9 +29,9 @@
       "tilkjentFom": "2026-06-15",
       "tilkjentTom": "2026-06-28",
       "dagsats": 1072,
-      "effektivDagsats": 911,
-      "gradering": 85,
-      "samordningUføregradering": 0,
+      "effektivDagsats": 574,
+      "gradering": 50,
+      "samordningUføregradering": 50,
       "grunnlagsfaktor": 0.0078500000,
       "grunnbeløp": 136549.00,
       "antallBarn": 2,
@@ -365,24 +40,11 @@
     },
     {
       "tilkjentFom": "2026-06-29",
-      "tilkjentTom": "2026-06-30",
-      "dagsats": 1072,
-      "effektivDagsats": 954,
-      "gradering": 89,
-      "samordningUføregradering": 0,
-      "grunnlagsfaktor": 0.0078500000,
-      "grunnbeløp": 136549.00,
-      "antallBarn": 2,
-      "barnetilleggsats": 38.00,
-      "barnetillegg": 76.00
-    },
-    {
-      "tilkjentFom": "2026-07-01",
       "tilkjentTom": "2026-07-12",
       "dagsats": 1072,
-      "effektivDagsats": 0,
-      "gradering": 0,
-      "samordningUføregradering": 0,
+      "effektivDagsats": 574,
+      "gradering": 50,
+      "samordningUføregradering": 50,
       "grunnlagsfaktor": 0.0078500000,
       "grunnbeløp": 136549.00,
       "antallBarn": 2,
@@ -393,9 +55,9 @@
       "tilkjentFom": "2026-07-13",
       "tilkjentTom": "2026-07-26",
       "dagsats": 1072,
-      "effektivDagsats": 0,
-      "gradering": 0,
-      "samordningUføregradering": 0,
+      "effektivDagsats": 574,
+      "gradering": 50,
+      "samordningUføregradering": 50,
       "grunnlagsfaktor": 0.0078500000,
       "grunnbeløp": 136549.00,
       "antallBarn": 2,
@@ -404,11 +66,323 @@
     },
     {
       "tilkjentFom": "2026-07-27",
-      "tilkjentTom": "2026-07-31",
+      "tilkjentTom": "2026-08-09",
+      "dagsats": 1072,
+      "effektivDagsats": 574,
+      "gradering": 50,
+      "samordningUføregradering": 50,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-08-10",
+      "tilkjentTom": "2026-08-23",
+      "dagsats": 1072,
+      "effektivDagsats": 574,
+      "gradering": 50,
+      "samordningUføregradering": 50,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-08-24",
+      "tilkjentTom": "2026-08-31",
+      "dagsats": 1072,
+      "effektivDagsats": 574,
+      "gradering": 50,
+      "samordningUføregradering": 50,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-09-01",
+      "tilkjentTom": "2026-09-06",
+      "dagsats": 1072,
+      "effektivDagsats": 574,
+      "gradering": 50,
+      "samordningUføregradering": 50,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-09-07",
+      "tilkjentTom": "2026-09-20",
+      "dagsats": 1072,
+      "effektivDagsats": 574,
+      "gradering": 50,
+      "samordningUføregradering": 50,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-09-21",
+      "tilkjentTom": "2026-09-30",
+      "dagsats": 1072,
+      "effektivDagsats": 574,
+      "gradering": 50,
+      "samordningUføregradering": 50,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-10-01",
+      "tilkjentTom": "2026-10-04",
+      "dagsats": 1072,
+      "effektivDagsats": 459,
+      "gradering": 40,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-10-05",
+      "tilkjentTom": "2026-10-18",
+      "dagsats": 1072,
+      "effektivDagsats": 459,
+      "gradering": 40,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-10-19",
+      "tilkjentTom": "2026-11-01",
+      "dagsats": 1072,
+      "effektivDagsats": 459,
+      "gradering": 40,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-11-02",
+      "tilkjentTom": "2026-11-15",
       "dagsats": 1072,
       "effektivDagsats": 0,
       "gradering": 0,
-      "samordningUføregradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-11-16",
+      "tilkjentTom": "2026-11-29",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-11-30",
+      "tilkjentTom": "2026-12-13",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-12-14",
+      "tilkjentTom": "2026-12-27",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2026-12-28",
+      "tilkjentTom": "2027-01-10",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2027-01-11",
+      "tilkjentTom": "2027-01-24",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2027-01-25",
+      "tilkjentTom": "2027-02-07",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2027-02-08",
+      "tilkjentTom": "2027-02-21",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2027-02-22",
+      "tilkjentTom": "2027-03-07",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2027-03-08",
+      "tilkjentTom": "2027-03-21",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2027-03-22",
+      "tilkjentTom": "2027-04-04",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2027-04-05",
+      "tilkjentTom": "2027-04-18",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2027-04-19",
+      "tilkjentTom": "2027-05-02",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2027-05-03",
+      "tilkjentTom": "2027-05-16",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2027-05-17",
+      "tilkjentTom": "2027-05-30",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
+      "grunnlagsfaktor": 0.0078500000,
+      "grunnbeløp": 136549.00,
+      "antallBarn": 2,
+      "barnetilleggsats": 38.00,
+      "barnetillegg": 76.00
+    },
+    {
+      "tilkjentFom": "2027-05-31",
+      "tilkjentTom": "2027-05-31",
+      "dagsats": 1072,
+      "effektivDagsats": 0,
+      "gradering": 0,
+      "samordningUføregradering": 60,
       "grunnlagsfaktor": 0.0078500000,
       "grunnbeløp": 136549.00,
       "antallBarn": 2,
@@ -418,176 +392,690 @@
   ],
   "rettighetsTypeTidsLinje": [
     {
-      "fom": "2025-08-01",
-      "tom": "2025-08-10",
+      "fom": "2026-06-01",
+      "tom": "2026-08-31",
       "verdi": "SYKEPENGEERSTATNING"
     },
     {
-      "fom": "2025-08-11",
-      "tom": "2025-08-24",
-      "verdi": "SYKEPENGEERSTATNING"
-    },
-    {
-      "fom": "2025-08-25",
-      "tom": "2025-09-07",
-      "verdi": "SYKEPENGEERSTATNING"
-    },
-    {
-      "fom": "2025-09-08",
-      "tom": "2025-09-21",
-      "verdi": "SYKEPENGEERSTATNING"
-    },
-    {
-      "fom": "2025-09-22",
-      "tom": "2025-10-05",
-      "verdi": "SYKEPENGEERSTATNING"
-    },
-    {
-      "fom": "2025-10-06",
-      "tom": "2025-10-19",
-      "verdi": "SYKEPENGEERSTATNING"
-    },
-    {
-      "fom": "2025-10-20",
-      "tom": "2025-11-02",
-      "verdi": "SYKEPENGEERSTATNING"
-    },
-    {
-      "fom": "2025-11-03",
-      "tom": "2025-11-16",
-      "verdi": "SYKEPENGEERSTATNING"
-    },
-    {
-      "fom": "2025-11-17",
-      "tom": "2025-11-30",
-      "verdi": "SYKEPENGEERSTATNING"
-    },
-    {
-      "fom": "2025-12-01",
-      "tom": "2025-12-14",
-      "verdi": "SYKEPENGEERSTATNING"
-    },
-    {
-      "fom": "2025-12-15",
-      "tom": "2025-12-28",
-      "verdi": "SYKEPENGEERSTATNING"
-    },
-    {
-      "fom": "2025-12-29",
-      "tom": "2025-12-31",
-      "verdi": "SYKEPENGEERSTATNING"
-    },
-    {
-      "fom": "2026-01-01",
-      "tom": "2026-01-11",
+      "fom": "2026-09-01",
+      "tom": "2027-05-31",
       "verdi": "BISTANDSBEHOV"
+    }
+  ],
+  "muligMaksdato": "2029-09-02",
+  "behandlingsReferanse": "b01e6a5a-88e1-4814-929a-cd4669f7ffc6",
+  "samIdOgTpr": [],
+  "vedtakId": 25,
+  "beregningsgrunnlag": 223849.54,
+  "perioderMedFritakMeldeplikt": [
+    {
+      "fom": "2026-06-01",
+      "tom": "2999-01-01"
+    }
+  ],
+  "stansOpphørVurdering": [],
+  "arenavedtak": [
+    {
+      "vedtakId": 23,
+      "fom": "2026-06-01",
+      "tom": "2026-08-31",
+      "vedtaksvariant": "O_INNV_SOKNAD"
     },
     {
-      "fom": "2026-01-12",
-      "tom": "2026-01-25",
-      "verdi": "BISTANDSBEHOV"
+      "vedtakId": 24,
+      "fom": "2026-09-01",
+      "tom": "2026-11-30",
+      "vedtaksvariant": "E_VERDI"
     },
     {
-      "fom": "2026-01-26",
-      "tom": "2026-02-01",
-      "verdi": "BISTANDSBEHOV"
-    },
-    {
-      "fom": "2026-02-02",
-      "tom": "2026-02-08",
-      "verdi": "BISTANDSBEHOV"
-    },
-    {
-      "fom": "2026-02-09",
-      "tom": "2026-02-22",
-      "verdi": "BISTANDSBEHOV"
-    },
-    {
-      "fom": "2026-02-23",
-      "tom": "2026-03-08",
-      "verdi": "BISTANDSBEHOV"
-    },
-    {
-      "fom": "2026-03-09",
-      "tom": "2026-03-22",
-      "verdi": "BISTANDSBEHOV"
-    },
-    {
-      "fom": "2026-03-23",
-      "tom": "2026-04-05",
-      "verdi": "BISTANDSBEHOV"
-    },
-    {
-      "fom": "2026-04-06",
-      "tom": "2026-04-19",
-      "verdi": "BISTANDSBEHOV"
-    },
-    {
-      "fom": "2026-04-20",
-      "tom": "2026-05-03",
-      "verdi": "BISTANDSBEHOV"
-    },
-    {
-      "fom": "2026-05-04",
-      "tom": "2026-05-17",
-      "verdi": "BISTANDSBEHOV"
-    },
-    {
-      "fom": "2026-05-18",
-      "tom": "2026-05-31",
-      "verdi": "BISTANDSBEHOV"
-    },
+      "vedtakId": 24,
+      "fom": "2026-12-01",
+      "tom": "2027-05-31",
+      "vedtaksvariant": "E_VERDI"
+    }
+  ],
+  "underveisperioder": [
     {
       "fom": "2026-06-01",
       "tom": "2026-06-14",
-      "verdi": "BISTANDSBEHOV"
+      "periode": {
+        "fom": "2026-06-01",
+        "tom": "2026-06-14"
+      },
+      "meldeperiode": {
+        "fom": "2026-06-01",
+        "tom": "2026-06-14"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
     },
     {
       "fom": "2026-06-15",
       "tom": "2026-06-28",
-      "verdi": "BISTANDSBEHOV"
+      "periode": {
+        "fom": "2026-06-15",
+        "tom": "2026-06-28"
+      },
+      "meldeperiode": {
+        "fom": "2026-06-15",
+        "tom": "2026-06-28"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
     },
     {
       "fom": "2026-06-29",
-      "tom": "2026-06-30",
-      "verdi": "BISTANDSBEHOV"
-    },
-    {
-      "fom": "2026-07-01",
       "tom": "2026-07-12",
-      "verdi": "BISTANDSBEHOV"
+      "periode": {
+        "fom": "2026-06-29",
+        "tom": "2026-07-12"
+      },
+      "meldeperiode": {
+        "fom": "2026-06-29",
+        "tom": "2026-07-12"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
     },
     {
       "fom": "2026-07-13",
       "tom": "2026-07-26",
-      "verdi": "BISTANDSBEHOV"
+      "periode": {
+        "fom": "2026-07-13",
+        "tom": "2026-07-26"
+      },
+      "meldeperiode": {
+        "fom": "2026-07-13",
+        "tom": "2026-07-26"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
     },
     {
       "fom": "2026-07-27",
-      "tom": "2026-07-31",
-      "verdi": "BISTANDSBEHOV"
-    }
-  ],
-  "muligMaksdato": "2029-01-02",
-  "behandlingsReferanse": "8391268f-424c-403c-b966-e5849d50edfb",
-  "samIdOgTpr": [],
-  "vedtakId": 59866,
-  "beregningsgrunnlag": 213375.83,
-  "stansOpphørVurdering": [],
-  "arenavedtak": [
-    {
-      "vedtakId": 59861,
-      "fom": "2025-08-01",
-      "tom": "2025-12-31",
-      "vedtaksvariant": "O_INNV_SOKNAD"
+      "tom": "2026-08-09",
+      "periode": {
+        "fom": "2026-07-27",
+        "tom": "2026-08-09"
+      },
+      "meldeperiode": {
+        "fom": "2026-07-27",
+        "tom": "2026-08-09"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
     },
     {
-      "vedtakId": 59861,
-      "fom": "2026-01-01",
-      "tom": "2026-07-31",
-      "vedtaksvariant": "O_INNV_SOKNAD"
+      "fom": "2026-08-10",
+      "tom": "2026-08-23",
+      "periode": {
+        "fom": "2026-08-10",
+        "tom": "2026-08-23"
+      },
+      "meldeperiode": {
+        "fom": "2026-08-10",
+        "tom": "2026-08-23"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2026-08-24",
+      "tom": "2026-08-31",
+      "periode": {
+        "fom": "2026-08-24",
+        "tom": "2026-08-31"
+      },
+      "meldeperiode": {
+        "fom": "2026-08-24",
+        "tom": "2026-09-06"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2026-09-01",
+      "tom": "2026-09-06",
+      "periode": {
+        "fom": "2026-09-01",
+        "tom": "2026-09-06"
+      },
+      "meldeperiode": {
+        "fom": "2026-08-24",
+        "tom": "2026-09-06"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2026-09-07",
+      "tom": "2026-09-20",
+      "periode": {
+        "fom": "2026-09-07",
+        "tom": "2026-09-20"
+      },
+      "meldeperiode": {
+        "fom": "2026-09-07",
+        "tom": "2026-09-20"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2026-09-21",
+      "tom": "2026-10-04",
+      "periode": {
+        "fom": "2026-09-21",
+        "tom": "2026-10-04"
+      },
+      "meldeperiode": {
+        "fom": "2026-09-21",
+        "tom": "2026-10-04"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2026-10-05",
+      "tom": "2026-10-18",
+      "periode": {
+        "fom": "2026-10-05",
+        "tom": "2026-10-18"
+      },
+      "meldeperiode": {
+        "fom": "2026-10-05",
+        "tom": "2026-10-18"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2026-10-19",
+      "tom": "2026-11-01",
+      "periode": {
+        "fom": "2026-10-19",
+        "tom": "2026-11-01"
+      },
+      "meldeperiode": {
+        "fom": "2026-10-19",
+        "tom": "2026-11-01"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2026-11-02",
+      "tom": "2026-11-15",
+      "periode": {
+        "fom": "2026-11-02",
+        "tom": "2026-11-15"
+      },
+      "meldeperiode": {
+        "fom": "2026-11-02",
+        "tom": "2026-11-15"
+      },
+      "meldepliktstatus": "FØR_VEDTAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2026-11-16",
+      "tom": "2026-11-29",
+      "periode": {
+        "fom": "2026-11-16",
+        "tom": "2026-11-29"
+      },
+      "meldeperiode": {
+        "fom": "2026-11-16",
+        "tom": "2026-11-29"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2026-11-30",
+      "tom": "2026-12-13",
+      "periode": {
+        "fom": "2026-11-30",
+        "tom": "2026-12-13"
+      },
+      "meldeperiode": {
+        "fom": "2026-11-30",
+        "tom": "2026-12-13"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2026-12-14",
+      "tom": "2026-12-27",
+      "periode": {
+        "fom": "2026-12-14",
+        "tom": "2026-12-27"
+      },
+      "meldeperiode": {
+        "fom": "2026-12-14",
+        "tom": "2026-12-27"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2026-12-28",
+      "tom": "2027-01-10",
+      "periode": {
+        "fom": "2026-12-28",
+        "tom": "2027-01-10"
+      },
+      "meldeperiode": {
+        "fom": "2026-12-28",
+        "tom": "2027-01-10"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2027-01-11",
+      "tom": "2027-01-24",
+      "periode": {
+        "fom": "2027-01-11",
+        "tom": "2027-01-24"
+      },
+      "meldeperiode": {
+        "fom": "2027-01-11",
+        "tom": "2027-01-24"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2027-01-25",
+      "tom": "2027-02-07",
+      "periode": {
+        "fom": "2027-01-25",
+        "tom": "2027-02-07"
+      },
+      "meldeperiode": {
+        "fom": "2027-01-25",
+        "tom": "2027-02-07"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2027-02-08",
+      "tom": "2027-02-21",
+      "periode": {
+        "fom": "2027-02-08",
+        "tom": "2027-02-21"
+      },
+      "meldeperiode": {
+        "fom": "2027-02-08",
+        "tom": "2027-02-21"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2027-02-22",
+      "tom": "2027-03-07",
+      "periode": {
+        "fom": "2027-02-22",
+        "tom": "2027-03-07"
+      },
+      "meldeperiode": {
+        "fom": "2027-02-22",
+        "tom": "2027-03-07"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2027-03-08",
+      "tom": "2027-03-21",
+      "periode": {
+        "fom": "2027-03-08",
+        "tom": "2027-03-21"
+      },
+      "meldeperiode": {
+        "fom": "2027-03-08",
+        "tom": "2027-03-21"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2027-03-22",
+      "tom": "2027-04-04",
+      "periode": {
+        "fom": "2027-03-22",
+        "tom": "2027-04-04"
+      },
+      "meldeperiode": {
+        "fom": "2027-03-22",
+        "tom": "2027-04-04"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2027-04-05",
+      "tom": "2027-04-18",
+      "periode": {
+        "fom": "2027-04-05",
+        "tom": "2027-04-18"
+      },
+      "meldeperiode": {
+        "fom": "2027-04-05",
+        "tom": "2027-04-18"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2027-04-19",
+      "tom": "2027-05-02",
+      "periode": {
+        "fom": "2027-04-19",
+        "tom": "2027-05-02"
+      },
+      "meldeperiode": {
+        "fom": "2027-04-19",
+        "tom": "2027-05-02"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2027-05-03",
+      "tom": "2027-05-16",
+      "periode": {
+        "fom": "2027-05-03",
+        "tom": "2027-05-16"
+      },
+      "meldeperiode": {
+        "fom": "2027-05-03",
+        "tom": "2027-05-16"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2027-05-17",
+      "tom": "2027-05-30",
+      "periode": {
+        "fom": "2027-05-17",
+        "tom": "2027-05-30"
+      },
+      "meldeperiode": {
+        "fom": "2027-05-17",
+        "tom": "2027-05-30"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
+    },
+    {
+      "fom": "2027-05-31",
+      "tom": "2027-05-31",
+      "periode": {
+        "fom": "2027-05-31",
+        "tom": "2027-05-31"
+      },
+      "meldeperiode": {
+        "fom": "2027-05-31",
+        "tom": "2027-06-13"
+      },
+      "meldepliktstatus": "FRITAK",
+      "arbeidsgrad": 0,
+      "overgrenseVerdi": false,
+      "timerArbeidet": 0.0
     }
   ],
-  "perioderMedFritakMeldeplikt": [],
-  "underveisperioder": []
+  "barnMedBarnetillegg": [
+    {
+      "ident": "96432516703",
+      "perioderMedBarnetillegg": [
+        {
+          "fom": "2026-06-01",
+          "tom": "2026-06-14",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-06-15",
+          "tom": "2026-06-28",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-06-29",
+          "tom": "2026-07-12",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-07-13",
+          "tom": "2026-07-26",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-07-27",
+          "tom": "2026-08-09",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-08-10",
+          "tom": "2026-08-23",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-08-24",
+          "tom": "2026-08-31",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-09-01",
+          "tom": "2026-09-06",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-09-07",
+          "tom": "2026-09-20",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-09-21",
+          "tom": "2026-09-30",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-10-01",
+          "tom": "2026-10-04",
+          "beløp": 15.20,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-10-05",
+          "tom": "2026-10-18",
+          "beløp": 15.20,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-10-19",
+          "tom": "2026-11-01",
+          "beløp": 15.20,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        }
+      ]
+    },
+    {
+      "ident": "57411199928",
+      "perioderMedBarnetillegg": [
+        {
+          "fom": "2026-06-01",
+          "tom": "2026-06-14",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-06-15",
+          "tom": "2026-06-28",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-06-29",
+          "tom": "2026-07-12",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-07-13",
+          "tom": "2026-07-26",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-07-27",
+          "tom": "2026-08-09",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-08-10",
+          "tom": "2026-08-23",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-08-24",
+          "tom": "2026-08-31",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-09-01",
+          "tom": "2026-09-06",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-09-07",
+          "tom": "2026-09-20",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-09-21",
+          "tom": "2026-09-30",
+          "beløp": 19.00,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-10-01",
+          "tom": "2026-10-04",
+          "beløp": 15.20,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-10-05",
+          "tom": "2026-10-18",
+          "beløp": 15.20,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        },
+        {
+          "fom": "2026-10-19",
+          "tom": "2026-11-01",
+          "beløp": 15.20,
+          "sats": 38.00,
+          "uredusertBeløp": 38.00
+        }
+      ]
+    }
+  ]
 }

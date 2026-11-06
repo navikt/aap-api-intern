@@ -133,8 +133,6 @@ public data class UtbetalingMedMer(
     @property:Description("Totalt beløp i perioden. Er lik antall hverdager * dagsats * utbetalingsgrad / 100.")
     val belop: Int,
     val dagsats: Int,
-    @property:Description("Barnetillegg, _etter_ gradering.")
-
     /** Størrelsen på total, gradert barnetillegg.
      *
      * Verdien er total i den forstand at den tar hensyn til antall barn.
@@ -143,6 +141,8 @@ public data class UtbetalingMedMer(
      * på grunn av samordning, og barnetilleggssatsen er spesifisert i AAP-forskriften § 8 til 38 kroner,
      * så vil [barnetillegg] gi 2 * 38 * 0.75 = 57 kroner.
      */
+    @property:Description("Barnetillegg, _etter_ gradering.")
+
     val barnetillegg: Int,
 ) {
     @Deprecated("Bruk barnetillegg")

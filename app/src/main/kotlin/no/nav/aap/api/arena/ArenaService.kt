@@ -29,13 +29,12 @@ import no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum
 import org.slf4j.LoggerFactory
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.ArenaSakMedVedtakResponse as ArenaSakMedVedtakResponseV1
 import no.nav.aap.arenaoppslag.kontrakt.apiv1.SakerRequest as SakerRequestV1
+import no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus as ArenaSakStatus
 
 class ArenaService(
     private val arena: IArenaoppslagGateway,
     private val arenaHistorikk: IArenaoppslagGateway,
 ) : WithMetrics {
-
-    private val secureLog = LoggerFactory.getLogger("team-logs")
 
     private val log = LoggerFactory.getLogger(javaClass)
 
@@ -79,9 +78,9 @@ class ArenaService(
         }
     }
 
-    private fun arenaSakStatusTilDomene(it: no.nav.aap.arenaoppslag.kontrakt.intern.SakStatus) =
+    private fun arenaSakStatusTilDomene(arenaSakStatus: ArenaSakStatus) =
         SakStatus.Arena(
-            sakId = it.sakId, statusKode = when (it.statusKode) {
+            sakId = arenaSakStatus.sakId, statusKode = when (arenaSakStatus.statusKode) {
                 Status.AVSLU -> ArenaStatus.AVSLU
                 Status.FORDE -> ArenaStatus.FORDE
                 Status.GODKJ -> ArenaStatus.GODKJ
@@ -93,7 +92,7 @@ class ArenaService(
                 Status.REGIS -> ArenaStatus.REGIS
                 Status.UKJENT -> ArenaStatus.UKJENT
             }, periode = Periode(
-                it.periode.fraOgMedDato, it.periode.tilOgMedDato
+                arenaSakStatus.periode.fraOgMedDato, arenaSakStatus.periode.tilOgMedDato
             )
         )
 
