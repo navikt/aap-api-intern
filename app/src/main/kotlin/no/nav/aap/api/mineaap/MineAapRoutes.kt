@@ -5,6 +5,7 @@ import com.papsign.ktor.openapigen.route.path.normal.get
 import com.papsign.ktor.openapigen.route.response.respond
 import com.papsign.ktor.openapigen.route.route
 import no.nav.aap.api.hentAllePersonidenter
+import no.nav.aap.api.intern.behandlingsflyt.SakstatusFraKelvin
 import no.nav.aap.api.pdl.IPdlGateway
 import no.nav.aap.api.postgres.BehandlingVisningRepository
 import no.nav.aap.api.postgres.SakStatusRepository
@@ -32,6 +33,11 @@ fun NormalOpenAPIRoute.mineAaapApi(
                     saker.map { sakStatus ->
                         SakMedBehandlingerVisning(
                             saksnummer = sakStatus.sakId,
+                            sakStatus = when (sakStatus.statusKode){
+                                SakstatusFraKelvin.FERDIGBEHANDLET -> SakStatus.FERDIGBEHANDLET
+                                SakstatusFraKelvin.REVURDERING_UNDER_BEHANDLING -> SakStatus.REVURDERING_UNDER_BEHANDLING
+                                SakstatusFraKelvin.SOKNAD_UNDER_BEHANDLING -> SakStatus.SOKNAD_UNDER_BEHANDLING
+                            },
                             behandlinger = behandlingVisningRepository
                                 .hentBehandlingVisninger(saksnummer = sakStatus.sakId)
                                 .map { it.tilResponse() },
