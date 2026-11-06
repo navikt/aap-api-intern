@@ -8,27 +8,29 @@ import no.nav.aap.api.maksimum.InternReduksjon
 import no.nav.aap.api.maksimum.InternUtbetalingMedMer
 import no.nav.aap.api.maksimum.InternVedtak
 import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
+import no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
 import java.time.format.DateTimeParseException
 
+private val logger = LoggerFactory.getLogger("api.util.HjelpeFunctions")
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.Maksimum.fraKontrakt(): InternMaksimum {
     return InternMaksimum(
         vedtak = this.vedtak.map { it.fraKontrakt() })
 }
 
-fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): InternVedtak {
+fun Vedtak.fraKontrakt(): InternVedtak {
     return InternVedtak(
-        this.dagsats,
-        null,
-        this.vedtaksId,
-        this.status,
-        this.saksnummer,
-        localDate(this.vedtaksdato),
-        this.periode.fraKontrakt(),
+        dagsats = this.dagsats,
+        dagsatsEtterUføreReduksjon = null,
+        vedtakId = this.vedtaksId,
+        status = this.status,
+        saksnummer = this.saksnummer,
+        vedtaksdato = localDate(this.vedtaksdato),
+        periode = this.periode.fraKontrakt(),
         rettighetsType = this.rettighetsType,
         beregningsgrunnlag = this.beregningsgrunnlag,
         barnMedStonad = this.barnMedStonad,
@@ -45,7 +47,7 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontrakt(): InternVedtak
     )
 }
 
-fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling(): InternVedtakUtenUtbetaling {
+fun Vedtak.fraKontraktUtenUtbetaling(): InternVedtakUtenUtbetaling {
     return InternVedtakUtenUtbetaling(
         dagsats = this.dagsats,
         dagsatsEtterUføreReduksjon = null,
@@ -68,8 +70,6 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Vedtak.fraKontraktUtenUtbetaling()
     )
 }
 
-private val logger = LoggerFactory.getLogger("api.util.HjelpeFunctions")
-
 /**
  * Midlertidig, kopiert fra api-appen. Trenger ikke denne når kontrakt er ordentlig typet.
  */
@@ -91,12 +91,12 @@ fun localDate(s: String): LocalDate {
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.UtbetalingMedMer.fraKontrakt(): InternUtbetalingMedMer {
     return InternUtbetalingMedMer(
-        this.reduksjon?.fraKontrakt(),
-        this.utbetalingsgrad,
-        this.periode.fraKontrakt(),
-        this.belop,
-        this.dagsats,
-        this.barnetillegg,
+        reduksjon = this.reduksjon?.fraKontrakt(),
+        utbetalingsgrad = this.utbetalingsgrad,
+        periode = this.periode.fraKontrakt(),
+        belop = this.belop,
+        dagsats = this.dagsats,
+        barnetillegg = this.barnetillegg,
     )
 }
 
@@ -109,7 +109,9 @@ fun no.nav.aap.arenaoppslag.kontrakt.modeller.Reduksjon.fraKontrakt(): InternRed
 
 fun no.nav.aap.arenaoppslag.kontrakt.modeller.AnnenReduksjon.fraKontrakt(): InternAnnenReduksjon {
     return InternAnnenReduksjon(
-        this.sykedager, if (this.sentMeldekort == true) 1 else 0, this.fraver
+        sykedager = this.sykedager,
+        sentMeldekort = if (this.sentMeldekort == true) 1 else 0,
+        fravær = this.fraver
     )
 }
 
