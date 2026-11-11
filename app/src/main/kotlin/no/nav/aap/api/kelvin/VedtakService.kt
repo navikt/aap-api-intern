@@ -2,26 +2,31 @@ package no.nav.aap.api.kelvin
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import no.nav.aap.api.maksimum.InternKilde
-import no.nav.aap.api.maksimum.InternMedium
 import no.nav.aap.api.maksimum.InternMaksimum
+import no.nav.aap.api.maksimum.InternMedium
 import no.nav.aap.api.maksimum.InternPeriode
 import no.nav.aap.api.maksimum.InternUtbetalingMedMer
 import no.nav.aap.api.maksimum.InternVedtak
 import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
 import no.nav.aap.api.postgres.BehandlingsRepository
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
-import no.nav.aap.komponenter.tidslinje.*
+import no.nav.aap.komponenter.tidslinje.JoinStyle
+import no.nav.aap.komponenter.tidslinje.Segment
+import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.komponenter.tidslinje.orEmpty
 import no.nav.aap.komponenter.type.Periode
 import java.math.BigDecimal
 import java.time.Clock
 import java.time.DayOfWeek
 import java.time.LocalDate
 
+private const val LØPENDE = "LØPENDE"
+
 class VedtakService(
     private val behandlingsRepository: BehandlingsRepository,
     private val clock: Clock = Clock.systemDefaultZone()
 ) {
-    fun hentMaksimum(fnr: String, interval: Periode): InternMaksimum {
+
+fun hentMaksimum(fnr: String, interval: Periode): InternMaksimum {
         val kelvinData = behandlingsRepository.hentVedtaksData(fnr, interval)
         val vedtak = kelvinData.flatMap { behandling ->
             val perioderTidslinje = behandling.rettighetsTypeTidslinje.kombiner(
@@ -36,7 +41,7 @@ class VedtakService(
                             dagsats = tilkjentYtelse?.dagsats.ellerNull(),
                             dagsatsEtterUføreReduksjon = tilkjentYtelse?.regnUtDagsatsEtterUføreReduksjon()
                                 .ellerNull(),
-                            status = Status.LØPENDE.name,
+                            status = LØPENDE,
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = rettighetsType,
@@ -155,7 +160,7 @@ class VedtakService(
                             dagsats = tilkjentYtelse?.dagsats.ellerNull(),
                             dagsatsEtterUføreReduksjon = tilkjentYtelse?.regnUtDagsatsEtterUføreReduksjon()
                                 .ellerNull(),
-                            status = Status.LØPENDE.name, // TODO!
+                            status = LØPENDE,
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
@@ -183,7 +188,6 @@ class VedtakService(
                         behandling.nyttVedtak,
                     )
                 }
-                .filter { (it.verdi.status == Status.LØPENDE.toString() || it.verdi.status == Status.AVSLUTTET.toString()) }
                 .verdier()
         }
 
@@ -215,7 +219,8 @@ data class VedtakUtenUtbetalingUtenPeriode(
     val dagsats: Int,
     @property:Description("Dagsats etter uføre-reduksjon. Dette er lik dagsats * (100 - uføregrad) / 100. Kommer kun fra nytt system (Kelvin). Ved manglende data er denne null.")
     val dagsatsEtterUføreReduksjon: Int,
-    @property:Description("Status på et vedtak. Mulige verdier er LØPENDE, AVSLUTTET, UTREDES. Per i dag konstant lik LØPENDE.")
+    @property:Deprecated("Vil fjernes.")
+    @property:Description("Status på en sak. Per i dag konstant lik LØPENDE.")
     val status: String,
     val saksnummer: String,
     val vedtaksdato: LocalDate, //reg_dato
