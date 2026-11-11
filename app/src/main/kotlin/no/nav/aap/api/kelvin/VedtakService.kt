@@ -2,15 +2,17 @@ package no.nav.aap.api.kelvin
 
 import com.papsign.ktor.openapigen.annotations.properties.description.Description
 import no.nav.aap.api.maksimum.InternKilde
-import no.nav.aap.api.maksimum.InternMedium
 import no.nav.aap.api.maksimum.InternMaksimum
+import no.nav.aap.api.maksimum.InternMedium
 import no.nav.aap.api.maksimum.InternPeriode
 import no.nav.aap.api.maksimum.InternUtbetalingMedMer
 import no.nav.aap.api.maksimum.InternVedtak
 import no.nav.aap.api.maksimum.InternVedtakUtenUtbetaling
 import no.nav.aap.api.postgres.BehandlingsRepository
-import no.nav.aap.behandlingsflyt.kontrakt.sak.Status
-import no.nav.aap.komponenter.tidslinje.*
+import no.nav.aap.komponenter.tidslinje.JoinStyle
+import no.nav.aap.komponenter.tidslinje.Segment
+import no.nav.aap.komponenter.tidslinje.Tidslinje
+import no.nav.aap.komponenter.tidslinje.orEmpty
 import no.nav.aap.komponenter.type.Periode
 import java.math.BigDecimal
 import java.time.Clock
@@ -36,7 +38,7 @@ class VedtakService(
                             dagsats = tilkjentYtelse?.dagsats.ellerNull(),
                             dagsatsEtterUføreReduksjon = tilkjentYtelse?.regnUtDagsatsEtterUføreReduksjon()
                                 .ellerNull(),
-                            status = Status.LØPENDE.name,
+                            status = "LØPENDE",
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = rettighetsType,
@@ -155,7 +157,7 @@ class VedtakService(
                             dagsats = tilkjentYtelse?.dagsats.ellerNull(),
                             dagsatsEtterUføreReduksjon = tilkjentYtelse?.regnUtDagsatsEtterUføreReduksjon()
                                 .ellerNull(),
-                            status = Status.LØPENDE.name, // TODO!
+                            status = "LØPENDE",
                             saksnummer = behandling.sak.saksnummer,
                             vedtaksdato = behandling.vedtaksDato,
                             rettighetsType = left.verdi,
@@ -183,7 +185,6 @@ class VedtakService(
                         behandling.nyttVedtak,
                     )
                 }
-                .filter { (it.verdi.status == Status.LØPENDE.toString() || it.verdi.status == Status.AVSLUTTET.toString()) }
                 .verdier()
         }
 
