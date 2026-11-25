@@ -56,6 +56,7 @@ public sealed interface BehandlingHendelseIntern {
         public enum class Status {
             VENTER_PÅ_LEGEERKLÆRING,
             PURRET_PÅ_LEGERERKLÆRING,
+            PURRET_PÅ_LEGEERKLÆRING,
             MOTTATT_LEGEERKLÆRING,
         }
     }
@@ -70,6 +71,8 @@ public sealed interface BehandlingHendelseIntern {
         public enum class Status {
             VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
             MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
+            VENTER_PÅ_LEDIG_SAKSBEHANDLER,
+            UNDER_BEHANDLING,
         }
     }
 

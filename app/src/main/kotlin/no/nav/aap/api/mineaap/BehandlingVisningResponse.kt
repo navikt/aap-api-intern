@@ -83,7 +83,9 @@ sealed interface BehandlingHendelseResponse {
 
         enum class Status {
             VENTER_PÅ_LEGEERKLÆRING,
+            // TODO: feilstavet, ikke i bruk
             PURRET_PÅ_LEGERERKLÆRING,
+            PURRET_PÅ_LEGEERKLÆRING,
             MOTTATT_LEGEERKLÆRING,
         }
     }
@@ -99,6 +101,8 @@ sealed interface BehandlingHendelseResponse {
         enum class Status {
             VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
             MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
+            VENTER_PÅ_LEDIG_SAKSBEHANDLER,
+            UNDER_BEHANDLING,
         }
     }
 

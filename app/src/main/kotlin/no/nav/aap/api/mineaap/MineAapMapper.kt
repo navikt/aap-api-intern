@@ -52,6 +52,9 @@ private fun BehandlingHendelseIntern.tilResponse(): BehandlingHendelseResponse =
                 BehandlingHendelseIntern.NavKontor.Status.MOTTATT_LEGEERKLÆRING ->
                     BehandlingHendelseResponse.NavKontor.Status.MOTTATT_LEGEERKLÆRING
 
+                BehandlingHendelseIntern.NavKontor.Status.PURRET_PÅ_LEGEERKLÆRING ->
+                    BehandlingHendelseResponse.NavKontor.Status.PURRET_PÅ_LEGEERKLÆRING
+
                 null -> null
             },
         )
@@ -65,6 +68,12 @@ private fun BehandlingHendelseIntern.tilResponse(): BehandlingHendelseResponse =
 
                 BehandlingHendelseIntern.Nay.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER ->
                     BehandlingHendelseResponse.Nay.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER
+
+                BehandlingHendelseIntern.Nay.Status.VENTER_PÅ_LEDIG_SAKSBEHANDLER ->
+                    BehandlingHendelseResponse.Nay.Status.VENTER_PÅ_LEDIG_SAKSBEHANDLER
+
+                BehandlingHendelseIntern.Nay.Status.UNDER_BEHANDLING ->
+                    BehandlingHendelseResponse.Nay.Status.UNDER_BEHANDLING
 
                 null -> null
             },
