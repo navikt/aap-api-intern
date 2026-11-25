@@ -91,4 +91,29 @@ class MineAapMapperTest {
         }
     }
 
+    @Test
+    fun `mapper alle statusverdier`() {
+        fun map(hendelse: BehandlingHendelseIntern) =
+            BehandlingVisningIntern("ref", false, BehandlingVisningTypeIntern.SØKNAD, listOf(hendelse))
+                .tilResponse().hendelser.single()
+
+        val alder = BehandlingHendelseIntern.AlderLovvalgMedlemskap.Status.entries
+        assertThat(alder.map {
+            (map(BehandlingHendelseIntern.AlderLovvalgMedlemskap(tidspunkt, BehandlingHendelseProgresjonIntern.AKTIV, it))
+                    as BehandlingHendelseResponse.AlderLovvalgMedlemskap).status?.name
+        }).containsExactlyElementsOf(alder.map { it.name })
+
+        val navKontor = BehandlingHendelseIntern.NavKontor.Status.entries
+        assertThat(navKontor.map {
+            (map(BehandlingHendelseIntern.NavKontor(tidspunkt, BehandlingHendelseProgresjonIntern.AKTIV, it))
+                    as BehandlingHendelseResponse.NavKontor).status?.name
+        }).containsExactlyElementsOf(navKontor.map { it.name })
+
+        val nay = BehandlingHendelseIntern.Nay.Status.entries
+        assertThat(nay.map {
+            (map(BehandlingHendelseIntern.Nay(tidspunkt, BehandlingHendelseProgresjonIntern.AKTIV, it))
+                    as BehandlingHendelseResponse.Nay).status?.name
+        }).containsExactlyElementsOf(nay.map { it.name })
+    }
+
 }
