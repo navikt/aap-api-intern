@@ -133,6 +133,7 @@ spec:
           namespace: supstonad
           cluster: dev-gcp
         - application: saksbehandling
+        - application: localauth # For lokal utvikling. IKKE kopier denne til prod.yaml
         - application: behandlingsflyt
           namespace: aap
           cluster: dev-gcp
