@@ -193,6 +193,7 @@ fun BehandlingHendelse.NavKontor.tilDomene(): BehandlingHendelseIntern {
             BehandlingHendelse.NavKontor.Status.VENTER_PÅ_LEGEERKLÆRING -> BehandlingHendelseIntern.NavKontor.Status.VENTER_PÅ_LEGEERKLÆRING
             BehandlingHendelse.NavKontor.Status.MOTTATT_LEGEERKLÆRING -> BehandlingHendelseIntern.NavKontor.Status.MOTTATT_LEGEERKLÆRING
             BehandlingHendelse.NavKontor.Status.PURRET_PÅ_LEGERERKLÆRING -> BehandlingHendelseIntern.NavKontor.Status.PURRET_PÅ_LEGERERKLÆRING
+            BehandlingHendelse.NavKontor.Status.PURRET_PÅ_LEGEERKLÆRING -> BehandlingHendelseIntern.NavKontor.Status.PURRET_PÅ_LEGEERKLÆRING
             null -> null
         }
     )
@@ -204,6 +205,8 @@ fun BehandlingHendelse.Nay.tilDomene(): BehandlingHendelseIntern {
        status = when (this.status){
            BehandlingHendelse.Nay.Status.VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER -> BehandlingHendelseIntern.Nay.Status.VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER
            BehandlingHendelse.Nay.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER -> BehandlingHendelseIntern.Nay.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER
+           BehandlingHendelse.Nay.Status.VENTER_PÅ_LEDIG_SAKSBEHANDLER -> BehandlingHendelseIntern.Nay.Status.VENTER_PÅ_LEDIG_SAKSBEHANDLER
+           BehandlingHendelse.Nay.Status.UNDER_BEHANDLING -> BehandlingHendelseIntern.Nay.Status.UNDER_BEHANDLING
            null -> null
        }
    )
