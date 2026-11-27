@@ -32,6 +32,8 @@ import no.nav.aap.api.util.WithFakes
 import no.nav.aap.komponenter.dbconnect.transaction
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -153,8 +155,15 @@ class MineAapRoutesTest : PostgresTestBase() {
             .containsExactly("ma-4-behandling")
     }
 
-    @Test
-    fun `serialiserer hendelser med navn som diskriminator`() = testApplication {
+    @ParameterizedTest
+    @CsvSource(
+        "2025-01-01T09:00:00, +01:00",
+        "2025-07-01T09:00:00, +02:00",
+    )
+    fun `serialiserer hendelser med navn som diskriminator og Oslo-tidssone`(
+        tidspunkt: String,
+        offset: String,
+    ) = testApplication {
         val fnr = "20000000007"
         lagreSak(fnr, "MA-5")
         lagreBehandling(
@@ -165,7 +174,7 @@ class MineAapRoutesTest : PostgresTestBase() {
                 behandlingType = BehandlingVisningTypeIntern.KLAGE,
                 hendelser = listOf(
                     BehandlingHendelseIntern.SøknadMottatt(
-                        sistEndret = LocalDateTime.of(2025, 1, 1, 9, 0),
+                        sistEndret = LocalDateTime.parse(tidspunkt),
                         progresjon = BehandlingHendelseProgresjonIntern.FULLFØRT,
                     ),
                     BehandlingHendelseIntern.Nay(
@@ -183,6 +192,8 @@ class MineAapRoutesTest : PostgresTestBase() {
         assertThat(behandling["behandlingType"].asText()).isEqualTo("KLAGE")
         assertThat(behandling["hendelser"].map { it["navn"].asText() })
             .containsExactly("SØKNAD_MOTTATT", "NAY")
+        assertThat(behandling["hendelser"][0]["sistEndret"].asText()).isEqualTo(tidspunkt + offset)
+        assertThat(behandling["hendelser"][1]["sistEndret"].isNull).isTrue()
 
         val hendelser = mapper.readValue<List<SakMedBehandlingerVisning>>(tekst)
             .single().behandlinger.single().hendelser
