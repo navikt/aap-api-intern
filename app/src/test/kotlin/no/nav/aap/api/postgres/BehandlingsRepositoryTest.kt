@@ -170,6 +170,42 @@ class BehandlingsRepositoryTest {
     }
 
     @Test
+    fun `lagring av eksisterende sak oppdaterer behandlingen`() {
+        val ident = listOf("99999999997")
+        val førsteBehandling = testVedtak.copy(
+            sak = Sak("ABCDE-ny-behandling", LocalDateTime.of(2021, 1, 1, 12, 0)),
+            vedtaksDato = LocalDate.of(2021, 1, 2)
+        )
+        val nyBehandling = førsteBehandling.copy(
+            behandlingsReferanse = UUID.randomUUID().toString(),
+            behandlingStatus = KelvinBehandlingStatus.AVSLUTTET,
+            vedtaksDato = LocalDate.of(2021, 2, 2),
+            sak = førsteBehandling.sak.copy(opprettetTidspunkt = LocalDateTime.of(2021, 2, 1, 12, 0)),
+            vedtakId = førsteBehandling.vedtakId + 1,
+            rettighetsperiode = Periode(LocalDate.of(2021, 2, 1), LocalDate.of(2022, 5, 1)),
+            foreløpigMaksdato = LocalDate.of(2022, 5, 1)
+        )
+
+        dataSource.transaction {
+            BehandlingsRepository(it).lagreBehandling(ident, førsteBehandling)
+        }
+
+        dataSource.transaction {
+            BehandlingsRepository(it).lagreBehandling(ident, nyBehandling)
+        }
+
+        val uthentetVedtak = dataSource.transaction {
+            BehandlingsRepository(it).hentVedtaksData(ident.single(), søkePeriode)
+        }
+
+        assertThat(uthentetVedtak).hasSize(1)
+        assertThat(uthentetVedtak.single())
+            .usingRecursiveComparison()
+            .withComparatorForType(BigDecimal::compareTo, BigDecimal::class.java)
+            .isEqualTo(nyBehandling)
+    }
+
+    @Test
     fun `oppdater identer fungerer som forventet`() {
         val saksnummer = "ABC123"
         val originalIdent = "55555555555"
