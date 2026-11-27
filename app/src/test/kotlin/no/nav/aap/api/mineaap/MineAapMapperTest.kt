@@ -2,10 +2,39 @@ package no.nav.aap.api.mineaap
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 class MineAapMapperTest {
     private val tidspunkt = LocalDateTime.of(2025, 1, 2, 10, 15)
+
+    @ParameterizedTest
+    @CsvSource(
+        "2025-01-02T10:15:00, +01:00",
+        "2025-07-02T10:15:00, +02:00",
+        "2025-10-26T02:30:00, +02:00",
+    )
+    fun `mapper sistEndret med Oslo-tidssone for alle hendelsestyper`(lokaltTidspunkt: String, offset: String) {
+        val sistEndret = LocalDateTime.parse(lokaltTidspunkt)
+        val behandling = BehandlingVisningIntern(
+            behandlingReferanse = "ref",
+            avsluttet = false,
+            behandlingType = BehandlingVisningTypeIntern.SØKNAD,
+            hendelser = listOf(
+                BehandlingHendelseIntern.SøknadMottatt(sistEndret, BehandlingHendelseProgresjonIntern.FULLFØRT),
+                BehandlingHendelseIntern.AlderLovvalgMedlemskap(sistEndret, BehandlingHendelseProgresjonIntern.AKTIV),
+                BehandlingHendelseIntern.NavKontor(sistEndret, BehandlingHendelseProgresjonIntern.AKTIV),
+                BehandlingHendelseIntern.Nay(sistEndret, BehandlingHendelseProgresjonIntern.AKTIV),
+                BehandlingHendelseIntern.FerdigBehandlet(sistEndret, BehandlingHendelseProgresjonIntern.FULLFØRT),
+            ),
+        )
+
+        assertThat(behandling.tilResponse().hendelser).allSatisfy {
+            assertThat(it.sistEndret).isEqualTo(OffsetDateTime.parse(lokaltTidspunkt + offset))
+        }
+    }
 
     @Test
     fun `mapper alle hendelsestyper`() {
@@ -34,24 +63,25 @@ class MineAapMapperTest {
             ),
         )
 
+        val forventetTidspunkt = OffsetDateTime.parse("2025-01-02T10:15:00+01:00")
         assertThat(behandling.tilResponse().hendelser).containsExactly(
-            BehandlingHendelseResponse.SøknadMottatt(tidspunkt, BehandlingHendelseProgresjonResponse.FULLFØRT),
+            BehandlingHendelseResponse.SøknadMottatt(forventetTidspunkt, BehandlingHendelseProgresjonResponse.FULLFØRT),
             BehandlingHendelseResponse.AlderLovvalgMedlemskap(
-                sistEndret = tidspunkt,
+                sistEndret = forventetTidspunkt,
                 progresjon = BehandlingHendelseProgresjonResponse.AKTIV,
                 status = BehandlingHendelseResponse.AlderLovvalgMedlemskap.Status.VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
             ),
             BehandlingHendelseResponse.NavKontor(
-                sistEndret = tidspunkt,
+                sistEndret = forventetTidspunkt,
                 progresjon = BehandlingHendelseProgresjonResponse.AKTIV,
                 status = BehandlingHendelseResponse.NavKontor.Status.PURRET_PÅ_LEGERERKLÆRING,
             ),
             BehandlingHendelseResponse.Nay(
-                sistEndret = tidspunkt,
+                sistEndret = forventetTidspunkt,
                 progresjon = BehandlingHendelseProgresjonResponse.AKTIV,
                 status = BehandlingHendelseResponse.Nay.Status.MOTTATT_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER,
             ),
-            BehandlingHendelseResponse.FerdigBehandlet(tidspunkt, BehandlingHendelseProgresjonResponse.FULLFØRT),
+            BehandlingHendelseResponse.FerdigBehandlet(forventetTidspunkt, BehandlingHendelseProgresjonResponse.FULLFØRT),
         )
     }
 
@@ -65,6 +95,7 @@ class MineAapMapperTest {
                 BehandlingHendelseIntern.AlderLovvalgMedlemskap(null, BehandlingHendelseProgresjonIntern.IKKE_PÅBEGYNT),
                 BehandlingHendelseIntern.NavKontor(null, BehandlingHendelseProgresjonIntern.IKKE_PÅBEGYNT),
                 BehandlingHendelseIntern.Nay(null, BehandlingHendelseProgresjonIntern.IKKE_PÅBEGYNT),
+                BehandlingHendelseIntern.FerdigBehandlet(null, BehandlingHendelseProgresjonIntern.IKKE_PÅBEGYNT),
             ),
         )
 
@@ -72,6 +103,7 @@ class MineAapMapperTest {
             BehandlingHendelseResponse.AlderLovvalgMedlemskap(null, BehandlingHendelseProgresjonResponse.IKKE_PÅBEGYNT),
             BehandlingHendelseResponse.NavKontor(null, BehandlingHendelseProgresjonResponse.IKKE_PÅBEGYNT),
             BehandlingHendelseResponse.Nay(null, BehandlingHendelseProgresjonResponse.IKKE_PÅBEGYNT),
+            BehandlingHendelseResponse.FerdigBehandlet(null, BehandlingHendelseProgresjonResponse.IKKE_PÅBEGYNT),
         )
     }
 

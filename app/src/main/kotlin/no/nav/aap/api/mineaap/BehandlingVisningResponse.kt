@@ -3,7 +3,7 @@ package no.nav.aap.api.mineaap
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.annotation.JsonTypeName
-import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 data class BehandlingVisningResponse(
     val behandlingReferanse: String,
@@ -48,12 +48,12 @@ enum class BehandlingHendelseProgresjonResponse {
 )
 sealed interface BehandlingHendelseResponse {
     val navn: BehandlingHendelseNavnResponse
-    val sistEndret: LocalDateTime?
+    val sistEndret: OffsetDateTime?
     val progresjon: BehandlingHendelseProgresjonResponse
 
     @JsonTypeName("SØKNAD_MOTTATT")
     data class SøknadMottatt(
-        override val sistEndret: LocalDateTime,
+        override val sistEndret: OffsetDateTime,
         override val progresjon: BehandlingHendelseProgresjonResponse,
     ) : BehandlingHendelseResponse {
         override val navn: BehandlingHendelseNavnResponse = BehandlingHendelseNavnResponse.SØKNAD_MOTTATT
@@ -61,7 +61,7 @@ sealed interface BehandlingHendelseResponse {
 
     @JsonTypeName("ALDER_LOVVALG_MEDLEMSKAP")
     data class AlderLovvalgMedlemskap(
-        override val sistEndret: LocalDateTime?,
+        override val sistEndret: OffsetDateTime?,
         override val progresjon: BehandlingHendelseProgresjonResponse,
         val status: Status? = null,
     ) : BehandlingHendelseResponse {
@@ -75,7 +75,7 @@ sealed interface BehandlingHendelseResponse {
 
     @JsonTypeName("NAV_KONTOR")
     data class NavKontor(
-        override val sistEndret: LocalDateTime?,
+        override val sistEndret: OffsetDateTime?,
         override val progresjon: BehandlingHendelseProgresjonResponse,
         val status: Status? = null,
     ) : BehandlingHendelseResponse {
@@ -92,7 +92,7 @@ sealed interface BehandlingHendelseResponse {
 
     @JsonTypeName("NAY")
     data class Nay(
-        override val sistEndret: LocalDateTime?,
+        override val sistEndret: OffsetDateTime?,
         override val progresjon: BehandlingHendelseProgresjonResponse,
         val status: Status? = null,
     ) : BehandlingHendelseResponse {
@@ -108,7 +108,7 @@ sealed interface BehandlingHendelseResponse {
 
     @JsonTypeName("FERDIG_BEHANDLET")
     data class FerdigBehandlet(
-        override val sistEndret: LocalDateTime?,
+        override val sistEndret: OffsetDateTime?,
         override val progresjon: BehandlingHendelseProgresjonResponse,
     ) : BehandlingHendelseResponse {
         override val navn: BehandlingHendelseNavnResponse = BehandlingHendelseNavnResponse.FERDIG_BEHANDLET

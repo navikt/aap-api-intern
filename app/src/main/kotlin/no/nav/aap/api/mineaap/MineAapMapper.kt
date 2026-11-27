@@ -1,5 +1,14 @@
 package no.nav.aap.api.mineaap
 
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
+
+private val osloTidssone = ZoneId.of("Europe/Oslo")
+
+private fun LocalDateTime.medOsloTidssone(): OffsetDateTime =
+    atZone(osloTidssone).toOffsetDateTime()
+
 fun BehandlingVisningIntern.tilResponse(): BehandlingVisningResponse =
     BehandlingVisningResponse(
         behandlingReferanse = behandlingReferanse,
@@ -21,12 +30,12 @@ private fun BehandlingHendelseProgresjonIntern.tilResponse(): BehandlingHendelse
 private fun BehandlingHendelseIntern.tilResponse(): BehandlingHendelseResponse =
     when (this) {
         is BehandlingHendelseIntern.SøknadMottatt -> BehandlingHendelseResponse.SøknadMottatt(
-            sistEndret = sistEndret,
+            sistEndret = sistEndret.medOsloTidssone(),
             progresjon = progresjon.tilResponse(),
         )
 
         is BehandlingHendelseIntern.AlderLovvalgMedlemskap -> BehandlingHendelseResponse.AlderLovvalgMedlemskap(
-            sistEndret = sistEndret,
+            sistEndret = sistEndret?.medOsloTidssone(),
             progresjon = progresjon.tilResponse(),
             status = when (status) {
                 BehandlingHendelseIntern.AlderLovvalgMedlemskap.Status.VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER ->
@@ -40,7 +49,7 @@ private fun BehandlingHendelseIntern.tilResponse(): BehandlingHendelseResponse =
         )
 
         is BehandlingHendelseIntern.NavKontor -> BehandlingHendelseResponse.NavKontor(
-            sistEndret = sistEndret,
+            sistEndret = sistEndret?.medOsloTidssone(),
             progresjon = progresjon.tilResponse(),
             status = when (status) {
                 BehandlingHendelseIntern.NavKontor.Status.VENTER_PÅ_LEGEERKLÆRING ->
@@ -60,7 +69,7 @@ private fun BehandlingHendelseIntern.tilResponse(): BehandlingHendelseResponse =
         )
 
         is BehandlingHendelseIntern.Nay -> BehandlingHendelseResponse.Nay(
-            sistEndret = sistEndret,
+            sistEndret = sistEndret?.medOsloTidssone(),
             progresjon = progresjon.tilResponse(),
             status = when (status) {
                 BehandlingHendelseIntern.Nay.Status.VENTER_PÅ_INFORMASJON_FRA_UTENLANDSKE_MYNDIGHETER ->
@@ -80,7 +89,7 @@ private fun BehandlingHendelseIntern.tilResponse(): BehandlingHendelseResponse =
         )
 
         is BehandlingHendelseIntern.FerdigBehandlet -> BehandlingHendelseResponse.FerdigBehandlet(
-            sistEndret = sistEndret,
+            sistEndret = sistEndret?.medOsloTidssone(),
             progresjon = progresjon.tilResponse(),
         )
     }
