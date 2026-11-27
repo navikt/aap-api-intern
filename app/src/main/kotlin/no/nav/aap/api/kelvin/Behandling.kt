@@ -33,6 +33,8 @@ fun <T> Tidslinje<T>.utenHelger(): Tidslinje<T> {
 
 /**
  * @param tilkjent Tilkjent ytelse-tidslinje, _med_ positiv dagsats i helger. Så bør ikke brukes som en proxy for "utbetalinger".
+ * @param behandlingsReferanse For behandlinger før (ca) 27/11-27 var denne alltid lik førstegangsbehandlingen. Eksponeres ikke ut, så vurder å fjerne.
+ * @param behandlingStatus Behandling-status fra behandlingsflyt. Ser ikke ut til å være i bruk, vurder å fjerne.
  */
 data class Behandling(
     val behandlingsReferanse: String,

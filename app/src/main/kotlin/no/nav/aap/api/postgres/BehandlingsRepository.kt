@@ -85,7 +85,9 @@ class BehandlingsRepository(private val connection: DBConnection) {
                 VALUES (?, ?, ?, ?, ?, ?)
                 ON CONFLICT (sak_id) DO UPDATE SET STATUS        = EXCLUDED.status,
                                                    vedtaks_dato  = excluded.vedtaks_dato,
-                                                   OPPRETTET_TID = excluded.opprettet_tid
+                                                   OPPRETTET_TID = excluded.opprettet_tid,
+                                                   behandling_referanse = excluded.behandling_referanse,
+                                                   vedtakid = excluded.vedtakid
                 RETURNING ID
             """.trimIndent()
         ) {
